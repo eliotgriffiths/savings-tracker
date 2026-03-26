@@ -356,37 +356,61 @@ function setSyncStatus(state, msg) {
   el.className = "sync-status sync-" + state;
 }
 
-async function syncToSheet() {
+function syncToSheet() {
   if (!scriptURL) return;
   setSyncStatus("busy", "Saving…");
-  try {
-    const url = scriptURL + "?action=save&data=" + encodeURIComponent(JSON.stringify(data));
-    const r = await fetch(url);
-    const j = await r.json();
-    if (j.ok) { setSyncStatus("ok", "Synced ✓"); }
-    else { setSyncStatus("err", "Save failed"); }
-  } catch { setSyncStatus("err", "Offline"); }
+  jsonp(scriptURL + "?action=save&data=" + encodeURIComponent(JSON.stringify(data)),
+    (j) => { setSyncStatus(j.ok ? "ok" : "err", j.ok ? "Synced ✓" : "Save failed"); },
+    ()  => { setSyncStatus("err", "Offline"); }
+  );
 }
 
-async function syncFromSheet() {
+function syncFromSheet() {
   if (!scriptURL) return;
   setSyncStatus("busy", "Loading…");
-  try {
-    const url = scriptURL + "?action=load";
-    const r = await fetch(url);
-    const j = await r.json();
-    if (j.ok) {
-      if (Object.keys(j.data).length > 0) {
-        data = j.data;
-        saveLocal();
+  jsonp(scriptURL + "?action=load",
+    (j) => {
+      if (j.ok) {
+        if (j.data && Object.keys(j.data).length > 0) {
+          data = j.data;
+          saveLocal();
+          activeYear = Object.keys(data)[0];
+        }
+        setSyncStatus("ok", "Synced ✓");
+        render();
+      } else {
+        setSyncStatus("err", "Load failed: " + (j.error || "unknown"));
       }
-      setSyncStatus("ok", "Synced ✓");
-      activeYear = Object.keys(data)[0];
-      render();
-    } else {
-      setSyncStatus("err", "Load failed");
-    }
-  } catch { setSyncStatus("err", "Offline"); }
+    },
+    () => { setSyncStatus("err", "Offline / bad URL"); }
+  );
+}
+
+// JSONP: injects a <script> tag to bypass CORS entirely
+let _jsonpCounter = 0;
+function jsonp(url, onSuccess, onError) {
+  const cbName = "_jsonpCb" + (++_jsonpCounter);
+  const timeout = setTimeout(() => {
+    delete window[cbName];
+    if (script.parentNode) script.parentNode.removeChild(script);
+    onError && onError();
+  }, 10000);
+
+  window[cbName] = (data) => {
+    clearTimeout(timeout);
+    delete window[cbName];
+    if (script.parentNode) script.parentNode.removeChild(script);
+    onSuccess(data);
+  };
+
+  const script = document.createElement("script");
+  script.src = url + "&callback=" + cbName;
+  script.onerror = () => {
+    clearTimeout(timeout);
+    delete window[cbName];
+    onError && onError();
+  };
+  document.head.appendChild(script);
 }
 
 function scheduleSave() {
@@ -395,9 +419,9 @@ function scheduleSave() {
   syncTimer = setTimeout(syncToSheet, 1500);
 }
 
-async function manualSync() {
+function manualSync() {
   if (!scriptURL) { toast("No script URL set. Click ⚙ Settings.", "#c0392b"); return; }
-  await syncFromSheet();
+  syncFromSheet();
 }
 
 // ─── modal ─────────────────────────────────────────────────────────────────────
