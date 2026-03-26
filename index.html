@@ -105,7 +105,10 @@
     font-weight: 500;
     white-space: nowrap;
     letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: opacity 0.15s;
   }
+  #sync-status:hover { opacity: 0.75; }
   .sync-ok   { background: rgba(61,158,110,0.15);  color: #5ec497; }
   .sync-busy { background: rgba(201,168,76,0.15);  color: var(--gold); }
   .sync-err  { background: rgba(192,80,74,0.15);   color: #e07a75; }
@@ -189,7 +192,7 @@
     width: 100%;
     background: transparent;
     border: none;
-    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
     color: var(--text-2);
     padding: 11px 16px;
     text-align: left;
@@ -332,6 +335,11 @@
   }
   th.right  { text-align: right; }
   th.center { text-align: center; }
+  /* type col: hidden unless all-tab active */
+  th.sort-col-type { display: none; }
+  td.tx-type-cell  { display: none; }
+  body.tab-all th.sort-col-type,
+  body.tab-all td.tx-type-cell  { display: table-cell; }
 
   tbody tr {
     border-bottom: 1px solid var(--border);
@@ -441,7 +449,21 @@
     padding: 32px;
     max-width: 460px;
     width: 100%;
+    position: relative;
   }
+  .modal-close {
+    background: transparent;
+    border: none;
+    color: var(--text-3);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    transition: color 0.15s, background 0.15s;
+  }
+  .modal-close:hover { color: var(--text-1); background: var(--bg3); }
   .modal-box h2 {
     font-family: 'DM Serif Display', serif;
     font-size: 20px;
@@ -499,7 +521,7 @@
   #sidebar { transition: width 0.22s cubic-bezier(0.4,0,0.2,1); }
   #sidebar.collapsed { width: 40px; }
   #sidebar.collapsed #year-list,
-  #sidebar.collapsed #add-year-area { display: none; }
+  #sidebar.collapsed #sidebar-report-btn-wrap { display: none; }
   #sidebar.collapsed .sidebar-label { display: none; }
   #sidebar.collapsed #sidebar-collapse-btn { transform: rotate(180deg); }
 
@@ -637,11 +659,10 @@
     .bnav-btn.active { color: var(--text-1); }
     .bnav-btn .bnav-icon { font-size: 20px; line-height: 1; }
     .bnav-btn.bnav-add {
-      color: #fff; border-radius: 12px; margin: 10px 6px;
+      color: #0f0f11; border-radius: 12px; margin: 10px 6px;
       padding: 6px 0; letter-spacing: 0.03em;
+      background: var(--gold);
     }
-    .bnav-btn.bnav-add.deposit-mode  { background: var(--green); }
-    .bnav-btn.bnav-add.withdraw-mode { background: var(--red); }
 
     /* slide-up sheets */
     #menu-sheet, #year-sheet, #add-sheet {
@@ -722,11 +743,32 @@
       border-radius: var(--radius);
     }
     #add-sheet .field input[type=date] { min-width: unset; }
+
+    /* type toggle */
+    .add-type-toggle {
+      display: flex;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 3px;
+      margin-bottom: 20px;
+      gap: 3px;
+    }
+    .add-type-btn {
+      flex: 1; border: none; border-radius: 7px;
+      padding: 11px 0; font-size: 14px; font-weight: 600;
+      font-family: 'DM Sans', sans-serif; cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      background: transparent; color: var(--text-3);
+    }
+    .add-type-btn.active-deposit  { background: var(--green); color: #fff; }
+    .add-type-btn.active-withdraw { background: var(--red);   color: #fff; }
+
     #mob-add-btn {
       width: 100%; border: none; border-radius: 12px;
       padding: 15px 0; color: #fff; font-weight: 600; font-size: 16px;
       font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 4px;
-      transition: opacity 0.15s; letter-spacing: 0.02em;
+      transition: background 0.2s, opacity 0.15s; letter-spacing: 0.02em;
     }
     #mob-add-btn:hover { opacity: 0.88; }
 
@@ -804,6 +846,366 @@
     #version-footer { bottom: 74px; }
   }
 
+  /* ── desktop menu dropdown ── */
+  #desktop-menu {
+    display: none;
+    position: fixed;
+    top: 66px;
+    right: 20px;
+    width: 260px;
+    background: var(--bg2);
+    border: 1px solid var(--border-hi);
+    border-radius: var(--radius-lg);
+    z-index: 200;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2), 0 16px 48px rgba(0,0,0,0.5);
+    transform: translateY(-6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.18s cubic-bezier(0.4,0,0.2,1),
+                opacity 0.18s cubic-bezier(0.4,0,0.2,1);
+  }
+  #desktop-menu.open {
+    display: block;
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  /* force reflow so transition fires on display:block */
+  #desktop-menu.open { animation: _menuOpen 0.18s cubic-bezier(0.4,0,0.2,1) forwards; }
+  @keyframes _menuOpen {
+    from { transform: translateY(-6px); opacity: 0; }
+    to   { transform: translateY(0);   opacity: 1; }
+  }
+
+  .dmenu-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .dmenu-header-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .dmenu-sync-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dmenu-sync-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--text-3);
+  }
+  .dmenu-sync-dot.ok   { background: var(--green); box-shadow: 0 0 6px rgba(61,158,110,0.6); }
+  .dmenu-sync-dot.busy { background: var(--gold);  box-shadow: 0 0 6px rgba(201,168,76,0.5); }
+  .dmenu-sync-dot.err  { background: var(--red);   box-shadow: 0 0 6px rgba(192,80,74,0.5); }
+  #dmenu-sync-text {
+    font-size: 12px;
+    color: var(--text-2);
+    font-weight: 400;
+  }
+
+  .dmenu-items { padding: 6px 0; }
+  .dmenu-btn {
+    width: 100%;
+    background: transparent;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background 0.12s;
+    text-align: left;
+  }
+  .dmenu-btn:hover { background: var(--bg3); }
+  .dmenu-btn:hover .dmenu-btn-icon { color: var(--text-1); }
+  .dmenu-btn-icon {
+    font-size: 15px;
+    width: 22px;
+    text-align: center;
+    flex-shrink: 0;
+    color: var(--text-3);
+    transition: color 0.12s;
+    line-height: 1;
+  }
+  .dmenu-btn-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-1);
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: 0.01em;
+  }
+  .dmenu-btn-sub {
+    font-size: 11px;
+    color: var(--text-3);
+    font-weight: 300;
+    margin-top: 1px;
+  }
+  .dmenu-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+  }
+
+  #desktop-menu-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 199;
+  }
+  #desktop-menu-overlay.open { display: block; }
+  @media (max-width: 640px) {
+    #desktop-menu { display: none !important; }
+    #desktop-menu-overlay { display: none !important; }
+    #desktop-menu-btn { display: none !important; }
+  }
+  /* ── info popup ── */
+  #info-popup {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 400;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  #info-popup.hidden { display: none; }
+  .info-popup-box {
+    background: var(--bg2);
+    border: 1px solid var(--border-hi);
+    border-radius: var(--radius-lg);
+    padding: 28px 32px 32px;
+    max-width: 420px;
+    width: 100%;
+    position: relative;
+  }
+  .info-popup-box h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px; font-weight: 400;
+    color: var(--text-1);
+    margin-bottom: 20px;
+  }
+  .info-mode {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .info-mode-title {
+    font-size: 13px; font-weight: 600;
+    color: var(--text-1); margin-bottom: 5px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .info-mode-title .info-badge {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; padding: 2px 7px;
+    border-radius: 20px;
+  }
+  .info-badge.cloud { background: rgba(201,168,76,0.15); color: var(--gold); }
+  .info-badge.local { background: var(--bg4); color: var(--text-3); }
+  .info-mode p {
+    font-size: 12px; color: var(--text-2);
+    line-height: 1.7; font-weight: 300; margin: 0;
+  }
+  .info-popup-close-btn {
+    margin-top: 20px; width: 100%;
+    background: var(--bg3); border: 1px solid var(--border-hi);
+    border-radius: var(--radius); padding: 10px 0;
+    color: var(--text-2); font-size: 13px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif; cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .info-popup-close-btn:hover { border-color: var(--gold-dim); color: var(--text-1); }
+
+  /* info trigger button */
+  .modal-info-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border-hi);
+    border-radius: 50%;
+    color: var(--text-2);
+    font-size: 12px;
+    font-weight: 700;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .modal-info-btn:hover { border-color: var(--gold-dim); color: var(--gold); background: var(--bg4); }
+  /* ── sync info popup ── */
+  #sync-info-popup {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 400;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  #sync-info-popup.hidden { display: none; }
+  .sync-info-box {
+    background: var(--bg2);
+    border: 1px solid var(--border-hi);
+    border-radius: var(--radius-lg);
+    padding: 28px 32px 32px;
+    max-width: 400px;
+    width: 100%;
+  }
+  .sync-info-box p {
+    font-size: 12px; color: var(--text-2);
+    line-height: 1.6; font-weight: 300; margin: 0;
+  }
+  .sync-status-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+  }
+  .sync-status-row:last-of-type { margin-bottom: 0; }
+  .sync-status-row.row-ok   { border-color: rgba(61,158,110,0.2);  background: rgba(61,158,110,0.05); }
+  .sync-status-row.row-busy { border-color: rgba(201,168,76,0.2);  background: rgba(201,168,76,0.05); }
+  .sync-status-row.row-err  { border-color: rgba(192,80,74,0.2);   background: rgba(192,80,74,0.05); }
+  .sync-status-row.row-none { border-color: var(--border);         background: var(--bg3); }
+  .srow-pill {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.04em;
+    padding: 3px 9px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .srow-pill.ok   { background: rgba(61,158,110,0.15); color: #5ec497; }
+  .srow-pill.busy { background: rgba(201,168,76,0.15); color: var(--gold); }
+  .srow-pill.err  { background: rgba(192,80,74,0.15);  color: #e07a75; }
+  .srow-pill.none { background: var(--bg4);            color: var(--text-3); }
+  .srow-text { flex: 1; }
+  .srow-title {
+    font-size: 12px; font-weight: 600;
+    color: var(--text-1); margin-bottom: 3px;
+  }
+  .srow-desc {
+    font-size: 12px; color: var(--text-2);
+    line-height: 1.6; font-weight: 300;
+  }
+  /* ── tutorial popup ── */
+  #tutorial-popup {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(4px);
+    z-index: 500;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  #tutorial-popup.hidden { display: none; }
+  .tutorial-box {
+    background: var(--bg2);
+    border: 1px solid var(--border-hi);
+    border-radius: var(--radius-lg);
+    width: 100%; max-width: 520px;
+    max-height: 88vh;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .tutorial-header {
+    padding: 22px 28px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+    flex-shrink: 0;
+  }
+  .tutorial-header h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px; font-weight: 400;
+    color: var(--text-1); flex: 1; margin: 0;
+  }
+  .tutorial-steps-track {
+    display: flex; gap: 4px; align-items: center;
+    padding: 0 28px 14px; flex-shrink: 0;
+  }
+  .tstep-dot {
+    height: 3px; border-radius: 2px; flex: 1;
+    background: var(--bg4);
+    transition: background 0.2s;
+  }
+  .tstep-dot.done    { background: var(--gold-dim); }
+  .tstep-dot.current { background: var(--gold); }
+  .tutorial-body {
+    flex: 1; overflow-y: auto;
+    padding: 0 28px 8px;
+  }
+  .tutorial-step { display: none; }
+  .tutorial-step.active { display: block; }
+  .tstep-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--gold-glow); border: 1px solid var(--gold-dim);
+    color: var(--gold); font-size: 12px; font-weight: 700;
+    flex-shrink: 0; margin-bottom: 10px;
+  }
+  .tstep-title {
+    font-size: 15px; font-weight: 600; color: var(--text-1);
+    margin-bottom: 8px;
+  }
+  .tstep-body {
+    font-size: 13px; color: var(--text-2);
+    line-height: 1.75; font-weight: 300;
+  }
+  .tstep-body strong { color: var(--text-1); font-weight: 600; }
+  .tstep-body ol {
+    margin: 10px 0 10px 18px; display: flex; flex-direction: column; gap: 6px;
+  }
+  .tstep-code {
+    background: var(--bg0);
+    border: 1px solid var(--border-hi);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    font-size: 11px; font-family: monospace;
+    color: var(--text-2);
+    margin: 12px 0;
+    white-space: pre-wrap; word-break: break-all;
+    line-height: 1.6;
+    position: relative;
+  }
+  .tstep-code .code-label {
+    font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-3); font-family: 'DM Sans', sans-serif;
+    margin-bottom: 6px; display: block;
+  }
+  .tstep-note {
+    background: var(--bg3); border-left: 2px solid var(--gold-dim);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 10px 12px; margin: 12px 0;
+    font-size: 12px; color: var(--text-2); line-height: 1.6;
+  }
+  .tutorial-footer {
+    padding: 16px 28px 22px;
+    border-top: 1px solid var(--border);
+    display: flex; gap: 10px; align-items: center;
+    flex-shrink: 0;
+  }
+  .tstep-counter {
+    font-size: 11px; color: var(--text-3); flex: 1;
+    font-weight: 500; letter-spacing: 0.04em;
+  }
+  .btn-tstep-prev {
+    background: transparent; border: 1px solid var(--border-hi);
+    border-radius: var(--radius); padding: 8px 16px;
+    color: var(--text-2); font-size: 13px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif; cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-tstep-prev:hover { border-color: var(--gold-dim); color: var(--text-1); }
+  .btn-tstep-next {
+    background: var(--gold); border: none;
+    border-radius: var(--radius); padding: 9px 20px;
+    color: #0f0f11; font-size: 13px; font-weight: 700;
+    font-family: 'DM Sans', sans-serif; cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn-tstep-next:hover { opacity: 0.88; }
+
 </style>
 </head>
 <body>
@@ -836,13 +1238,149 @@
 <!-- Setup modal -->
 <div id="setup-modal">
   <div class="modal-box">
-    <h2>📡 Connect to Google Sheets</h2>
-    <p>Paste your Google Apps Script deployment URL below to sync data across all your devices. Or use local-only mode (data stays on this device).</p>
-    <input type="url" id="script-url-input" placeholder="https://script.google.com/macros/s/.../exec">
-    <small>See the included code.gs file for setup instructions.</small>
-    <div class="modal-actions">
-      <button class="btn-primary" onclick="connectScript()">Connect & Sync</button>
-      <button class="btn-local"   onclick="useLocal()">Local only</button>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+      <h2 style="margin-bottom:0; flex:1;">☁️ Cloud Sync</h2>
+      <button class="modal-info-btn" onclick="document.getElementById('info-popup').classList.remove('hidden')" title="Learn more">?</button>
+      <button class="modal-close" onclick="document.getElementById('setup-modal').classList.add('hidden')" title="Close">✕</button>
+    </div>
+    <p>Sync your Vault data to Google Drive — no spreadsheet or script setup needed. Your data is saved as a private file in your own Drive. <button onclick="openTutorial()" style="background:none;border:none;color:var(--gold);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;padding:0;font-weight:500;text-decoration:underline;">How does this work?</button></p>
+
+    <div id="drive-connected-info" style="display:none; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; margin-bottom:16px;">
+      <div style="font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin-bottom:4px;">Connected Account</div>
+      <div id="drive-connected-email" style="font-size:13px; color:var(--text-1); font-weight:500;"></div>
+    </div>
+
+    <div class="modal-actions" style="flex-direction:column; gap:8px;">
+      <button class="btn-primary" id="btn-connect-drive" onclick="connectDrive()">🔗 Connect Google Drive</button>
+      <button class="btn-local" id="btn-disconnect-drive" onclick="disconnectDrive()" style="display:none;">Disconnect Drive</button>
+      <button class="btn-local" onclick="useLocal()">Use local only</button>
+    </div>
+  </div>
+</div>
+
+<!-- Info popup -->
+<div id="info-popup" class="hidden">
+  <div class="info-popup-box">
+    <div style="display:flex; align-items:center; margin-bottom:20px;">
+      <h3 style="margin-bottom:0; flex:1;">Storage Modes</h3>
+      <button class="modal-close" onclick="document.getElementById('info-popup').classList.add('hidden')" title="Close">✕</button>
+    </div>
+    <div class="info-mode">
+      <div class="info-mode-title">
+        🔗 Google Drive Sync
+        <span class="info-badge cloud">Recommended</span>
+      </div>
+      <p>Your data is saved as a private JSON file in your own Google Drive. It syncs automatically across all your devices — phone, tablet, and desktop. No spreadsheet or script setup needed. If you clear your browser data or switch devices, nothing is lost.</p>
+    </div>
+    <div class="info-mode">
+      <div class="info-mode-title">
+        💾 Local Only
+        <span class="info-badge local">This device</span>
+      </div>
+      <p>Your data is stored only in your browser's local storage on this device. No account or internet connection is needed, but your data won't be accessible on other devices and will be lost if you clear your browser data.</p>
+    </div>
+    <button class="info-popup-close-btn" onclick="document.getElementById('info-popup').classList.add('hidden')">Got it</button>
+  </div>
+</div>
+
+<!-- Sync status info popup -->
+<div id="sync-info-popup" class="hidden">
+  <div class="sync-info-box">
+    <div style="display:flex; align-items:center; margin-bottom:18px;">
+      <h3 style="margin-bottom:0; flex:1; font-family:'DM Serif Display',serif; font-size:18px; font-weight:400; color:var(--text-1);">Sync Status</h3>
+      <button class="modal-close" onclick="document.getElementById('sync-info-popup').classList.add('hidden')" title="Close">✕</button>
+    </div>
+    <div class="sync-status-row row-ok">
+      <span class="srow-pill ok">Synced ✓</span>
+      <div class="srow-text">
+        <div class="srow-title">Connected & up to date</div>
+        <div class="srow-desc">Your data has been successfully synced with Google Drive. All transactions are backed up and available across your devices.</div>
+      </div>
+    </div>
+    <div class="sync-status-row row-busy">
+      <span class="srow-pill busy">Syncing…</span>
+      <div class="srow-text">
+        <div class="srow-title">Sync in progress</div>
+        <div class="srow-desc">Vault is currently saving or loading data from Google Drive. This usually takes just a moment — avoid closing the app until it completes.</div>
+      </div>
+    </div>
+    <div class="sync-status-row row-err">
+      <span class="srow-pill err">Error</span>
+      <div class="srow-text">
+        <div class="srow-title">Sync failed</div>
+        <div class="srow-desc">Vault couldn't reach Google Drive. This may be due to no internet connection or an expired session. Try syncing again or reconnect via Menu → Connect to Google Drive.</div>
+      </div>
+    </div>
+    <div class="sync-status-row row-none">
+      <span class="srow-pill none">Local only</span>
+      <div class="srow-text">
+        <div class="srow-title">Not connected</div>
+        <div class="srow-desc">No Google Drive connection is active. Your data is saved only on this device. To enable cloud sync, open Menu → Connect to Google Drive.</div>
+      </div>
+    </div>
+    <button class="info-popup-close-btn" style="margin-top:20px;" onclick="document.getElementById('sync-info-popup').classList.add('hidden')">Got it</button>
+  </div>
+</div>
+
+<!-- Tutorial popup -->
+<div id="tutorial-popup" class="hidden">
+  <div class="tutorial-box">
+    <div class="tutorial-header">
+      <h3>Setting Up Google Drive Sync</h3>
+      <button class="modal-close" onclick="closeTutorial()" title="Close">✕</button>
+    </div>
+    <div class="tutorial-steps-track" id="tutorial-track"></div>
+
+    <div class="tutorial-body">
+
+      <!-- Step 1 -->
+      <div class="tutorial-step active" id="tstep-1">
+        <div class="tstep-num">1</div>
+        <div class="tstep-title">Sign in with your Google account</div>
+        <div class="tstep-body">
+          <ol>
+            <li>Make sure you're signed into Vault with the Google account you want to use for sync — this is done on the login screen.</li>
+            <li>Vault uses your Google identity to securely access a private file in <strong>your own Google Drive</strong>.</li>
+          </ol>
+          <div class="tstep-note">💡 Vault only requests permission to manage files it creates itself (<strong>drive.file</strong> scope). It cannot see or access any other files in your Drive.</div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="tutorial-step" id="tstep-2">
+        <div class="tstep-num">2</div>
+        <div class="tstep-title">Connect Google Drive</div>
+        <div class="tstep-body">
+          <ol>
+            <li>Open <strong>Menu → Connect to Google Drive</strong>.</li>
+            <li>Click <strong>🔗 Connect Google Drive</strong>.</li>
+            <li>A Google permissions popup will appear — click <strong>Allow</strong> to grant Vault access to create and manage its sync file.</li>
+            <li>Vault will immediately create a file called <strong>vault-data.json</strong> in your Drive and upload your current data.</li>
+          </ol>
+          <div class="tstep-note">⚠️ If you see a warning that the app isn't verified, click <strong>Advanced → Go to Vault (unsafe)</strong>. This is expected for personal apps not submitted to Google's verification programme.</div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="tutorial-step" id="tstep-3">
+        <div class="tstep-num">3</div>
+        <div class="tstep-title">Sync across devices</div>
+        <div class="tstep-body">
+          <ol>
+            <li>Once connected, Vault automatically saves every change to your Drive file.</li>
+            <li>On any other device, open Vault, sign in with the same Google account, and connect Google Drive — Vault will find the existing file and load your data.</li>
+            <li>Changes sync in the background whenever you switch back to the app.</li>
+          </ol>
+          <div class="tstep-note">✅ Your data is stored as <strong>vault-data.json</strong> in your Google Drive. You can view it at <strong>drive.google.com</strong> — but don't edit it manually or it may break the sync.</div>
+        </div>
+      </div>
+
+    </div><!-- end tutorial-body -->
+
+    <div class="tutorial-footer">
+      <span class="tstep-counter" id="tstep-counter">Step 1 of 3</span>
+      <button class="btn-tstep-prev" id="tstep-prev" onclick="tutorialStep(-1)">← Back</button>
+      <button class="btn-tstep-next" id="tstep-next" onclick="tutorialStep(1)">Next →</button>
     </div>
   </div>
 </div>
@@ -853,12 +1391,34 @@
     <div class="sub">Net: <span id="grand-net"></span></div>
   </div>
   <div class="header-btns">
-    <span id="sync-status" class="sync-none">Not connected</span>
-    <button class="btn-ghost" onclick="manualSync()">↻ Sync</button>
+    <span id="sync-status" class="sync-none" onclick="openSyncInfoPopup()">Not connected</span>
     <button id="mob-sync-btn" class="btn-ghost" onclick="manualSync()" style="display:none">↻</button>
-    <button class="btn-ghost" onclick="openSetup()">⚙ Settings</button>
+    <button class="btn-ghost" id="desktop-menu-btn" onclick="toggleDesktopMenu()">☰ Menu</button>
   </div>
 </div>
+
+<!-- Desktop: dropdown menu -->
+<div id="desktop-menu">
+  <div class="dmenu-header">
+    <div class="dmenu-header-label">Vault</div>
+    <div class="dmenu-sync-row">
+      <div class="dmenu-sync-dot" id="dmenu-sync-dot"></div>
+      <span id="dmenu-sync-text">Not connected</span>
+    </div>
+  </div>
+  <div class="dmenu-items">
+    <button class="dmenu-btn" onclick="closeDesktopMenu(); setTimeout(manualSync, 50);">
+      <span class="dmenu-btn-icon">↻</span>
+      <div><div class="dmenu-btn-label">Sync Now</div></div>
+    </button>
+    <div class="dmenu-divider"></div>
+    <button class="dmenu-btn" onclick="closeDesktopMenu(); setTimeout(openSetup, 50);">
+      <span class="dmenu-btn-icon">🔗</span>
+      <div><div class="dmenu-btn-label">Connect to Google Drive</div><div class="dmenu-btn-sub">Manage cloud sync</div></div>
+    </button>
+  </div>
+</div>
+<div id="desktop-menu-overlay" onclick="closeDesktopMenu()"></div>
 
 <div id="layout">
   <div id="sidebar">
@@ -866,20 +1426,21 @@
       <span class="sidebar-label">Financial Years</span>
       <button id="sidebar-collapse-btn" onclick="toggleSidebar()" title="Collapse">‹</button>
     </div>
-    <div id="year-list"></div>
     <div id="sidebar-report-btn-wrap">
       <button id="sidebar-report-btn" onclick="switchTab('report')" class="sidebar-report-btn">
         📊 Report
       </button>
     </div>
-    <div id="add-year-area">
-      <button id="btn-new-year" onclick="showAddYear()">+ New Year</button>
-      <div id="add-year-form">
-        <input id="new-year-input" type="text" maxlength="5" placeholder="e.g. 26-27"
-               onkeydown="if(event.key==='Enter')confirmAddYear()">
-        <div class="add-year-btns">
-          <button class="btn-confirm" onclick="confirmAddYear()">Add</button>
-          <button class="btn-cancel"  onclick="hideAddYear()">✕</button>
+    <div id="year-list">
+      <div id="add-year-area">
+        <button id="btn-new-year" onclick="showAddYear()">+ New Year</button>
+        <div id="add-year-form">
+          <input id="new-year-input" type="text" maxlength="5" placeholder="e.g. 26-27"
+                 onkeydown="if(event.key==='Enter')confirmAddYear()">
+          <div class="add-year-btns">
+            <button class="btn-confirm" onclick="confirmAddYear()">Add</button>
+            <button class="btn-cancel"  onclick="hideAddYear()">✕</button>
+          </div>
         </div>
       </div>
     </div>
@@ -894,7 +1455,8 @@
     </div>
 
     <div id="tabs">
-      <button class="tab-btn active" id="tab-saved"   onclick="switchTab('saved')"  >💚 Saved <span id="count-saved"></span></button>
+      <button class="tab-btn active" id="tab-all"     onclick="switchTab('all')"   >All <span id="count-all"></span></button>
+      <button class="tab-btn"        id="tab-saved"   onclick="switchTab('saved')" >💚 Saved <span id="count-saved"></span></button>
       <button class="tab-btn"        id="tab-removed" onclick="switchTab('removed')">🔴 Withdrawn <span id="count-removed"></span></button>
     </div>
 
@@ -912,6 +1474,7 @@
       <table id="tx-table" style="display:none">
         <thead><tr>
           <th id="sort-date" onclick="setSort('date')" class="sort-col">Date</th>
+          <th id="sort-type" class="sort-col-type">Type</th>
           <th id="sort-amount" onclick="setSort('amount')" class="sort-col right">Amount</th>
         </tr></thead>
         <tfoot><tr>
@@ -978,18 +1541,18 @@
 
 <!-- Mobile: bottom nav bar -->
 <div id="bottom-nav" style="display:none">
-  <button class="bnav-btn active" id="bnav-saved" onclick="mobileTab('saved')">
+  <button class="bnav-btn active" id="bnav-all" onclick="mobileTab('all')">
+    <span class="bnav-icon">📋</span>All
+  </button>
+  <button class="bnav-btn" id="bnav-saved" onclick="mobileTab('saved')">
     <span class="bnav-icon">💚</span>Saved
   </button>
   <button class="bnav-btn" id="bnav-removed" onclick="mobileTab('removed')">
     <span class="bnav-icon">🔴</span>Withdrawn
   </button>
   <button class="bnav-btn bnav-add" id="bnav-add" onclick="openAddSheet()">
-    <span class="bnav-icon" id="bnav-add-icon">➕</span>
-    <span id="bnav-add-label">Add Deposit</span>
-  </button>
-  <button class="bnav-btn" id="bnav-report" onclick="mobileTab('report')">
-    <span class="bnav-icon">📊</span>Report
+    <span class="bnav-icon">＋</span>
+    <span>Add New</span>
   </button>
   <button class="bnav-btn" id="bnav-menu" onclick="openMenuSheet()">
     <span class="bnav-icon">☰</span>Menu
@@ -1003,6 +1566,10 @@
 <div id="menu-sheet">
   <div class="sheet-handle"></div>
   <div class="sheet-title">Menu</div>
+  <button class="menu-item-btn" onclick="closeSheets(); mobileTab('report');">
+    <span class="menu-item-icon">📊</span>
+    <span class="menu-item-label">Report</span>
+  </button>
   <button class="menu-item-btn" onclick="closeSheets(); openYearSheet();">
     <span class="menu-item-icon">📅</span>
     <span class="menu-item-label">Financial Years</span>
@@ -1014,8 +1581,8 @@
     <span id="menu-sync-status" class="menu-item-meta"></span>
   </button>
   <button class="menu-item-btn" onclick="closeSheets(); setTimeout(openSetup, 50);">
-    <span class="menu-item-icon">⚙</span>
-    <span class="menu-item-label">Settings</span>
+    <span class="menu-item-icon">🔗</span>
+    <span class="menu-item-label">Connect to Google Drive</span>
   </button>
 </div>
 
@@ -1038,16 +1605,20 @@
 <!-- Mobile: add transaction sheet -->
 <div id="add-sheet">
   <div class="sheet-handle"></div>
-  <div class="sheet-title" id="add-sheet-title">Add Deposit</div>
+  <div class="sheet-title">Add Transaction</div>
+  <div class="add-type-toggle">
+    <button class="add-type-btn active-deposit" id="mob-type-deposit" onclick="setMobType('deposit')">💚 Deposit</button>
+    <button class="add-type-btn" id="mob-type-withdraw" onclick="setMobType('withdraw')">🔴 Withdrawal</button>
+  </div>
   <div class="field">
     <label>Date</label>
-    <input type="date" id="mob-inp-date" color-scheme="dark" style="color-scheme:dark">
+    <input type="date" id="mob-inp-date" style="color-scheme:dark">
   </div>
   <div class="field">
     <label>Amount ($)</label>
     <input type="number" id="mob-inp-amount" min="0.01" step="0.01" placeholder="0.00" inputmode="decimal">
   </div>
-  <button id="mob-add-btn" class="saved-mode" onclick="mobileAddTransaction()">Add Deposit</button>
+  <button id="mob-add-btn" onclick="mobileAddTransaction()">Add Deposit</button>
 </div>
 
 <!-- Transaction edit/delete popup -->
@@ -1081,11 +1652,6 @@
 </div>
 
 <script>
-// ─── config ────────────────────────────────────────────────────────────────────
-// PASTE YOUR APPS SCRIPT URL HERE after deploying code.gs
-// e.g. "https://script.google.com/macros/s/AKfycb.../exec"
-const DEFAULT_SCRIPT_URL = "";
-
 // ─── seed data ─────────────────────────────────────────────────────────────────
 const SEED = {
   "24-25": {
@@ -1192,9 +1758,37 @@ const SEED = {
 };
 
 // ─── state ─────────────────────────────────────────────────────────────────────
-let data = {}, activeYear, activeTab = "saved";
-let sortKey = "date", sortDir = "asc"; // date|amount, asc|desc
-let scriptURL = "", syncMode = false, syncTimer = null;
+let data = {}, activeYear, activeTab = "all";
+let sortKey = "date", sortDir = "asc";
+let syncTimer = null;
+
+// ─── Drive sync state ──────────────────────────────────────────────────────────
+const DRIVE_FILE_NAME = "vault-data.json";
+const DRIVE_CLIENT_ID = "923866716926-ch3d25r6159hc0ditod3n8g6ufb8pcsk.apps.googleusercontent.com";
+const DRIVE_SCOPE     = "https://www.googleapis.com/auth/drive.file";
+const DRIVE_FILE_KEY  = "vault_drive_file_id";
+const DRIVE_MODE_KEY  = "vault_drive_mode";
+const DRIVE_EMAIL_KEY = "vault_drive_email";
+
+let driveToken  = null;
+let driveFileId = null;
+let driveMode   = false;
+let tokenClient = null;
+
+function loadDriveState() {
+  try {
+    driveFileId = localStorage.getItem(DRIVE_FILE_KEY) || null;
+    driveMode   = localStorage.getItem(DRIVE_MODE_KEY) === "true";
+  } catch {}
+}
+
+function saveDriveState() {
+  try {
+    if (driveFileId) localStorage.setItem(DRIVE_FILE_KEY, driveFileId);
+    else             localStorage.removeItem(DRIVE_FILE_KEY);
+    localStorage.setItem(DRIVE_MODE_KEY, driveMode ? "true" : "false");
+  } catch {}
+}
 
 // ─── helpers ───────────────────────────────────────────────────────────────────
 function aud(n) { return n.toLocaleString("en-AU",{style:"currency",currency:"AUD"}); }
@@ -1213,18 +1807,16 @@ function nextFY() {
 // ─── storage ───────────────────────────────────────────────────────────────────
 function saveLocal() {
   try { localStorage.setItem("savings_data_v4", JSON.stringify(data)); } catch {}
-  try { localStorage.setItem("savings_script_url", scriptURL); } catch {}
 }
 
 function loadLocal() {
   try {
-    scriptURL = localStorage.getItem("savings_script_url") || DEFAULT_SCRIPT_URL;
     const stored = localStorage.getItem("savings_data_v4");
     data = stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(SEED));
   } catch { data = JSON.parse(JSON.stringify(SEED)); }
 }
 
-// ─── sync ──────────────────────────────────────────────────────────────────────
+// ─── sync status ───────────────────────────────────────────────────────────────
 function setSyncStatus(state, msg) {
   const el = document.getElementById("sync-status");
   el.textContent = msg;
@@ -1238,119 +1830,206 @@ function dbg(msg) {
   el.textContent = msg + "\n" + el.textContent;
 }
 
-function syncToSheet() {
-  if (!scriptURL) return;
-  const payload = JSON.stringify(data);
-  dbg("Saving " + payload.length + " chars via POST...");
-  setSyncStatus("busy", "Saving…");
-  // Use fetch POST — avoids URL length limits that cause JSONP GET to time out
-  fetch(scriptURL, {
-    method: "POST",
-    body: JSON.stringify({ action: "save", data: payload, token: WRITE_TOKEN })
-  })
-  .then(r => r.json())
-  .then(j => {
-    dbg("Save response: " + JSON.stringify(j));
-    setSyncStatus(j.ok ? "ok" : "err", j.ok ? "Saved ✓" : "Save failed: " + (j.error||"?"));
-  })
-  .catch(err => {
-    dbg("Save POST failed, trying JSONP fallback: " + err);
-    // Fallback to JSONP GET for environments that block POST
-    jsonp(scriptURL + "?action=save&token=" + encodeURIComponent(WRITE_TOKEN) + "&data=" + encodeURIComponent(payload),
-      (j) => {
-        dbg("JSONP save response: " + JSON.stringify(j));
-        setSyncStatus(j.ok ? "ok" : "err", j.ok ? "Saved ✓" : "Save failed: " + (j.error||"?"));
-      },
-      () => { setSyncStatus("err", "Offline"); }
-    );
+// ─── Google Drive API ──────────────────────────────────────────────────────────
+function initTokenClient() {
+  if (!window.google || !google.accounts || !google.accounts.oauth2) return;
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: DRIVE_CLIENT_ID,
+    scope: DRIVE_SCOPE,
+    prompt: "",
+    callback: (resp) => {
+      if (resp.error) {
+        setSyncStatus("err", "Auth failed");
+        dbg("Drive token error: " + resp.error);
+        return;
+      }
+      driveToken = resp.access_token;
+      driveMode  = true;
+      saveDriveState();
+      updateSetupModal();
+      driveSyncFromCloud();
+    }
   });
 }
 
-function syncFromSheet() {
-  if (!scriptURL) return;
-  dbg("Loading from sheet...");
-  setSyncStatus("busy", "Loading…");
-  jsonp(scriptURL + "?action=load",
-    (j) => {
-      dbg("Load response ok=" + j.ok + " keys=" + (j.data ? Object.keys(j.data).join(",") : "none") + " raw=" + JSON.stringify(j).substring(0,120));
-      if (j.ok) {
-        if (j.data && Object.keys(j.data).length > 0) {
-          data = j.data;
-          dbg("Data loaded. Years: " + Object.keys(data).join(", "));
-        } else {
-          dbg("Sheet returned empty data, keeping local");
-        }
-        saveLocal();
-        activeYear = Object.keys(data)[0];
-        setSyncStatus("ok", "Synced ✓");
-        render();
-      } else {
-        setSyncStatus("err", "Load failed: " + (j.error || "unknown"));
+function connectDrive() {
+  if (!tokenClient) {
+    let attempts = 0;
+    const poll = setInterval(() => {
+      attempts++;
+      initTokenClient();
+      if (tokenClient) {
+        clearInterval(poll);
+        tokenClient.requestAccessToken({ prompt: "consent" });
+      } else if (attempts > 10) {
+        clearInterval(poll);
+        toast("Google Sign-In not ready. Try again.", "#c0392b");
       }
-    },
-    () => { setSyncStatus("err", "Offline / bad URL"); }
-  );
+    }, 300);
+    return;
+  }
+  tokenClient.requestAccessToken({ prompt: "consent" });
 }
 
-// JSONP: injects a <script> tag to bypass CORS entirely
-let _jsonpCounter = 0;
-function jsonp(url, onSuccess, onError) {
-  const cbName = "_jsonpCb" + (++_jsonpCounter);
-  const timeout = setTimeout(() => {
-    delete window[cbName];
-    if (script.parentNode) script.parentNode.removeChild(script);
-    onError && onError();
-  }, 10000);
+function disconnectDrive() {
+  if (driveToken && window.google && google.accounts && google.accounts.oauth2) {
+    google.accounts.oauth2.revoke(driveToken, () => {});
+  }
+  driveToken  = null;
+  driveFileId = null;
+  driveMode   = false;
+  saveDriveState();
+  updateSetupModal();
+  setSyncStatus("none", "Local only");
+  toast("Disconnected from Google Drive");
+}
 
-  window[cbName] = (result) => {
-    clearTimeout(timeout);
-    delete window[cbName];
-    if (script.parentNode) script.parentNode.removeChild(script);
-    onSuccess(result);
-  };
+async function driveFindOrCreateFile() {
+  // Verify existing cached file ID still exists
+  if (driveFileId) {
+    try {
+      const r = await fetch(
+        `https://www.googleapis.com/drive/v3/files/${driveFileId}?fields=id,trashed`,
+        { headers: { "Authorization": "Bearer " + driveToken } }
+      );
+      if (r.ok) {
+        const f = await r.json();
+        if (!f.trashed) return driveFileId;
+      }
+    } catch {}
+    driveFileId = null;
+    saveDriveState();
+  }
 
-  const script = document.createElement("script");
-  script.src = url + "&callback=" + cbName;
-  script.onerror = () => {
-    clearTimeout(timeout);
-    delete window[cbName];
-    onError && onError();
-  };
-  document.head.appendChild(script);
+  // Search for existing file by name
+  const search = await fetch(
+    `https://www.googleapis.com/drive/v3/files?q=name%3D'${DRIVE_FILE_NAME}'+and+trashed%3Dfalse&fields=files(id)&spaces=drive`,
+    { headers: { "Authorization": "Bearer " + driveToken } }
+  );
+  if (search.ok) {
+    const res = await search.json();
+    if (res.files && res.files.length > 0) {
+      driveFileId = res.files[0].id;
+      saveDriveState();
+      return driveFileId;
+    }
+  }
+
+  // Create new file
+  const create = await fetch(
+    "https://www.googleapis.com/drive/v3/files?fields=id",
+    {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + driveToken, "Content-Type": "application/json" },
+      body: JSON.stringify({ name: DRIVE_FILE_NAME, mimeType: "application/json" })
+    }
+  );
+  if (!create.ok) throw new Error("Create failed: " + create.status);
+  const created = await create.json();
+  driveFileId = created.id;
+  saveDriveState();
+  return driveFileId;
+}
+
+async function driveSaveToCloud() {
+  if (!driveToken || !driveMode) return;
+  setSyncStatus("busy", "Saving…");
+  try {
+    const fileId  = await driveFindOrCreateFile();
+    const payload = JSON.stringify(data);
+    const resp = await fetch(
+      `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,
+      {
+        method: "PATCH",
+        headers: {
+          "Authorization": "Bearer " + driveToken,
+          "Content-Type": "application/json"
+        },
+        body: payload
+      }
+    );
+    if (!resp.ok) throw new Error("Upload failed: " + resp.status);
+    setSyncStatus("ok", "Synced ✓");
+    dbg("Drive save OK, " + payload.length + " chars");
+  } catch (e) {
+    setSyncStatus("err", "Save failed");
+    dbg("Drive save error: " + e.message);
+  }
+}
+
+async function driveSyncFromCloud() {
+  if (!driveToken || !driveMode) return;
+  setSyncStatus("busy", "Loading…");
+  try {
+    const fileId = await driveFindOrCreateFile();
+    const resp = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+      { headers: { "Authorization": "Bearer " + driveToken } }
+    );
+    if (!resp.ok) {
+      // New/empty file — push local data up
+      dbg("Drive file empty or new, pushing local data up");
+      setSyncStatus("ok", "Synced ✓");
+      render();
+      await driveSaveToCloud();
+      return;
+    }
+    const text = await resp.text();
+    if (text && text.trim().startsWith("{")) {
+      const remote = JSON.parse(text);
+      if (remote && Object.keys(remote).length > 0) {
+        // Merge: local years not in remote are preserved
+        data = Object.assign({}, data, remote);
+        saveLocal();
+        activeYear = Object.keys(data)[0];
+        dbg("Drive load OK, years: " + Object.keys(data).join(", "));
+      }
+    }
+    setSyncStatus("ok", "Synced ✓");
+    render();
+  } catch (e) {
+    setSyncStatus("err", "Sync failed");
+    dbg("Drive load error: " + e.message);
+    render();
+  }
 }
 
 function scheduleSave() {
-  if (!scriptURL) return;
-  // Save immediately + debounce rapid changes
+  if (!driveMode || !driveToken) return;
   clearTimeout(syncTimer);
-  syncToSheet();
-  syncTimer = setTimeout(syncToSheet, 3000);
+  syncTimer = setTimeout(driveSaveToCloud, 1500);
 }
 
 function manualSync() {
-  if (!scriptURL) { toast("No script URL set. Click ⚙ Settings.", "#c0392b"); return; }
-  syncFromSheet();
+  if (!driveMode || !driveToken) {
+    toast("Not connected. Open Menu → Connect to Google Drive.", "#c0392b"); return;
+  }
+  driveSyncFromCloud();
 }
 
 // ─── modal ─────────────────────────────────────────────────────────────────────
 function openSetup() {
-  document.getElementById("script-url-input").value = scriptURL || "";
+  updateSetupModal();
   document.getElementById("setup-modal").classList.remove("hidden");
 }
-function connectScript() {
-  const val = document.getElementById("script-url-input").value.trim();
-  if (val && !val.startsWith("https://script.google.com")) {
-    toast("That doesn't look like a Google Apps Script URL.", "#c0392b"); return;
+
+function updateSetupModal() {
+  const connected = driveMode && !!driveToken;
+  const btnConnect    = document.getElementById("btn-connect-drive");
+  const btnDisconnect = document.getElementById("btn-disconnect-drive");
+  const connInfo      = document.getElementById("drive-connected-info");
+  const connEmail     = document.getElementById("drive-connected-email");
+  if (btnConnect)    btnConnect.style.display    = connected ? "none" : "";
+  if (btnDisconnect) btnDisconnect.style.display = connected ? "" : "none";
+  if (connInfo)      connInfo.style.display      = connected ? "" : "none";
+  if (connEmail && connected) {
+    connEmail.textContent = localStorage.getItem(DRIVE_EMAIL_KEY) || "Google Drive connected";
   }
-  scriptURL = val;
-  syncMode = !!val;
-  saveLocal();
-  document.getElementById("setup-modal").classList.add("hidden");
-  if (syncMode) { syncFromSheet(); }
-  else { setSyncStatus("none", "Local only"); }
 }
+
 function useLocal() {
-  scriptURL = ""; syncMode = false; saveLocal();
+  driveMode = false;
+  saveDriveState();
   document.getElementById("setup-modal").classList.add("hidden");
   setSyncStatus("none", "Local only");
 }
@@ -1358,7 +2037,7 @@ function useLocal() {
 // ─── render ────────────────────────────────────────────────────────────────────
 function render() {
   saveLocal();
-  if (syncMode) scheduleSave();
+  if (driveMode && driveToken) scheduleSave();
   renderSidebar();
   renderMain();
 }
@@ -1373,14 +2052,16 @@ function renderSidebar() {
   gEl.className = gn >= 0 ? '' : 'neg';
 
   const list = document.getElementById("year-list");
-  list.innerHTML = "";
+  const addArea = document.getElementById("add-year-area");
+  // Remove year buttons only, preserving add-year-area
+  Array.from(list.children).forEach(el => { if (el !== addArea) el.remove(); });
   years.forEach(y => {
     const si=sumArr(data[y].saved), so=sumArr(data[y].removed), n=si-so;
     const btn = document.createElement("button");
     btn.className = "year-btn" + (y===activeYear?" active":"");
     btn.innerHTML = `<div class="fy-label">FY 20${y}</div><div class="fy-net ${n>=0?"pos":"neg"}">${aud(n)}</div>`;
     btn.onclick = () => { activeYear=y; pendingDelete=null; render(); };
-    list.appendChild(btn);
+    list.insertBefore(btn, addArea);
   });
 }
 
@@ -1394,34 +2075,65 @@ function renderMain() {
   const sn = document.getElementById("stat-net");
   sn.textContent = aud(tn); sn.style.color = tn>=0 ? 'var(--green)' : 'var(--red)';
 
+  const allCount = fy.saved.length + fy.removed.length;
+  document.getElementById("count-all").textContent     = `(${allCount})`;
   document.getElementById("count-saved").textContent   = `(${fy.saved.length})`;
   document.getElementById("count-removed").textContent = `(${fy.removed.length})`;
-  document.getElementById("tab-saved").className   = "tab-btn"+(activeTab==="saved"  ?" active":"");
-  document.getElementById("tab-removed").className = "tab-btn"+(activeTab==="removed"?" active":"");
+  document.getElementById("tab-all").className     = "tab-btn"+(activeTab==="all"     ?" active":"");
+  document.getElementById("tab-saved").className   = "tab-btn"+(activeTab==="saved"   ?" active":"");
+  document.getElementById("tab-removed").className = "tab-btn"+(activeTab==="removed" ?" active":"");
 
   const btnAdd = document.getElementById("btn-add");
   btnAdd.textContent = activeTab==="saved" ? "+ Add Deposit" : "+ Add Withdrawal";
   btnAdd.className   = "btn-add "+(activeTab==="saved" ? "saved-mode" : "removed-mode");
 
-  const rows = getSortedRows(activeTab==="saved" ? fy.saved : fy.removed);
+  // add-form hidden on all tab (and report)
+  const isAll    = activeTab === "all";
+  const isReport = activeTab === "report";
+  document.getElementById("add-form").style.display = (isAll || isReport) ? "none" : "";
+
+  // body class for CSS type-col visibility
+  document.body.classList.toggle("tab-all", isAll);
+
   const tbody = document.getElementById("tx-body");
   const table = document.getElementById("tx-table");
   const empty = document.getElementById("empty-msg");
 
+  if (isReport) return;
+
+  let rows;
+  if (isAll) {
+    // combine saved + removed with a type tag, sort by date then type
+    const saved    = getSortedRows(fy.saved).map(r => [...r, "saved"]);
+    const removed  = getSortedRows(fy.removed).map(r => [...r, "removed"]);
+    rows = [...saved, ...removed].sort((a,b) => {
+      if (a[0] < b[0]) return sortDir === "asc" ? -1 : 1;
+      if (a[0] > b[0]) return sortDir === "asc" ?  1 : -1;
+      return 0;
+    });
+  } else {
+    rows = getSortedRows(activeTab==="saved" ? fy.saved : fy.removed).map(r => [...r, activeTab]);
+  }
+
   if (!rows.length) { table.style.display="none"; empty.style.display="block"; return; }
   table.style.display="table"; empty.style.display="none";
   tbody.innerHTML="";
-  rows.forEach(([date,amt],i) => {
+  rows.forEach(([date, amt, type], i) => {
+    const isDeposit = type === "saved";
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${fmtDate(date)}</td>
-      <td class="num" style="color:${activeTab==="saved" ? 'var(--green)' : 'var(--red)'}">${aud(amt)}</td>`;
-    tr.onclick = () => openPopup(i);
+      <td class="tx-type-cell"><span class="type-pill ${isDeposit ? "dep" : "wit"}">${isDeposit ? "Deposit" : "Withdrawal"}</span></td>
+      <td class="num" style="color:${isDeposit ? 'var(--green)' : 'var(--red)'}">${aud(amt)}</td>`;
+    tr.onclick = () => openPopup(i, type);
     tbody.appendChild(tr);
   });
+
+  const totalAmt = rows.reduce((s, [,a]) => s + a, 0);
   document.getElementById("foot-label").textContent = `Total (${rows.length} entries)`;
   const ft = document.getElementById("foot-total");
-  ft.textContent = aud(sumArr(rows)); ft.style.color = activeTab==="saved" ? "var(--green)" : "var(--red)";
+  ft.textContent = aud(totalAmt);
+  ft.style.color = isAll ? (tn >= 0 ? "var(--green)" : "var(--red)") : (activeTab==="saved" ? "var(--green)" : "var(--red)");
   updateSortButtons();
 }
 
@@ -1429,10 +2141,10 @@ function renderMain() {
 function switchTab(t) {
   activeTab = t; pendingDelete = null;
   const isReport = t === "report";
+  const isAll    = t === "all";
   document.getElementById("table-wrap").style.display   = isReport ? "none" : "";
   document.getElementById("report-panel").style.display = isReport ? "flex" : "none";
-  document.getElementById("add-form").style.display     = isReport ? "none" : "";
-  document.getElementById("sort-date") && (document.getElementById("sort-date").parentElement.parentElement.style.display = isReport ? "none" : "");
+  document.getElementById("add-form").style.display     = (isReport || isAll) ? "none" : "";
   // Highlight sidebar report button
   const srb = document.getElementById("sidebar-report-btn");
   if (srb) srb.className = "sidebar-report-btn" + (isReport ? " active" : "");
@@ -1568,12 +2280,15 @@ function addTransaction() {
 
 // ── transaction popup ──────────────────────────────────────────────────────
 let popupIdx = null;
+let popupType = null; // "saved" | "removed" — tracked independently of activeTab
 
-function openPopup(idx) {
-  const rows = activeTab === "saved" ? data[activeYear].saved : data[activeYear].removed;
+function openPopup(idx, type) {
+  // type defaults to activeTab for saved/removed views
+  popupType = type || activeTab;
+  const rows = popupType === "saved" ? data[activeYear].saved : data[activeYear].removed;
   const [date, amt] = rows[idx];
   popupIdx = idx;
-  const isDeposit = activeTab === "saved";
+  const isDeposit = popupType === "saved";
   document.getElementById("popup-title").textContent = isDeposit ? "Edit Deposit" : "Edit Withdrawal";
   document.getElementById("popup-meta").textContent  = "FY 20" + activeYear + "  ·  " + (isDeposit ? "Deposit" : "Withdrawal");
   document.getElementById("popup-date").value   = date;
@@ -1584,6 +2299,7 @@ function openPopup(idx) {
 function closePopup() {
   document.getElementById("tx-popup").classList.add("hidden");
   popupIdx = null;
+  popupType = null;
 }
 
 function savePopup() {
@@ -1591,7 +2307,7 @@ function savePopup() {
   const dateVal = document.getElementById("popup-date").value;
   const amtVal  = parseFloat(document.getElementById("popup-amount").value);
   if (!dateVal || isNaN(amtVal) || amtVal <= 0) { toast("Enter a valid date and amount.", "#c0392b"); return; }
-  const list = activeTab === "saved" ? data[activeYear].saved : data[activeYear].removed;
+  const list = popupType === "saved" ? data[activeYear].saved : data[activeYear].removed;
   list[popupIdx] = [dateVal, parseFloat(amtVal.toFixed(2))];
   list.sort((a, b) => a[0].localeCompare(b[0]));
   closePopup();
@@ -1601,7 +2317,7 @@ function savePopup() {
 
 function deletePopup() {
   if (popupIdx === null) return;
-  const list = activeTab === "saved" ? data[activeYear].saved : data[activeYear].removed;
+  const list = popupType === "saved" ? data[activeYear].saved : data[activeYear].removed;
   list.splice(popupIdx, 1);
   closePopup();
   render();
@@ -1718,45 +2434,40 @@ function isUserBusy() {
   return false;
 }
 
-function silentSyncFromSheet() {
-  // Like syncFromSheet but only re-renders if data actually changed,
-  // and never interrupts an in-progress entry
-  if (!scriptURL) return;
+async function silentSyncFromDrive() {
+  if (!driveMode || !driveToken) return;
   if (isUserBusy()) return;
-  jsonp(scriptURL + "?action=load",
-    (j) => {
-      if (!j.ok || !j.data || Object.keys(j.data).length === 0) return;
-      const incoming = JSON.stringify(j.data);
-      const current  = JSON.stringify(data);
-      if (incoming === current) {
-        // Nothing changed — update status quietly without re-rendering
-        setSyncStatus("ok", "Synced ✓");
-        return;
-      }
-      // Data changed on another device — update only if user is still not busy
-      if (isUserBusy()) return;
-      data = j.data;
-      saveLocal();
-      activeYear = Object.keys(data)[0];
-      setSyncStatus("ok", "Synced ✓");
-      render();
-      toast("Updated from another device");
-    },
-    () => { /* silent fail on background poll — don't show error */ }
-  );
+  try {
+    const fileId = await driveFindOrCreateFile();
+    const resp = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+      { headers: { "Authorization": "Bearer " + driveToken } }
+    );
+    if (!resp.ok) return;
+    const text = await resp.text();
+    if (!text || !text.trim().startsWith("{")) return;
+    const remote = JSON.parse(text);
+    if (!remote || !Object.keys(remote).length) return;
+    if (JSON.stringify(remote) === JSON.stringify(data)) {
+      setSyncStatus("ok", "Synced ✓"); return;
+    }
+    if (isUserBusy()) return;
+    data = Object.assign({}, data, remote);
+    saveLocal();
+    activeYear = Object.keys(data)[0];
+    setSyncStatus("ok", "Synced ✓");
+    render();
+    toast("Updated from another device");
+  } catch { /* silent fail */ }
 }
 
-// Sync immediately when user returns to the tab/app
+// Sync when user returns to the tab
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && scriptURL) {
-    silentSyncFromSheet();
-  }
+  if (document.visibilityState === "visible") silentSyncFromDrive();
 });
 
-// Poll every 30 seconds while open
-setInterval(() => {
-  if (scriptURL) silentSyncFromSheet();
-}, 30000);
+// Poll every 60 seconds
+setInterval(() => { silentSyncFromDrive(); }, 60000);
 
 // ─── debug ────────────────────────────────────────────────────────────────────
 function toggleSidebar() {
@@ -1779,29 +2490,36 @@ function isMobile() { return window.innerWidth <= 640; }
 
 function mobileTab(t) {
   activeTab = t; pendingDelete = null;
+  document.getElementById("bnav-all").className     = "bnav-btn" + (t==="all"     ? " active" : "");
   document.getElementById("bnav-saved").className   = "bnav-btn" + (t==="saved"   ? " active" : "");
   document.getElementById("bnav-removed").className = "bnav-btn" + (t==="removed" ? " active" : "");
-  document.getElementById("bnav-report") && (document.getElementById("bnav-report").className = "bnav-btn" + (t==="report" ? " active" : ""));
   updateAddBtn();
   switchTab(t);
 }
 
+let mobTxType = "deposit"; // "deposit" | "withdraw"
+
+function setMobType(type) {
+  mobTxType = type;
+  const depBtn = document.getElementById("mob-type-deposit");
+  const witBtn = document.getElementById("mob-type-withdraw");
+  const addBtn = document.getElementById("mob-add-btn");
+  depBtn.className = "add-type-btn" + (type === "deposit"  ? " active-deposit"  : "");
+  witBtn.className = "add-type-btn" + (type === "withdraw" ? " active-withdraw" : "");
+  addBtn.textContent = type === "deposit" ? "Add Deposit" : "Add Withdrawal";
+  addBtn.style.background = type === "deposit" ? "var(--green)" : "var(--red)";
+}
+
 function updateAddBtn() {
-  const isDeposit = activeTab === "saved";
-  const btn = document.getElementById("bnav-add");
-  btn.className = "bnav-btn bnav-add " + (isDeposit ? "deposit-mode" : "withdraw-mode");
-  document.getElementById("bnav-add-icon").textContent = isDeposit ? "💚" : "🔴";
-  document.getElementById("bnav-add-label").textContent = isDeposit ? "Add Deposit" : "Add Withdrawal";
+  // No-op — add button is now static
 }
 
 function openAddSheet() {
   const today = new Date().toISOString().split("T")[0];
   document.getElementById("mob-inp-date").value = today;
   document.getElementById("mob-inp-amount").value = "";
-  const isDeposit = activeTab === "saved";
-  document.getElementById("add-sheet-title").textContent = isDeposit ? "Add Deposit" : "Add Withdrawal";
-  document.getElementById("mob-add-btn").textContent = isDeposit ? "Add Deposit" : "Add Withdrawal";
-  document.getElementById("mob-add-btn").className = "btn-add " + (isDeposit ? "saved-mode" : "removed-mode");
+  // Default to deposit each time
+  setMobType("deposit");
   document.getElementById("add-sheet").classList.add("open");
   document.getElementById("sheet-overlay").classList.add("open");
   setTimeout(() => document.getElementById("mob-inp-amount").focus(), 100);
@@ -1812,20 +2530,96 @@ function mobileAddTransaction() {
   const av = parseFloat(document.getElementById("mob-inp-amount").value);
   if (!dv || isNaN(av) || av <= 0) { toast("Enter a valid date and amount.", "#c0392b"); return; }
   const amt = parseFloat(av.toFixed(2));
-  data[activeYear][activeTab].push([dv, amt]);
-  data[activeYear][activeTab].sort((a,b) => a[0].localeCompare(b[0]));
+  const tab = mobTxType === "deposit" ? "saved" : "removed";
+  data[activeYear][tab].push([dv, amt]);
+  data[activeYear][tab].sort((a,b) => a[0].localeCompare(b[0]));
   closeSheets();
   render();
-  toast(activeTab==="saved" ? "Deposit recorded" : "Withdrawal recorded");
+  toast(mobTxType === "deposit" ? "Deposit recorded" : "Withdrawal recorded");
+}
+
+function openSyncInfoPopup() {
+  document.getElementById("sync-info-popup").classList.remove("hidden");
+}
+
+// ─── tutorial ─────────────────────────────────────────────────────────────────
+const TUTORIAL_STEPS = 3;
+let tutorialCurrentStep = 1;
+
+function openTutorial() {
+  tutorialCurrentStep = 1;
+  renderTutorialStep();
+  document.getElementById("tutorial-popup").classList.remove("hidden");
+}
+
+function closeTutorial() {
+  document.getElementById("tutorial-popup").classList.add("hidden");
+}
+
+function tutorialStep(dir) {
+  const next = tutorialCurrentStep + dir;
+  if (next < 1 || next > TUTORIAL_STEPS) return;
+  tutorialCurrentStep = next;
+  renderTutorialStep();
+}
+
+function renderTutorialStep() {
+  const n = tutorialCurrentStep;
+  // Show/hide steps
+  for (let i = 1; i <= TUTORIAL_STEPS; i++) {
+    const el = document.getElementById("tstep-" + i);
+    if (el) el.classList.toggle("active", i === n);
+  }
+  // Update counter
+  document.getElementById("tstep-counter").textContent = "Step " + n + " of " + TUTORIAL_STEPS;
+  // Update nav buttons
+  const prev = document.getElementById("tstep-prev");
+  const next = document.getElementById("tstep-next");
+  prev.style.visibility = n === 1 ? "hidden" : "visible";
+  next.textContent = n === TUTORIAL_STEPS ? "Done ✓" : "Next →";
+  if (n === TUTORIAL_STEPS) {
+    next.onclick = closeTutorial;
+  } else {
+    next.onclick = () => tutorialStep(1);
+  }
+  // Update progress track
+  const track = document.getElementById("tutorial-track");
+  track.innerHTML = "";
+  for (let i = 1; i <= TUTORIAL_STEPS; i++) {
+    const dot = document.createElement("div");
+    dot.className = "tstep-dot" + (i < n ? " done" : i === n ? " current" : "");
+    track.appendChild(dot);
+  }
 }
 
 function openMenuSheet() {
-  // Update sync status in menu
   const ss = document.getElementById("sync-status");
   const ms = document.getElementById("menu-sync-status");
   if (ms && ss) ms.textContent = ss.textContent;
   document.getElementById("menu-sheet").classList.add("open");
   document.getElementById("sheet-overlay").classList.add("open");
+}
+
+function toggleDesktopMenu() {
+  const menu = document.getElementById("desktop-menu");
+  const overlay = document.getElementById("desktop-menu-overlay");
+  // Mirror sync status into the dropdown header
+  const ss = document.getElementById("sync-status");
+  const dot = document.getElementById("dmenu-sync-dot");
+  const txt = document.getElementById("dmenu-sync-text");
+  if (ss && dot && txt) {
+    txt.textContent = ss.textContent;
+    const cls = [...ss.classList].find(c => c.startsWith("sync-")) || "";
+    const state = cls.replace("sync-", "");
+    dot.className = "dmenu-sync-dot" + (state ? " " + state : "");
+  }
+  const isOpen = menu.classList.toggle("open");
+  overlay.classList.toggle("open", isOpen);
+}
+
+function closeDesktopMenu() {
+  document.getElementById("desktop-menu").classList.remove("open");
+  document.getElementById("desktop-menu-overlay").classList.remove("open");
 }
 
 function openYearSheet() {
@@ -1899,6 +2693,7 @@ function handleGoogleLogin(response) {
     const email   = (payload.email || "").toLowerCase();
     if (email === ALLOWED_EMAIL.toLowerCase()) {
       setAuthCookie();
+      try { localStorage.setItem(DRIVE_EMAIL_KEY, email); } catch {}
       document.getElementById("login-screen").classList.add("hidden");
       initApp();
     } else {
@@ -1926,35 +2721,63 @@ function checkAuth() {
 }
 
 // ─── init ──────────────────────────────────────────────────────────────────────
-loadLocal();
-activeYear = Object.keys(data)[0];
-// Restore sidebar state
-try {
-  if (localStorage.getItem("sidebar_collapsed") === "true") {
-    document.getElementById("sidebar").classList.add("collapsed");
-  }
-} catch {}
-// updateAddBtn called after render below
+function initApp() {
+  loadLocal();
+  loadDriveState();
+  activeYear = Object.keys(data)[0];
 
-if (scriptURL) {
-  syncMode = true;
+  try {
+    if (localStorage.getItem("sidebar_collapsed") === "true") {
+      document.getElementById("sidebar").classList.add("collapsed");
+    }
+  } catch {}
+
   document.getElementById("setup-modal").classList.add("hidden");
-  render();
-  updateAddBtn();
-  syncFromSheet();
-} else {
-  // Show setup only on first ever load (no local data yet)
-  const hasLocal = !!localStorage.getItem("savings_data_v4");
-  if (!hasLocal) {
-    // First load - show modal
+
+  // Init Drive token client once GIS is ready, then silently reconnect if mode was on
+  const tryInitDrive = () => {
+    initTokenClient();
+    if (driveMode && tokenClient) {
+      setSyncStatus("busy", "Reconnecting…");
+      tokenClient.requestAccessToken({ prompt: "" });
+    } else if (!driveMode) {
+      setSyncStatus("none", "Local only");
+    }
+  };
+
+  if (window.google && google.accounts && google.accounts.oauth2) {
+    tryInitDrive();
   } else {
-    document.getElementById("setup-modal").classList.add("hidden");
+    setSyncStatus(driveMode ? "busy" : "none", driveMode ? "Reconnecting…" : "Local only");
+    let attempts = 0;
+    const poll = setInterval(() => {
+      attempts++;
+      if (window.google && google.accounts && google.accounts.oauth2) {
+        clearInterval(poll);
+        tryInitDrive();
+      } else if (attempts > 20) {
+        clearInterval(poll);
+        if (driveMode) setSyncStatus("err", "Auth unavailable");
+        dbg("GIS not available after polling");
+      }
+    }, 250);
   }
-  setSyncStatus("none", "Local only");
+
   render();
   updateAddBtn();
 }
+
+// Bypass login when running inside a sandboxed iframe (e.g. Claude preview)
+const inSandbox = (() => {
+  try { return window.self !== window.top; } catch { return true; }
+})();
+
+if (inSandbox || checkAuth()) {
+  document.getElementById("login-screen").classList.add("hidden");
+  initApp();
+}
+// Otherwise wait for Google Sign-In callback (handleGoogleLogin → initApp)
 </script>
-  <div id="version-footer">v1.0.0</div>
+  <div id="version-footer">v1.3.1</div>
 </body>
 </html>
