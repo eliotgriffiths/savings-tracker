@@ -1061,7 +1061,7 @@ function syncToSheet() {
   // Use fetch POST — avoids URL length limits that cause JSONP GET to time out
   fetch(scriptURL, {
     method: "POST",
-    body: JSON.stringify({ action: "save", data: payload })
+    body: JSON.stringify({ action: "save", data: payload, token: WRITE_TOKEN })
   })
   .then(r => r.json())
   .then(j => {
@@ -1071,7 +1071,7 @@ function syncToSheet() {
   .catch(err => {
     dbg("Save POST failed, trying JSONP fallback: " + err);
     // Fallback to JSONP GET for environments that block POST
-    jsonp(scriptURL + "?action=save&data=" + encodeURIComponent(payload),
+    jsonp(scriptURL + "?action=save&token=" + encodeURIComponent(WRITE_TOKEN) + "&data=" + encodeURIComponent(payload),
       (j) => {
         dbg("JSONP save response: " + JSON.stringify(j));
         setSyncStatus(j.ok ? "ok" : "err", j.ok ? "Saved ✓" : "Save failed: " + (j.error||"?"));
@@ -1550,6 +1550,7 @@ function closeSheets() {
 
 // ─── auth ─────────────────────────────────────────────────────────────────────
 const ALLOWED_EMAIL = "eliotgriffiths01@gmail.com";
+const WRITE_TOKEN = "Asc_y_9rbhBS3iQH31WSsVgTdwSJ3EjfSUj-8kfzb3I"; // must match code.gs
 
 function handleGoogleLogin(response) {
   // Decode the JWT credential to get the email
