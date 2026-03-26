@@ -372,10 +372,10 @@ function syncFromSheet() {
     (j) => {
       if (j.ok) {
         if (j.data && Object.keys(j.data).length > 0) {
-          data = j.data;
-          saveLocal();
-          activeYear = Object.keys(data)[0];
+          data = j.data;  // sheet is always source of truth
         }
+        saveLocal();
+        activeYear = Object.keys(data)[0];
         setSyncStatus("ok", "Synced ✓");
         render();
       } else {
@@ -415,8 +415,10 @@ function jsonp(url, onSuccess, onError) {
 
 function scheduleSave() {
   if (!scriptURL) return;
+  // Save immediately + debounce rapid changes
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(syncToSheet, 1500);
+  syncToSheet();
+  syncTimer = setTimeout(syncToSheet, 3000);
 }
 
 function manualSync() {
