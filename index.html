@@ -787,6 +787,23 @@
     margin-top: 8px; font-weight: 400;
   }
 
+  /* ── version footer ── */
+  #version-footer {
+    position: fixed;
+    bottom: 6px;
+    right: 10px;
+    font-size: 10px;
+    color: var(--text-3);
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0.5;
+  }
+  @media (max-width: 640px) {
+    #version-footer { bottom: 74px; }
+  }
+
 </style>
 </head>
 <body>
@@ -1938,5 +1955,6 @@ if (scriptURL) {
   updateAddBtn();
 }
 </script>
+  <div id="version-footer">v1.0.0</div>
 </body>
 </html>
