@@ -141,6 +141,7 @@
     <span id="sync-status" class="sync-none">Not connected</span>
     <button class="btn-outline" onclick="manualSync()">↻ Sync</button>
     <button class="btn-outline" onclick="openSetup()">⚙ Settings</button>
+    <button class="btn-outline" onclick="toggleDebug()">🔍 Debug</button>
     <button class="btn" onclick="exportCSV()">⬇ Export CSV</button>
   </div>
 </div>
@@ -205,6 +206,13 @@
 </div>
 
 <div id="toast"></div>
+<div id="debug-panel" style="position:fixed;bottom:0;left:0;right:0;background:#0a1a1c;border-top:1px solid #2E9EA8;padding:6px 12px;font-size:11px;font-family:monospace;display:none;z-index:998;">
+  <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+    <span style="color:#5a9aa0;font-weight:700;">Debug log</span>
+    <button onclick="document.getElementById('debug-panel').style.display='none'" style="background:transparent;border:none;color:#5a9aa0;cursor:pointer;font-size:13px;">✕</button>
+  </div>
+  <textarea id="debug-log" readonly style="width:100%;height:80px;background:transparent;border:none;color:#9dd4d9;font-size:11px;resize:none;outline:none;"></textarea>
+</div>
 
 <script>
 // ─── config ────────────────────────────────────────────────────────────────────
@@ -354,25 +362,42 @@ function setSyncStatus(state, msg) {
   const el = document.getElementById("sync-status");
   el.textContent = msg;
   el.className = "sync-status sync-" + state;
+  dbg("[" + new Date().toLocaleTimeString() + "] " + state.toUpperCase() + ": " + msg);
+}
+
+function dbg(msg) {
+  const el = document.getElementById("debug-log");
+  if (!el) return;
+  el.textContent = msg + "\n" + el.textContent;
 }
 
 function syncToSheet() {
   if (!scriptURL) return;
+  const payload = JSON.stringify(data);
+  dbg("Saving " + payload.length + " chars to sheet...");
   setSyncStatus("busy", "Saving…");
-  jsonp(scriptURL + "?action=save&data=" + encodeURIComponent(JSON.stringify(data)),
-    (j) => { setSyncStatus(j.ok ? "ok" : "err", j.ok ? "Synced ✓" : "Save failed"); },
-    ()  => { setSyncStatus("err", "Offline"); }
+  jsonp(scriptURL + "?action=save&data=" + encodeURIComponent(payload),
+    (j) => {
+      dbg("Save response: " + JSON.stringify(j));
+      setSyncStatus(j.ok ? "ok" : "err", j.ok ? "Saved ✓" : "Save failed: " + (j.error||"?"));
+    },
+    () => { setSyncStatus("err", "Offline"); }
   );
 }
 
 function syncFromSheet() {
   if (!scriptURL) return;
+  dbg("Loading from sheet...");
   setSyncStatus("busy", "Loading…");
   jsonp(scriptURL + "?action=load",
     (j) => {
+      dbg("Load response ok=" + j.ok + " keys=" + (j.data ? Object.keys(j.data).join(",") : "none"));
       if (j.ok) {
         if (j.data && Object.keys(j.data).length > 0) {
-          data = j.data;  // sheet is always source of truth
+          data = j.data;
+          dbg("Data loaded. Years: " + Object.keys(data).join(", "));
+        } else {
+          dbg("Sheet returned empty data, keeping local");
         }
         saveLocal();
         activeYear = Object.keys(data)[0];
@@ -396,11 +421,11 @@ function jsonp(url, onSuccess, onError) {
     onError && onError();
   }, 10000);
 
-  window[cbName] = (data) => {
+  window[cbName] = (result) => {
     clearTimeout(timeout);
     delete window[cbName];
     if (script.parentNode) script.parentNode.removeChild(script);
-    onSuccess(data);
+    onSuccess(result);
   };
 
   const script = document.createElement("script");
@@ -593,6 +618,12 @@ function toast(msg, color="#2E9EA8") {
   const el=document.getElementById("toast");
   el.textContent=msg; el.style.background=color; el.style.display="block";
   clearTimeout(toastTimer2); toastTimer2=setTimeout(()=>{el.style.display="none";},2500);
+}
+
+// ─── debug ────────────────────────────────────────────────────────────────────
+function toggleDebug() {
+  const el = document.getElementById("debug-panel");
+  el.style.display = el.style.display === "none" ? "block" : "none";
 }
 
 // ─── init ──────────────────────────────────────────────────────────────────────
