@@ -1948,7 +1948,11 @@ async function driveSaveToCloud() {
         body: payload
       }
     );
-    if (!resp.ok) throw new Error("Upload failed: " + resp.status);
+    if (!resp.ok) {
+      let errBody = "";
+      try { errBody = await resp.text(); } catch {}
+      throw new Error(`Upload failed: ${resp.status} ${errBody.substring(0, 200)}`);
+    }
     setSyncStatus("ok", "Synced ✓");
     dbg("Drive save OK, " + payload.length + " chars");
   } catch (e) {
@@ -1967,18 +1971,21 @@ async function driveSyncFromCloud() {
       { headers: { "Authorization": "Bearer " + driveToken } }
     );
     if (!resp.ok) {
-      // New/empty file — push local data up
-      dbg("Drive file empty or new, pushing local data up");
-      setSyncStatus("ok", "Synced ✓");
-      render();
-      await driveSaveToCloud();
-      return;
+      if (resp.status === 404) {
+        dbg("Drive file empty or new, pushing local data up");
+        setSyncStatus("ok", "Synced ✓");
+        render();
+        await driveSaveToCloud();
+        return;
+      }
+      let errBody = "";
+      try { errBody = await resp.text(); } catch {}
+      throw new Error(`Download failed: ${resp.status} ${errBody.substring(0, 200)}`);
     }
     const text = await resp.text();
     if (text && text.trim().startsWith("{")) {
       const remote = JSON.parse(text);
       if (remote && Object.keys(remote).length > 0) {
-        // Merge: local years not in remote are preserved
         data = Object.assign({}, data, remote);
         saveLocal();
         activeYear = Object.keys(data)[0];
@@ -2778,6 +2785,6 @@ if (inSandbox || checkAuth()) {
 }
 // Otherwise wait for Google Sign-In callback (handleGoogleLogin → initApp)
 </script>
-  <div id="version-footer">v1.3.1</div>
+  <div id="version-footer">v1.3.2</div>
 </body>
 </html>
