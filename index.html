@@ -505,6 +505,55 @@
     padding: 16px 0;
   }
 
+  /* ── report panel ── */
+  #report-controls { margin-bottom: 20px; }
+  .report-row {
+    display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;
+  }
+  #report-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .report-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .report-card.green { border-color: rgba(61,158,110,0.25); }
+  .report-card.red   { border-color: rgba(192,80,74,0.25); }
+  .report-card.gold  { border-color: rgba(201,168,76,0.25); }
+  .rc-label { font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+  .rc-value { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .report-card.green .rc-value { color: var(--green); }
+  .report-card.red   .rc-value { color: var(--red); }
+  .report-card.gold  .rc-value { color: var(--gold); }
+  .rc-count { font-size: 11px; color: var(--text-3); font-weight: 300; }
+
+  #report-table thead tr { border-bottom: 1px solid var(--border); }
+  #report-table th { padding: 10px 14px; font-size: 10px; color: var(--text-3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+  #report-table th.right { text-align: right; }
+  #report-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; cursor: default; }
+  #report-table tbody tr:hover { background: var(--bg2); }
+  #report-table td { padding: 11px 14px; font-size: 13px; }
+  #report-table td.right { text-align: right; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .type-pill {
+    display: inline-block; padding: 2px 9px; border-radius: 20px;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.03em;
+  }
+  .type-pill.dep { background: var(--green-dim); color: var(--green); }
+  .type-pill.wit { background: var(--red-dim);   color: var(--red); }
+
+  @media (max-width: 640px) {
+    #report-summary { grid-template-columns: 1fr 1fr; }
+    .report-card.gold { grid-column: span 2; }
+    .rc-value { font-size: 18px; }
+    .report-row { gap: 8px; }
+  }
+
   /* ════════════════════════════════════════════
      MOBILE (≤ 640px)
   ════════════════════════════════════════════ */
@@ -570,7 +619,7 @@
     .bnav-btn.bnav-add.withdraw-mode { background: var(--red); }
 
     /* slide-up sheets */
-    #year-sheet, #add-sheet {
+    #menu-sheet, #year-sheet, #add-sheet {
       display: none;
       position: fixed; bottom: 68px; left: 0; right: 0;
       background: var(--bg2);
@@ -578,7 +627,7 @@
       border-radius: 18px 18px 0 0;
       z-index: 150;
     }
-    #year-sheet.open, #add-sheet.open { display: block; }
+    #menu-sheet.open, #year-sheet.open, #add-sheet.open { display: block; }
 
     #year-sheet { padding: 0 0 12px; max-height: 70vh; overflow-y: auto; }
     #add-sheet  { padding: 0 20px 32px; }
@@ -607,6 +656,20 @@
     .ysheet-btn.active { color: var(--gold); }
     .ysheet-btn .yb-label { font-weight: 500; font-size: 15px; }
     .ysheet-btn .yb-net   { font-size: 13px; font-weight: 300; }
+    .menu-item-btn {
+      width: 100%; background: transparent; border: none;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px 20px; cursor: pointer;
+      transition: background 0.1s;
+    }
+    .menu-item-btn:hover { background: var(--bg3); }
+    .menu-item-btn:last-child { border-bottom: none; }
+    .menu-item-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; color: var(--text-2); }
+    .menu-item-label { flex: 1; font-size: 15px; color: var(--text-1); font-weight: 400; text-align: left; }
+    .menu-item-arrow { font-size: 18px; color: var(--text-3); }
+    .menu-item-meta { font-size: 11px; color: var(--text-3); }
+    .ysheet-divider { height: 1px; background: var(--border); margin: 6px 16px; }
     #ysheet-new-btn {
       width: calc(100% - 32px); margin: 12px 16px 0;
       background: transparent; border: 1px dashed var(--border-hi);
@@ -625,6 +688,7 @@
       font-family: 'DM Sans', sans-serif; width: 100%; outline: none;
     }
     #ysheet-new-input:focus { border-color: var(--gold-dim); }
+
 
     #add-sheet .field { margin-bottom: 16px; }
     #add-sheet .field label { font-size: 11px; margin-bottom: 6px; }
@@ -650,6 +714,7 @@
 
   @media (min-width: 641px) {
     #bottom-nav   { display: none; }
+    #menu-sheet   { display: none !important; }
     #year-sheet   { display: none !important; }
     #add-sheet    { display: none !important; }
     #sheet-overlay{ display: none !important; }
@@ -785,6 +850,7 @@
     <div id="tabs">
       <button class="tab-btn active" id="tab-saved"   onclick="switchTab('saved')"  >💚 Saved <span id="count-saved"></span></button>
       <button class="tab-btn"        id="tab-removed" onclick="switchTab('removed')">🔴 Withdrawn <span id="count-removed"></span></button>
+      <button class="tab-btn"        id="tab-report"  onclick="switchTab('report')" >📊 Report</button>
     </div>
 
     <div id="add-form">
@@ -811,6 +877,56 @@
 
       </table>
     </div>
+
+    <!-- Report panel -->
+    <div id="report-panel" style="display:none; flex:1; overflow-y:auto; padding:20px 24px 24px; flex-direction:column;">
+
+      <div id="report-controls" style="margin-bottom:20px;">
+        <div class="report-row">
+          <div class="field">
+            <label>From</label>
+            <input type="date" id="report-from" style="color-scheme:dark" oninput="renderReport()">
+          </div>
+          <div class="field">
+            <label>To</label>
+            <input type="date" id="report-to" style="color-scheme:dark" oninput="renderReport()">
+          </div>
+          <button class="btn-ghost" onclick="setReportPreset('fy')">This FY</button>
+          <button class="btn-ghost" onclick="setReportPreset('year')">This Year</button>
+          <button class="btn-ghost" onclick="setReportPreset('month')">This Month</button>
+          <button class="btn-ghost" onclick="setReportPreset('all')">All Time</button>
+        </div>
+      </div>
+
+      <div id="report-summary">
+        <div class="report-card green">
+          <div class="rc-label">Total Deposited</div>
+          <div class="rc-value" id="rc-in">—</div>
+          <div class="rc-count" id="rc-in-count"></div>
+        </div>
+        <div class="report-card red">
+          <div class="rc-label">Total Withdrawn</div>
+          <div class="rc-value" id="rc-out">—</div>
+          <div class="rc-count" id="rc-out-count"></div>
+        </div>
+        <div class="report-card gold">
+          <div class="rc-label">Net</div>
+          <div class="rc-value" id="rc-net">—</div>
+          <div class="rc-count" id="rc-net-label"></div>
+        </div>
+      </div>
+
+      <div id="report-empty" style="display:none; text-align:center; padding:40px 0; color:var(--text-3); font-size:14px; font-weight:300;">No transactions in this date range.</div>
+      <table id="report-table" style="display:none; width:100%; border-collapse:collapse; margin-top:4px;">
+        <thead><tr>
+          <th>Date</th>
+          <th>Type</th>
+          <th class="right">Amount</th>
+        </tr></thead>
+        <tbody id="report-body"></tbody>
+      </table>
+    </div>
+
   </div>
 </div>
 
@@ -826,13 +942,40 @@
     <span class="bnav-icon" id="bnav-add-icon">➕</span>
     <span id="bnav-add-label">Add Deposit</span>
   </button>
-  <button class="bnav-btn" onclick="openYearSheet()">
-    <span class="bnav-icon">📅</span>Years
+  <button class="bnav-btn" id="bnav-report" onclick="mobileTab('report')">
+    <span class="bnav-icon">📊</span>Report
+  </button>
+  <button class="bnav-btn" id="bnav-menu" onclick="openMenuSheet()">
+    <span class="bnav-icon">☰</span>Menu
   </button>
 </div>
 
 <!-- Mobile: sheet overlay -->
 <div id="sheet-overlay" onclick="closeSheets()"></div>
+
+<!-- Mobile: menu sheet -->
+<div id="menu-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Menu</div>
+  <button class="menu-item-btn" onclick="closeSheets(); openYearSheet();">
+    <span class="menu-item-icon">📅</span>
+    <span class="menu-item-label">Financial Years</span>
+    <span class="menu-item-arrow">›</span>
+  </button>
+  <button class="menu-item-btn" onclick="closeSheets(); setTimeout(manualSync, 50);">
+    <span class="menu-item-icon">↻</span>
+    <span class="menu-item-label">Sync Now</span>
+    <span id="menu-sync-status" class="menu-item-meta"></span>
+  </button>
+  <button class="menu-item-btn" onclick="closeSheets(); setTimeout(exportCSV, 50);">
+    <span class="menu-item-icon">⬇</span>
+    <span class="menu-item-label">Export CSV</span>
+  </button>
+  <button class="menu-item-btn" onclick="closeSheets(); setTimeout(openSetup, 50);">
+    <span class="menu-item-icon">⚙</span>
+    <span class="menu-item-label">Settings</span>
+  </button>
+</div>
 
 <!-- Mobile: year picker sheet -->
 <div id="year-sheet">
@@ -1241,7 +1384,97 @@ function renderMain() {
 }
 
 // ─── actions ───────────────────────────────────────────────────────────────────
-function switchTab(t) { activeTab=t; pendingDelete=null; render(); }
+function switchTab(t) {
+  activeTab = t; pendingDelete = null;
+  // show/hide report panel vs normal table
+  const isReport = t === "report";
+  document.getElementById("table-wrap").style.display   = isReport ? "none" : "";
+  document.getElementById("report-panel").style.display = isReport ? "flex" : "none";
+  document.getElementById("add-form").style.display     = isReport ? "none" : "";
+  document.getElementById("sort-date") && (document.getElementById("sort-date").parentElement.parentElement.style.display = isReport ? "none" : "");
+  if (isReport) renderReport();
+  render();
+}
+
+function setReportPreset(preset) {
+  const now   = new Date();
+  const pad   = n => String(n).padStart(2,"0");
+  const iso   = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  let from, to = iso(now);
+
+  if (preset === "month") {
+    from = `${now.getFullYear()}-${pad(now.getMonth()+1)}-01`;
+  } else if (preset === "year") {
+    from = `${now.getFullYear()}-01-01`;
+  } else if (preset === "fy") {
+    // Australian FY: Jul 1 – Jun 30
+    const fyStart = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
+    from = `${fyStart}-07-01`;
+  } else {
+    // all time — find earliest transaction across all years
+    let earliest = "9999-12-31";
+    Object.values(data).forEach(fy => {
+      [...fy.saved, ...fy.removed].forEach(([d]) => { if (d < earliest) earliest = d; });
+    });
+    from = earliest === "9999-12-31" ? "2020-01-01" : earliest;
+  }
+  document.getElementById("report-from").value = from;
+  document.getElementById("report-to").value   = to;
+  renderReport();
+}
+
+function renderReport() {
+  const from = document.getElementById("report-from").value;
+  const to   = document.getElementById("report-to").value;
+  if (!from || !to) return;
+
+  // Gather all transactions across ALL years in range
+  const deposits    = [];
+  const withdrawals = [];
+
+  Object.entries(data).forEach(([fy, fyData]) => {
+    fyData.saved.forEach(([d, a])   => { if (d >= from && d <= to) deposits.push([d, a]); });
+    fyData.removed.forEach(([d, a]) => { if (d >= from && d <= to) withdrawals.push([d, a]); });
+  });
+
+  const totalIn  = deposits.reduce((s, [,a]) => s + a, 0);
+  const totalOut = withdrawals.reduce((s, [,a]) => s + a, 0);
+  const net      = totalIn - totalOut;
+
+  // Update summary cards
+  document.getElementById("rc-in").textContent        = aud(totalIn);
+  document.getElementById("rc-out").textContent       = aud(totalOut);
+  document.getElementById("rc-net").textContent       = aud(net);
+  document.getElementById("rc-in-count").textContent  = deposits.length + " transaction" + (deposits.length !== 1 ? "s" : "");
+  document.getElementById("rc-out-count").textContent = withdrawals.length + " transaction" + (withdrawals.length !== 1 ? "s" : "");
+  document.getElementById("rc-net-label").textContent = net >= 0 ? "surplus" : "deficit";
+
+  // Combined sorted list
+  const all = [
+    ...deposits.map(([d,a])    => ({ d, a, type: "dep" })),
+    ...withdrawals.map(([d,a]) => ({ d, a, type: "wit" })),
+  ].sort((a, b) => a.d.localeCompare(b.d));
+
+  const tbody = document.getElementById("report-body");
+  const table = document.getElementById("report-table");
+  const empty = document.getElementById("report-empty");
+  tbody.innerHTML = "";
+
+  if (!all.length) {
+    table.style.display = "none"; empty.style.display = "block"; return;
+  }
+  table.style.display = "table"; empty.style.display = "none";
+
+  all.forEach(({ d, a, type }) => {
+    const tr = document.createElement("tr");
+    const colour = type === "dep" ? "var(--green)" : "var(--red)";
+    tr.innerHTML = `
+      <td>${fmtDate(d)}</td>
+      <td><span class="type-pill ${type}">${type === "dep" ? "Deposit" : "Withdrawal"}</span></td>
+      <td class="right" style="color:${colour}">${aud(a)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
 
 function setSort(key) {
   if (sortKey === key) {
@@ -1462,8 +1695,9 @@ function mobileTab(t) {
   activeTab = t; pendingDelete = null;
   document.getElementById("bnav-saved").className   = "bnav-btn" + (t==="saved"   ? " active" : "");
   document.getElementById("bnav-removed").className = "bnav-btn" + (t==="removed" ? " active" : "");
+  document.getElementById("bnav-report") && (document.getElementById("bnav-report").className = "bnav-btn" + (t==="report" ? " active" : ""));
   updateAddBtn();
-  render();
+  switchTab(t);
 }
 
 function updateAddBtn() {
@@ -1497,6 +1731,15 @@ function mobileAddTransaction() {
   closeSheets();
   render();
   toast(activeTab==="saved" ? "Deposit recorded" : "Withdrawal recorded");
+}
+
+function openMenuSheet() {
+  // Update sync status in menu
+  const ss = document.getElementById("sync-status");
+  const ms = document.getElementById("menu-sync-status");
+  if (ms && ss) ms.textContent = ss.textContent;
+  document.getElementById("menu-sheet").classList.add("open");
+  document.getElementById("sheet-overlay").classList.add("open");
 }
 
 function openYearSheet() {
@@ -1544,6 +1787,7 @@ function confirmYsheetYear() {
 function closeSheets() {
   document.getElementById("add-sheet").classList.remove("open");
   document.getElementById("year-sheet").classList.remove("open");
+  document.getElementById("menu-sheet").classList.remove("open");
   document.getElementById("sheet-overlay").classList.remove("open");
   hideYsheetNewForm();
 }
