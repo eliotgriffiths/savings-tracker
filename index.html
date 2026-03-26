@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>💰 Savings Tracker</title>
+<title>Vault</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -323,30 +324,64 @@
   .foot-label { font-weight: 500; font-size: 12px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
   .foot-total { text-align: right; font-weight: 600; font-size: 15px; font-variant-numeric: tabular-nums; }
 
-  /* ── delete buttons ── */
-  .del-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-3);
-    font-size: 14px;
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 6px;
-    line-height: 1;
-    transition: color 0.15s, background 0.15s;
+  /* ── clickable rows ── */
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: var(--bg3); }
+
+  /* ── transaction popup ── */
+  #tx-popup {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(4px);
+    z-index: 300;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
   }
-  .del-btn:hover { color: var(--red); background: var(--red-dim); }
-  .confirm-wrap { display: flex; gap: 5px; justify-content: center; }
-  .btn-del-confirm {
-    background: var(--red); border: none; border-radius: 6px;
-    padding: 4px 10px; color: #fff; font-size: 11px; cursor: pointer;
-    font-weight: 600; font-family: 'DM Sans', sans-serif;
+  #tx-popup.hidden { display: none; }
+  .tx-popup-box {
+    background: var(--bg2);
+    border: 1px solid var(--border-hi);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    width: 100%; max-width: 380px;
   }
-  .btn-del-cancel {
-    background: var(--bg3); border: 1px solid var(--border-hi); border-radius: 6px;
-    padding: 4px 10px; color: var(--text-2); font-size: 11px; cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
+  .tx-popup-box h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px; font-weight: 400;
+    color: var(--text-1); margin-bottom: 6px;
   }
+  .tx-popup-meta {
+    font-size: 12px; color: var(--text-3); margin-bottom: 22px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .tx-popup-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+  .tx-popup-field label { font-size: 10px; color: var(--text-3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+  .tx-popup-field input {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 9px 12px;
+    color: var(--text-1); font-size: 14px;
+    font-family: 'DM Sans', sans-serif; outline: none;
+    transition: border-color 0.15s;
+  }
+  .tx-popup-field input:focus { border-color: var(--gold-dim); }
+  .tx-popup-actions { display: flex; gap: 8px; margin-top: 22px; }
+  .btn-save {
+    flex: 1; background: var(--gold); border: none; border-radius: var(--radius);
+    padding: 11px 0; color: #0f0f11; font-weight: 700; font-size: 14px;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn-save:hover { opacity: 0.88; }
+  .btn-delete {
+    background: transparent; border: 1px solid var(--border-hi); border-radius: var(--radius);
+    padding: 10px 16px; color: var(--red); font-weight: 500; font-size: 13px;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background 0.15s, border-color 0.15s;
+  }
+  .btn-delete:hover { background: var(--red-dim); border-color: var(--red); }
+  .btn-popup-cancel {
+    background: transparent; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 10px 16px; color: var(--text-2); font-weight: 500; font-size: 13px;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-popup-cancel:hover { border-color: var(--border-hi); color: var(--text-1); }
 
   /* ── toast ── */
   #toast {
@@ -436,6 +471,40 @@
     color: var(--text-2); font-size: 11px; resize: none; outline: none;
   }
 
+  /* ── sidebar collapse ── */
+  #sidebar { transition: width 0.22s cubic-bezier(0.4,0,0.2,1); }
+  #sidebar.collapsed { width: 40px; }
+  #sidebar.collapsed #year-list,
+  #sidebar.collapsed #add-year-area { display: none; }
+  #sidebar.collapsed .sidebar-label { display: none; }
+  #sidebar.collapsed #sidebar-collapse-btn { transform: rotate(180deg); }
+
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 10px 6px 16px;
+    flex-shrink: 0;
+  }
+  #sidebar-collapse-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-3);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: color 0.15s, transform 0.22s cubic-bezier(0.4,0,0.2,1);
+  }
+  #sidebar-collapse-btn:hover { color: var(--text-1); }
+  /* collapsed: show only the expand button centred */
+  #sidebar.collapsed .sidebar-header {
+    justify-content: center;
+    padding: 16px 0;
+  }
+
   /* ════════════════════════════════════════════
      MOBILE (≤ 640px)
   ════════════════════════════════════════════ */
@@ -469,8 +538,7 @@
     .stat-val { font-size: 13px; }
 
     .tab-btn { font-size: 13px; padding: 13px 10px; }
-    td.muted { display: none; }
-    th:first-child { display: none; }
+
     td { padding: 13px 12px; font-size: 14px; }
     th { padding: 10px 12px; }
     .del-btn { font-size: 17px; padding: 6px 10px; }
@@ -587,9 +655,76 @@
     #sheet-overlay{ display: none !important; }
     #mob-sync-btn { display: none; }
   }
+
+  /* ── login screen ── */
+  #login-screen {
+    position: fixed; inset: 0; z-index: 1000;
+    background: var(--bg0);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  #login-screen.hidden { display: none; }
+  #login-box {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 12px; text-align: center; max-width: 320px; width: 100%;
+  }
+  #login-logo {
+    width: 64px; height: 64px;
+    background: var(--gold-glow);
+    border: 1px solid var(--gold-dim);
+    border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px; color: var(--gold);
+    margin-bottom: 8px;
+  }
+  #login-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px; font-weight: 400;
+    color: var(--text-1); letter-spacing: 0.04em;
+  }
+  #login-sub {
+    font-size: 13px; color: var(--text-3);
+    font-weight: 300; letter-spacing: 0.04em;
+    margin-bottom: 12px;
+  }
+  #login-btn-wrap {
+    display: flex; justify-content: center;
+    width: 100%; margin-top: 8px;
+  }
+  #login-error {
+    font-size: 12px; color: var(--red);
+    margin-top: 8px; font-weight: 400;
+  }
+
 </style>
 </head>
 <body>
+
+<!-- Login screen -->
+<div id="login-screen">
+  <div id="login-box">
+    <div id="login-logo">V</div>
+    <h1 id="login-title">Vault</h1>
+    <p id="login-sub">Personal savings tracker</p>
+    <div id="login-btn-wrap">
+      <div id="g_id_onload"
+        data-client_id="923866716926-ch3d25r6159hc0ditod3n8g6ufb8pcsk.apps.googleusercontent.com"
+        data-callback="handleGoogleLogin"
+        data-auto_select="true">
+      </div>
+      <div class="g_id_signin"
+        data-type="standard"
+        data-shape="pill"
+        data-theme="filled_black"
+        data-text="sign_in_with"
+        data-size="large"
+        data-logo_alignment="left">
+      </div>
+    </div>
+    <p id="login-error" style="display:none">Access restricted to authorised account.</p>
+  </div>
+</div>
 
 <!-- Setup modal -->
 <div id="setup-modal">
@@ -615,14 +750,16 @@
     <button class="btn-ghost" onclick="manualSync()">↻ Sync</button>
     <button id="mob-sync-btn" class="btn-ghost" onclick="manualSync()" style="display:none">↻</button>
     <button class="btn-ghost" onclick="openSetup()">⚙ Settings</button>
-    <button class="btn-ghost" onclick="toggleDebug()">🔍 Debug</button>
     <button class="btn-gold" onclick="exportCSV()">Export CSV</button>
   </div>
 </div>
 
 <div id="layout">
   <div id="sidebar">
-    <div class="sidebar-label">Financial Years</div>
+    <div class="sidebar-header">
+      <span class="sidebar-label">Financial Years</span>
+      <button id="sidebar-collapse-btn" onclick="toggleSidebar()" title="Collapse">‹</button>
+    </div>
     <div id="year-list"></div>
     <div id="add-year-area">
       <button id="btn-new-year" onclick="showAddYear()">+ New Year</button>
@@ -663,17 +800,15 @@
       <div id="empty-msg" style="display:none">No transactions yet — add one above.</div>
       <table id="tx-table" style="display:none">
         <thead><tr>
-          <th style="width:36px">#</th>
-          <th>Date</th>
-          <th class="right">Amount</th>
-          <th class="center" style="width:90px"></th>
+          <th id="sort-date" onclick="setSort('date')" class="sort-col">Date</th>
+          <th id="sort-amount" onclick="setSort('amount')" class="sort-col right">Amount</th>
         </tr></thead>
-        <tbody id="tx-body"></tbody>
         <tfoot><tr>
-          <td colspan="2" class="foot-label" id="foot-label"></td>
+          <td class="foot-label" id="foot-label"></td>
           <td class="foot-total" id="foot-total"></td>
-          <td></td>
         </tr></tfoot>
+        <tbody id="tx-body"></tbody>
+
       </table>
     </div>
   </div>
@@ -728,6 +863,27 @@
     <input type="number" id="mob-inp-amount" min="0.01" step="0.01" placeholder="0.00" inputmode="decimal">
   </div>
   <button id="mob-add-btn" class="saved-mode" onclick="mobileAddTransaction()">Add Deposit</button>
+</div>
+
+<!-- Transaction edit/delete popup -->
+<div id="tx-popup" class="hidden">
+  <div class="tx-popup-box">
+    <h3 id="popup-title">Edit Transaction</h3>
+    <div class="tx-popup-meta" id="popup-meta"></div>
+    <div class="tx-popup-field">
+      <label>Date</label>
+      <input type="date" id="popup-date" style="color-scheme:dark">
+    </div>
+    <div class="tx-popup-field">
+      <label>Amount ($)</label>
+      <input type="number" id="popup-amount" min="0.01" step="0.01" inputmode="decimal">
+    </div>
+    <div class="tx-popup-actions">
+      <button class="btn-save"          onclick="savePopup()">Save Changes</button>
+      <button class="btn-delete"        onclick="deletePopup()">Delete</button>
+      <button class="btn-popup-cancel"  onclick="closePopup()">Cancel</button>
+    </div>
+  </div>
 </div>
 
 <div id="toast"></div>
@@ -851,7 +1007,8 @@ const SEED = {
 };
 
 // ─── state ─────────────────────────────────────────────────────────────────────
-let data = {}, activeYear, activeTab = "saved", pendingDelete = null;
+let data = {}, activeYear, activeTab = "saved";
+let sortKey = "date", sortDir = "asc"; // date|amount, asc|desc
 let scriptURL = "", syncMode = false, syncTimer = null;
 
 // ─── helpers ───────────────────────────────────────────────────────────────────
@@ -1061,7 +1218,7 @@ function renderMain() {
   btnAdd.textContent = activeTab==="saved" ? "+ Add Deposit" : "+ Add Withdrawal";
   btnAdd.className   = "btn-add "+(activeTab==="saved" ? "saved-mode" : "removed-mode");
 
-  const rows = activeTab==="saved" ? fy.saved : fy.removed;
+  const rows = getSortedRows(activeTab==="saved" ? fy.saved : fy.removed);
   const tbody = document.getElementById("tx-body");
   const table = document.getElementById("tx-table");
   const empty = document.getElementById("empty-msg");
@@ -1070,28 +1227,54 @@ function renderMain() {
   table.style.display="table"; empty.style.display="none";
   tbody.innerHTML="";
   rows.forEach(([date,amt],i) => {
-    const isC = pendingDelete && pendingDelete.year===activeYear && pendingDelete.type===activeTab && pendingDelete.idx===i;
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td class="muted">${i+1}</td>
       <td>${fmtDate(date)}</td>
-      <td class="num" style="color:${activeTab==="saved" ? 'var(--green)' : 'var(--red)'}">${aud(amt)}</td>
-      <td class="center">${isC
-        ? `<span class="confirm-wrap">
-             <button class="btn-del-confirm" onclick="confirmDelete(${i})">Delete</button>
-             <button class="btn-del-cancel"  onclick="cancelDelete()">Cancel</button>
-           </span>`
-        : `<button class="del-btn" onclick="askDelete(${i})" title="Delete">✕</button>`
-      }</td>`;
+      <td class="num" style="color:${activeTab==="saved" ? 'var(--green)' : 'var(--red)'}">${aud(amt)}</td>`;
+    tr.onclick = () => openPopup(i);
     tbody.appendChild(tr);
   });
   document.getElementById("foot-label").textContent = `Total (${rows.length} entries)`;
   const ft = document.getElementById("foot-total");
   ft.textContent = aud(sumArr(rows)); ft.style.color = activeTab==="saved" ? "var(--green)" : "var(--red)";
+  updateSortButtons();
 }
 
 // ─── actions ───────────────────────────────────────────────────────────────────
 function switchTab(t) { activeTab=t; pendingDelete=null; render(); }
+
+function setSort(key) {
+  if (sortKey === key) {
+    sortDir = sortDir === "asc" ? "desc" : "asc";
+  } else {
+    sortKey = key;
+    sortDir = key === "date" ? "asc" : "desc"; // sensible defaults
+  }
+  render();
+}
+
+function getSortedRows(rows) {
+  const copy = rows.slice();
+  copy.sort((a, b) => {
+    let av = sortKey === "date" ? a[0] : a[1];
+    let bv = sortKey === "date" ? b[0] : b[1];
+    if (av < bv) return sortDir === "asc" ? -1 :  1;
+    if (av > bv) return sortDir === "asc" ?  1 : -1;
+    return 0;
+  });
+  return copy;
+}
+
+function updateSortButtons() {
+  const dateEl   = document.getElementById("sort-date");
+  const amountEl = document.getElementById("sort-amount");
+  if (!dateEl) return;
+  const asc = "↑", desc = "↓", neutral = "↕";
+  dateEl.textContent   = "Date"   + " " + (sortKey === "date"   ? (sortDir === "asc" ? asc : desc) : neutral);
+  amountEl.textContent = "Amount" + " " + (sortKey === "amount" ? (sortDir === "asc" ? asc : desc) : neutral);
+  dateEl.className   = "sort-col"       + (sortKey === "date"   ? " active-" + sortDir : "");
+  amountEl.className = "sort-col right" + (sortKey === "amount" ? " active-" + sortDir : "");
+}
 
 function addTransaction() {
   const dv = document.getElementById("inp-date").value;
@@ -1106,9 +1289,52 @@ function addTransaction() {
   toast(`${activeTab==="saved" ? "Deposit" : "Withdrawal"} of ${aud(amt)} recorded`);
 }
 
-function askDelete(idx)     { pendingDelete={year:activeYear,type:activeTab,idx}; render(); }
-function cancelDelete()     { pendingDelete=null; render(); }
-function confirmDelete(idx) { data[activeYear][activeTab].splice(idx,1); pendingDelete=null; render(); toast("Deleted.","#c0392b"); }
+// ── transaction popup ──────────────────────────────────────────────────────
+let popupIdx = null;
+
+function openPopup(idx) {
+  const rows = activeTab === "saved" ? data[activeYear].saved : data[activeYear].removed;
+  const [date, amt] = rows[idx];
+  popupIdx = idx;
+  const isDeposit = activeTab === "saved";
+  document.getElementById("popup-title").textContent = isDeposit ? "Edit Deposit" : "Edit Withdrawal";
+  document.getElementById("popup-meta").textContent  = "FY 20" + activeYear + "  ·  " + (isDeposit ? "Deposit" : "Withdrawal");
+  document.getElementById("popup-date").value   = date;
+  document.getElementById("popup-amount").value = amt;
+  document.getElementById("tx-popup").classList.remove("hidden");
+}
+
+function closePopup() {
+  document.getElementById("tx-popup").classList.add("hidden");
+  popupIdx = null;
+}
+
+function savePopup() {
+  if (popupIdx === null) return;
+  const dateVal = document.getElementById("popup-date").value;
+  const amtVal  = parseFloat(document.getElementById("popup-amount").value);
+  if (!dateVal || isNaN(amtVal) || amtVal <= 0) { toast("Enter a valid date and amount.", "#c0392b"); return; }
+  const list = activeTab === "saved" ? data[activeYear].saved : data[activeYear].removed;
+  list[popupIdx] = [dateVal, parseFloat(amtVal.toFixed(2))];
+  list.sort((a, b) => a[0].localeCompare(b[0]));
+  closePopup();
+  render();
+  toast("Transaction updated");
+}
+
+function deletePopup() {
+  if (popupIdx === null) return;
+  const list = activeTab === "saved" ? data[activeYear].saved : data[activeYear].removed;
+  list.splice(popupIdx, 1);
+  closePopup();
+  render();
+  toast("Transaction deleted", "var(--red)");
+}
+
+// close popup on backdrop click
+document.getElementById("tx-popup").addEventListener("click", function(e) {
+  if (e.target === this) closePopup();
+});
 
 function showAddYear() {
   document.getElementById("btn-new-year").style.display="none";
@@ -1214,10 +1440,20 @@ setInterval(() => {
 }, 30000);
 
 // ─── debug ────────────────────────────────────────────────────────────────────
+function toggleSidebar() {
+  const sb = document.getElementById("sidebar");
+  const isCollapsed = sb.classList.toggle("collapsed");
+  try { localStorage.setItem("sidebar_collapsed", isCollapsed); } catch {}
+}
+
 function toggleDebug() {
   const el = document.getElementById("debug-panel");
   el.style.display = el.style.display === "none" ? "block" : "none";
 }
+// Open debug panel with Ctrl+Shift+D
+document.addEventListener("keydown", (e) => {
+  if (e.ctrlKey && e.shiftKey && e.key === "D") { e.preventDefault(); toggleDebug(); }
+});
 
 // ─── mobile UI ────────────────────────────────────────────────────────────────
 function isMobile() { return window.innerWidth <= 640; }
@@ -1312,9 +1548,49 @@ function closeSheets() {
   hideYsheetNewForm();
 }
 
+// ─── auth ─────────────────────────────────────────────────────────────────────
+const ALLOWED_EMAIL = "eliotgriffiths01@gmail.com";
+
+function handleGoogleLogin(response) {
+  // Decode the JWT credential to get the email
+  try {
+    const payload = JSON.parse(atob(response.credential.split(".")[1]));
+    const email   = (payload.email || "").toLowerCase();
+    if (email === ALLOWED_EMAIL.toLowerCase()) {
+      // Authorised — store session and unlock app
+      try { sessionStorage.setItem("vault_auth", "1"); } catch {}
+      document.getElementById("login-screen").classList.add("hidden");
+      initApp();
+    } else {
+      document.getElementById("login-error").style.display = "block";
+      // Sign out of Google so they can try a different account
+      if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
+    }
+  } catch (e) {
+    document.getElementById("login-error").style.display = "block";
+  }
+}
+
+function checkAuth() {
+  // Already authenticated this session
+  try {
+    if (sessionStorage.getItem("vault_auth") === "1") {
+      document.getElementById("login-screen").classList.add("hidden");
+      return true;
+    }
+  } catch {}
+  return false;
+}
+
 // ─── init ──────────────────────────────────────────────────────────────────────
 loadLocal();
 activeYear = Object.keys(data)[0];
+// Restore sidebar state
+try {
+  if (localStorage.getItem("sidebar_collapsed") === "true") {
+    document.getElementById("sidebar").classList.add("collapsed");
+  }
+} catch {}
 // updateAddBtn called after render below
 
 if (scriptURL) {
