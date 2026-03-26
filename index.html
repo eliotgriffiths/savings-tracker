@@ -180,6 +180,25 @@
     border-radius: 7px; padding: 6px 0; color: var(--text-2); font-size: 12px;
     font-family: 'DM Sans', sans-serif; cursor: pointer;
   }
+  .sidebar-report-btn {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-top: 1px solid var(--border);
+    color: var(--text-2);
+    padding: 11px 16px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+    letter-spacing: 0.02em;
+  }
+  .sidebar-report-btn:hover { background: var(--bg2); color: var(--text-1); }
+  .sidebar-report-btn.active { background: var(--bg2); color: var(--gold); border-left: 2px solid var(--gold); }
+  #sidebar-report-btn-wrap { margin-top: auto; }
+
   #btn-new-year {
     width: 100%; background: transparent; border: 1px dashed var(--border-hi);
     border-radius: var(--radius); padding: 8px 0; color: var(--text-3);
@@ -559,6 +578,7 @@
   ════════════════════════════════════════════ */
   @media (max-width: 640px) {
     #sidebar { display: none; }
+    #sidebar-report-btn-wrap { display: none; }
     .header-btns .btn-ghost:not(#mob-sync-btn) { display: none; }
     .header-btns .btn-gold { display: none; }
     #add-form { display: none; }
@@ -815,7 +835,6 @@
     <button class="btn-ghost" onclick="manualSync()">↻ Sync</button>
     <button id="mob-sync-btn" class="btn-ghost" onclick="manualSync()" style="display:none">↻</button>
     <button class="btn-ghost" onclick="openSetup()">⚙ Settings</button>
-    <button class="btn-gold" onclick="exportCSV()">Export CSV</button>
   </div>
 </div>
 
@@ -826,6 +845,11 @@
       <button id="sidebar-collapse-btn" onclick="toggleSidebar()" title="Collapse">‹</button>
     </div>
     <div id="year-list"></div>
+    <div id="sidebar-report-btn-wrap">
+      <button id="sidebar-report-btn" onclick="switchTab('report')" class="sidebar-report-btn">
+        📊 Report
+      </button>
+    </div>
     <div id="add-year-area">
       <button id="btn-new-year" onclick="showAddYear()">+ New Year</button>
       <div id="add-year-form">
@@ -850,7 +874,6 @@
     <div id="tabs">
       <button class="tab-btn active" id="tab-saved"   onclick="switchTab('saved')"  >💚 Saved <span id="count-saved"></span></button>
       <button class="tab-btn"        id="tab-removed" onclick="switchTab('removed')">🔴 Withdrawn <span id="count-removed"></span></button>
-      <button class="tab-btn"        id="tab-report"  onclick="switchTab('report')" >📊 Report</button>
     </div>
 
     <div id="add-form">
@@ -895,6 +918,7 @@
           <button class="btn-ghost" onclick="setReportPreset('year')">This Year</button>
           <button class="btn-ghost" onclick="setReportPreset('month')">This Month</button>
           <button class="btn-ghost" onclick="setReportPreset('all')">All Time</button>
+          <button class="btn-gold" onclick="exportReportCSV()" style="margin-left:auto;">⬇ Export CSV</button>
         </div>
       </div>
 
@@ -966,10 +990,6 @@
     <span class="menu-item-icon">↻</span>
     <span class="menu-item-label">Sync Now</span>
     <span id="menu-sync-status" class="menu-item-meta"></span>
-  </button>
-  <button class="menu-item-btn" onclick="closeSheets(); setTimeout(exportCSV, 50);">
-    <span class="menu-item-icon">⬇</span>
-    <span class="menu-item-label">Export CSV</span>
   </button>
   <button class="menu-item-btn" onclick="closeSheets(); setTimeout(openSetup, 50);">
     <span class="menu-item-icon">⚙</span>
@@ -1386,12 +1406,14 @@ function renderMain() {
 // ─── actions ───────────────────────────────────────────────────────────────────
 function switchTab(t) {
   activeTab = t; pendingDelete = null;
-  // show/hide report panel vs normal table
   const isReport = t === "report";
   document.getElementById("table-wrap").style.display   = isReport ? "none" : "";
   document.getElementById("report-panel").style.display = isReport ? "flex" : "none";
   document.getElementById("add-form").style.display     = isReport ? "none" : "";
   document.getElementById("sort-date") && (document.getElementById("sort-date").parentElement.parentElement.style.display = isReport ? "none" : "");
+  // Highlight sidebar report button
+  const srb = document.getElementById("sidebar-report-btn");
+  if (srb) srb.className = "sidebar-report-btn" + (isReport ? " active" : "");
   if (isReport) renderReport();
   render();
 }
@@ -1586,6 +1608,48 @@ function confirmAddYear() {
   data[label]={saved:[],removed:[]};
   activeYear=label; hideAddYear(); render();
   toast(`Created FY 20${label}`);
+}
+
+function exportReportCSV() {
+  const from  = document.getElementById("report-from").value;
+  const to    = document.getElementById("report-to").value;
+  if (!from || !to) { toast("Set a date range first.", "#c0392b"); return; }
+
+  // Gather all transactions in range across all years
+  const deposits = [], withdrawals = [];
+  Object.entries(data).forEach(([fy, fyData]) => {
+    fyData.saved.forEach(([d,a])   => { if (d >= from && d <= to) deposits.push([d,a]); });
+    fyData.removed.forEach(([d,a]) => { if (d >= from && d <= to) withdrawals.push([d,a]); });
+  });
+  deposits.sort((a,b)    => a[0].localeCompare(b[0]));
+  withdrawals.sort((a,b) => a[0].localeCompare(b[0]));
+
+  const totalIn  = deposits.reduce((s,[,a])    => s+a, 0);
+  const totalOut = withdrawals.reduce((s,[,a]) => s+a, 0);
+  const net      = totalIn - totalOut;
+
+  let csv = `Vault — Report\n`;
+  csv += `Date Range,${from} to ${to}\n`;
+  csv += `Total Deposited,${totalIn.toFixed(2)}\n`;
+  csv += `Total Withdrawn,${totalOut.toFixed(2)}\n`;
+  csv += `Net,${net.toFixed(2)}\n\n`;
+  csv += `Date,Type,Amount\n`;
+
+  // Combined sorted list
+  const all = [
+    ...deposits.map(([d,a])    => [d, "Deposit",    a]),
+    ...withdrawals.map(([d,a]) => [d, "Withdrawal", a]),
+  ].sort((a,b) => a[0].localeCompare(b[0]));
+
+  all.forEach(([d,type,a]) => { csv += `${d},${type},${a.toFixed(2)}\n`; });
+
+  const fname = `vault-report-${from}-to-${to}.csv`;
+  const blob  = new Blob([csv], {type:"text/csv"});
+  const url   = URL.createObjectURL(blob);
+  const a     = document.createElement("a");
+  a.href = url; a.download = fname; a.click();
+  URL.revokeObjectURL(url);
+  toast("Report exported");
 }
 
 function exportCSV() {
