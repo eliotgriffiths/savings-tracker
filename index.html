@@ -122,7 +122,12 @@
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
+    overflow-y: hidden;
+  }
+  #year-list {
     overflow-y: auto;
+    flex: 1;
+    min-height: 0;
   }
   .sidebar-label {
     padding: 20px 16px 8px;
@@ -197,7 +202,7 @@
   }
   .sidebar-report-btn:hover { background: var(--bg2); color: var(--text-1); }
   .sidebar-report-btn.active { background: var(--bg2); color: var(--gold); border-left: 2px solid var(--gold); }
-  #sidebar-report-btn-wrap { margin-top: auto; }
+  #sidebar-report-btn-wrap { flex-shrink: 0; }
 
   #btn-new-year {
     width: 100%; background: transparent; border: 1px dashed var(--border-hi);
@@ -1858,21 +1863,29 @@ function closeSheets() {
 
 // ─── auth ─────────────────────────────────────────────────────────────────────
 const ALLOWED_EMAIL = "eliotgriffiths01@gmail.com";
-const WRITE_TOKEN = "Asc_y_9rbhBS3iQH31WSsVgTdwSJ3EjfSUj-8kfzb3I"; // must match code.gs
+const WRITE_TOKEN   = "Asc_y_9rbhBS3iQH31WSsVgTdwSJ3EjfSUj-8kfzb3I"; // must match code.gs
+const AUTH_KEY      = "vault_auth_expiry";
+const AUTH_DAYS     = 30;
+
+function setAuthCookie() {
+  const expiry = Date.now() + AUTH_DAYS * 24 * 60 * 60 * 1000;
+  try { localStorage.setItem(AUTH_KEY, expiry.toString()); } catch {}
+}
+
+function clearAuthCookie() {
+  try { localStorage.removeItem(AUTH_KEY); } catch {}
+}
 
 function handleGoogleLogin(response) {
-  // Decode the JWT credential to get the email
   try {
     const payload = JSON.parse(atob(response.credential.split(".")[1]));
     const email   = (payload.email || "").toLowerCase();
     if (email === ALLOWED_EMAIL.toLowerCase()) {
-      // Authorised — store session and unlock app
-      try { sessionStorage.setItem("vault_auth", "1"); } catch {}
+      setAuthCookie();
       document.getElementById("login-screen").classList.add("hidden");
       initApp();
     } else {
       document.getElementById("login-error").style.display = "block";
-      // Sign out of Google so they can try a different account
       if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
     }
   } catch (e) {
@@ -1881,12 +1894,16 @@ function handleGoogleLogin(response) {
 }
 
 function checkAuth() {
-  // Already authenticated this session
   try {
-    if (sessionStorage.getItem("vault_auth") === "1") {
+    const expiry = parseInt(localStorage.getItem(AUTH_KEY) || "0", 10);
+    if (expiry && Date.now() < expiry) {
+      // Refresh the timer on each valid visit
+      setAuthCookie();
       document.getElementById("login-screen").classList.add("hidden");
       return true;
     }
+    // Expired — clear it
+    clearAuthCookie();
   } catch {}
   return false;
 }
