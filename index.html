@@ -1924,7 +1924,11 @@ async function driveFindOrCreateFile() {
       body: JSON.stringify({ name: DRIVE_FILE_NAME, mimeType: "application/json" })
     }
   );
-  if (!create.ok) throw new Error("Create failed: " + create.status);
+  if (!create.ok) {
+    let errBody = "";
+    try { errBody = await create.text(); } catch {}
+    throw new Error(`Create failed: ${create.status} ${errBody.substring(0, 300)}`);
+  }
   const created = await create.json();
   driveFileId = created.id;
   saveDriveState();
@@ -2785,6 +2789,6 @@ if (inSandbox || checkAuth()) {
 }
 // Otherwise wait for Google Sign-In callback (handleGoogleLogin → initApp)
 </script>
-  <div id="version-footer">v1.3.2</div>
+  <div id="version-footer">v1.3.3</div>
 </body>
 </html>
