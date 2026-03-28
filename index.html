@@ -1018,6 +1018,18 @@
     #sheet-overlay{ display: none !important; }
   }
 
+  /* ── password decryption popup ── */
+  #enc-decrypt-popup,
+  #enc-set-popup {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 510;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  #enc-decrypt-popup.hidden,
+  #enc-set-popup.hidden { display: none; }
+
   /* ── disconnect Drive confirmation popup ── */
   #disconnect-popup {
     position: fixed; inset: 0;
@@ -1578,7 +1590,7 @@
 <div id="setup-modal">
   <div class="modal-box">
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-      <h2 style="margin-bottom:0; flex:1;">☁️ Cloud Sync</h2>
+      <h2 style="margin-bottom:0; flex:1;">☁️ Sync &amp; Backup</h2>
       <button class="modal-info-btn" onclick="document.getElementById('info-popup').classList.remove('hidden')" title="Learn more">?</button>
       <button class="modal-close" onclick="document.getElementById('setup-modal').classList.add('hidden')" title="Close">✕</button>
     </div>
@@ -1594,6 +1606,15 @@
       <button class="btn-local" id="btn-disconnect-drive" onclick="disconnectDrive()" style="display:none;">Disconnect Drive</button>
       <button class="btn-local" onclick="useLocal()">Use local only</button>
     </div>
+
+    <!-- Encryption section — only shown when Drive is connected -->
+    <div id="enc-section" style="display:none; margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
+      <div style="font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin-bottom:8px;">🔐 Backup Encryption</div>
+      <div id="enc-status-row" style="font-size:12px; color:var(--text-2); margin-bottom:10px; line-height:1.6;"></div>
+      <button id="btn-enc-set" class="btn-local" style="width:100%; margin-bottom:6px;" onclick="openEncPasswordPopup()">Set password</button>
+      <button id="btn-enc-disable" class="btn-local" style="width:100%; display:none; color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="confirmDisableEnc()">Remove encryption</button>
+    </div>
+
     <button class="info-popup-close-btn" style="margin-top:12px;" onclick="document.getElementById('setup-modal').classList.add('hidden')">Done</button>
   </div>
 </div>
@@ -1648,14 +1669,14 @@
       <span class="srow-pill err">Error</span>
       <div class="srow-text">
         <div class="srow-title">Sync failed</div>
-        <div class="srow-desc">Vault couldn't reach Google Drive. This may be due to no internet connection or an expired session. Try syncing again or reconnect via Menu → Connect to Google Drive.</div>
+        <div class="srow-desc">Vault couldn't reach Google Drive. This may be due to no internet connection or an expired session. Try syncing again or reconnect via Menu → Sync &amp; Backup.</div>
       </div>
     </div>
     <div class="sync-status-row row-none">
       <span class="srow-pill none">Local only</span>
       <div class="srow-text">
         <div class="srow-title">Not connected</div>
-        <div class="srow-desc">No Google Drive connection is active. Your data is saved only on this device. To enable cloud sync, open Menu → Connect to Google Drive.</div>
+        <div class="srow-desc">No Google Drive connection is active. Your data is saved only on this device. To enable cloud sync, open Menu → Sync &amp; Backup.</div>
       </div>
     </div>
     <button class="info-popup-close-btn" style="margin-top:20px;" onclick="document.getElementById('sync-info-popup').classList.add('hidden')">Got it</button>
@@ -1883,8 +1904,8 @@
     </button>
     <div class="dmenu-divider"></div>
     <button class="dmenu-btn" onclick="closeDesktopMenu(); setTimeout(openSetup, 50);">
-      <span class="dmenu-btn-icon">🔗</span>
-      <div><div class="dmenu-btn-label">Connect to Google Drive</div><div class="dmenu-btn-sub">Manage cloud sync</div></div>
+      <span class="dmenu-btn-icon">☁️</span>
+      <div><div class="dmenu-btn-label">Sync &amp; Backup</div><div class="dmenu-btn-sub">Manage storage &amp; cloud sync</div></div>
     </button>
     <div class="dmenu-divider"></div>
     <button class="dmenu-btn dmenu-btn-logout" onclick="logout()">
@@ -2061,8 +2082,8 @@
     <span class="menu-item-meta" id="mob-yearmode-sub" style="font-size:11px; color:var(--text-3);">Calendar year</span>
   </button>
   <button class="menu-item-btn" onclick="closeSheets(); setTimeout(openSetup, 50);">
-    <span class="menu-item-icon">🔗</span>
-    <span class="menu-item-label">Connect to Google Drive</span>
+    <span class="menu-item-icon">☁️</span>
+    <span class="menu-item-label">Sync &amp; Backup</span>
   </button>
   <button class="menu-item-btn menu-item-logout" onclick="logout()">
     <span class="menu-item-icon" style="color:var(--text-3);">↩</span>
@@ -2253,6 +2274,64 @@
       <button class="btn-local" style="color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="disconnectClearData()">Clear local data</button>
     </div>
     <button class="btn-popup-cancel" style="width:100%; margin-top:8px;" onclick="document.getElementById('disconnect-popup').classList.add('hidden')">Cancel</button>
+  </div>
+</div>
+
+<!-- Set / change encryption password popup -->
+<div id="enc-set-popup" class="hidden">
+  <div class="modal-box" style="max-width:440px;">
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+      <h2 style="margin:0; flex:1;">🔐 Set backup password</h2>
+      <button class="modal-close" onclick="document.getElementById('enc-set-popup').classList.add('hidden')" title="Close">✕</button>
+    </div>
+    <p style="margin-bottom:8px;">Your Drive backup will be encrypted with this password. You'll need it to open Vault on any device.</p>
+    <div style="background:rgba(192,80,74,0.08); border:1px solid rgba(192,80,74,0.25); border-radius:var(--radius); padding:12px 14px; margin-bottom:16px;">
+      <div style="font-size:12px; color:var(--red); line-height:1.6;"><strong>⚠️ Important:</strong> If you forget this password and lose your recovery key, your Drive backup cannot be recovered. There is no reset option.</div>
+    </div>
+    <div class="tx-popup-field">
+      <label>Password</label>
+      <input type="password" id="enc-set-pass" placeholder="Choose a strong password" autocomplete="new-password"
+             onkeydown="if(event.key==='Enter')document.getElementById('enc-set-confirm').focus()">
+    </div>
+    <div class="tx-popup-field" style="margin-bottom:16px;">
+      <label>Confirm password</label>
+      <input type="password" id="enc-set-confirm" placeholder="Repeat password" autocomplete="new-password"
+             onkeydown="if(event.key==='Enter')encSetSubmit()">
+    </div>
+    <div id="enc-set-error" style="display:none; font-size:12px; color:var(--red); margin-bottom:12px;"></div>
+    <div style="background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; margin-bottom:16px;">
+      <div style="font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; font-weight:600; margin-bottom:6px;">Recovery key</div>
+      <div style="font-size:12px; color:var(--text-2); line-height:1.6;">A <strong>vault-recovery.json</strong> file will be downloaded automatically. Keep it somewhere safe (USB drive, secure cloud folder). It can unlock your backup if you forget your password.</div>
+    </div>
+    <div class="modal-actions" style="gap:8px;">
+      <button class="btn-primary" style="flex:2;" onclick="encSetSubmit()">🔐 Encrypt &amp; download recovery key</button>
+      <button class="btn-local" style="flex:1;" onclick="document.getElementById('enc-set-popup').classList.add('hidden')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Decrypt Drive file popup — shown when an encrypted Drive file is found -->
+<div id="enc-decrypt-popup" class="hidden">
+  <div class="modal-box" style="max-width:420px;">
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+      <h2 style="margin:0; flex:1;">🔐 Encrypted backup</h2>
+    </div>
+    <p style="margin-bottom:20px;">Your Drive backup is password-protected. Enter your password to load your data.</p>
+    <div class="tx-popup-field" style="margin-bottom:16px;">
+      <label>Password</label>
+      <input type="password" id="enc-decrypt-pass" placeholder="Your Vault password" autocomplete="current-password">
+    </div>
+    <div id="enc-decrypt-error" style="display:none; font-size:12px; color:var(--red); margin-bottom:12px;"></div>
+    <div class="modal-actions" style="gap:8px; margin-bottom:12px;">
+      <button class="btn-primary" style="flex:2;" id="enc-decrypt-btn">Unlock</button>
+      <button class="btn-local" style="flex:1;" id="enc-decrypt-cancel">Cancel</button>
+    </div>
+    <div style="border-top:1px solid var(--border); padding-top:12px;">
+      <div style="font-size:11px; color:var(--text-3); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.06em; font-weight:600;">Forgot your password?</div>
+      <p style="font-size:12px; color:var(--text-2); margin-bottom:10px;">Use your recovery key file (<code>vault-recovery.json</code>) to unlock your data. Encryption will be disabled so you can set a new password.</p>
+      <input type="file" id="enc-recovery-file" accept=".json" style="display:none">
+      <button id="enc-recovery-btn" class="btn-local" style="width:100%;" onclick="document.getElementById('enc-recovery-file').click()">📂 Use recovery key file</button>
+    </div>
   </div>
 </div>
 
@@ -2578,7 +2657,7 @@ function yearLabelParts(key) {
 
 // Suggest the next year key to create after the last existing one
 function nextYear() {
-  const years = Object.keys(data);
+  const years = Object.keys(data).sort();
   if (yearMode === "financial") {
     if (!years.length) return "26-27";
     const b = parseInt(years[years.length - 1].split("-")[1]);
@@ -2607,10 +2686,12 @@ function yearKeyMaxLength() {
 // ─── local storage ─────────────────────────────────────────────────────────────
 // The canonical data store key. Bumped to v4 when the schema last changed.
 // On first load, falls back to the baked-in SEED data.
+const DATA_KEY    = "savings_data_v4";   // main transaction data store
+const SIDEBAR_KEY = "sidebar_collapsed"; // persists sidebar collapsed state
 
 // Persist the current data object to localStorage
 function saveLocal() {
-  try { localStorage.setItem("savings_data_v4", JSON.stringify(data)); } catch {}
+  try { localStorage.setItem(DATA_KEY, JSON.stringify(data)); } catch {}
 }
 
 // Load data from localStorage, falling back to PREVIEW_SEED in the Claude sandbox
@@ -2618,12 +2699,10 @@ function saveLocal() {
 // Also loads year mode settings and reconciles any mis-bucketed transactions.
 function loadLocal() {
   try {
-    const stored = localStorage.getItem("savings_data_v4");
+    const stored = localStorage.getItem(DATA_KEY);
     if (stored) {
-      data = JSON.parse(stored);
+      data = sanitiseData(JSON.parse(stored));
     } else {
-      // In the Claude preview sandbox use the real data so the app looks populated;
-      // in production start with a clean slate.
       const fallback = inSandbox ? PREVIEW_SEED : SEED;
       data = JSON.parse(JSON.stringify(fallback));
     }
@@ -2658,7 +2737,7 @@ function switchYearMode(mode) {
     data[k].removed.sort((a,b) => a[0].localeCompare(b[0]));
   });
   expandedYears.clear();
-  activeYear = Object.keys(data)[0] || null;
+  activeYear = Object.keys(data).sort()[0] || null;
   activeMonth = null;
   saveLocal();
   updateYearModeUI();
@@ -2695,7 +2774,7 @@ function setFyStartSelects() {
     });
     ensureFYSilent = false;
     expandedYears.clear();
-    activeYear = Object.keys(data)[0] || null;
+    activeYear = Object.keys(data).sort()[0] || null;
     activeMonth = null;
     saveLocal();
     updateYearModeUI();
@@ -2902,10 +2981,13 @@ function disconnectClearData() {
   // Clear the data store and reset to an empty state
   data = {};
   try {
-    localStorage.removeItem("savings_data_v4");
+    localStorage.removeItem(DATA_KEY);
     localStorage.removeItem(RECUR_KEY);
-    localStorage.removeItem("sidebar_collapsed");
+    localStorage.removeItem(SIDEBAR_KEY);
+    localStorage.removeItem(ENC_ACTIVE_KEY);
   } catch {}
+  // Clear encryption state
+  disablePasswordEncryption();
   // Reset in-memory recurring rules
   recurRules = [];
   // Reset view state
@@ -3011,48 +3093,192 @@ function driveFoundUseNew() {
   driveForceOverwrite = true;
 }
 
-// Upload the current data to Drive using a media upload PATCH request
+// ─── password encryption layer ────────────────────────────────────────────────
+// Optional — user sets a password in Sync & Backup. If no password is set,
+// the Drive file is plain JSON. If a password is set, the file is AES-256-GCM
+// encrypted. A one-time hardware recovery key (.vault-recovery file) is also
+// generated so the file can be decrypted if the password is lost.
+//
+// Encrypted file format:
+// { "vault_enc": 3, "iv": "<b64>", "ct": "<b64>" }
+// Recovery file format (downloadable JSON):
+// { "vault_recovery": 1, "key": "<b64-raw-AES-key>", "created": "<ISO-date>" }
+//
+// The recovery key is a raw AES-256 key that can decrypt the Drive file directly
+// (without knowing the password). It must be kept safe by the user.
+
+const ENC_PWD_SALT    = "vault-enc-v3-salt-2025"; // fixed app salt for PBKDF2
+const ENC_ACTIVE_KEY  = "vault_enc_active";        // "true" if password enc is on
+
+let vaultEncKey     = null;   // in-memory CryptoKey derived from password
+let vaultRecovKey   = null;   // in-memory CryptoKey for recovery key path
+let vaultEncActive  = false;  // true when a password is set and enc is enabled
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+
+function b64encode(buf) { return btoa(String.fromCharCode(...new Uint8Array(buf))); }
+function b64decode(str) { return Uint8Array.from(atob(str), c => c.charCodeAt(0)); }
+
+// Derive an AES-256-GCM CryptoKey from a password string via PBKDF2
+async function deriveKeyFromPassword(password) {
+  const enc    = new TextEncoder();
+  const keyMat = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey(
+    { name: "PBKDF2", salt: enc.encode(ENC_PWD_SALT), iterations: 310000, hash: "SHA-256" },
+    keyMat, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]
+  );
+}
+
+// Import a raw AES key from a base64 string (for recovery key)
+async function importRawKey(b64) {
+  return crypto.subtle.importKey("raw", b64decode(b64), { name: "AES-GCM" }, true, ["encrypt", "decrypt"]);
+}
+
+// Encrypt a data object. Returns a JSON envelope string.
+async function encryptDataObj(obj, key) {
+  const iv    = crypto.getRandomValues(new Uint8Array(12));
+  const plain = new TextEncoder().encode(JSON.stringify(obj));
+  const ct    = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plain);
+  return JSON.stringify({ vault_enc: 3, iv: b64encode(iv), ct: b64encode(ct) });
+}
+
+// Decrypt a vault_enc:3 envelope. Returns the parsed data object. Throws on wrong key.
+async function decryptDataObj(envelopeStr, key) {
+  const env   = JSON.parse(envelopeStr);
+  if (env.vault_enc !== 3) throw new Error("Unexpected format v" + env.vault_enc);
+  const plain = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: b64decode(env.iv) }, key, b64decode(env.ct)
+  );
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+
+function isEncryptedEnvelope(text) {
+  try { const o = JSON.parse(text); return o && o.vault_enc === 3; } catch { return false; }
+}
+
+// Load encryption active flag from localStorage
+function loadEncActive() {
+  try { vaultEncActive = localStorage.getItem(ENC_ACTIVE_KEY) === "true"; } catch {}
+}
+
+// ── password setup / change ───────────────────────────────────────────────────
+
+// Enable password encryption with the given password and generate a recovery key.
+// Downloads the recovery key file immediately.
+// Returns true on success, false if SubtleCrypto is unavailable.
+async function enablePasswordEncryption(password) {
+  try {
+    vaultEncKey    = await deriveKeyFromPassword(password);
+    // Generate a random recovery key (a raw AES-256 key)
+    const recov    = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+    const recovRaw = await crypto.subtle.exportKey("raw", recov);
+    vaultRecovKey  = recov;
+    vaultEncActive = true;
+    localStorage.setItem(ENC_ACTIVE_KEY, "true");
+    // Download recovery key file immediately
+    const recovData = JSON.stringify({
+      vault_recovery: 1,
+      key:     b64encode(recovRaw),
+      created: new Date().toISOString().split("T")[0],
+      note:    "Keep this file safe. It can decrypt your Vault backup if you forget your password."
+    }, null, 2);
+    const blob = new Blob([recovData], { type: "application/json" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href = url; a.download = "vault-recovery.json"; a.click();
+    URL.revokeObjectURL(url);
+    dbg("Enc: password encryption enabled, recovery key downloaded");
+    return true;
+  } catch (e) {
+    dbg("Enc: enablePasswordEncryption failed: " + e.message);
+    return false;
+  }
+}
+
+// Disable password encryption — removes the key from memory and clears the flag.
+// The Drive file will be overwritten with plain JSON on next save.
+function disablePasswordEncryption() {
+  vaultEncKey    = null;
+  vaultRecovKey  = null;
+  vaultEncActive = false;
+  try { localStorage.removeItem(ENC_ACTIVE_KEY); } catch {}
+  dbg("Enc: password encryption disabled");
+}
+
+// Attempt to decrypt a Drive file using a password. Returns null on wrong password.
+async function tryDecryptWithPassword(text, password) {
+  try {
+    const key = await deriveKeyFromPassword(password);
+    return await decryptDataObj(text, key);
+  } catch { return null; }
+}
+
+// Attempt to decrypt a Drive file using a loaded recovery key. Returns null on failure.
+async function tryDecryptWithRecoveryKey(text, recoveryKey) {
+  try {
+    return await decryptDataObj(text, recoveryKey);
+  } catch { return null; }
+}
+
+// ─── Drive API ────────────────────────────────────────────────────────────────
+
+// Upload current data to Drive, encrypting with the password key if set.
 async function driveSaveToCloud() {
   if (!driveToken || !driveMode) return;
   setSyncStatus("busy", "Saving…");
   try {
-    const fileId  = await driveFindOrCreateFile();
-    const payload = JSON.stringify(data);
-    const resp = await fetch(
-      `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,
-      {
-        method: "PATCH",
-        headers: {
-          "Authorization": "Bearer " + driveToken,
-          "Content-Type": "application/json"
-        },
-        body: payload
+    const fileId = await driveFindOrCreateFile();
+    let payload;
+    if (vaultEncActive && vaultEncKey) {
+      // Encrypt with password key; also embed a recovery-key-encrypted copy of the AES key
+      // so the recovery key can decrypt without knowing the password
+      if (vaultRecovKey) {
+        // Encrypt the password-derived raw key with the recovery key so recovery works
+        // (recovery key decrypts → gets password key raw → re-imports → decrypts data)
+        // Simpler: just encrypt data twice — once for password, once for recovery.
+        // We store both ciphertexts in the envelope.
+        const pwdBlob   = await encryptDataObj(data, vaultEncKey);
+        const pwdEnv    = JSON.parse(pwdBlob);
+        const recovBlob = await encryptDataObj(data, vaultRecovKey);
+        const recovEnv  = JSON.parse(recovBlob);
+        payload = JSON.stringify({ vault_enc: 3, iv: pwdEnv.iv, ct: pwdEnv.ct,
+                                   riv: recovEnv.iv, rct: recovEnv.ct });
+      } else {
+        payload = await encryptDataObj(data, vaultEncKey);
       }
-    );
-    if (!resp.ok) {
-      let errBody = "";
-      try { errBody = await resp.text(); } catch {}
-      throw new Error(`Upload failed: ${resp.status} ${errBody.substring(0, 200)}`);
+      dbg("Drive save: encrypted with password key");
+    } else {
+      payload = JSON.stringify(data);
+      dbg("Drive save: plain JSON");
     }
-    setSyncStatus("ok", "Synced ✓");
+    const uploadUrl = "https://www.googleapis.com/upload/drive/v3/files/" + fileId + "?uploadType=media";
+    const resp = await fetch(uploadUrl, {
+      method: "PATCH",
+      headers: { "Authorization": "Bearer " + driveToken, "Content-Type": "application/json" },
+      body: payload
+    });
+    if (!resp.ok) {
+      let e = ""; try { e = await resp.text(); } catch {}
+      throw new Error("Upload failed: " + resp.status + " " + e.substring(0, 200));
+    }
+    setSyncStatus("ok", "Synced ✓" + (vaultEncActive ? " 🔐" : ""));
     syncRetryCount = 0;
     clearTimeout(syncRetryTimer);
-    dbg("Drive save OK, " + payload.length + " chars");
+    dbg("Drive save OK");
   } catch (e) {
     dbg("Drive save error: " + e.message);
     scheduleRetry();
   }
 }
 
-// Exponential-ish retry schedule for failed saves (5 s → 15 s → 60 s, then give up)
+// Exponential retry: 5 s → 15 s → 60 s then give up
 function scheduleRetry() {
   clearTimeout(syncRetryTimer);
   if (syncRetryCount < SYNC_RETRY_DELAYS.length) {
-    const delay = SYNC_RETRY_DELAYS[syncRetryCount];
-    syncRetryCount++;
-    setSyncStatus("err", `Save failed — retrying in ${delay/1000}s`);
+    const delay = SYNC_RETRY_DELAYS[syncRetryCount++];
+    setSyncStatus("err", "Save failed — retrying in " + (delay/1000) + "s");
     syncRetryTimer = setTimeout(async () => {
-      dbg(`Retry attempt ${syncRetryCount} of ${SYNC_RETRY_DELAYS.length}`);
+      dbg("Retry attempt " + syncRetryCount + " of " + SYNC_RETRY_DELAYS.length);
       setSyncStatus("busy", "Retrying…");
       await driveSaveToCloud();
     }, delay);
@@ -3063,13 +3289,13 @@ function scheduleRetry() {
   }
 }
 
+// Download and apply Drive data, decrypting if needed.
 async function driveSyncFromCloud() {
   if (!driveToken || !driveMode) return;
   setSyncStatus("busy", "Loading…");
   try {
     const fileId = await driveFindOrCreateFile();
 
-    // User chose "start fresh" in the found-file popup — skip the download and push local data up
     if (driveForceOverwrite) {
       driveForceOverwrite = false;
       dbg("driveForceOverwrite: pushing local data to Drive");
@@ -3079,41 +3305,152 @@ async function driveSyncFromCloud() {
       return;
     }
 
-    const resp = await fetch(
-      `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-      { headers: { "Authorization": "Bearer " + driveToken } }
-    );
+    const mediaUrl = "https://www.googleapis.com/drive/v3/files/" + fileId + "?alt=media";
+    const resp = await fetch(mediaUrl, { headers: { "Authorization": "Bearer " + driveToken } });
     if (!resp.ok) {
       if (resp.status === 404) {
-        dbg("Drive file empty or new, pushing local data up");
+        dbg("Drive file empty, pushing local data up");
         setSyncStatus("ok", "Synced ✓");
         render();
         await driveSaveToCloud();
         return;
       }
-      let errBody = "";
-      try { errBody = await resp.text(); } catch {}
-      throw new Error(`Download failed: ${resp.status} ${errBody.substring(0, 200)}`);
+      let e = ""; try { e = await resp.text(); } catch {}
+      throw new Error("Download failed: " + resp.status + " " + e.substring(0, 200));
     }
+
     const text = await resp.text();
-    if (text && text.trim().startsWith("{")) {
-      const remote = JSON.parse(text);
-      if (remote && Object.keys(remote).length > 0) {
-        if (JSON.stringify(remote) !== JSON.stringify(data)) {
-          dbg("Drive load: conflict detected, auto-merging");
-          autoMerge(remote);
-          return;
-        }
-        dbg("Drive load OK, data matches: " + Object.keys(data).join(", "));
-      }
+    if (!text || !text.trim().startsWith("{")) {
+      setSyncStatus("ok", "Synced ✓");
+      render();
+      return;
     }
-    setSyncStatus("ok", "Synced ✓");
+
+    // ── decryption ────────────────────────────────────────────────────────────
+    let remote = null;
+
+    if (isEncryptedEnvelope(text)) {
+      dbg("Drive load: file is encrypted");
+      // If we have the password key in memory, try it first
+      if (vaultEncKey) {
+        try {
+          remote = await decryptDataObj(text, vaultEncKey);
+          dbg("Drive load: decrypted with in-memory key");
+        } catch {
+          dbg("Drive load: in-memory key failed, prompting");
+          vaultEncKey = null; // stale key — prompt for fresh password
+          remote = await promptAndDecrypt(text);
+        }
+      } else {
+        // No key in memory — show the password/recovery popup
+        remote = await promptAndDecrypt(text);
+      }
+      if (!remote) {
+        setSyncStatus("err", "Decryption failed");
+        render();
+        return;
+      }
+    } else {
+      // Plain JSON
+      try { remote = JSON.parse(text); } catch { remote = null; }
+      dbg("Drive load: plain JSON");
+    }
+    // ── end decryption ────────────────────────────────────────────────────────
+
+    if (remote && Object.keys(remote).length > 0) {
+      if (JSON.stringify(remote) !== JSON.stringify(data)) {
+        dbg("Drive load: conflict, auto-merging");
+        autoMerge(remote);
+        return;
+      }
+      dbg("Drive load OK, data matches: " + Object.keys(data).join(", "));
+    }
+    setSyncStatus("ok", "Synced ✓" + (vaultEncActive ? " 🔐" : ""));
     render();
   } catch (e) {
     setSyncStatus("err", "Sync failed");
     dbg("Drive load error: " + e.message);
     render();
   }
+}
+
+// Show the password/recovery entry popup and attempt decryption.
+// Returns the decrypted data object, or null if cancelled/failed.
+function promptAndDecrypt(encryptedText) {
+  return new Promise(resolve => {
+    const popup = document.getElementById("enc-decrypt-popup");
+    const passInput  = document.getElementById("enc-decrypt-pass");
+    const errEl      = document.getElementById("enc-decrypt-error");
+    const fileInput  = document.getElementById("enc-recovery-file");
+    passInput.value = ""; errEl.style.display = "none";
+    popup.classList.remove("hidden");
+    setTimeout(() => passInput.focus(), 80);
+
+    async function tryPassword() {
+      const pw = passInput.value;
+      if (!pw) { errEl.textContent = "Please enter your password."; errEl.style.display = "block"; return; }
+      errEl.style.display = "none";
+      const result = await tryDecryptWithPassword(encryptedText, pw);
+      if (result) {
+        // Correct password — store the key in memory for future saves
+        vaultEncKey    = await deriveKeyFromPassword(pw);
+        vaultEncActive = true;
+        localStorage.setItem(ENC_ACTIVE_KEY, "true");
+        popup.classList.add("hidden");
+        cleanup();
+        resolve(result);
+      } else {
+        errEl.textContent = "Incorrect password. Try again or use your recovery key.";
+        errEl.style.display = "block";
+      }
+    }
+
+    async function tryRecovery() {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) { errEl.textContent = "Please select your vault-recovery.json file."; errEl.style.display = "block"; return; }
+      try {
+        const text = await file.text();
+        const obj  = JSON.parse(text);
+        if (!obj.vault_recovery || !obj.key) throw new Error("Invalid recovery file");
+        // Try recovery key path: envelope has riv/rct for recovery decryption
+        const env = JSON.parse(encryptedText);
+        let result = null;
+        if (env.riv && env.rct) {
+          const recovKey = await importRawKey(obj.key);
+          const recovEnv = JSON.stringify({ vault_enc: 3, iv: env.riv, ct: env.rct });
+          result = await tryDecryptWithRecoveryKey(recovEnv, recovKey);
+        }
+        if (!result) throw new Error("Recovery key did not match");
+        // Success — disable enc (user can re-enable with a new password)
+        disablePasswordEncryption();
+        popup.classList.add("hidden");
+        cleanup();
+        toast("Recovery successful — encryption disabled. Re-enable with a new password in Sync & Backup.", "var(--gold-dim)");
+        resolve(result);
+      } catch (e) {
+        errEl.textContent = "Recovery failed: " + e.message;
+        errEl.style.display = "block";
+      }
+    }
+
+    function cancel() {
+      popup.classList.add("hidden");
+      cleanup();
+      resolve(null);
+    }
+
+    function cleanup() {
+      document.getElementById("enc-decrypt-btn").onclick    = null;
+      document.getElementById("enc-recovery-btn").onclick   = null;
+      document.getElementById("enc-decrypt-cancel").onclick = null;
+      passInput.onkeydown = null;
+    }
+
+    document.getElementById("enc-decrypt-btn").onclick    = tryPassword;
+    document.getElementById("enc-recovery-btn").onclick   = tryRecovery;
+    document.getElementById("enc-decrypt-cancel").onclick = cancel;
+    passInput.onkeydown = e => { if (e.key === "Enter") tryPassword(); };
+  });
 }
 
 function scheduleSave() {
@@ -3144,6 +3481,70 @@ function updateSetupModal() {
   if (connEmail && connected) {
     connEmail.textContent = localStorage.getItem(DRIVE_EMAIL_KEY) || "Google Drive connected";
   }
+  // Show encryption section only when Drive is connected
+  const encSection = document.getElementById("enc-section");
+  if (encSection) encSection.style.display = connected ? "" : "none";
+  updateEncUI();
+}
+
+// Update the encryption status row and buttons in the setup modal
+function updateEncUI() {
+  const statusEl  = document.getElementById("enc-status-row");
+  const setBtnEl  = document.getElementById("btn-enc-set");
+  const disBtnEl  = document.getElementById("btn-enc-disable");
+  if (!statusEl) return;
+  if (vaultEncActive) {
+    statusEl.innerHTML = '<span style="color:var(--green);">🔐 Encryption is <strong>on</strong></span> — your Drive backup is password-protected.';
+    setBtnEl.textContent  = "Change password";
+    disBtnEl.style.display = "";
+  } else {
+    statusEl.innerHTML = '<span style="color:var(--text-3);">🔓 Encryption is <strong>off</strong></span> — your Drive backup is plain JSON.';
+    setBtnEl.textContent   = "Set password";
+    disBtnEl.style.display = "none";
+  }
+}
+
+// Open the set-password popup
+function openEncPasswordPopup() {
+  document.getElementById("enc-set-pass").value    = "";
+  document.getElementById("enc-set-confirm").value = "";
+  document.getElementById("enc-set-error").style.display = "none";
+  document.getElementById("enc-set-popup").classList.remove("hidden");
+  setTimeout(() => document.getElementById("enc-set-pass").focus(), 80);
+}
+
+// Validate and submit the new password from the set-password popup
+async function encSetSubmit() {
+  const p1  = document.getElementById("enc-set-pass").value;
+  const p2  = document.getElementById("enc-set-confirm").value;
+  const err = document.getElementById("enc-set-error");
+  err.style.display = "none";
+  if (!p1)       { err.textContent = "Please enter a password."; err.style.display = "block"; return; }
+  if (p1 !== p2) { err.textContent = "Passwords don't match.";   err.style.display = "block"; return; }
+  if (p1.length < 8) { err.textContent = "Password must be at least 8 characters."; err.style.display = "block"; return; }
+  const ok = await enablePasswordEncryption(p1);
+  if (!ok) { err.textContent = "Encryption unavailable (requires HTTPS)."; err.style.display = "block"; return; }
+  document.getElementById("enc-set-popup").classList.add("hidden");
+  // Re-save to Drive immediately with the new encryption
+  if (driveMode && driveToken) {
+    clearTimeout(syncTimer);
+    driveSaveToCloud();
+  }
+  updateEncUI();
+  toast("Encryption enabled — recovery key downloaded");
+}
+
+// Prompt for confirmation before disabling encryption
+function confirmDisableEnc() {
+  if (!confirm("Remove encryption? Your Drive backup will be saved as plain JSON.\n\nYour recovery key will no longer work after this.")) return;
+  disablePasswordEncryption();
+  // Re-save to Drive immediately as plain JSON
+  if (driveMode && driveToken) {
+    clearTimeout(syncTimer);
+    driveSaveToCloud();
+  }
+  updateEncUI();
+  toast("Encryption removed");
 }
 
 function useLocal() {
@@ -3174,7 +3575,7 @@ function setActiveYear(y) {
 }
 
 function renderSidebar() {
-  const years = Object.keys(data);
+  const years = Object.keys(data).sort();
   const gi = years.reduce((a,y)=>a+sumArr(data[y].saved),0);
   const go = years.reduce((a,y)=>a+sumArr(data[y].removed),0);
   const gn = gi - go;
@@ -3281,7 +3682,7 @@ function renderSidebar() {
 function renderMain() {
   const isAllYears = activeYear === "all-years";
   const isMonthView = !isAllYears && !!activeMonth;
-  const years = Object.keys(data);
+  const years = Object.keys(data).sort();
 
   // Compute totals
   let ti, to, tn;
@@ -3645,13 +4046,35 @@ function pruneEmptyYears() {
     }
   });
   if (changed) {
-    // Reset activeYear to the first available year if the current one was pruned
-    const remaining = Object.keys(data);
+    // Reset activeYear to the earliest available year if the current one was pruned
+    const remaining = Object.keys(data).sort();
     if (!remaining.includes(activeYear)) {
       activeYear = remaining[0] || null;
       activeMonth = null;
     }
   }
+}
+
+// Sanitise a raw data object loaded from localStorage or Drive.
+// Ensures every year bucket has the correct shape and all transactions are valid.
+// Removes any entries that are not [ISO-date-string, positive-number] pairs.
+// Returns the sanitised object (mutates in place for efficiency).
+function sanitiseData(d) {
+  if (!d || typeof d !== "object" || Array.isArray(d)) return {};
+  const ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
+  Object.keys(d).forEach(y => {
+    // Ensure each year has both arrays
+    if (!d[y] || typeof d[y] !== "object") { d[y] = { saved: [], removed: [] }; return; }
+    ["saved", "removed"].forEach(tab => {
+      if (!Array.isArray(d[y][tab])) { d[y][tab] = []; return; }
+      d[y][tab] = d[y][tab].filter(tx =>
+        Array.isArray(tx) && tx.length >= 2 &&
+        typeof tx[0] === "string" && ISO_RE.test(tx[0]) &&
+        typeof tx[1] === "number" && isFinite(tx[1]) && tx[1] > 0
+      );
+    });
+  });
+  return d;
 }
 
 // Scan every transaction and move any that sit under the wrong year key to the
@@ -3895,27 +4318,40 @@ function isUserBusy() {
 
 // Silently pull the latest Drive data and merge if it differs from local.
 // Only runs when the user is not actively entering data.
+// Silently pull the latest Drive data and merge if it differs from local.
+// Only runs when the user is not actively entering data.
+// Handles encrypted envelopes transparently using the device key.
+// Silently pull the latest Drive data and merge if it differs from local.
+// Only runs when the user is not actively entering data.
+// Handles encrypted files transparently if the password key is in memory.
 async function silentSyncFromDrive() {
   if (!driveMode || !driveToken) return;
   if (isUserBusy()) return;
   try {
     const fileId = await driveFindOrCreateFile();
-    const resp = await fetch(
-      `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-      { headers: { "Authorization": "Bearer " + driveToken } }
-    );
+    const mediaUrl = "https://www.googleapis.com/drive/v3/files/" + fileId + "?alt=media";
+    const resp = await fetch(mediaUrl, { headers: { "Authorization": "Bearer " + driveToken } });
     if (!resp.ok) return;
     const text = await resp.text();
     if (!text || !text.trim().startsWith("{")) return;
-    const remote = JSON.parse(text);
+
+    let remote;
+    if (isEncryptedEnvelope(text)) {
+      // Only attempt silent decryption if key is in memory — never prompt silently
+      if (!vaultEncKey) return;
+      try { remote = await decryptDataObj(text, vaultEncKey); } catch { return; }
+    } else {
+      try { remote = JSON.parse(text); } catch { return; }
+    }
+
     if (!remote || !Object.keys(remote).length) return;
     if (JSON.stringify(remote) === JSON.stringify(data)) {
-      setSyncStatus("ok", "Synced ✓"); return;
+      setSyncStatus("ok", "Synced ✓" + (vaultEncActive ? " 🔐" : "")); return;
     }
-    if (isUserBusy()) return; // re-check after the async fetch
+    if (isUserBusy()) return;
     dbg("Silent sync: conflict detected, auto-merging");
     autoMerge(remote);
-  } catch { /* silent fail — avoid surfacing background errors to the user */ }
+  } catch { /* silent fail */ }
 }
 
 // Re-sync when the user returns to this tab
@@ -3934,10 +4370,12 @@ setInterval(() => { silentSyncFromDrive(); }, 60000);
 // - Reconciles any mis-bucketed transactions, saves locally, and pushes merged data back to Drive
 function autoMerge(remoteData) {
   ensureFYSilent = true;
-  const allKeys = new Set([...Object.keys(data), ...Object.keys(remoteData)]);
+  // Sanitise remote data before merging — guards against corrupted/tampered Drive files
+  const safeRemote = sanitiseData(remoteData);
+  const allKeys = new Set([...Object.keys(data), ...Object.keys(safeRemote)]);
   allKeys.forEach(k => {
-    const l = data[k]       || { saved: [], removed: [] };
-    const r = remoteData[k] || { saved: [], removed: [] };
+    const l = data[k]           || { saved: [], removed: [] };
+    const r = safeRemote[k]     || { saved: [], removed: [] };
     // Build a Set of "date|amount" strings from local, then add remote entries not in it
     const dedup = (a, b) => {
       const seen = new Set(a.map(t => t[0] + "|" + t[1]));
@@ -3962,7 +4400,7 @@ function autoMerge(remoteData) {
 function toggleSidebar() {
   const sb = document.getElementById("sidebar");
   const isCollapsed = sb.classList.toggle("collapsed");
-  try { localStorage.setItem("sidebar_collapsed", isCollapsed); } catch {}
+  try { localStorage.setItem(SIDEBAR_KEY, isCollapsed); } catch {}
 }
 
 // ─── debug panel ───────────────────────────────────────────────────────────────
@@ -4313,8 +4751,8 @@ function renderMenuTxDropdown() {
   allBtn.onclick = () => { setActiveYear("all-years"); closeSheets(); menuTxDropdownOpen = false; };
   dropdown.appendChild(allBtn);
 
-  // Year items with expandable month sub-lists
-  Object.keys(data).forEach(y => {
+  // Year items with expandable month sub-lists (sorted so newest year appears last)
+  Object.keys(data).sort().forEach(y => {
     const si = sumArr(data[y].saved), so = sumArr(data[y].removed), n = si - so;
     const isActiveYear = activeYear === y && !activeMonth;
     const isExpanded   = expandedYears.has(y);
@@ -4453,7 +4891,7 @@ function openYearSheet() {
 // Build the mobile year picker: one row per year with an expandable month sub-list.
 // Mirrors the desktop sidebar behaviour but in a full-height slide-up sheet.
 function renderYearSheet() {
-  const years = Object.keys(data);
+  const years = Object.keys(data).sort();
   const list = document.getElementById("ysheet-year-list");
   list.innerHTML = "";
 
@@ -4637,6 +5075,7 @@ async function logout() {
   // Clear auth session so the login screen shows next visit
   clearAuthCookie();
 
+
   // Sign out of Google so the login prompt reappears cleanly
   if (window.google && google.accounts && google.accounts.id) {
     google.accounts.id.disableAutoSelect();
@@ -4688,11 +5127,12 @@ function checkAuth() {
 function initApp() {
   loadLocal();
   loadDriveState();
+  loadEncActive();      // restore encryption enabled flag
   activeYear = "all-years";
 
   // Restore collapsed sidebar state
   try {
-    if (localStorage.getItem("sidebar_collapsed") === "true") {
+    if (localStorage.getItem(SIDEBAR_KEY) === "true") {
       document.getElementById("sidebar").classList.add("collapsed");
     }
   } catch {}
@@ -4980,6 +5420,6 @@ if (inSandbox || checkAuth()) {
 }
 // Otherwise the Google Sign-In callback (handleGoogleLogin) will call initApp() once the user logs in
 </script>
-  <div id="version-footer">v2.5.5</div>
+  <div id="version-footer">v2.6.3</div>
 </body>
 </html>
