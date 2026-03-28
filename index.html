@@ -1013,6 +1013,17 @@
     .tx-popup-field { margin-bottom: 8px !important; }
   }
 
+  /* Landscape on a narrow phone: width ≤640px hides the desktop menu button via
+     .btn-ghost, but in landscape the sidebar and mobile sheets are also gone —
+     so we must restore the ☰ Menu button as the only way to reach the menu. */
+  @media (max-width: 640px) and (max-height: 500px) {
+    #desktop-menu-btn  { display: block !important; }
+    #desktop-menu      { display: block; }          /* allow it to open */
+    #desktop-menu-overlay { display: block; }       /* allow overlay too */
+    /* FABs take up too much room in landscape — hide them and rely on the header menu */
+    #mob-fabs          { display: none !important; }
+  }
+
   @media (min-width: 641px) and (max-width: 900px) {
     #sidebar { width: 160px; }
     .year-btn .fy-label { font-size: 12px; }
@@ -1201,8 +1212,21 @@
     z-index: 199;
   }
   #desktop-menu-overlay.open { display: block; }
-  /* Desktop menu + overlay: hide entirely on mobile (handled by slide-up sheets) */
+  /* ── logout button — subtle red tint on hover ── */
+  .dmenu-btn-logout:hover { background: var(--red-dim); }
+  .dmenu-btn-logout:hover .dmenu-btn-icon { color: var(--red); }
+  .dmenu-logout-label { color: var(--text-2); }
+  .dmenu-btn-logout:hover .dmenu-logout-label { color: var(--red); }
+
   @media (max-width: 640px) {
+    .menu-item-logout:hover { background: var(--red-dim); }
+    .menu-item-logout:hover .menu-item-label { color: var(--red) !important; }
+    .menu-item-logout:hover .menu-item-icon  { color: var(--red) !important; }
+  }
+
+  /* Desktop menu + overlay: hide on portrait mobile (slide-up sheets handle nav there).
+     In landscape (max-height ≤500px) the block above restores the button as the only menu. */
+  @media (max-width: 640px) and (min-height: 501px) {
     #desktop-menu         { display: none !important; }
     #desktop-menu-overlay { display: none !important; }
     #desktop-menu-btn     { display: none !important; }
@@ -1862,6 +1886,11 @@
       <span class="dmenu-btn-icon">🔗</span>
       <div><div class="dmenu-btn-label">Connect to Google Drive</div><div class="dmenu-btn-sub">Manage cloud sync</div></div>
     </button>
+    <div class="dmenu-divider"></div>
+    <button class="dmenu-btn dmenu-btn-logout" onclick="logout()">
+      <span class="dmenu-btn-icon">↩</span>
+      <div><div class="dmenu-btn-label dmenu-logout-label">Log Out</div><div class="dmenu-btn-sub" id="dmenu-logout-sub">Syncing before logout…</div></div>
+    </button>
 
   </div>
 </div>
@@ -2034,6 +2063,11 @@
   <button class="menu-item-btn" onclick="closeSheets(); setTimeout(openSetup, 50);">
     <span class="menu-item-icon">🔗</span>
     <span class="menu-item-label">Connect to Google Drive</span>
+  </button>
+  <button class="menu-item-btn menu-item-logout" onclick="logout()">
+    <span class="menu-item-icon" style="color:var(--text-3);">↩</span>
+    <span class="menu-item-label" style="color:var(--text-2);">Log Out</span>
+    <span class="menu-item-meta" id="mob-logout-sub" style="font-size:11px; color:var(--text-3);">Save &amp; sign out</span>
   </button>
 </div>
 
@@ -4256,6 +4290,7 @@ function openMenuSheet() {
   const tb = document.getElementById("menu-tx-toggle-btn");
   if (dd) dd.classList.remove("open");
   if (tb) tb.classList.remove("tx-open");
+  updateLogoutSub();
   document.getElementById("menu-sheet").classList.add("open");
   document.getElementById("sheet-overlay").classList.add("open");
 }
@@ -4293,6 +4328,7 @@ function toggleDesktopMenu() {
     const state = cls.replace("sync-", "");
     dot.className = "dmenu-sync-dot" + (state ? " " + state : "");
   }
+  updateLogoutSub();
   const isOpen = menu.classList.toggle("open");
   overlay.classList.toggle("open", isOpen);
 }
@@ -4464,6 +4500,51 @@ function setAuthCookie() {
 // Remove the auth expiry from localStorage (forces re-login)
 function clearAuthCookie() {
   try { localStorage.removeItem(AUTH_KEY); } catch {}
+}
+
+// Update the sub-label on the logout buttons to reflect Drive sync state
+function updateLogoutSub() {
+  const connected = driveMode && !!driveToken;
+  const label = connected ? "Save & sign out" : "Sign out (local only)";
+  ["dmenu-logout-sub", "mob-logout-sub"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = label;
+  });
+}
+
+// Log out: sync to Drive if connected, clear auth, then show the login screen.
+// Uses a small timeout to let any pending save settle, then forces a final upload.
+async function logout() {
+  closeDesktopMenu();
+  closeSheets();
+
+  // Save locally first so nothing is lost regardless of Drive status
+  saveLocal();
+
+  if (driveMode && driveToken) {
+    // Show saving state on the sync pill while we push the final upload
+    setSyncStatus("busy", "Saving…");
+    try {
+      // Cancel any debounced save and push immediately
+      clearTimeout(syncTimer);
+      clearTimeout(syncRetryTimer);
+      await driveSaveToCloud();
+    } catch (e) {
+      dbg("Logout sync error: " + e.message);
+      // Don't block logout even if sync fails — data is safe in localStorage
+    }
+  }
+
+  // Clear auth session so the login screen shows next visit
+  clearAuthCookie();
+
+  // Sign out of Google so the login prompt reappears cleanly
+  if (window.google && google.accounts && google.accounts.id) {
+    google.accounts.id.disableAutoSelect();
+  }
+
+  // Show login screen
+  document.getElementById("login-screen").classList.remove("hidden");
 }
 
 // Google Sign-In callback — validates the JWT, checks the email allow-list,
@@ -4803,6 +4884,6 @@ if (inSandbox || checkAuth()) {
 }
 // Otherwise the Google Sign-In callback (handleGoogleLogin) will call initApp() once the user logs in
 </script>
-  <div id="version-footer">v2.4.8</div>
+  <div id="version-footer">v2.5.0</div>
 </body>
 </html>
