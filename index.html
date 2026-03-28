@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vault</title>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -1050,46 +1049,6 @@
   }
   #drive-found-popup.hidden { display: none; }
 
-  /* ── login screen ── */
-  #login-screen {
-    position: fixed; inset: 0; z-index: 1000;
-    background: var(--bg0);
-    display: flex; align-items: center; justify-content: center;
-    padding: 20px;
-  }
-  #login-screen.hidden { display: none; }
-  #login-box {
-    display: flex; flex-direction: column; align-items: center;
-    gap: 12px; text-align: center; max-width: 320px; width: 100%;
-  }
-  #login-logo {
-    width: 64px; height: 64px;
-    background: var(--gold-glow);
-    border: 1px solid var(--gold-dim);
-    border-radius: 18px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'DM Serif Display', serif;
-    font-size: 32px; color: var(--gold);
-    margin-bottom: 8px;
-  }
-  #login-title {
-    font-family: 'DM Serif Display', serif;
-    font-size: 32px; font-weight: 400;
-    color: var(--text-1); letter-spacing: 0.04em;
-  }
-  #login-sub {
-    font-size: 13px; color: var(--text-3);
-    font-weight: 300; letter-spacing: 0.04em;
-    margin-bottom: 12px;
-  }
-  #login-btn-wrap {
-    display: flex; justify-content: center;
-    width: 100%; margin-top: 8px;
-  }
-  #login-error {
-    font-size: 12px; color: var(--red);
-    margin-top: 8px; font-weight: 400;
-  }
 
   /* ── version footer ── */
   #version-footer {
@@ -1223,17 +1182,7 @@
     z-index: 199;
   }
   #desktop-menu-overlay.open { display: block; }
-  /* ── logout button — subtle red tint on hover ── */
-  .dmenu-btn-logout:hover { background: var(--red-dim); }
-  .dmenu-btn-logout:hover .dmenu-btn-icon { color: var(--red); }
-  .dmenu-logout-label { color: var(--text-2); }
-  .dmenu-btn-logout:hover .dmenu-logout-label { color: var(--red); }
 
-  @media (max-width: 640px) {
-    .menu-item-logout:hover { background: var(--red-dim); }
-    .menu-item-logout:hover .menu-item-label { color: var(--red) !important; }
-    .menu-item-logout:hover .menu-item-icon  { color: var(--red) !important; }
-  }
 
   /* Desktop menu + overlay: hide on portrait mobile (slide-up sheets handle nav there).
      In landscape (max-height ≤500px) the block above restores the button as the only menu. */
@@ -1561,31 +1510,6 @@
 </head>
 <body>
 
-<!-- Login screen -->
-<div id="login-screen">
-  <div id="login-box">
-    <div id="login-logo">V</div>
-    <h1 id="login-title">Vault</h1>
-    <p id="login-sub">Personal savings tracker</p>
-    <div id="login-btn-wrap">
-      <div id="g_id_onload"
-        data-client_id="923866716926-ch3d25r6159hc0ditod3n8g6ufb8pcsk.apps.googleusercontent.com"
-        data-callback="handleGoogleLogin"
-        data-auto_select="true">
-      </div>
-      <div class="g_id_signin"
-        data-type="standard"
-        data-shape="pill"
-        data-theme="filled_black"
-        data-text="sign_in_with"
-        data-size="large"
-        data-logo_alignment="left">
-      </div>
-    </div>
-    <p id="login-error" style="display:none">Access restricted to authorised account.</p>
-  </div>
-</div>
-
 <!-- Setup modal -->
 <div id="setup-modal">
   <div class="modal-box">
@@ -1604,7 +1528,11 @@
     <div class="modal-actions" style="flex-direction:column; gap:8px;">
       <button class="btn-primary" id="btn-connect-drive" onclick="connectDrive()">🔗 Connect Google Drive</button>
       <button class="btn-local" id="btn-disconnect-drive" onclick="disconnectDrive()" style="display:none;">Disconnect Drive</button>
-      <button class="btn-local" onclick="useLocal()">Use local only</button>
+      <button class="btn-local" onclick="useLocal()">Browser storage only (no backup)</button>
+    </div>
+    <div style="margin-top:10px; padding:10px 12px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius);">
+      <div style="font-size:11px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:5px;">⚠️ Browser storage risks</div>
+      <div style="font-size:11px; color:var(--text-3); line-height:1.7;">Data is kept only in this browser's local storage on this device — not in a file you control. It will be <strong style="color:var(--text-2);">permanently lost</strong> if you clear your browser data, uninstall the browser, or switch devices. Unlike the Local File option below, there is no file you can copy or back up.</div>
     </div>
 
     <!-- Encryption section — only shown when Drive is connected -->
@@ -1613,6 +1541,17 @@
       <div id="enc-status-row" style="font-size:12px; color:var(--text-2); margin-bottom:10px; line-height:1.6;"></div>
       <button id="btn-enc-set" class="btn-local" style="width:100%; margin-bottom:6px;" onclick="openEncPasswordPopup()">Set password</button>
       <button id="btn-enc-disable" class="btn-local" style="width:100%; display:none; color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="confirmDisableEnc()">Remove encryption</button>
+    </div>
+
+    <!-- Local file section — always visible -->
+    <div style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
+      <div style="font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin-bottom:8px;">💾 Local File</div>
+      <div style="font-size:12px; color:var(--text-2); margin-bottom:10px; line-height:1.6;">Save your data to a file on this device — USB drive, NAS, or anywhere on your file system. Encryption is applied if a password is set.</div>
+      <div class="modal-actions" style="gap:8px;">
+        <button class="btn-local" style="flex:1;" onclick="saveToLocalFile()">⬇ Save to file</button>
+        <button class="btn-local" style="flex:1;" onclick="loadFromLocalFile()">⬆ Load from file</button>
+      </div>
+      <div id="local-file-status" style="display:none; font-size:11px; margin-top:8px; text-align:center;"></div>
     </div>
 
     <button class="info-popup-close-btn" style="margin-top:12px;" onclick="document.getElementById('setup-modal').classList.add('hidden')">Done</button>
@@ -1907,11 +1846,6 @@
       <span class="dmenu-btn-icon">☁️</span>
       <div><div class="dmenu-btn-label">Sync &amp; Backup</div><div class="dmenu-btn-sub">Manage storage &amp; cloud sync</div></div>
     </button>
-    <div class="dmenu-divider"></div>
-    <button class="dmenu-btn dmenu-btn-logout" onclick="logout()">
-      <span class="dmenu-btn-icon">↩</span>
-      <div><div class="dmenu-btn-label dmenu-logout-label">Log Out</div><div class="dmenu-btn-sub" id="dmenu-logout-sub">Syncing before logout…</div></div>
-    </button>
 
   </div>
 </div>
@@ -2084,11 +2018,6 @@
   <button class="menu-item-btn" onclick="closeSheets(); setTimeout(openSetup, 50);">
     <span class="menu-item-icon">☁️</span>
     <span class="menu-item-label">Sync &amp; Backup</span>
-  </button>
-  <button class="menu-item-btn menu-item-logout" onclick="logout()">
-    <span class="menu-item-icon" style="color:var(--text-3);">↩</span>
-    <span class="menu-item-label" style="color:var(--text-2);">Log Out</span>
-    <span class="menu-item-meta" id="mob-logout-sub" style="font-size:11px; color:var(--text-3);">Save &amp; sign out</span>
   </button>
 </div>
 
@@ -2472,7 +2401,7 @@ const PREVIEW_SEED = {
 
 // ─── sandbox detection ────────────────────────────────────────────────────────
 // Detect whether Vault is running inside a sandboxed iframe (e.g. the Claude preview).
-// Used to: bypass login, and load PREVIEW_SEED instead of the empty production SEED.
+// Used to load PREVIEW_SEED instead of the empty production SEED in the preview window.
 const inSandbox = (() => {
   try { return window.self !== window.top; } catch { return true; }
 })();
@@ -2696,7 +2625,6 @@ function saveLocal() {
 
 // Load data from localStorage, falling back to PREVIEW_SEED in the Claude sandbox
 // or an empty state in production if nothing is stored.
-// Also loads year mode settings and reconciles any mis-bucketed transactions.
 function loadLocal() {
   try {
     const stored = localStorage.getItem(DATA_KEY);
@@ -3545,6 +3473,171 @@ function confirmDisableEnc() {
   }
   updateEncUI();
   toast("Encryption removed");
+}
+
+// ─── local file save / load ───────────────────────────────────────────────────
+// Uses the File System Access API (showSaveFilePicker / showOpenFilePicker) where
+// available — opens a native OS "save as" / "open" dialog.
+// Falls back to a standard download / hidden file input on browsers that don't
+// support the API (Safari, Firefox as of 2025).
+
+// Build the vault file payload — plain JSON or encrypted envelope, matching Drive format.
+async function buildVaultPayload() {
+  if (vaultEncActive && vaultEncKey) {
+    if (vaultRecovKey) {
+      const pwdEnv   = JSON.parse(await encryptDataObj(data, vaultEncKey));
+      const recovEnv = JSON.parse(await encryptDataObj(data, vaultRecovKey));
+      return JSON.stringify({ vault_enc: 3, iv: pwdEnv.iv, ct: pwdEnv.ct,
+                              riv: recovEnv.iv, rct: recovEnv.ct }, null, 2);
+    }
+    return await encryptDataObj(data, vaultEncKey);
+  }
+  return JSON.stringify(data, null, 2);
+}
+
+// Save vault data to a local file, opening a native save dialog where supported.
+async function saveToLocalFile() {
+  const statusEl = document.getElementById("local-file-status");
+  const setStatus = (msg, color) => {
+    statusEl.textContent = msg;
+    statusEl.style.color = color || "var(--text-2)";
+    statusEl.style.display = "block";
+  };
+
+  try {
+    const payload  = await buildVaultPayload();
+    const filename = "vault-data" + (vaultEncActive ? "-encrypted" : "") + ".json";
+    const blob     = new Blob([payload], { type: "application/json" });
+
+    // Try File System Access API first (Chrome, Edge — opens native save dialog)
+    if (window.showSaveFilePicker) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: filename,
+          types: [{ description: "Vault backup", accept: { "application/json": [".json"] } }],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        setStatus("✓ Saved" + (vaultEncActive ? " (encrypted 🔐)" : ""), "var(--green)");
+        dbg("Local save: wrote " + payload.length + " chars via File System Access API");
+        return;
+      } catch (e) {
+        if (e.name === "AbortError") { setStatus(""); return; } // user cancelled picker
+        // Fall through to download fallback on other errors
+        dbg("Local save: FSAPI failed (" + e.message + "), falling back to download");
+      }
+    }
+
+    // Fallback: trigger a standard browser download
+    const url = URL.createObjectURL(blob);
+    const a   = document.createElement("a");
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+    setStatus("✓ Download started" + (vaultEncActive ? " (encrypted 🔐)" : ""), "var(--green)");
+    dbg("Local save: download fallback, " + payload.length + " chars");
+
+  } catch (e) {
+    setStatus("Save failed: " + e.message, "var(--red)");
+    dbg("Local save error: " + e.message);
+  }
+}
+
+// Load vault data from a local file, opening a native open dialog where supported.
+// Handles both plain JSON and encrypted vault files.
+async function loadFromLocalFile() {
+  const statusEl = document.getElementById("local-file-status");
+  const setStatus = (msg, color) => {
+    statusEl.textContent = msg;
+    statusEl.style.color = color || "var(--text-2)";
+    statusEl.style.display = "block";
+  };
+
+  try {
+    let text;
+
+    // Try File System Access API first
+    if (window.showOpenFilePicker) {
+      try {
+        const [handle] = await window.showOpenFilePicker({
+          types: [{ description: "Vault backup", accept: { "application/json": [".json"] } }],
+          multiple: false,
+        });
+        const file = await handle.getFile();
+        text = await file.text();
+        dbg("Local load: read " + text.length + " chars via File System Access API");
+      } catch (e) {
+        if (e.name === "AbortError") { setStatus(""); return; }
+        dbg("Local load: FSAPI failed (" + e.message + "), falling back to input");
+        text = await pickFileViaInput();
+      }
+    } else {
+      text = await pickFileViaInput();
+    }
+
+    if (!text) return;
+
+    // Decrypt if needed, using the same flow as Drive loading
+    let loaded;
+    if (isEncryptedEnvelope(text)) {
+      setStatus("🔐 Encrypted file — enter password to load…", "var(--gold)");
+      if (vaultEncKey) {
+        try { loaded = await decryptDataObj(text, vaultEncKey); }
+        catch { loaded = null; }
+      }
+      if (!loaded) loaded = await promptAndDecrypt(text);
+      if (!loaded) { setStatus("Decryption cancelled or failed.", "var(--red)"); return; }
+    } else {
+      try { loaded = JSON.parse(text); } catch {
+        setStatus("Invalid file — not a Vault backup.", "var(--red)"); return;
+      }
+    }
+
+    // Validate and merge with existing data
+    const safe = sanitiseData(loaded);
+    if (!safe || !Object.keys(safe).length) {
+      setStatus("File appears empty or invalid.", "var(--red)"); return;
+    }
+
+    // Ask how to apply — merge or replace
+    const choice = confirm(
+      "Load from file?\n\n" +
+      "OK  →  Merge with current data (keeps both)\n" +
+      "Cancel  →  Replace current data (overwrites)"
+    );
+    if (choice) {
+      autoMerge(safe);
+      setStatus("✓ Merged from file", "var(--green)");
+    } else {
+      data = safe;
+      reconcileYears();
+      saveLocal();
+      if (driveMode && driveToken) scheduleSave();
+      render();
+      setStatus("✓ Loaded from file", "var(--green)");
+    }
+    dbg("Local load: applied data from file, " + Object.keys(safe).join(", "));
+
+  } catch (e) {
+    setStatus("Load failed: " + e.message, "var(--red)");
+    dbg("Local load error: " + e.message);
+  }
+}
+
+// Hidden file input fallback for browsers without showOpenFilePicker
+function pickFileViaInput() {
+  return new Promise((resolve, reject) => {
+    const input = document.createElement("input");
+    input.type = "file"; input.accept = ".json,application/json";
+    input.onchange = async () => {
+      const file = input.files && input.files[0];
+      if (!file) { resolve(null); return; }
+      try { resolve(await file.text()); } catch (e) { reject(e); }
+    };
+    input.oncancel = () => resolve(null);
+    input.click();
+    dbg("Local load: using hidden file input fallback");
+  });
 }
 
 function useLocal() {
@@ -4846,7 +4939,6 @@ function openMenuSheet() {
   const tb = document.getElementById("menu-tx-toggle-btn");
   if (dd) dd.classList.remove("open");
   if (tb) tb.classList.remove("tx-open");
-  updateLogoutSub();
   document.getElementById("menu-sheet").classList.add("open");
   document.getElementById("sheet-overlay").classList.add("open");
 }
@@ -4868,7 +4960,6 @@ function toggleDesktopMenu() {
     const state = cls.replace("sync-", "");
     dot.className = "dmenu-sync-dot" + (state ? " " + state : "");
   }
-  updateLogoutSub();
   const isOpen = menu.classList.toggle("open");
   overlay.classList.toggle("open", isOpen);
 }
@@ -5021,108 +5112,7 @@ function closeSheets() {
   hideYsheetNewForm();
 }
 
-// ─── authentication ────────────────────────────────────────────────────────────
-// Vault uses Google Sign-In for access control. Only the email below is allowed.
-// Auth state is stored in localStorage with a rolling 30-day expiry.
-const ALLOWED_EMAIL = "eliotgriffiths01@gmail.com";
-const AUTH_KEY      = "vault_auth_expiry"; // localStorage key for expiry timestamp
-const AUTH_DAYS     = 30;                  // days before re-login is required
-
-// Store (or renew) the auth expiry timestamp in localStorage
-function setAuthCookie() {
-  const expiry = Date.now() + AUTH_DAYS * 24 * 60 * 60 * 1000;
-  try { localStorage.setItem(AUTH_KEY, expiry.toString()); } catch {}
-}
-
-// Remove the auth expiry from localStorage (forces re-login)
-function clearAuthCookie() {
-  try { localStorage.removeItem(AUTH_KEY); } catch {}
-}
-
-// Update the sub-label on the logout buttons to reflect Drive sync state
-function updateLogoutSub() {
-  const connected = driveMode && !!driveToken;
-  const label = connected ? "Save & sign out" : "Sign out (local only)";
-  ["dmenu-logout-sub", "mob-logout-sub"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = label;
-  });
-}
-
-// Log out: sync to Drive if connected, clear auth, then show the login screen.
-// Uses a small timeout to let any pending save settle, then forces a final upload.
-async function logout() {
-  closeDesktopMenu();
-  closeSheets();
-
-  // Save locally first so nothing is lost regardless of Drive status
-  saveLocal();
-
-  if (driveMode && driveToken) {
-    // Show saving state on the sync pill while we push the final upload
-    setSyncStatus("busy", "Saving…");
-    try {
-      // Cancel any debounced save and push immediately
-      clearTimeout(syncTimer);
-      clearTimeout(syncRetryTimer);
-      await driveSaveToCloud();
-    } catch (e) {
-      dbg("Logout sync error: " + e.message);
-      // Don't block logout even if sync fails — data is safe in localStorage
-    }
-  }
-
-  // Clear auth session so the login screen shows next visit
-  clearAuthCookie();
-
-
-  // Sign out of Google so the login prompt reappears cleanly
-  if (window.google && google.accounts && google.accounts.id) {
-    google.accounts.id.disableAutoSelect();
-  }
-
-  // Show login screen
-  document.getElementById("login-screen").classList.remove("hidden");
-}
-
-// Google Sign-In callback — validates the JWT, checks the email allow-list,
-// then either starts the app or shows an error.
-function handleGoogleLogin(response) {
-  try {
-    // Decode the ID token payload (middle segment of the JWT, base64url-encoded)
-    const payload = JSON.parse(atob(response.credential.split(".")[1]));
-    const email   = (payload.email || "").toLowerCase();
-    if (email === ALLOWED_EMAIL.toLowerCase()) {
-      setAuthCookie();
-      try { localStorage.setItem(DRIVE_EMAIL_KEY, email); } catch {}
-      document.getElementById("login-screen").classList.add("hidden");
-      initApp();
-    } else {
-      document.getElementById("login-error").style.display = "block";
-      if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
-    }
-  } catch (e) {
-    document.getElementById("login-error").style.display = "block";
-  }
-}
-
-// Check for a valid (non-expired) auth session in localStorage.
-// Returns true if valid and hides the login screen; false if a fresh login is needed.
-function checkAuth() {
-  try {
-    const expiry = parseInt(localStorage.getItem(AUTH_KEY) || "0", 10);
-    if (expiry && Date.now() < expiry) {
-      setAuthCookie(); // slide the expiry window on each valid visit
-      document.getElementById("login-screen").classList.add("hidden");
-      return true;
-    }
-    clearAuthCookie();
-  } catch {}
-  return false;
-}
-
 // ─── app initialisation ────────────────────────────────────────────────────────
-// Called once after auth succeeds (either via Google login or a cached session).
 // Loads data, restores UI state, connects Drive if previously linked, then renders.
 function initApp() {
   loadLocal();
@@ -5410,16 +5400,9 @@ function deleteRecurRule(idx) {
 }
 
 // ─── bootstrap ────────────────────────────────────────────────────────────────
-// inSandbox is declared near the top of the script (before app state) so that
-// loadLocal() can reference it safely at call time.
-
-if (inSandbox || checkAuth()) {
-  // Auth already valid (or sandbox) — hide login and launch the app immediately
-  document.getElementById("login-screen").classList.add("hidden");
-  initApp();
-}
-// Otherwise the Google Sign-In callback (handleGoogleLogin) will call initApp() once the user logs in
+// Launch immediately — no login gate needed; data security is handled by file encryption.
+initApp();
 </script>
-  <div id="version-footer">v2.6.3</div>
+  <div id="version-footer">v2.6.6</div>
 </body>
 </html>
