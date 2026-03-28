@@ -1018,6 +1018,16 @@
     #sheet-overlay{ display: none !important; }
   }
 
+  /* ── disconnect Drive confirmation popup ── */
+  #disconnect-popup {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 500;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  #disconnect-popup.hidden { display: none; }
+
   /* ── existing Drive file popup ── */
   #drive-found-popup {
     position: fixed; inset: 0;
@@ -1584,6 +1594,7 @@
       <button class="btn-local" id="btn-disconnect-drive" onclick="disconnectDrive()" style="display:none;">Disconnect Drive</button>
       <button class="btn-local" onclick="useLocal()">Use local only</button>
     </div>
+    <button class="info-popup-close-btn" style="margin-top:12px;" onclick="document.getElementById('setup-modal').classList.add('hidden')">Done</button>
   </div>
 </div>
 
@@ -2228,6 +2239,23 @@
   </div>
 </div>
 
+<!-- Disconnect Drive confirmation popup — shown when user clicks Disconnect -->
+<div id="disconnect-popup" class="hidden">
+  <div class="modal-box" style="max-width:400px;">
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+      <h2 style="margin:0; flex:1;">🔌 Disconnect Drive</h2>
+      <button class="modal-close" onclick="document.getElementById('disconnect-popup').classList.add('hidden')" title="Close">✕</button>
+    </div>
+    <p style="margin-bottom:8px;">Your data is saved in Google Drive. What would you like to do with the local copy on this device?</p>
+    <p style="margin-bottom:20px; font-size:12px; color:var(--text-3);">Your Drive file is not affected either way.</p>
+    <div class="modal-actions" style="flex-direction:column; gap:10px;">
+      <button class="btn-primary" onclick="disconnectKeepData()">Keep local data</button>
+      <button class="btn-local" style="color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="disconnectClearData()">Clear local data</button>
+    </div>
+    <button class="btn-popup-cancel" style="width:100%; margin-top:8px;" onclick="document.getElementById('disconnect-popup').classList.add('hidden')">Cancel</button>
+  </div>
+</div>
+
 <!-- Existing Drive file found popup — shown on first connect when vault-data.json already exists -->
 <div id="drive-found-popup" class="hidden">
   <div class="modal-box" style="max-width:400px;">
@@ -2841,8 +2869,16 @@ function connectDrive() {
   tokenClient.requestAccessToken({ prompt: "consent" });
 }
 
-// Revoke the current token, clear Drive state, and return to local-only mode
+// Show the disconnect confirmation popup instead of disconnecting immediately.
+// The user chooses whether to keep or clear their local data first.
 function disconnectDrive() {
+  document.getElementById("disconnect-popup").classList.remove("hidden");
+}
+
+// Shared logic that runs after the user confirms a disconnect.
+// Revokes the OAuth token, clears Drive state, and updates the UI.
+function _performDisconnect() {
+  document.getElementById("disconnect-popup").classList.add("hidden");
   if (driveToken && window.google && google.accounts && google.accounts.oauth2) {
     google.accounts.oauth2.revoke(driveToken, () => {});
   }
@@ -2852,7 +2888,33 @@ function disconnectDrive() {
   saveDriveState();
   updateSetupModal();
   setSyncStatus("none", "Local only");
-  toast("Disconnected from Google Drive");
+}
+
+// Disconnect and keep all local data intact (safe default)
+function disconnectKeepData() {
+  _performDisconnect();
+  toast("Disconnected — local data kept");
+}
+
+// Disconnect and wipe all local data + recurring rules from this device
+function disconnectClearData() {
+  _performDisconnect();
+  // Clear the data store and reset to an empty state
+  data = {};
+  try {
+    localStorage.removeItem("savings_data_v4");
+    localStorage.removeItem(RECUR_KEY);
+    localStorage.removeItem("sidebar_collapsed");
+  } catch {}
+  // Reset in-memory recurring rules
+  recurRules = [];
+  // Reset view state
+  activeYear  = "all-years";
+  activeMonth = null;
+  activeTab   = "all";
+  expandedYears.clear();
+  render();
+  toast("Disconnected — local data cleared");
 }
 
 // Locate (or create) the vault-data.json file in the user's Drive.
@@ -4918,6 +4980,6 @@ if (inSandbox || checkAuth()) {
 }
 // Otherwise the Google Sign-In callback (handleGoogleLogin) will call initApp() once the user logs in
 </script>
-  <div id="version-footer">v2.5.3</div>
+  <div id="version-footer">v2.5.5</div>
 </body>
 </html>
