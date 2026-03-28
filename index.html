@@ -67,6 +67,19 @@
 
   .header-btns { display: flex; gap: 6px; align-items: center; }
 
+  /* ── local save status pill ── */
+  #save-status {
+    font-size: 11px; font-weight: 500;
+    padding: 4px 10px; border-radius: 20px;
+    cursor: default; white-space: nowrap;
+    transition: background 0.2s, color 0.2s;
+    border: none; font-family: 'DM Sans', sans-serif;
+  }
+  #save-status.ss-ok   { background: rgba(61,158,110,0.12);  color: #5ec497; }
+  #save-status.ss-busy { background: rgba(201,168,76,0.12);  color: var(--gold); }
+  #save-status.ss-err  { background: rgba(192,80,74,0.12);   color: #e07a75; }
+  #save-status.ss-warn { background: var(--bg3); color: var(--text-3); border: 1px solid var(--border); }
+  #save-status.ss-none { display: none; }
   .btn-ghost {
     background: transparent;
     color: var(--text-2);
@@ -1585,6 +1598,7 @@
     <div class="sub">Net: <span id="grand-net"></span></div>
   </div>
   <div class="header-btns">
+    <span id="save-status" class="ss-none"></span>
     <button class="btn-ghost" id="desktop-menu-btn" onclick="toggleDesktopMenu()">☰ Menu</button>
   </div>
 </div>
@@ -2580,20 +2594,30 @@ async function clearLocalFileHandle() {
 // Called on app start — restore the file handle and verify it's still accessible.
 // Silently clears the handle if the file has been moved or deleted.
 async function initLocalFileSync() {
-  if (!window.showSaveFilePicker) return; // FSAPI not supported
+  if (!window.showSaveFilePicker) {
+    // FSAPI not supported — browser storage only
+    setSaveStatus("warn", "Browser storage only");
+    return;
+  }
   const handle = await loadLocalFileHandle();
-  if (!handle) return;
+  if (!handle) {
+    // No linked file — show browser-storage warning
+    setSaveStatus("warn", "Browser storage only");
+    return;
+  }
   // Verify we still have permission
   try {
     const perm = await handle.queryPermission({ mode: "readwrite" });
     if (perm === "granted") {
       localFileHandle = handle;
       localFileLinked = true;
+      setSaveStatus("ok", "Saved ✓" + (vaultEncActive ? " 🔐" : ""));
       dbg("Local file: restored handle — " + handle.name);
     } else {
       // Permission needs re-prompt — keep the handle but mark unlinked until user interacts
       localFileHandle = handle;
       localFileLinked = false;
+      setSaveStatus("warn", "Browser storage only");
       dbg("Local file: handle restored but permission not yet granted");
     }
   } catch {
@@ -2622,7 +2646,8 @@ async function linkLocalFile() {
     localFileLinked = true;
     await saveLocalFileHandle(handle);
     // Write current data immediately
-    await writeTolocalFileHandle();
+    const ok = await writeTolocalFileHandle();
+    setSaveStatus(ok ? "ok" : "err", ok ? "Saved ✓" + (vaultEncActive ? " 🔐" : "") : "Save failed");
     updateLocalFileUI();
     updateSetupModal();
     toast("Auto-save linked — " + handle.name);
@@ -2640,6 +2665,7 @@ async function unlinkLocalFile() {
   localFileHandle = null;
   localFileLinked = false;
   await clearLocalFileHandle();
+  setSaveStatus("warn", "Browser storage only");
   updateLocalFileUI();
   updateSetupModal();
   toast("Local file auto-save unlinked");
@@ -2747,13 +2773,27 @@ function promptAndDecrypt(encryptedText) {
   });
 }
 
+// Update the header save-status pill
+function setSaveStatus(state, msg) {
+  const el = document.getElementById("save-status");
+  if (!el) return;
+  el.className = "ss-" + state;
+  el.textContent = msg || "";
+}
+
 // Schedule a debounced auto-save to the linked file (mirrors scheduleSave for Drive)
 function scheduleLocalSave() {
   if (!localFileHandle) return;
+  setSaveStatus("busy", "Saving…");
   clearTimeout(localSyncTimer);
   localSyncTimer = setTimeout(async () => {
     const ok = await writeTolocalFileHandle();
-    if (ok) setLocalFileStatus("✓ Auto-saved" + (vaultEncActive ? " 🔐" : ""), "var(--green)");
+    if (ok) {
+      setSaveStatus("ok", "Saved ✓" + (vaultEncActive ? " 🔐" : ""));
+      setLocalFileStatus("✓ Auto-saved" + (vaultEncActive ? " 🔐" : ""), "var(--green)");
+    } else {
+      setSaveStatus("err", "Save failed");
+    }
   }, 1500);
 }
 
@@ -2764,10 +2804,11 @@ function scheduleLocalSave() {
 async function saveToLocalFile(showPicker = false) {
   // If linked and not forcing picker, write directly
   if (localFileHandle && !showPicker) {
+    setSaveStatus("busy", "Saving…");
     const ok = await writeTolocalFileHandle();
-    setLocalFileStatus(ok
-      ? "✓ Saved" + (vaultEncActive ? " 🔐" : "")
-      : "Save failed — check file permissions", ok ? "var(--green)" : "var(--red)");
+    const msg = ok ? "✓ Saved" + (vaultEncActive ? " 🔐" : "") : "Save failed — check file permissions";
+    setSaveStatus(ok ? "ok" : "err", ok ? "Saved ✓" + (vaultEncActive ? " 🔐" : "") : "Save failed");
+    setLocalFileStatus(msg, ok ? "var(--green)" : "var(--red)");
     return;
   }
 
@@ -4495,6 +4536,7 @@ function closeSheets() {
 function initApp() {
   loadLocal();
   loadEncActive();      // restore encryption enabled flag
+  setSaveStatus("warn", "Browser storage only"); // default until initLocalFileSync confirms a linked file
   initLocalFileSync();  // restore linked local file handle if any
   activeYear = "all-years";
 
@@ -4742,6 +4784,6 @@ function deleteRecurRule(idx) {
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v2.7.5</div>
+  <div id="version-footer">v2.7.8</div>
 </body>
 </html>
