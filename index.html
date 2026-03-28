@@ -522,6 +522,49 @@
   }
   .btn-local:hover { border-color: var(--border-hi); color: var(--text-1); }
 
+  /* ── setup modal submenu redesign ── */
+  .smod-card {
+    display: flex; align-items: center; gap:12px;
+    width: 100%; padding: 13px 14px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    text-align: left;
+  }
+  .smod-card:hover { border-color: var(--border-hi); background: var(--bg2); }
+  .smod-card.smod-card-warn { border-color: rgba(192,80,74,0.2); }
+  .smod-card.smod-card-warn:hover { border-color: rgba(192,80,74,0.45); }
+  .smod-card-icon { font-size: 20px; width: 28px; text-align: center; flex-shrink: 0; }
+  .smod-card-body { flex: 1; }
+  .smod-card-title { font-size: 13px; font-weight: 600; color: var(--text-1); margin-bottom: 2px; }
+  .smod-card-sub { font-size: 11px; color: var(--text-3); font-weight: 400; }
+  .smod-card-chevron { font-size: 20px; color: var(--text-3); flex-shrink: 0; line-height: 1; }
+  .smod-card.active-card { border-color: var(--gold-dim); background: rgba(201,168,76,0.06); }
+  .smod-card.active-card .smod-card-title { color: var(--gold); }
+  .smod-panel {
+    display: none;
+    flex-direction: column;
+  }
+  .smod-panel.open { display: flex; }
+  .smod-panel-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .smod-panel-title {
+    flex: 1; font-size: 15px; font-weight: 600; color: var(--text-1);
+    font-family: 'DM Sans', sans-serif;
+  }
+  .smod-back {
+    background: none; border: none; color: var(--gold);
+    font-size: 14px; font-weight: 500; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; padding: 2px 6px 2px 0;
+    flex-shrink: 0;
+  }
+  .smod-back:hover { color: var(--text-1); }
+  .smod-panel-body { padding: 20px; }
+
   /* ── recurring transactions modal ── */
   #recurring-modal {
     position: fixed; inset: 0;
@@ -1514,49 +1557,141 @@
 
 <!-- Setup modal -->
 <div id="setup-modal">
-  <div class="modal-box">
-    <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-      <h2 style="margin-bottom:0; flex:1;">☁️ Sync &amp; Backup</h2>
-      <button class="modal-info-btn" onclick="document.getElementById('info-popup').classList.remove('hidden')" title="Learn more">?</button>
-      <button class="modal-close" onclick="document.getElementById('setup-modal').classList.add('hidden')" title="Close">✕</button>
-    </div>
-    <p>Sync your Vault data to Google Drive. Your data is saved as a private file in your own Drive, accessible across all your devices. <button onclick="openTutorial()" style="background:none;border:none;color:var(--gold);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;padding:0;font-weight:500;text-decoration:underline;">How does this work?</button></p>
+  <div class="modal-box" style="padding:0; overflow:hidden; max-width:420px;">
 
-    <div id="drive-connected-info" style="display:none; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; margin-bottom:16px;">
-      <div style="font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin-bottom:4px;">Connected Account</div>
-      <div id="drive-connected-email" style="font-size:13px; color:var(--text-1); font-weight:500;"></div>
-    </div>
-
-    <div class="modal-actions" style="flex-direction:column; gap:8px;">
-      <button class="btn-primary" id="btn-connect-drive" onclick="connectDrive()">🔗 Connect Google Drive</button>
-      <button class="btn-local" id="btn-disconnect-drive" onclick="disconnectDrive()" style="display:none;">Disconnect Drive</button>
-      <button class="btn-local" onclick="useLocal()">Browser storage only (no backup)</button>
-    </div>
-    <div style="margin-top:10px; padding:10px 12px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius);">
-      <div style="font-size:11px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:5px;">⚠️ Browser storage risks</div>
-      <div style="font-size:11px; color:var(--text-3); line-height:1.7;">Data is kept only in this browser's local storage on this device — not in a file you control. It will be <strong style="color:var(--text-2);">permanently lost</strong> if you clear your browser data, uninstall the browser, or switch devices. Unlike the Local File option below, there is no file you can copy or back up.</div>
-    </div>
-
-    <!-- Encryption section — only shown when Drive is connected -->
-    <div id="enc-section" style="display:none; margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
-      <div style="font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin-bottom:8px;">🔐 Backup Encryption</div>
-      <div id="enc-status-row" style="font-size:12px; color:var(--text-2); margin-bottom:10px; line-height:1.6;"></div>
-      <button id="btn-enc-set" class="btn-local" style="width:100%; margin-bottom:6px;" onclick="openEncPasswordPopup()">Set password</button>
-      <button id="btn-enc-disable" class="btn-local" style="width:100%; display:none; color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="confirmDisableEnc()">Remove encryption</button>
-    </div>
-
-    <!-- Local file section — always visible -->
-    <div style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
-      <div style="font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin-bottom:8px;">💾 Local File</div>
-      <div style="font-size:12px; color:var(--text-2); margin-bottom:10px; line-height:1.6;">Save your data to a file on this device — USB drive, NAS, or anywhere on your file system. Encryption is applied if a password is set.</div>
-      <div class="modal-actions" style="gap:8px;">
-        <button class="btn-local" style="flex:1;" onclick="saveToLocalFile()">⬇ Save to file</button>
-        <button class="btn-local" style="flex:1;" onclick="loadFromLocalFile()">⬆ Load from file</button>
+    <!-- Main view — three storage option cards -->
+    <div id="smod-main">
+      <div style="display:flex; align-items:center; padding:24px 24px 0;">
+        <h2 style="flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400; color:var(--text-1); margin:0;">☁️ Sync &amp; Backup</h2>
+        <button class="modal-close" onclick="document.getElementById('setup-modal').classList.add('hidden')" title="Close">✕</button>
       </div>
-      <div id="local-file-status" style="display:none; font-size:11px; margin-top:8px; text-align:center;"></div>
+      <p style="font-size:12px; color:var(--text-3); padding:6px 24px 20px; margin:0; line-height:1.6;">Choose how your data is stored and backed up.</p>
+
+      <!-- Option cards -->
+      <div style="padding:0 16px 20px; display:flex; flex-direction:column; gap:8px;">
+
+        <!-- Google Drive card -->
+        <button class="smod-card" id="smod-card-drive" onclick="openSmodPanel('drive')">
+          <div class="smod-card-icon">☁️</div>
+          <div class="smod-card-body">
+            <div class="smod-card-title">Google Drive</div>
+            <div class="smod-card-sub" id="smod-drive-sub">Automatic cloud sync across all devices</div>
+          </div>
+          <div class="smod-card-chevron">›</div>
+        </button>
+
+        <!-- Encryption card -->
+        <button class="smod-card" id="smod-card-enc" onclick="openSmodPanel('enc')">
+          <div class="smod-card-icon">🔐</div>
+          <div class="smod-card-body">
+            <div class="smod-card-title">Encryption</div>
+            <div class="smod-card-sub" id="smod-enc-sub">Off — backups saved as plain JSON</div>
+          </div>
+          <div class="smod-card-chevron">›</div>
+        </button>
+
+        <!-- Local File card -->
+        <button class="smod-card" onclick="openSmodPanel('local')">
+          <div class="smod-card-icon">💾</div>
+          <div class="smod-card-body">
+            <div class="smod-card-title">Local File</div>
+            <div class="smod-card-sub">Save or load a backup file on this device</div>
+          </div>
+          <div class="smod-card-chevron">›</div>
+        </button>
+
+        <!-- Browser Storage card -->
+        <button class="smod-card smod-card-warn" onclick="openSmodPanel('browser')">
+          <div class="smod-card-icon">🖥</div>
+          <div class="smod-card-body">
+            <div class="smod-card-title">Browser Storage Only</div>
+            <div class="smod-card-sub">No backup — data lost if browser is cleared</div>
+          </div>
+          <div class="smod-card-chevron">›</div>
+        </button>
+
+      </div>
     </div>
 
-    <button class="info-popup-close-btn" style="margin-top:12px;" onclick="document.getElementById('setup-modal').classList.add('hidden')">Done</button>
+    <!-- ── Panel: Google Drive ── -->
+    <div id="smod-panel-drive" class="smod-panel">
+      <div class="smod-panel-header">
+        <button class="smod-back" onclick="closeSmodPanel()">‹ Back</button>
+        <span class="smod-panel-title">☁️ Google Drive</span>
+        <button class="modal-close" onclick="document.getElementById('setup-modal').classList.add('hidden')" title="Close">✕</button>
+      </div>
+      <div class="smod-panel-body">
+        <div id="drive-connected-info" style="display:none; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; margin-bottom:16px;">
+          <div style="font-size:10px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin-bottom:3px;">Connected account</div>
+          <div id="drive-connected-email" style="font-size:13px; color:var(--text-1); font-weight:500;"></div>
+        </div>
+        <p style="font-size:13px; color:var(--text-2); line-height:1.7; margin-bottom:16px; font-weight:300;">Your data is saved as a private file in your own Google Drive and syncs automatically across all your devices.</p>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button class="btn-primary" id="btn-connect-drive" onclick="connectDrive()">🔗 Connect Google Drive</button>
+          <button class="btn-local" id="btn-disconnect-drive" style="display:none;" onclick="disconnectDrive()">Disconnect Drive</button>
+        </div>
+        <div style="margin-top:12px; text-align:center;">
+          <button onclick="openTutorial()" style="background:none;border:none;color:var(--gold);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;padding:0;font-weight:500;text-decoration:underline;">How does this work?</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Panel: Encryption ── -->
+    <div id="smod-panel-enc" class="smod-panel">
+      <div class="smod-panel-header">
+        <button class="smod-back" onclick="closeSmodPanel()">‹ Back</button>
+        <span class="smod-panel-title">🔐 Encryption</span>
+        <button class="modal-close" onclick="document.getElementById('setup-modal').classList.add('hidden')" title="Close">✕</button>
+      </div>
+      <div class="smod-panel-body">
+        <div id="enc-status-row" style="font-size:13px; color:var(--text-2); margin-bottom:16px; line-height:1.7; font-weight:300;"></div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button id="btn-enc-set" class="btn-primary" onclick="openEncPasswordPopup()">Set password</button>
+          <button id="btn-enc-disable" class="btn-local" style="display:none; color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="confirmDisableEnc()">Remove encryption</button>
+        </div>
+        <div id="enc-section" style="margin-top:16px; padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text-3); line-height:1.7;">
+          Password-encrypts your backup files (Drive &amp; local saves) using AES-256. A recovery key file is downloaded when you set a password — keep it safe. Without it, a forgotten password means your backup cannot be recovered.
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Panel: Local File ── -->
+    <div id="smod-panel-local" class="smod-panel">
+      <div class="smod-panel-header">
+        <button class="smod-back" onclick="closeSmodPanel()">‹ Back</button>
+        <span class="smod-panel-title">💾 Local File</span>
+        <button class="modal-close" onclick="document.getElementById('setup-modal').classList.add('hidden')" title="Close">✕</button>
+      </div>
+      <div class="smod-panel-body">
+        <p style="font-size:13px; color:var(--text-2); line-height:1.7; margin-bottom:16px; font-weight:300;">Save a backup file anywhere on this device — USB drive, NAS, or any folder. Encryption is applied if a password is set.</p>
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <button class="btn-primary" style="flex:1;" onclick="saveToLocalFile()">⬇ Save file</button>
+          <button class="btn-local" style="flex:1;" onclick="loadFromLocalFile()">⬆ Load file</button>
+        </div>
+        <div id="local-file-status" style="display:none; font-size:12px; text-align:center; padding:8px 0;"></div>
+        <div style="padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text-3); line-height:1.7;">
+          Loading a file gives you the choice to <strong style="color:var(--text-2);">merge</strong> it with your current data or <strong style="color:var(--text-2);">replace</strong> it entirely.
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Panel: Browser Storage ── -->
+    <div id="smod-panel-browser" class="smod-panel">
+      <div class="smod-panel-header">
+        <button class="smod-back" onclick="closeSmodPanel()">‹ Back</button>
+        <span class="smod-panel-title">🖥 Browser Storage</span>
+        <button class="modal-close" onclick="document.getElementById('setup-modal').classList.add('hidden')" title="Close">✕</button>
+      </div>
+      <div class="smod-panel-body">
+        <p style="font-size:13px; color:var(--text-2); line-height:1.7; margin-bottom:16px; font-weight:300;">Store data only in this browser's local storage. No account or internet connection needed.</p>
+        <button class="btn-local" onclick="useLocal(); closeSmodPanel();">Use browser storage only</button>
+        <div style="margin-top:12px; padding:12px 14px; background:rgba(192,80,74,0.07); border:1px solid rgba(192,80,74,0.25); border-radius:var(--radius);">
+          <div style="font-size:11px; font-weight:600; color:var(--red); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;">⚠️ Risks</div>
+          <div style="font-size:12px; color:var(--text-3); line-height:1.7;">Your data will be <strong style="color:var(--text-2);">permanently lost</strong> if you clear your browser data, uninstall the browser, or switch devices. There is no backup file you can copy or recover from.</div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -3394,9 +3529,26 @@ function scheduleSave() {
 
 
 // ─── modal ─────────────────────────────────────────────────────────────────────
+// Open the Sync & Backup modal and reset to the main card view
 function openSetup() {
+  closeSmodPanel();
   updateSetupModal();
   document.getElementById("setup-modal").classList.remove("hidden");
+}
+
+// Navigate into a submenu panel
+function openSmodPanel(name) {
+  document.getElementById("smod-main").style.display = "none";
+  document.querySelectorAll(".smod-panel").forEach(p => p.classList.remove("open"));
+  const panel = document.getElementById("smod-panel-" + name);
+  if (panel) panel.classList.add("open");
+}
+
+// Return to the main card view from a panel
+function closeSmodPanel() {
+  document.querySelectorAll(".smod-panel").forEach(p => p.classList.remove("open"));
+  const main = document.getElementById("smod-main");
+  if (main) main.style.display = "";
 }
 
 function updateSetupModal() {
@@ -3411,26 +3563,37 @@ function updateSetupModal() {
   if (connEmail && connected) {
     connEmail.textContent = localStorage.getItem(DRIVE_EMAIL_KEY) || "Google Drive connected";
   }
-  // Show encryption section only when Drive is connected
-  const encSection = document.getElementById("enc-section");
-  if (encSection) encSection.style.display = connected ? "" : "none";
+  // Update Drive card subtitle
+  const driveSub = document.getElementById("smod-drive-sub");
+  if (driveSub) {
+    driveSub.textContent = connected
+      ? "Connected — " + (localStorage.getItem(DRIVE_EMAIL_KEY) || "syncing")
+      : "Automatic cloud sync across all devices";
+  }
+  // Highlight active Drive card
+  const driveCard = document.getElementById("smod-card-drive");
+  if (driveCard) driveCard.classList.toggle("active-card", connected);
   updateEncUI();
 }
 
-// Update the encryption status row and buttons in the setup modal
 function updateEncUI() {
   const statusEl  = document.getElementById("enc-status-row");
   const setBtnEl  = document.getElementById("btn-enc-set");
   const disBtnEl  = document.getElementById("btn-enc-disable");
-  if (!statusEl) return;
+  const encSub    = document.getElementById("smod-enc-sub");
+  const encCard   = document.getElementById("smod-card-enc");
   if (vaultEncActive) {
-    statusEl.innerHTML = '<span style="color:var(--green);">🔐 Encryption is <strong>on</strong></span> — your Drive backup is password-protected.';
-    setBtnEl.textContent  = "Change password";
-    disBtnEl.style.display = "";
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--green);">🔐 Encryption is <strong>on</strong></span> — backups are password-protected.';
+    if (setBtnEl) setBtnEl.textContent = "Change password";
+    if (disBtnEl) disBtnEl.style.display = "";
+    if (encSub)   encSub.textContent = "On — backups are AES-256 encrypted";
+    if (encCard)  encCard.classList.add("active-card");
   } else {
-    statusEl.innerHTML = '<span style="color:var(--text-3);">🔓 Encryption is <strong>off</strong></span> — your Drive backup is plain JSON.';
-    setBtnEl.textContent   = "Set password";
-    disBtnEl.style.display = "none";
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--text-3);">🔓 Encryption is <strong>off</strong></span> — backups are saved as plain JSON.';
+    if (setBtnEl) setBtnEl.textContent = "Set password";
+    if (disBtnEl) disBtnEl.style.display = "none";
+    if (encSub)   encSub.textContent = "Off — backups saved as plain JSON";
+    if (encCard)  encCard.classList.remove("active-card");
   }
 }
 
@@ -5405,6 +5568,6 @@ function deleteRecurRule(idx) {
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v2.6.7</div>
+  <div id="version-footer">v2.6.8</div>
 </body>
 </html>
