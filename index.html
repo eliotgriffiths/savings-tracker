@@ -3322,13 +3322,24 @@ function updateLocalFileUI() {
 // Does NOT touch any linked file — only clears localStorage + resets app state.
 function clearBrowserData() {
   if (!confirm("Clear all Vault data from this browser?\n\nThis cannot be undone. Any data not saved to a file will be permanently lost.")) return;
+
+  // Remove all Vault keys from localStorage — do NOT call saveLocal() after this,
+  // or render(), as both would write empty data back to localStorage and/or the linked file
   try {
     localStorage.removeItem(DATA_KEY);
     localStorage.removeItem(RECUR_KEY);
     localStorage.removeItem(SIDEBAR_KEY);
     localStorage.removeItem(ENC_ACTIVE_KEY);
   } catch {}
-  // Reset app state
+
+  // Unlink the local file so auto-save doesn't overwrite it with empty data
+  if (localFileHandle) {
+    localFileHandle = null;
+    localFileLinked = false;
+    clearLocalFileHandle(); // async, fire-and-forget
+  }
+
+  // Reset in-memory state
   data = {};
   recurRules = [];
   activeYear  = "all-years";
@@ -3336,10 +3347,18 @@ function clearBrowserData() {
   activeTab   = "all";
   expandedYears.clear();
   disablePasswordEncryption();
-  render();
+
+  // Redraw the UI directly — bypass render() which would call saveLocal()
+  renderSidebar();
+  renderMain();
+  setSaveStatus("warn", "Browser storage only");
+  updateLocalFileUI();
   document.getElementById("setup-modal").classList.add("hidden");
-  toast("Browser data cleared");
-  dbg("clearBrowserData: all localStorage data wiped");
+
+  dbg("clearBrowserData: all localStorage data wiped, file unlinked");
+
+  // Show the welcome screen so the user sets up storage again
+  document.getElementById("welcome-modal").classList.remove("hidden");
 }
 
 // Hidden file input fallback for browsers without showOpenFilePicker
@@ -4744,8 +4763,10 @@ function encChoiceResolve(choice) {
 // Called after initLocalFileSync so we know the file handle state.
 function checkFirstRun() {
   if (inSandbox) return; // never show welcome in the preview sandbox
-  const hasData   = !!localStorage.getItem(DATA_KEY);
-  const hasFile   = localFileLinked && !!localFileHandle;
+  const hasFile      = localFileLinked && !!localFileHandle;
+  const storedRaw    = localStorage.getItem(DATA_KEY);
+  // Truly empty = no localStorage entry, OR the entry is an empty object "{}"
+  const hasData = storedRaw && storedRaw !== "{}" && storedRaw !== "null";
   if (!hasData && !hasFile) {
     document.getElementById("welcome-modal").classList.remove("hidden");
     dbg("First run detected — showing welcome screen");
@@ -5034,6 +5055,6 @@ function deleteRecurRule(idx) {
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v2.8.5</div>
+  <div id="version-footer">v2.8.6</div>
 </body>
 </html>
