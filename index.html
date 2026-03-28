@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vault</title>
-<!-- Google Identity Services — required for Drive OAuth token requests (not used for login) -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -99,22 +97,6 @@
   }
   .btn-gold:hover { opacity: 0.88; }
 
-  /* ── sync status pill ── */
-  #sync-status {
-    font-size: 11px;
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-weight: 500;
-    white-space: nowrap;
-    letter-spacing: 0.02em;
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-  #sync-status:hover { opacity: 0.75; }
-  .sync-ok   { background: rgba(61,158,110,0.15);  color: #5ec497; }
-  .sync-busy { background: rgba(201,168,76,0.15);  color: var(--gold); }
-  .sync-err  { background: rgba(192,80,74,0.15);   color: #e07a75; }
-  .sync-none { background: var(--bg3); color: var(--text-3); }
 
   /* ── layout ── */
   #layout { display: flex; flex: 1; overflow: hidden; }
@@ -1025,7 +1007,7 @@
 
   @media (max-height: 500px) {
     /* Landscape on small screens — tighter modal padding */
-    .modal-box, .info-popup-box, .sync-info-box, .tx-popup-box {
+    .modal-box, .info-popup-box, .tx-popup-box {
       padding: 16px 20px !important;
     }
     #recurring-modal .modal-box {
@@ -1064,7 +1046,8 @@
 
   /* ── password decryption popup ── */
   #enc-decrypt-popup,
-  #enc-set-popup {
+  #enc-set-popup,
+  #enc-menu-popup {
     position: fixed; inset: 0;
     background: rgba(0,0,0,0.6);
     backdrop-filter: blur(4px);
@@ -1072,27 +1055,9 @@
     display: flex; align-items: center; justify-content: center; padding: 20px;
   }
   #enc-decrypt-popup.hidden,
-  #enc-set-popup.hidden { display: none; }
+  #enc-set-popup.hidden,
+  #enc-menu-popup.hidden { display: none; }
 
-  /* ── disconnect Drive confirmation popup ── */
-  #disconnect-popup {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(4px);
-    z-index: 500;
-    display: flex; align-items: center; justify-content: center; padding: 20px;
-  }
-  #disconnect-popup.hidden { display: none; }
-
-  /* ── existing Drive file popup ── */
-  #drive-found-popup {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(4px);
-    z-index: 500;
-    display: flex; align-items: center; justify-content: center; padding: 20px;
-  }
-  #drive-found-popup.hidden { display: none; }
 
 
   /* ── version footer ── */
@@ -1156,25 +1121,6 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     margin-bottom: 4px;
-  }
-  .dmenu-sync-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .dmenu-sync-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    background: var(--text-3);
-  }
-  .dmenu-sync-dot.ok   { background: var(--green); box-shadow: 0 0 6px rgba(61,158,110,0.6); }
-  .dmenu-sync-dot.busy { background: var(--gold);  box-shadow: 0 0 6px rgba(201,168,76,0.5); }
-  .dmenu-sync-dot.err  { background: var(--red);   box-shadow: 0 0 6px rgba(192,80,74,0.5); }
-  #dmenu-sync-text {
-    font-size: 12px;
-    color: var(--text-2);
-    font-weight: 400;
   }
 
   .dmenu-items { padding: 6px 0; }
@@ -1362,173 +1308,6 @@
   }
   .modal-info-btn:hover { border-color: var(--gold-dim); color: var(--gold); background: var(--bg4); }
   /* ── sync info popup ── */
-  #sync-info-popup {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(4px);
-    z-index: 400;
-    display: flex; align-items: center; justify-content: center; padding: 20px;
-  }
-  #sync-info-popup.hidden { display: none; }
-  .sync-info-box {
-    background: var(--bg2);
-    border: 1px solid var(--border-hi);
-    border-radius: var(--radius-lg);
-    padding: 28px 32px 32px;
-    max-width: 400px;
-    width: 100%;
-    max-height: 90vh; overflow-y: auto;
-  }
-  .sync-info-box p {
-    font-size: 12px; color: var(--text-2);
-    line-height: 1.6; font-weight: 300; margin: 0;
-  }
-  .sync-status-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 12px 14px;
-    border-radius: var(--radius);
-    margin-bottom: 8px;
-    border: 1px solid var(--border);
-  }
-  .sync-status-row:last-of-type { margin-bottom: 0; }
-  .sync-status-row.row-ok   { border-color: rgba(61,158,110,0.2);  background: rgba(61,158,110,0.05); }
-  .sync-status-row.row-busy { border-color: rgba(201,168,76,0.2);  background: rgba(201,168,76,0.05); }
-  .sync-status-row.row-err  { border-color: rgba(192,80,74,0.2);   background: rgba(192,80,74,0.05); }
-  .sync-status-row.row-none { border-color: var(--border);         background: var(--bg3); }
-  .srow-pill {
-    font-size: 10px; font-weight: 600; letter-spacing: 0.04em;
-    padding: 3px 9px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
-    margin-top: 1px; min-width: 72px; text-align: center;
-  }
-  .srow-pill.ok   { background: rgba(61,158,110,0.15); color: #5ec497; }
-  .srow-pill.busy { background: rgba(201,168,76,0.15); color: var(--gold); }
-  .srow-pill.err  { background: rgba(192,80,74,0.15);  color: #e07a75; }
-  .srow-pill.none { background: var(--bg4);            color: var(--text-3); }
-  .srow-text { flex: 1; }
-  .srow-title {
-    font-size: 12px; font-weight: 600;
-    color: var(--text-1); margin-bottom: 3px;
-  }
-  .srow-desc {
-    font-size: 12px; color: var(--text-2);
-    line-height: 1.6; font-weight: 300;
-  }
-  /* ── tutorial popup ── */
-  #tutorial-popup {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.65);
-    backdrop-filter: blur(4px);
-    z-index: 500;
-    display: flex; align-items: center; justify-content: center; padding: 20px;
-  }
-  #tutorial-popup.hidden { display: none; }
-  .tutorial-box {
-    background: var(--bg2);
-    border: 1px solid var(--border-hi);
-    border-radius: var(--radius-lg);
-    width: 100%; max-width: 520px;
-    max-height: 88vh;
-    display: flex; flex-direction: column;
-    overflow: hidden;
-  }
-  .tutorial-header {
-    padding: 22px 28px 16px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 10px;
-    flex-shrink: 0;
-  }
-  .tutorial-header h3 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 18px; font-weight: 400;
-    color: var(--text-1); flex: 1; margin: 0;
-  }
-  .tutorial-steps-track {
-    display: flex; gap: 4px; align-items: center;
-    padding: 0 28px 14px; flex-shrink: 0;
-  }
-  .tstep-dot {
-    height: 3px; border-radius: 2px; flex: 1;
-    background: var(--bg4);
-    transition: background 0.2s;
-  }
-  .tstep-dot.done    { background: var(--gold-dim); }
-  .tstep-dot.current { background: var(--gold); }
-  .tutorial-body {
-    flex: 1; overflow-y: auto;
-    padding: 0 28px 8px;
-  }
-  .tutorial-step { display: none; }
-  .tutorial-step.active { display: block; }
-  .tstep-num {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 26px; height: 26px; border-radius: 50%;
-    background: var(--gold-glow); border: 1px solid var(--gold-dim);
-    color: var(--gold); font-size: 12px; font-weight: 700;
-    flex-shrink: 0; margin-bottom: 10px;
-  }
-  .tstep-title {
-    font-size: 15px; font-weight: 600; color: var(--text-1);
-    margin-bottom: 8px;
-  }
-  .tstep-body {
-    font-size: 13px; color: var(--text-2);
-    line-height: 1.75; font-weight: 300;
-  }
-  .tstep-body strong { color: var(--text-1); font-weight: 600; }
-  .tstep-body ol {
-    margin: 10px 0 10px 18px; display: flex; flex-direction: column; gap: 6px;
-  }
-  .tstep-code {
-    background: var(--bg0);
-    border: 1px solid var(--border-hi);
-    border-radius: var(--radius);
-    padding: 12px 14px;
-    font-size: 11px; font-family: monospace;
-    color: var(--text-2);
-    margin: 12px 0;
-    white-space: pre-wrap; word-break: break-all;
-    line-height: 1.6;
-    position: relative;
-  }
-  .tstep-code .code-label {
-    font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--text-3); font-family: 'DM Sans', sans-serif;
-    margin-bottom: 6px; display: block;
-  }
-  .tstep-note {
-    background: var(--bg3); border-left: 2px solid var(--gold-dim);
-    border-radius: 0 var(--radius) var(--radius) 0;
-    padding: 10px 12px; margin: 12px 0;
-    font-size: 12px; color: var(--text-2); line-height: 1.6;
-  }
-  .tutorial-footer {
-    padding: 16px 28px 22px;
-    border-top: 1px solid var(--border);
-    display: flex; gap: 10px; align-items: center;
-    flex-shrink: 0;
-  }
-  .tstep-counter {
-    font-size: 11px; color: var(--text-3); flex: 1;
-    font-weight: 500; letter-spacing: 0.04em;
-  }
-  .btn-tstep-prev {
-    background: transparent; border: 1px solid var(--border-hi);
-    border-radius: var(--radius); padding: 8px 16px;
-    color: var(--text-2); font-size: 13px; font-weight: 500;
-    font-family: 'DM Sans', sans-serif; cursor: pointer;
-    transition: border-color 0.15s, color 0.15s;
-  }
-  .btn-tstep-prev:hover { border-color: var(--gold-dim); color: var(--text-1); }
-  .btn-tstep-next {
-    background: var(--gold); border: none;
-    border-radius: var(--radius); padding: 9px 20px;
-    color: #0f0f11; font-size: 13px; font-weight: 700;
-    font-family: 'DM Sans', sans-serif; cursor: pointer;
-    transition: opacity 0.15s;
-  }
-  .btn-tstep-next:hover { opacity: 0.88; }
   /* ── sidebar add new button ── */
   #sidebar-addnew-wrap { padding: 10px 14px 14px; flex-shrink: 0; }
   #sidebar-addnew-btn {
@@ -1570,32 +1349,12 @@
       <!-- Option cards -->
       <div style="padding:0 16px 20px; display:flex; flex-direction:column; gap:8px;">
 
-        <!-- Google Drive card -->
-        <button class="smod-card" id="smod-card-drive" onclick="openSmodPanel('drive')">
-          <div class="smod-card-icon">☁️</div>
-          <div class="smod-card-body">
-            <div class="smod-card-title">Google Drive</div>
-            <div class="smod-card-sub" id="smod-drive-sub">Automatic cloud sync across all devices</div>
-          </div>
-          <div class="smod-card-chevron">›</div>
-        </button>
-
-        <!-- Encryption card -->
-        <button class="smod-card" id="smod-card-enc" onclick="openSmodPanel('enc')">
-          <div class="smod-card-icon">🔐</div>
-          <div class="smod-card-body">
-            <div class="smod-card-title">Encryption</div>
-            <div class="smod-card-sub" id="smod-enc-sub">Off — backups saved as plain JSON</div>
-          </div>
-          <div class="smod-card-chevron">›</div>
-        </button>
-
         <!-- Local File card -->
-        <button class="smod-card" onclick="openSmodPanel('local')">
+        <button class="smod-card" id="smod-card-local" onclick="openSmodPanel('local')">
           <div class="smod-card-icon">💾</div>
           <div class="smod-card-body">
             <div class="smod-card-title">Local File</div>
-            <div class="smod-card-sub">Save or load a backup file on this device</div>
+            <div class="smod-card-sub" id="smod-local-sub">Save or load a backup file on this device</div>
           </div>
           <div class="smod-card-chevron">›</div>
         </button>
@@ -1613,48 +1372,6 @@
       </div>
     </div>
 
-    <!-- ── Panel: Google Drive ── -->
-    <div id="smod-panel-drive" class="smod-panel">
-      <div class="smod-panel-header">
-        <button class="smod-back" onclick="closeSmodPanel()">‹ Back</button>
-        <span class="smod-panel-title">☁️ Google Drive</span>
-        <button class="modal-close" onclick="document.getElementById('setup-modal').classList.add('hidden')" title="Close">✕</button>
-      </div>
-      <div class="smod-panel-body">
-        <div id="drive-connected-info" style="display:none; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; margin-bottom:16px;">
-          <div style="font-size:10px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin-bottom:3px;">Connected account</div>
-          <div id="drive-connected-email" style="font-size:13px; color:var(--text-1); font-weight:500;"></div>
-        </div>
-        <p style="font-size:13px; color:var(--text-2); line-height:1.7; margin-bottom:16px; font-weight:300;">Your data is saved as a private file in your own Google Drive and syncs automatically across all your devices.</p>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <button class="btn-primary" id="btn-connect-drive" onclick="connectDrive()">🔗 Connect Google Drive</button>
-          <button class="btn-local" id="btn-disconnect-drive" style="display:none;" onclick="disconnectDrive()">Disconnect Drive</button>
-        </div>
-        <div style="margin-top:12px; text-align:center;">
-          <button onclick="openTutorial()" style="background:none;border:none;color:var(--gold);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;padding:0;font-weight:500;text-decoration:underline;">How does this work?</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── Panel: Encryption ── -->
-    <div id="smod-panel-enc" class="smod-panel">
-      <div class="smod-panel-header">
-        <button class="smod-back" onclick="closeSmodPanel()">‹ Back</button>
-        <span class="smod-panel-title">🔐 Encryption</span>
-        <button class="modal-close" onclick="document.getElementById('setup-modal').classList.add('hidden')" title="Close">✕</button>
-      </div>
-      <div class="smod-panel-body">
-        <div id="enc-status-row" style="font-size:13px; color:var(--text-2); margin-bottom:16px; line-height:1.7; font-weight:300;"></div>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <button id="btn-enc-set" class="btn-primary" onclick="openEncPasswordPopup()">Set password</button>
-          <button id="btn-enc-disable" class="btn-local" style="display:none; color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="confirmDisableEnc()">Remove encryption</button>
-        </div>
-        <div id="enc-section" style="margin-top:16px; padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text-3); line-height:1.7;">
-          Password-encrypts your backup files (Drive &amp; local saves) using AES-256. A recovery key file is downloaded when you set a password — keep it safe. Without it, a forgotten password means your backup cannot be recovered.
-        </div>
-      </div>
-    </div>
-
     <!-- ── Panel: Local File ── -->
     <div id="smod-panel-local" class="smod-panel">
       <div class="smod-panel-header">
@@ -1663,15 +1380,31 @@
         <button class="modal-close" onclick="document.getElementById('setup-modal').classList.add('hidden')" title="Close">✕</button>
       </div>
       <div class="smod-panel-body">
-        <p style="font-size:13px; color:var(--text-2); line-height:1.7; margin-bottom:16px; font-weight:300;">Save a backup file anywhere on this device — USB drive, NAS, or any folder. Encryption is applied if a password is set.</p>
-        <div style="display:flex; gap:8px; margin-bottom:12px;">
-          <button class="btn-primary" style="flex:1;" onclick="saveToLocalFile()">⬇ Save file</button>
-          <button class="btn-local" style="flex:1;" onclick="loadFromLocalFile()">⬆ Load file</button>
+
+        <!-- Auto-sync connected state -->
+        <div id="local-linked-info" style="display:none; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; margin-bottom:14px;">
+          <div style="font-size:10px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin-bottom:3px;">Auto-saving to</div>
+          <div id="local-linked-name" style="font-size:13px; color:var(--text-1); font-weight:500; word-break:break-all;"></div>
         </div>
-        <div id="local-file-status" style="display:none; font-size:12px; text-align:center; padding:8px 0;"></div>
-        <div style="padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text-3); line-height:1.7;">
-          Loading a file gives you the choice to <strong style="color:var(--text-2);">merge</strong> it with your current data or <strong style="color:var(--text-2);">replace</strong> it entirely.
+
+        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
+          <button class="btn-primary" id="btn-local-link" onclick="linkLocalFile()">📂 Choose file location</button>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-local" style="flex:1;" id="btn-local-save-now" onclick="saveToLocalFile(true)" style="display:none;">⬇ Save now</button>
+            <button class="btn-local" style="flex:1;" onclick="loadFromLocalFile()">⬆ Load file</button>
+          </div>
+          <button class="btn-local" id="btn-local-unlink" style="display:none; color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="unlinkLocalFile()">Unlink file location</button>
         </div>
+
+        <div id="local-file-status" style="display:none; font-size:12px; text-align:center; padding:4px 0; margin-bottom:8px;"></div>
+
+        <div id="local-autosync-note" style="display:none; padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text-3); line-height:1.7;">
+          ✓ Auto-saving — every change is written to the linked file automatically, just like Drive sync.
+        </div>
+        <div id="local-nosync-note" style="padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text-3); line-height:1.7;">
+          Choose a file location to enable auto-save. Once linked, every change is written automatically. Loading a file gives you the choice to <strong style="color:var(--text-2);">merge</strong> or <strong style="color:var(--text-2);">replace</strong> your current data.
+        </div>
+
       </div>
     </div>
 
@@ -1717,108 +1450,6 @@
       <p>Your data is stored only in your browser's local storage on this device. No account or internet connection is needed, but your data won't be accessible on other devices and will be lost if you clear your browser data.</p>
     </div>
     <button class="info-popup-close-btn" onclick="document.getElementById('info-popup').classList.add('hidden')">Got it</button>
-  </div>
-</div>
-
-<!-- Sync status info popup -->
-<div id="sync-info-popup" class="hidden">
-  <div class="sync-info-box">
-    <div style="display:flex; align-items:center; margin-bottom:18px;">
-      <h3 style="margin-bottom:0; flex:1; font-family:'DM Serif Display',serif; font-size:18px; font-weight:400; color:var(--text-1);">Sync Status</h3>
-      <button class="modal-close" onclick="document.getElementById('sync-info-popup').classList.add('hidden')" title="Close">✕</button>
-    </div>
-    <div class="sync-status-row row-ok">
-      <span class="srow-pill ok">Synced ✓</span>
-      <div class="srow-text">
-        <div class="srow-title">Connected & up to date</div>
-        <div class="srow-desc">Your data has been successfully synced with Google Drive. All transactions are backed up and available across your devices.</div>
-      </div>
-    </div>
-    <div class="sync-status-row row-busy">
-      <span class="srow-pill busy">Syncing…</span>
-      <div class="srow-text">
-        <div class="srow-title">Sync in progress</div>
-        <div class="srow-desc">Vault is currently saving or loading data from Google Drive. This usually takes just a moment — avoid closing the app until it completes.</div>
-      </div>
-    </div>
-    <div class="sync-status-row row-err">
-      <span class="srow-pill err">Error</span>
-      <div class="srow-text">
-        <div class="srow-title">Sync failed</div>
-        <div class="srow-desc">Vault couldn't reach Google Drive. This may be due to no internet connection or an expired session. Try syncing again or reconnect via Menu → Sync &amp; Backup.</div>
-      </div>
-    </div>
-    <div class="sync-status-row row-none">
-      <span class="srow-pill none">Local only</span>
-      <div class="srow-text">
-        <div class="srow-title">Not connected</div>
-        <div class="srow-desc">No Google Drive connection is active. Your data is saved only on this device. To enable cloud sync, open Menu → Sync &amp; Backup.</div>
-      </div>
-    </div>
-    <button class="info-popup-close-btn" style="margin-top:20px;" onclick="document.getElementById('sync-info-popup').classList.add('hidden')">Got it</button>
-  </div>
-</div>
-
-<!-- Tutorial popup -->
-<div id="tutorial-popup" class="hidden">
-  <div class="tutorial-box">
-    <div class="tutorial-header">
-      <h3>Setting Up Google Drive Sync</h3>
-      <button class="modal-close" onclick="closeTutorial()" title="Close">✕</button>
-    </div>
-    <div class="tutorial-steps-track" id="tutorial-track"></div>
-
-    <div class="tutorial-body">
-
-      <!-- Step 1 -->
-      <div class="tutorial-step active" id="tstep-1">
-        <div class="tstep-num">1</div>
-        <div class="tstep-title">Sign in with your Google account</div>
-        <div class="tstep-body">
-          <ol>
-            <li>Make sure you're signed into Vault with the Google account you want to use for sync — this is done on the login screen.</li>
-            <li>Vault uses your Google identity to securely access a private file in <strong>your own Google Drive</strong>.</li>
-          </ol>
-          <div class="tstep-note">💡 Vault only requests permission to manage files it creates itself (<strong>drive.file</strong> scope). It cannot see or access any other files in your Drive.</div>
-        </div>
-      </div>
-
-      <!-- Step 2 -->
-      <div class="tutorial-step" id="tstep-2">
-        <div class="tstep-num">2</div>
-        <div class="tstep-title">Connect Google Drive</div>
-        <div class="tstep-body">
-          <ol>
-            <li>Open <strong>Menu → Connect to Google Drive</strong>.</li>
-            <li>Click <strong>🔗 Connect Google Drive</strong>.</li>
-            <li>A Google permissions popup will appear — click <strong>Allow</strong> to grant Vault access to create and manage its sync file.</li>
-            <li>Vault will immediately create a file called <strong>vault-data.json</strong> in your Drive and upload your current data.</li>
-          </ol>
-          <div class="tstep-note">⚠️ If you see a warning that the app isn't verified, click <strong>Advanced → Go to Vault (unsafe)</strong>. This is expected for personal apps not submitted to Google's verification programme.</div>
-        </div>
-      </div>
-
-      <!-- Step 3 -->
-      <div class="tutorial-step" id="tstep-3">
-        <div class="tstep-num">3</div>
-        <div class="tstep-title">Sync across devices</div>
-        <div class="tstep-body">
-          <ol>
-            <li>Once connected, Vault automatically saves every change to your Drive file.</li>
-            <li>On any other device, open Vault, sign in with the same Google account, and connect Google Drive — Vault will find the existing file and load your data.</li>
-            <li>Changes sync in the background whenever you switch back to the app.</li>
-          </ol>
-          <div class="tstep-note">✅ Your data is stored as <strong>vault-data.json</strong> in your Google Drive. You can view it at <strong>drive.google.com</strong> — but don't edit it manually or it may break the sync.</div>
-        </div>
-      </div>
-
-    </div><!-- end tutorial-body -->
-
-    <div class="tutorial-footer">
-      <span class="tstep-counter" id="tstep-counter">Step 1 of 3</span>
-      <button class="btn-tstep-prev" id="tstep-prev" onclick="tutorialStep(-1)">← Back</button>
-      <button class="btn-tstep-next" id="tstep-next" onclick="tutorialStep(1)">Next →</button>
-    </div>
   </div>
 </div>
 
@@ -1954,7 +1585,6 @@
     <div class="sub">Net: <span id="grand-net"></span></div>
   </div>
   <div class="header-btns">
-    <span id="sync-status" class="sync-none" onclick="openSyncInfoPopup()">Not connected</span>
     <button class="btn-ghost" id="desktop-menu-btn" onclick="toggleDesktopMenu()">☰ Menu</button>
   </div>
 </div>
@@ -1963,10 +1593,6 @@
 <div id="desktop-menu">
   <div class="dmenu-header">
     <div class="dmenu-header-label">Vault</div>
-    <div class="dmenu-sync-row">
-      <div class="dmenu-sync-dot" id="dmenu-sync-dot"></div>
-      <span id="dmenu-sync-text">Not connected</span>
-    </div>
   </div>
   <div class="dmenu-items">
     <button class="dmenu-btn" onclick="closeDesktopMenu(); switchTab('report');">
@@ -1982,6 +1608,11 @@
     <button class="dmenu-btn" onclick="closeDesktopMenu(); setTimeout(openSetup, 50);">
       <span class="dmenu-btn-icon">☁️</span>
       <div><div class="dmenu-btn-label">Sync &amp; Backup</div><div class="dmenu-btn-sub">Manage storage &amp; cloud sync</div></div>
+    </button>
+    <div class="dmenu-divider"></div>
+    <button class="dmenu-btn" onclick="openEncryptionMenu()">
+      <span class="dmenu-btn-icon">🔐</span>
+      <div><div class="dmenu-btn-label">Encryption</div><div class="dmenu-btn-sub" id="dmenu-enc-sub">Off — backups unencrypted</div></div>
     </button>
 
   </div>
@@ -2156,6 +1787,11 @@
     <span class="menu-item-icon">☁️</span>
     <span class="menu-item-label">Sync &amp; Backup</span>
   </button>
+  <button class="menu-item-btn" onclick="openEncryptionMenu()">
+    <span class="menu-item-icon">🔐</span>
+    <span class="menu-item-label">Encryption</span>
+    <span class="menu-item-meta" id="mob-enc-sub" style="font-size:11px; color:var(--text-3);">Off</span>
+  </button>
 </div>
 
 <!-- Mobile: year picker sheet -->
@@ -2326,20 +1962,22 @@
   </div>
 </div>
 
-<!-- Disconnect Drive confirmation popup — shown when user clicks Disconnect -->
-<div id="disconnect-popup" class="hidden">
+<!-- Encryption menu popup — opened from the main menu -->
+<div id="enc-menu-popup" class="hidden">
   <div class="modal-box" style="max-width:400px;">
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
-      <h2 style="margin:0; flex:1;">🔌 Disconnect Drive</h2>
-      <button class="modal-close" onclick="document.getElementById('disconnect-popup').classList.add('hidden')" title="Close">✕</button>
+      <h2 style="margin:0; flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400;">🔐 Encryption</h2>
+      <button class="modal-close" onclick="document.getElementById('enc-menu-popup').classList.add('hidden')" title="Close">✕</button>
     </div>
-    <p style="margin-bottom:8px;">Your data is saved in Google Drive. What would you like to do with the local copy on this device?</p>
-    <p style="margin-bottom:20px; font-size:12px; color:var(--text-3);">Your Drive file is not affected either way.</p>
-    <div class="modal-actions" style="flex-direction:column; gap:10px;">
-      <button class="btn-primary" onclick="disconnectKeepData()">Keep local data</button>
-      <button class="btn-local" style="color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="disconnectClearData()">Clear local data</button>
+    <div id="enc-status-row" style="font-size:13px; color:var(--text-2); margin-bottom:16px; line-height:1.7; font-weight:300;"></div>
+    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+      <button id="btn-enc-set" class="btn-primary" onclick="openEncPasswordPopup()">Set password</button>
+      <button id="btn-enc-disable" class="btn-local" style="display:none; color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="confirmDisableEnc()">Remove encryption</button>
     </div>
-    <button class="btn-popup-cancel" style="width:100%; margin-top:8px;" onclick="document.getElementById('disconnect-popup').classList.add('hidden')">Cancel</button>
+    <div id="enc-section" style="padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text-3); line-height:1.7;">
+      Password-encrypts your backup files using AES-256. A recovery key file is downloaded when you set a password — keep it safe. Without it, a forgotten password means your backup cannot be recovered.
+    </div>
+    <button class="info-popup-close-btn" style="margin-top:12px;" onclick="document.getElementById('enc-menu-popup').classList.add('hidden')">Done</button>
   </div>
 </div>
 
@@ -2347,12 +1985,12 @@
 <div id="enc-set-popup" class="hidden">
   <div class="modal-box" style="max-width:440px;">
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
-      <h2 style="margin:0; flex:1;">🔐 Set backup password</h2>
+      <h2 style="margin:0; flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400;">🔐 Set backup password</h2>
       <button class="modal-close" onclick="document.getElementById('enc-set-popup').classList.add('hidden')" title="Close">✕</button>
     </div>
-    <p style="margin-bottom:8px;">Your Drive backup will be encrypted with this password. You'll need it to open Vault on any device.</p>
-    <div style="background:rgba(192,80,74,0.08); border:1px solid rgba(192,80,74,0.25); border-radius:var(--radius); padding:12px 14px; margin-bottom:16px;">
-      <div style="font-size:12px; color:var(--red); line-height:1.6;"><strong>⚠️ Important:</strong> If you forget this password and lose your recovery key, your Drive backup cannot be recovered. There is no reset option.</div>
+    <p style="margin-bottom:8px; font-size:13px; color:var(--text-2); line-height:1.7; font-weight:300;">Your backup files will be encrypted with this password.</p>
+    <div style="background:rgba(192,80,74,0.08); border:1px solid rgba(192,80,74,0.25); border-radius:var(--radius); padding:12px 14px; margin-bottom:16px; font-size:12px; color:var(--red); line-height:1.6;">
+      <strong>⚠️ Important:</strong> If you forget this password and lose your recovery key, your backups cannot be recovered. There is no reset option.
     </div>
     <div class="tx-popup-field">
       <label>Password</label>
@@ -2365,9 +2003,8 @@
              onkeydown="if(event.key==='Enter')encSetSubmit()">
     </div>
     <div id="enc-set-error" style="display:none; font-size:12px; color:var(--red); margin-bottom:12px;"></div>
-    <div style="background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; margin-bottom:16px;">
-      <div style="font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; font-weight:600; margin-bottom:6px;">Recovery key</div>
-      <div style="font-size:12px; color:var(--text-2); line-height:1.6;">A <strong>vault-recovery.json</strong> file will be downloaded automatically. Keep it somewhere safe (USB drive, secure cloud folder). It can unlock your backup if you forget your password.</div>
+    <div style="background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; margin-bottom:16px; font-size:12px; color:var(--text-3); line-height:1.7;">
+      A <strong style="color:var(--text-2);">vault-recovery.json</strong> file will be downloaded automatically. Store it somewhere safe — it can unlock your backup if you forget your password.
     </div>
     <div class="modal-actions" style="gap:8px;">
       <button class="btn-primary" style="flex:2;" onclick="encSetSubmit()">🔐 Encrypt &amp; download recovery key</button>
@@ -2376,42 +2013,27 @@
   </div>
 </div>
 
-<!-- Decrypt Drive file popup — shown when an encrypted Drive file is found -->
+<!-- Decrypt Drive file popup — shown when an encrypted file is loaded -->
 <div id="enc-decrypt-popup" class="hidden">
   <div class="modal-box" style="max-width:420px;">
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
-      <h2 style="margin:0; flex:1;">🔐 Encrypted backup</h2>
+      <h2 style="margin:0; flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400;">🔐 Encrypted backup</h2>
     </div>
-    <p style="margin-bottom:20px;">Your Drive backup is password-protected. Enter your password to load your data.</p>
+    <p style="margin-bottom:20px; font-size:13px; color:var(--text-2); line-height:1.7; font-weight:300;">Your backup file is password-protected. Enter your password to load your data.</p>
     <div class="tx-popup-field" style="margin-bottom:16px;">
       <label>Password</label>
       <input type="password" id="enc-decrypt-pass" placeholder="Your Vault password" autocomplete="current-password">
     </div>
     <div id="enc-decrypt-error" style="display:none; font-size:12px; color:var(--red); margin-bottom:12px;"></div>
-    <div class="modal-actions" style="gap:8px; margin-bottom:12px;">
+    <div class="modal-actions" style="gap:8px; margin-bottom:16px;">
       <button class="btn-primary" style="flex:2;" id="enc-decrypt-btn">Unlock</button>
       <button class="btn-local" style="flex:1;" id="enc-decrypt-cancel">Cancel</button>
     </div>
-    <div style="border-top:1px solid var(--border); padding-top:12px;">
-      <div style="font-size:11px; color:var(--text-3); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.06em; font-weight:600;">Forgot your password?</div>
-      <p style="font-size:12px; color:var(--text-2); margin-bottom:10px;">Use your recovery key file (<code>vault-recovery.json</code>) to unlock your data. Encryption will be disabled so you can set a new password.</p>
+    <div style="border-top:1px solid var(--border); padding-top:14px;">
+      <div style="font-size:11px; color:var(--text-3); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.06em; font-weight:600;">Forgot your password?</div>
+      <p style="font-size:12px; color:var(--text-2); margin-bottom:10px;">Use your <code>vault-recovery.json</code> file to unlock. Encryption will be disabled so you can set a new password.</p>
       <input type="file" id="enc-recovery-file" accept=".json" style="display:none">
       <button id="enc-recovery-btn" class="btn-local" style="width:100%;" onclick="document.getElementById('enc-recovery-file').click()">📂 Use recovery key file</button>
-    </div>
-  </div>
-</div>
-
-<!-- Existing Drive file found popup — shown on first connect when vault-data.json already exists -->
-<div id="drive-found-popup" class="hidden">
-  <div class="modal-box" style="max-width:400px;">
-    <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
-      <h2 style="margin:0; flex:1;">☁️ Existing File Found</h2>
-    </div>
-    <p style="margin-bottom:8px;">A <strong>vault-data.json</strong> file already exists in your Google Drive.</p>
-    <p style="margin-bottom:20px;">Would you like to load that data, or start fresh and overwrite it with your current data?</p>
-    <div class="modal-actions" style="flex-direction:column; gap:10px;">
-      <button class="btn-primary" onclick="driveFoundUseExisting()">☁️ Load from Drive</button>
-      <button class="btn-local" onclick="driveFoundUseNew()">Start fresh (overwrite Drive file)</button>
     </div>
   </div>
 </div>
@@ -2560,72 +2182,6 @@ let sortKey = "date", sortDir = "asc";
 // rather than an implicit global to avoid strict-mode errors if the app is ever wrapped.
 let pendingDelete = null;
 
-// Debounce timer for Drive saves — resets on each data change
-let syncTimer = null;
-// Retry timer and counter for failed Drive saves
-let syncRetryTimer = null;
-let syncRetryCount = 0;
-// Retry delays: 5 s, 15 s, 60 s before giving up
-const SYNC_RETRY_DELAYS = [5000, 15000, 60000];
-
-// ─── Google Drive sync state ───────────────────────────────────────────────────
-// Uses the Drive File API (scope: drive.file) — only accesses files Vault created.
-// The data file is stored as vault-data.json in the user's Drive root.
-const DRIVE_FILE_NAME  = "vault-data.json";
-const DRIVE_CLIENT_ID  = "923866716926-ch3d25r6159hc0ditod3n8g6ufb8pcsk.apps.googleusercontent.com";
-const DRIVE_SCOPE      = "https://www.googleapis.com/auth/drive.file";
-
-// localStorage keys for persisting Drive connection across sessions
-const DRIVE_FILE_KEY   = "vault_drive_file_id";   // cached Drive file ID
-const DRIVE_MODE_KEY   = "vault_drive_mode";       // "true" if Drive is enabled
-const DRIVE_EMAIL_KEY  = "vault_drive_email";      // connected Google account email
-const DRIVE_TOKEN_KEY  = "vault_drive_token";      // cached access token string
-const DRIVE_EXPIRY_KEY = "vault_drive_expiry";     // token expiry timestamp (ms)
-
-let driveToken  = null;   // current OAuth access token (valid for ~1 hour)
-let driveFileId = null;   // Drive file ID once the file has been found/created
-let driveMode   = false;  // true when Drive sync is enabled and connected
-let tokenClient = null;   // GIS TokenClient instance
-
-// Restore Drive connection state from localStorage on startup
-function loadDriveState() {
-  try {
-    driveFileId = localStorage.getItem(DRIVE_FILE_KEY) || null;
-    driveMode   = localStorage.getItem(DRIVE_MODE_KEY) === "true";
-    // Restore cached token only if it hasn't expired yet
-    const expiry = parseInt(localStorage.getItem(DRIVE_EXPIRY_KEY) || "0", 10);
-    if (expiry && Date.now() < expiry) {
-      driveToken = localStorage.getItem(DRIVE_TOKEN_KEY) || null;
-    }
-  } catch {}
-}
-
-// Persist Drive mode flag and file ID to localStorage
-function saveDriveState() {
-  try {
-    if (driveFileId) localStorage.setItem(DRIVE_FILE_KEY, driveFileId);
-    else             localStorage.removeItem(DRIVE_FILE_KEY);
-    localStorage.setItem(DRIVE_MODE_KEY, driveMode ? "true" : "false");
-  } catch {}
-}
-
-// Cache an access token with a 55-minute expiry (tokens last 60 min; 5 min safety margin)
-function saveToken(token) {
-  driveToken = token;
-  try {
-    localStorage.setItem(DRIVE_TOKEN_KEY, token);
-    localStorage.setItem(DRIVE_EXPIRY_KEY, String(Date.now() + 55 * 60 * 1000));
-  } catch {}
-}
-
-// Wipe the cached token (called on disconnect or revoke)
-function clearToken() {
-  driveToken = null;
-  try {
-    localStorage.removeItem(DRIVE_TOKEN_KEY);
-    localStorage.removeItem(DRIVE_EXPIRY_KEY);
-  } catch {}
-}
 
 // ─── utility helpers ───────────────────────────────────────────────────────────
 
@@ -2640,6 +2196,7 @@ function fmtDate(iso) {
 
 // Sum the amount field (index 1) from an array of [date, amount] pairs
 function sumArr(arr) { return arr.reduce((a, b) => a + b[1], 0); }
+
 // ─── year mode ─────────────────────────────────────────────────────────────────
 // "calendar"  — Jan–Dec buckets, keys like "2025"
 // "financial" — custom start month/day, keys like "24-25"
@@ -2933,13 +2490,6 @@ function updateYearModeUI() {
 
 // Update the sync status pill in the header and mirror to the desktop menu dot.
 // state: "ok" | "busy" | "err" | "none"
-function setSyncStatus(state, msg) {
-  const el = document.getElementById("sync-status");
-  el.textContent = msg;
-  el.className = "sync-status sync-" + state;
-  dbg("[" + new Date().toLocaleTimeString() + "] " + state.toUpperCase() + ": " + msg);
-}
-
 // Append a timestamped message to the debug log textarea (only visible when debug panel is open)
 function dbg(msg) {
   const el = document.getElementById("debug-log");
@@ -2947,215 +2497,375 @@ function dbg(msg) {
   el.textContent = msg + "\n" + el.textContent;
 }
 
-// ─── Google Drive API ──────────────────────────────────────────────────────────
-
-// Initialise the Google Identity Services token client.
-// Must be called after the GIS script has loaded.
-function initTokenClient() {
-  if (!window.google || !google.accounts || !google.accounts.oauth2) return;
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: DRIVE_CLIENT_ID,
-    scope: DRIVE_SCOPE,
-    prompt: "",
-    callback: (resp) => {
-      if (resp.error) {
-        // Silent refresh failed — fall back to cached token if one exists
-        driveIsFirstConnect = false; // clear flag so a retry doesn't re-trigger the popup incorrectly
-        if (!driveToken) {
-          setSyncStatus("err", "Auth failed");
-          dbg("Drive token error: " + resp.error);
-        } else {
-          dbg("Silent refresh failed, using cached token: " + resp.error);
-          driveSyncFromCloud();
-        }
-        return;
-      }
-      saveToken(resp.access_token);
-      driveMode = true;
-      saveDriveState();
-      updateSetupModal();
-      driveSyncFromCloud();
+// ─── local file auto-sync ─────────────────────────────────────────────────────
+// Build the vault file payload — plain JSON or encrypted envelope.
+async function buildVaultPayload() {
+  if (vaultEncActive && vaultEncKey) {
+    if (vaultRecovKey) {
+      const pwdEnv   = JSON.parse(await encryptDataObj(data, vaultEncKey));
+      const recovEnv = JSON.parse(await encryptDataObj(data, vaultRecovKey));
+      return JSON.stringify({ vault_enc: 3, iv: pwdEnv.iv, ct: pwdEnv.ct,
+                              riv: recovEnv.iv, rct: recovEnv.ct }, null, 2);
     }
+    return await encryptDataObj(data, vaultEncKey);
+  }
+  return JSON.stringify(data, null, 2);
+}
+
+// Uses the File System Access API + IndexedDB to persist a file handle across
+// sessions, enabling automatic saves to a user-chosen location — just like Drive.
+//
+// Browsers without FSAPI (Safari, Firefox) fall back to manual download/upload.
+// IndexedDB is used because file handles can't be stored in localStorage.
+
+const LOCAL_FILE_DB    = "vault-local-file";  // IndexedDB database name
+const LOCAL_FILE_STORE = "handles";           // object store name
+const LOCAL_FILE_KEY   = "save-handle";       // key for the stored file handle
+
+let localFileHandle    = null;  // FileSystemFileHandle — null if not linked
+let localSyncTimer     = null;  // debounce timer for auto-save
+let localFileLinked    = false; // true when a handle is loaded and verified
+
+// ── IndexedDB helpers ─────────────────────────────────────────────────────────
+
+// Open (or create) the IndexedDB database
+function openLocalFileDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(LOCAL_FILE_DB, 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(LOCAL_FILE_STORE);
+    req.onsuccess = e => res(e.target.result);
+    req.onerror   = e => rej(e.target.error);
   });
 }
 
-// ── first-connect state ───────────────────────────────────────────────────────
-// driveIsFirstConnect: set true by connectDrive() so driveFindOrCreateFile knows
-//   to show the "existing file found" popup instead of silently reusing the file.
-// driveFoundFileId / driveFoundResolve: hold the Promise resolution while the popup is open.
-// driveForceOverwrite: set by driveFoundUseNew() to skip the remote load and push local data up.
-let driveIsFirstConnect = false;
-let driveFoundFileId    = null;
-let driveFoundResolve   = null;
-let driveForceOverwrite = false;
+// Persist the file handle to IndexedDB
+async function saveLocalFileHandle(handle) {
+  try {
+    const db  = await openLocalFileDB();
+    const tx  = db.transaction(LOCAL_FILE_STORE, "readwrite");
+    tx.objectStore(LOCAL_FILE_STORE).put(handle, LOCAL_FILE_KEY);
+    await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
+    db.close();
+  } catch (e) { dbg("Local file: could not persist handle: " + e.message); }
+}
 
-// Trigger the OAuth consent flow to connect Drive.
-// Polls for GIS readiness if the library hasn't loaded yet.
-// Sets driveIsFirstConnect so the found-file popup fires if an existing vault file exists.
-function connectDrive() {
-  driveIsFirstConnect = true; // mark this as a fresh connection attempt
-  if (!tokenClient) {
-    let attempts = 0;
-    const poll = setInterval(() => {
-      attempts++;
-      initTokenClient();
-      if (tokenClient) {
-        clearInterval(poll);
-        tokenClient.requestAccessToken({ prompt: "consent" });
-      } else if (attempts > 10) {
-        clearInterval(poll);
-        driveIsFirstConnect = false;
-        toast("Google Sign-In not ready. Try again.", "#c0392b");
-      }
-    }, 300);
+// Load a previously stored file handle from IndexedDB
+async function loadLocalFileHandle() {
+  try {
+    const db     = await openLocalFileDB();
+    const tx     = db.transaction(LOCAL_FILE_STORE, "readonly");
+    const handle = await new Promise((res, rej) => {
+      const req = tx.objectStore(LOCAL_FILE_STORE).get(LOCAL_FILE_KEY);
+      req.onsuccess = () => res(req.result);
+      req.onerror   = () => rej(req.error);
+    });
+    db.close();
+    return handle || null;
+  } catch { return null; }
+}
+
+// Remove the stored handle from IndexedDB
+async function clearLocalFileHandle() {
+  try {
+    const db = await openLocalFileDB();
+    const tx = db.transaction(LOCAL_FILE_STORE, "readwrite");
+    tx.objectStore(LOCAL_FILE_STORE).delete(LOCAL_FILE_KEY);
+    await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
+    db.close();
+  } catch {}
+}
+
+// ── initialisation ────────────────────────────────────────────────────────────
+
+// Called on app start — restore the file handle and verify it's still accessible.
+// Silently clears the handle if the file has been moved or deleted.
+async function initLocalFileSync() {
+  if (!window.showSaveFilePicker) return; // FSAPI not supported
+  const handle = await loadLocalFileHandle();
+  if (!handle) return;
+  // Verify we still have permission
+  try {
+    const perm = await handle.queryPermission({ mode: "readwrite" });
+    if (perm === "granted") {
+      localFileHandle = handle;
+      localFileLinked = true;
+      dbg("Local file: restored handle — " + handle.name);
+    } else {
+      // Permission needs re-prompt — keep the handle but mark unlinked until user interacts
+      localFileHandle = handle;
+      localFileLinked = false;
+      dbg("Local file: handle restored but permission not yet granted");
+    }
+  } catch {
+    await clearLocalFileHandle();
+    dbg("Local file: stale handle cleared");
+  }
+  updateLocalFileUI();
+}
+
+// ── link / unlink ─────────────────────────────────────────────────────────────
+
+// Open a save dialog so the user picks where to save. Stores the handle for auto-save.
+async function linkLocalFile() {
+  if (!window.showSaveFilePicker) {
+    // FSAPI not available — fall back to one-off download
+    await saveToLocalFile(false);
     return;
   }
-  tokenClient.requestAccessToken({ prompt: "consent" });
-}
-
-// Show the disconnect confirmation popup instead of disconnecting immediately.
-// The user chooses whether to keep or clear their local data first.
-function disconnectDrive() {
-  document.getElementById("disconnect-popup").classList.remove("hidden");
-}
-
-// Shared logic that runs after the user confirms a disconnect.
-// Revokes the OAuth token, clears Drive state, and updates the UI.
-function _performDisconnect() {
-  document.getElementById("disconnect-popup").classList.add("hidden");
-  if (driveToken && window.google && google.accounts && google.accounts.oauth2) {
-    google.accounts.oauth2.revoke(driveToken, () => {});
-  }
-  clearToken();
-  driveFileId = null;
-  driveMode   = false;
-  saveDriveState();
-  updateSetupModal();
-  setSyncStatus("none", "Local only");
-}
-
-// Disconnect and keep all local data intact (safe default)
-function disconnectKeepData() {
-  _performDisconnect();
-  toast("Disconnected — local data kept");
-}
-
-// Disconnect and wipe all local data + recurring rules from this device
-function disconnectClearData() {
-  _performDisconnect();
-  // Clear the data store and reset to an empty state
-  data = {};
+  const filename = "vault-data" + (vaultEncActive ? "-encrypted" : "") + ".json";
   try {
-    localStorage.removeItem(DATA_KEY);
-    localStorage.removeItem(RECUR_KEY);
-    localStorage.removeItem(SIDEBAR_KEY);
-    localStorage.removeItem(ENC_ACTIVE_KEY);
-  } catch {}
-  // Clear encryption state
-  disablePasswordEncryption();
-  // Reset in-memory recurring rules
-  recurRules = [];
-  // Reset view state
-  activeYear  = "all-years";
-  activeMonth = null;
-  activeTab   = "all";
-  expandedYears.clear();
-  render();
-  toast("Disconnected — local data cleared");
+    const handle = await window.showSaveFilePicker({
+      suggestedName: filename,
+      types: [{ description: "Vault backup", accept: { "application/json": [".json"] } }],
+    });
+    localFileHandle = handle;
+    localFileLinked = true;
+    await saveLocalFileHandle(handle);
+    // Write current data immediately
+    await writeTolocalFileHandle();
+    updateLocalFileUI();
+    updateSetupModal();
+    toast("Auto-save linked — " + handle.name);
+    dbg("Local file: linked to " + handle.name);
+  } catch (e) {
+    if (e.name !== "AbortError") {
+      setLocalFileStatus("Failed to link: " + e.message, "var(--red)");
+      dbg("Local file: link failed: " + e.message);
+    }
+  }
 }
 
-// Locate (or create) the vault-data.json file in the user's Drive.
-// Returns the file ID. Caches it in driveFileId for subsequent calls.
-// On a first-ever connect (no cached ID), if an existing file is found in Drive,
-// shows a prompt asking whether to load it or overwrite it.
-async function driveFindOrCreateFile() {
-  // Verify that any cached file ID still exists and isn't trashed
-  if (driveFileId) {
+// Unlink the current file location and stop auto-saving
+async function unlinkLocalFile() {
+  localFileHandle = null;
+  localFileLinked = false;
+  await clearLocalFileHandle();
+  updateLocalFileUI();
+  updateSetupModal();
+  toast("Local file auto-save unlinked");
+  dbg("Local file: unlinked");
+}
+
+// ── write helpers ─────────────────────────────────────────────────────────────
+
+// Write current data to the linked file handle. Returns true on success.
+async function writeTolocalFileHandle() {
+  if (!localFileHandle) return false;
+  try {
+    // Re-request permission if needed (may happen after page reload)
+    const perm = await localFileHandle.requestPermission({ mode: "readwrite" });
+    if (perm !== "granted") { dbg("Local file: permission denied"); return false; }
+    const payload  = await buildVaultPayload();
+    const writable = await localFileHandle.createWritable();
+    await writable.write(new Blob([payload], { type: "application/json" }));
+    await writable.close();
+    localFileLinked = true;
+    dbg("Local file: auto-saved " + payload.length + " chars → " + localFileHandle.name);
+    return true;
+  } catch (e) {
+    dbg("Local file: write failed: " + e.message);
+    return false;
+  }
+}
+
+// Show the password/recovery entry popup and attempt decryption.
+// Returns the decrypted data object, or null if cancelled/failed.
+function promptAndDecrypt(encryptedText) {
+  return new Promise(resolve => {
+    const popup = document.getElementById("enc-decrypt-popup");
+    const passInput  = document.getElementById("enc-decrypt-pass");
+    const errEl      = document.getElementById("enc-decrypt-error");
+    const fileInput  = document.getElementById("enc-recovery-file");
+    passInput.value = ""; errEl.style.display = "none";
+    popup.classList.remove("hidden");
+    setTimeout(() => passInput.focus(), 80);
+
+    async function tryPassword() {
+      const pw = passInput.value;
+      if (!pw) { errEl.textContent = "Please enter your password."; errEl.style.display = "block"; return; }
+      errEl.style.display = "none";
+      const result = await tryDecryptWithPassword(encryptedText, pw);
+      if (result) {
+        // Correct password — store the key in memory for future saves
+        vaultEncKey    = await deriveKeyFromPassword(pw);
+        vaultEncActive = true;
+        localStorage.setItem(ENC_ACTIVE_KEY, "true");
+        popup.classList.add("hidden");
+        cleanup();
+        resolve(result);
+      } else {
+        errEl.textContent = "Incorrect password. Try again or use your recovery key.";
+        errEl.style.display = "block";
+      }
+    }
+
+    async function tryRecovery() {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) { errEl.textContent = "Please select your vault-recovery.json file."; errEl.style.display = "block"; return; }
+      try {
+        const text = await file.text();
+        const obj  = JSON.parse(text);
+        if (!obj.vault_recovery || !obj.key) throw new Error("Invalid recovery file");
+        // Try recovery key path: envelope has riv/rct for recovery decryption
+        const env = JSON.parse(encryptedText);
+        let result = null;
+        if (env.riv && env.rct) {
+          const recovKey = await importRawKey(obj.key);
+          const recovEnv = JSON.stringify({ vault_enc: 3, iv: env.riv, ct: env.rct });
+          result = await tryDecryptWithRecoveryKey(recovEnv, recovKey);
+        }
+        if (!result) throw new Error("Recovery key did not match");
+        // Success — disable enc (user can re-enable with a new password)
+        disablePasswordEncryption();
+        popup.classList.add("hidden");
+        cleanup();
+        toast("Recovery successful — encryption disabled. Re-enable with a new password in Sync & Backup.", "var(--gold-dim)");
+        resolve(result);
+      } catch (e) {
+        errEl.textContent = "Recovery failed: " + e.message;
+        errEl.style.display = "block";
+      }
+    }
+
+    function cancel() {
+      popup.classList.add("hidden");
+      cleanup();
+      resolve(null);
+    }
+
+    function cleanup() {
+      document.getElementById("enc-decrypt-btn").onclick    = null;
+      document.getElementById("enc-recovery-btn").onclick   = null;
+      document.getElementById("enc-decrypt-cancel").onclick = null;
+      passInput.onkeydown = null;
+    }
+
+    document.getElementById("enc-decrypt-btn").onclick    = tryPassword;
+    document.getElementById("enc-recovery-btn").onclick   = tryRecovery;
+    document.getElementById("enc-decrypt-cancel").onclick = cancel;
+    passInput.onkeydown = e => { if (e.key === "Enter") tryPassword(); };
+  });
+}
+
+// Schedule a debounced auto-save to the linked file (mirrors scheduleSave for Drive)
+function scheduleLocalSave() {
+  if (!localFileHandle) return;
+  clearTimeout(localSyncTimer);
+  localSyncTimer = setTimeout(async () => {
+    const ok = await writeTolocalFileHandle();
+    if (ok) setLocalFileStatus("✓ Auto-saved" + (vaultEncActive ? " 🔐" : ""), "var(--green)");
+  }, 1500);
+}
+
+// ── manual save / load ────────────────────────────────────────────────────────
+
+// Manual save: uses linked handle if available, otherwise prompts for location.
+// showPicker=true forces the picker (e.g. "Save as…").
+async function saveToLocalFile(showPicker = false) {
+  // If linked and not forcing picker, write directly
+  if (localFileHandle && !showPicker) {
+    const ok = await writeTolocalFileHandle();
+    setLocalFileStatus(ok
+      ? "✓ Saved" + (vaultEncActive ? " 🔐" : "")
+      : "Save failed — check file permissions", ok ? "var(--green)" : "var(--red)");
+    return;
+  }
+
+  const payload  = await buildVaultPayload();
+  const filename = "vault-data" + (vaultEncActive ? "-encrypted" : "") + ".json";
+  const blob     = new Blob([payload], { type: "application/json" });
+
+  if (window.showSaveFilePicker) {
     try {
-      const r = await fetch(
-        `https://www.googleapis.com/drive/v3/files/${driveFileId}?fields=id,trashed`,
-        { headers: { "Authorization": "Bearer " + driveToken } }
-      );
-      if (r.ok) {
-        const f = await r.json();
-        if (!f.trashed) return driveFileId;
-      }
-    } catch {}
-    // Cached ID is stale — clear it and search again
-    driveFileId = null;
-    saveDriveState();
-  }
-
-  // Search Drive for an existing file by name
-  const search = await fetch(
-    `https://www.googleapis.com/drive/v3/files?q=name%3D'${DRIVE_FILE_NAME}'+and+trashed%3Dfalse&fields=files(id,modifiedTime,size)&spaces=drive`,
-    { headers: { "Authorization": "Bearer " + driveToken } }
-  );
-  if (search.ok) {
-    const res = await search.json();
-    if (res.files && res.files.length > 0) {
-      const found = res.files[0];
-
-      // On the very first connect ever (no cached ID), ask whether to use the found file
-      if (driveIsFirstConnect) {
-        driveIsFirstConnect = false;
-        // Store the found ID temporarily so the popup handlers can use it
-        driveFoundFileId = found.id;
-        // Show the popup and pause — handlers will resume the sync flow
-        setSyncStatus("busy", "File found…");
-        document.getElementById("drive-found-popup").classList.remove("hidden");
-        // Return a promise that resolves once the user makes a choice
-        return new Promise(resolve => { driveFoundResolve = resolve; });
-      }
-
-      // Subsequent calls: just use the file silently
-      driveFileId = found.id;
-      saveDriveState();
-      return driveFileId;
+      const handle = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types: [{ description: "Vault backup", accept: { "application/json": [".json"] } }],
+      });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      setLocalFileStatus("✓ Saved" + (vaultEncActive ? " 🔐" : ""), "var(--green)");
+      dbg("Local save: one-off save via picker");
+    } catch (e) {
+      if (e.name !== "AbortError") setLocalFileStatus("Save failed: " + e.message, "var(--red)");
     }
+    return;
   }
 
-  // No file found — create a new empty one
-  const create = await fetch(
-    "https://www.googleapis.com/drive/v3/files?fields=id",
-    {
-      method: "POST",
-      headers: { "Authorization": "Bearer " + driveToken, "Content-Type": "application/json" },
-      body: JSON.stringify({ name: DRIVE_FILE_NAME, mimeType: "application/json" })
-    }
-  );
-  if (!create.ok) {
-    let errBody = "";
-    try { errBody = await create.text(); } catch {}
-    throw new Error(`Create failed: ${create.status} ${errBody.substring(0, 300)}`);
-  }
-  const created = await create.json();
-  driveFileId = created.id;
-  saveDriveState();
-  return driveFileId;
+  // Fallback download
+  const url = URL.createObjectURL(blob);
+  const a   = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+  setLocalFileStatus("✓ Download started" + (vaultEncActive ? " 🔐" : ""), "var(--green)");
 }
 
-// User chose to load the existing Drive file — use it as the canonical source
-function driveFoundUseExisting() {
-  document.getElementById("drive-found-popup").classList.add("hidden");
-  driveFileId = driveFoundFileId;
-  driveFoundFileId = null;
-  saveDriveState();
-  if (driveFoundResolve) { driveFoundResolve(driveFileId); driveFoundResolve = null; }
-  // driveSyncFromCloud will now load the remote data and replace local
-  setSyncStatus("busy", "Loading…");
+// Load vault data from a local file, opening a native open dialog.
+async function loadFromLocalFile() {
+  try {
+    let text;
+    if (window.showOpenFilePicker) {
+      try {
+        const [handle] = await window.showOpenFilePicker({
+          types: [{ description: "Vault backup", accept: { "application/json": [".json"] } }],
+          multiple: false,
+        });
+        const file = await handle.getFile();
+        text = await file.text();
+      } catch (e) {
+        if (e.name === "AbortError") return;
+        text = await pickFileViaInput();
+      }
+    } else {
+      text = await pickFileViaInput();
+    }
+    if (!text) return;
+
+    // Decrypt if needed
+    let loaded;
+    if (isEncryptedEnvelope(text)) {
+      setLocalFileStatus("🔐 Encrypted — enter password…", "var(--gold)");
+      if (vaultEncKey) {
+        try { loaded = await decryptDataObj(text, vaultEncKey); } catch { loaded = null; }
+      }
+      if (!loaded) loaded = await promptAndDecrypt(text);
+      if (!loaded) { setLocalFileStatus("Decryption cancelled or failed.", "var(--red)"); return; }
+    } else {
+      try { loaded = JSON.parse(text); } catch {
+        setLocalFileStatus("Invalid file — not a Vault backup.", "var(--red)"); return;
+      }
+    }
+
+    const safe = sanitiseData(loaded);
+    if (!safe || !Object.keys(safe).length) {
+      setLocalFileStatus("File appears empty or invalid.", "var(--red)"); return;
+    }
+
+    const merge = confirm(
+      "Load from file?\n\nOK  →  Merge with current data\nCancel  →  Replace current data"
+    );
+    if (merge) {
+      autoMerge(safe);
+      setLocalFileStatus("✓ Merged", "var(--green)");
+    } else {
+      data = safe;
+      reconcileYears();
+      saveLocal();
+      render();
+      setLocalFileStatus("✓ Loaded", "var(--green)");
+    }
+  } catch (e) {
+    setLocalFileStatus("Load failed: " + e.message, "var(--red)");
+    dbg("Local load error: " + e.message);
+  }
 }
 
-// User chose to start fresh — use the found file ID but overwrite it with local data
-function driveFoundUseNew() {
-  document.getElementById("drive-found-popup").classList.add("hidden");
-  driveFileId = driveFoundFileId;  // reuse same file rather than creating a duplicate
-  driveFoundFileId = null;
-  saveDriveState();
-  if (driveFoundResolve) { driveFoundResolve(driveFileId); driveFoundResolve = null; }
-  // After the promise resolves, driveSyncFromCloud will run — we then push local data up
-  // by setting a flag that driveSyncFromCloud checks
-  driveForceOverwrite = true;
+// ── UI helpers ────────────────────────────────────────────────────────────────
+
+function setLocalFileStatus(msg, color) {
+  const el = document.getElementById("local-file-status");
+  if (!el) return;
+  el.textContent = msg; el.style.color = color || "var(--text-2)"; el.style.display = "block";
 }
 
 // ─── password encryption layer ────────────────────────────────────────────────
@@ -3285,248 +2995,6 @@ async function tryDecryptWithRecoveryKey(text, recoveryKey) {
   } catch { return null; }
 }
 
-// ─── Drive API ────────────────────────────────────────────────────────────────
-
-// Upload current data to Drive, encrypting with the password key if set.
-async function driveSaveToCloud() {
-  if (!driveToken || !driveMode) return;
-  setSyncStatus("busy", "Saving…");
-  try {
-    const fileId = await driveFindOrCreateFile();
-    let payload;
-    if (vaultEncActive && vaultEncKey) {
-      // Encrypt with password key; also embed a recovery-key-encrypted copy of the AES key
-      // so the recovery key can decrypt without knowing the password
-      if (vaultRecovKey) {
-        // Encrypt the password-derived raw key with the recovery key so recovery works
-        // (recovery key decrypts → gets password key raw → re-imports → decrypts data)
-        // Simpler: just encrypt data twice — once for password, once for recovery.
-        // We store both ciphertexts in the envelope.
-        const pwdBlob   = await encryptDataObj(data, vaultEncKey);
-        const pwdEnv    = JSON.parse(pwdBlob);
-        const recovBlob = await encryptDataObj(data, vaultRecovKey);
-        const recovEnv  = JSON.parse(recovBlob);
-        payload = JSON.stringify({ vault_enc: 3, iv: pwdEnv.iv, ct: pwdEnv.ct,
-                                   riv: recovEnv.iv, rct: recovEnv.ct });
-      } else {
-        payload = await encryptDataObj(data, vaultEncKey);
-      }
-      dbg("Drive save: encrypted with password key");
-    } else {
-      payload = JSON.stringify(data);
-      dbg("Drive save: plain JSON");
-    }
-    const uploadUrl = "https://www.googleapis.com/upload/drive/v3/files/" + fileId + "?uploadType=media";
-    const resp = await fetch(uploadUrl, {
-      method: "PATCH",
-      headers: { "Authorization": "Bearer " + driveToken, "Content-Type": "application/json" },
-      body: payload
-    });
-    if (!resp.ok) {
-      let e = ""; try { e = await resp.text(); } catch {}
-      throw new Error("Upload failed: " + resp.status + " " + e.substring(0, 200));
-    }
-    setSyncStatus("ok", "Synced ✓" + (vaultEncActive ? " 🔐" : ""));
-    syncRetryCount = 0;
-    clearTimeout(syncRetryTimer);
-    dbg("Drive save OK");
-  } catch (e) {
-    dbg("Drive save error: " + e.message);
-    scheduleRetry();
-  }
-}
-
-// Exponential retry: 5 s → 15 s → 60 s then give up
-function scheduleRetry() {
-  clearTimeout(syncRetryTimer);
-  if (syncRetryCount < SYNC_RETRY_DELAYS.length) {
-    const delay = SYNC_RETRY_DELAYS[syncRetryCount++];
-    setSyncStatus("err", "Save failed — retrying in " + (delay/1000) + "s");
-    syncRetryTimer = setTimeout(async () => {
-      dbg("Retry attempt " + syncRetryCount + " of " + SYNC_RETRY_DELAYS.length);
-      setSyncStatus("busy", "Retrying…");
-      await driveSaveToCloud();
-    }, delay);
-  } else {
-    syncRetryCount = 0;
-    setSyncStatus("err", "Save failed");
-    dbg("All retry attempts exhausted");
-  }
-}
-
-// Download and apply Drive data, decrypting if needed.
-async function driveSyncFromCloud() {
-  if (!driveToken || !driveMode) return;
-  setSyncStatus("busy", "Loading…");
-  try {
-    const fileId = await driveFindOrCreateFile();
-
-    if (driveForceOverwrite) {
-      driveForceOverwrite = false;
-      dbg("driveForceOverwrite: pushing local data to Drive");
-      setSyncStatus("ok", "Synced ✓");
-      render();
-      await driveSaveToCloud();
-      return;
-    }
-
-    const mediaUrl = "https://www.googleapis.com/drive/v3/files/" + fileId + "?alt=media";
-    const resp = await fetch(mediaUrl, { headers: { "Authorization": "Bearer " + driveToken } });
-    if (!resp.ok) {
-      if (resp.status === 404) {
-        dbg("Drive file empty, pushing local data up");
-        setSyncStatus("ok", "Synced ✓");
-        render();
-        await driveSaveToCloud();
-        return;
-      }
-      let e = ""; try { e = await resp.text(); } catch {}
-      throw new Error("Download failed: " + resp.status + " " + e.substring(0, 200));
-    }
-
-    const text = await resp.text();
-    if (!text || !text.trim().startsWith("{")) {
-      setSyncStatus("ok", "Synced ✓");
-      render();
-      return;
-    }
-
-    // ── decryption ────────────────────────────────────────────────────────────
-    let remote = null;
-
-    if (isEncryptedEnvelope(text)) {
-      dbg("Drive load: file is encrypted");
-      // If we have the password key in memory, try it first
-      if (vaultEncKey) {
-        try {
-          remote = await decryptDataObj(text, vaultEncKey);
-          dbg("Drive load: decrypted with in-memory key");
-        } catch {
-          dbg("Drive load: in-memory key failed, prompting");
-          vaultEncKey = null; // stale key — prompt for fresh password
-          remote = await promptAndDecrypt(text);
-        }
-      } else {
-        // No key in memory — show the password/recovery popup
-        remote = await promptAndDecrypt(text);
-      }
-      if (!remote) {
-        setSyncStatus("err", "Decryption failed");
-        render();
-        return;
-      }
-    } else {
-      // Plain JSON
-      try { remote = JSON.parse(text); } catch { remote = null; }
-      dbg("Drive load: plain JSON");
-    }
-    // ── end decryption ────────────────────────────────────────────────────────
-
-    if (remote && Object.keys(remote).length > 0) {
-      if (JSON.stringify(remote) !== JSON.stringify(data)) {
-        dbg("Drive load: conflict, auto-merging");
-        autoMerge(remote);
-        return;
-      }
-      dbg("Drive load OK, data matches: " + Object.keys(data).join(", "));
-    }
-    setSyncStatus("ok", "Synced ✓" + (vaultEncActive ? " 🔐" : ""));
-    render();
-  } catch (e) {
-    setSyncStatus("err", "Sync failed");
-    dbg("Drive load error: " + e.message);
-    render();
-  }
-}
-
-// Show the password/recovery entry popup and attempt decryption.
-// Returns the decrypted data object, or null if cancelled/failed.
-function promptAndDecrypt(encryptedText) {
-  return new Promise(resolve => {
-    const popup = document.getElementById("enc-decrypt-popup");
-    const passInput  = document.getElementById("enc-decrypt-pass");
-    const errEl      = document.getElementById("enc-decrypt-error");
-    const fileInput  = document.getElementById("enc-recovery-file");
-    passInput.value = ""; errEl.style.display = "none";
-    popup.classList.remove("hidden");
-    setTimeout(() => passInput.focus(), 80);
-
-    async function tryPassword() {
-      const pw = passInput.value;
-      if (!pw) { errEl.textContent = "Please enter your password."; errEl.style.display = "block"; return; }
-      errEl.style.display = "none";
-      const result = await tryDecryptWithPassword(encryptedText, pw);
-      if (result) {
-        // Correct password — store the key in memory for future saves
-        vaultEncKey    = await deriveKeyFromPassword(pw);
-        vaultEncActive = true;
-        localStorage.setItem(ENC_ACTIVE_KEY, "true");
-        popup.classList.add("hidden");
-        cleanup();
-        resolve(result);
-      } else {
-        errEl.textContent = "Incorrect password. Try again or use your recovery key.";
-        errEl.style.display = "block";
-      }
-    }
-
-    async function tryRecovery() {
-      const file = fileInput.files && fileInput.files[0];
-      if (!file) { errEl.textContent = "Please select your vault-recovery.json file."; errEl.style.display = "block"; return; }
-      try {
-        const text = await file.text();
-        const obj  = JSON.parse(text);
-        if (!obj.vault_recovery || !obj.key) throw new Error("Invalid recovery file");
-        // Try recovery key path: envelope has riv/rct for recovery decryption
-        const env = JSON.parse(encryptedText);
-        let result = null;
-        if (env.riv && env.rct) {
-          const recovKey = await importRawKey(obj.key);
-          const recovEnv = JSON.stringify({ vault_enc: 3, iv: env.riv, ct: env.rct });
-          result = await tryDecryptWithRecoveryKey(recovEnv, recovKey);
-        }
-        if (!result) throw new Error("Recovery key did not match");
-        // Success — disable enc (user can re-enable with a new password)
-        disablePasswordEncryption();
-        popup.classList.add("hidden");
-        cleanup();
-        toast("Recovery successful — encryption disabled. Re-enable with a new password in Sync & Backup.", "var(--gold-dim)");
-        resolve(result);
-      } catch (e) {
-        errEl.textContent = "Recovery failed: " + e.message;
-        errEl.style.display = "block";
-      }
-    }
-
-    function cancel() {
-      popup.classList.add("hidden");
-      cleanup();
-      resolve(null);
-    }
-
-    function cleanup() {
-      document.getElementById("enc-decrypt-btn").onclick    = null;
-      document.getElementById("enc-recovery-btn").onclick   = null;
-      document.getElementById("enc-decrypt-cancel").onclick = null;
-      passInput.onkeydown = null;
-    }
-
-    document.getElementById("enc-decrypt-btn").onclick    = tryPassword;
-    document.getElementById("enc-recovery-btn").onclick   = tryRecovery;
-    document.getElementById("enc-decrypt-cancel").onclick = cancel;
-    passInput.onkeydown = e => { if (e.key === "Enter") tryPassword(); };
-  });
-}
-
-function scheduleSave() {
-  if (!driveMode || !driveToken) return;
-  clearTimeout(syncTimer);
-  clearTimeout(syncRetryTimer);
-  syncRetryCount = 0;
-  syncTimer = setTimeout(driveSaveToCloud, 1500);
-}
-
-
 
 // ─── modal ─────────────────────────────────────────────────────────────────────
 // Open the Sync & Backup modal and reset to the main card view
@@ -3552,48 +3020,36 @@ function closeSmodPanel() {
 }
 
 function updateSetupModal() {
-  const connected = driveMode && !!driveToken;
-  const btnConnect    = document.getElementById("btn-connect-drive");
-  const btnDisconnect = document.getElementById("btn-disconnect-drive");
-  const connInfo      = document.getElementById("drive-connected-info");
-  const connEmail     = document.getElementById("drive-connected-email");
-  if (btnConnect)    btnConnect.style.display    = connected ? "none" : "";
-  if (btnDisconnect) btnDisconnect.style.display = connected ? "" : "none";
-  if (connInfo)      connInfo.style.display      = connected ? "" : "none";
-  if (connEmail && connected) {
-    connEmail.textContent = localStorage.getItem(DRIVE_EMAIL_KEY) || "Google Drive connected";
-  }
-  // Update Drive card subtitle
-  const driveSub = document.getElementById("smod-drive-sub");
-  if (driveSub) {
-    driveSub.textContent = connected
-      ? "Connected — " + (localStorage.getItem(DRIVE_EMAIL_KEY) || "syncing")
-      : "Automatic cloud sync across all devices";
-  }
-  // Highlight active Drive card
-  const driveCard = document.getElementById("smod-card-drive");
-  if (driveCard) driveCard.classList.toggle("active-card", connected);
   updateEncUI();
+  updateLocalFileUI();
+}
+
+// Open the encryption menu popup from the main menu
+function openEncryptionMenu() {
+  closeDesktopMenu();
+  closeSheets();
+  updateEncUI();
+  document.getElementById("enc-menu-popup").classList.remove("hidden");
 }
 
 function updateEncUI() {
   const statusEl  = document.getElementById("enc-status-row");
   const setBtnEl  = document.getElementById("btn-enc-set");
   const disBtnEl  = document.getElementById("btn-enc-disable");
-  const encSub    = document.getElementById("smod-enc-sub");
-  const encCard   = document.getElementById("smod-card-enc");
+  const menuSub   = document.getElementById("dmenu-enc-sub");
+  const mobSub    = document.getElementById("mob-enc-sub");
   if (vaultEncActive) {
     if (statusEl) statusEl.innerHTML = '<span style="color:var(--green);">🔐 Encryption is <strong>on</strong></span> — backups are password-protected.';
     if (setBtnEl) setBtnEl.textContent = "Change password";
     if (disBtnEl) disBtnEl.style.display = "";
-    if (encSub)   encSub.textContent = "On — backups are AES-256 encrypted";
-    if (encCard)  encCard.classList.add("active-card");
+    if (menuSub)  menuSub.textContent = "On — AES-256 encrypted";
+    if (mobSub)   mobSub.textContent  = "On";
   } else {
     if (statusEl) statusEl.innerHTML = '<span style="color:var(--text-3);">🔓 Encryption is <strong>off</strong></span> — backups are saved as plain JSON.';
     if (setBtnEl) setBtnEl.textContent = "Set password";
     if (disBtnEl) disBtnEl.style.display = "none";
-    if (encSub)   encSub.textContent = "Off — backups saved as plain JSON";
-    if (encCard)  encCard.classList.remove("active-card");
+    if (menuSub)  menuSub.textContent = "Off — backups unencrypted";
+    if (mobSub)   mobSub.textContent  = "Off";
   }
 }
 
@@ -3618,175 +3074,45 @@ async function encSetSubmit() {
   const ok = await enablePasswordEncryption(p1);
   if (!ok) { err.textContent = "Encryption unavailable (requires HTTPS)."; err.style.display = "block"; return; }
   document.getElementById("enc-set-popup").classList.add("hidden");
-  // Re-save to Drive immediately with the new encryption
-  if (driveMode && driveToken) {
-    clearTimeout(syncTimer);
-    driveSaveToCloud();
-  }
+  // Trigger a local file save immediately with new encryption
+  scheduleLocalSave();
   updateEncUI();
   toast("Encryption enabled — recovery key downloaded");
 }
 
 // Prompt for confirmation before disabling encryption
 function confirmDisableEnc() {
-  if (!confirm("Remove encryption? Your Drive backup will be saved as plain JSON.\n\nYour recovery key will no longer work after this.")) return;
+  if (!confirm("Remove encryption? Your backup files will be saved as plain JSON.\n\nYour recovery key will no longer work after this.")) return;
   disablePasswordEncryption();
-  // Re-save to Drive immediately as plain JSON
-  if (driveMode && driveToken) {
-    clearTimeout(syncTimer);
-    driveSaveToCloud();
-  }
+  // Trigger a local file save immediately as plain JSON
+  scheduleLocalSave();
   updateEncUI();
   toast("Encryption removed");
 }
+function updateLocalFileUI() {
+  const linked     = localFileLinked && !!localFileHandle;
+  const fsSupport  = !!window.showSaveFilePicker;
+  const linkedInfo = document.getElementById("local-linked-info");
+  const linkedName = document.getElementById("local-linked-name");
+  const linkBtn    = document.getElementById("btn-local-link");
+  const saveNowBtn = document.getElementById("btn-local-save-now");
+  const unlinkBtn  = document.getElementById("btn-local-unlink");
+  const autoNote   = document.getElementById("local-autosync-note");
+  const noSyncNote = document.getElementById("local-nosync-note");
+  const localCard  = document.getElementById("smod-card-local");
+  const localSub   = document.getElementById("smod-local-sub");
 
-// ─── local file save / load ───────────────────────────────────────────────────
-// Uses the File System Access API (showSaveFilePicker / showOpenFilePicker) where
-// available — opens a native OS "save as" / "open" dialog.
-// Falls back to a standard download / hidden file input on browsers that don't
-// support the API (Safari, Firefox as of 2025).
-
-// Build the vault file payload — plain JSON or encrypted envelope, matching Drive format.
-async function buildVaultPayload() {
-  if (vaultEncActive && vaultEncKey) {
-    if (vaultRecovKey) {
-      const pwdEnv   = JSON.parse(await encryptDataObj(data, vaultEncKey));
-      const recovEnv = JSON.parse(await encryptDataObj(data, vaultRecovKey));
-      return JSON.stringify({ vault_enc: 3, iv: pwdEnv.iv, ct: pwdEnv.ct,
-                              riv: recovEnv.iv, rct: recovEnv.ct }, null, 2);
-    }
-    return await encryptDataObj(data, vaultEncKey);
-  }
-  return JSON.stringify(data, null, 2);
-}
-
-// Save vault data to a local file, opening a native save dialog where supported.
-async function saveToLocalFile() {
-  const statusEl = document.getElementById("local-file-status");
-  const setStatus = (msg, color) => {
-    statusEl.textContent = msg;
-    statusEl.style.color = color || "var(--text-2)";
-    statusEl.style.display = "block";
-  };
-
-  try {
-    const payload  = await buildVaultPayload();
-    const filename = "vault-data" + (vaultEncActive ? "-encrypted" : "") + ".json";
-    const blob     = new Blob([payload], { type: "application/json" });
-
-    // Try File System Access API first (Chrome, Edge — opens native save dialog)
-    if (window.showSaveFilePicker) {
-      try {
-        const handle = await window.showSaveFilePicker({
-          suggestedName: filename,
-          types: [{ description: "Vault backup", accept: { "application/json": [".json"] } }],
-        });
-        const writable = await handle.createWritable();
-        await writable.write(blob);
-        await writable.close();
-        setStatus("✓ Saved" + (vaultEncActive ? " (encrypted 🔐)" : ""), "var(--green)");
-        dbg("Local save: wrote " + payload.length + " chars via File System Access API");
-        return;
-      } catch (e) {
-        if (e.name === "AbortError") { setStatus(""); return; } // user cancelled picker
-        // Fall through to download fallback on other errors
-        dbg("Local save: FSAPI failed (" + e.message + "), falling back to download");
-      }
-    }
-
-    // Fallback: trigger a standard browser download
-    const url = URL.createObjectURL(blob);
-    const a   = document.createElement("a");
-    a.href = url; a.download = filename; a.click();
-    URL.revokeObjectURL(url);
-    setStatus("✓ Download started" + (vaultEncActive ? " (encrypted 🔐)" : ""), "var(--green)");
-    dbg("Local save: download fallback, " + payload.length + " chars");
-
-  } catch (e) {
-    setStatus("Save failed: " + e.message, "var(--red)");
-    dbg("Local save error: " + e.message);
-  }
-}
-
-// Load vault data from a local file, opening a native open dialog where supported.
-// Handles both plain JSON and encrypted vault files.
-async function loadFromLocalFile() {
-  const statusEl = document.getElementById("local-file-status");
-  const setStatus = (msg, color) => {
-    statusEl.textContent = msg;
-    statusEl.style.color = color || "var(--text-2)";
-    statusEl.style.display = "block";
-  };
-
-  try {
-    let text;
-
-    // Try File System Access API first
-    if (window.showOpenFilePicker) {
-      try {
-        const [handle] = await window.showOpenFilePicker({
-          types: [{ description: "Vault backup", accept: { "application/json": [".json"] } }],
-          multiple: false,
-        });
-        const file = await handle.getFile();
-        text = await file.text();
-        dbg("Local load: read " + text.length + " chars via File System Access API");
-      } catch (e) {
-        if (e.name === "AbortError") { setStatus(""); return; }
-        dbg("Local load: FSAPI failed (" + e.message + "), falling back to input");
-        text = await pickFileViaInput();
-      }
-    } else {
-      text = await pickFileViaInput();
-    }
-
-    if (!text) return;
-
-    // Decrypt if needed, using the same flow as Drive loading
-    let loaded;
-    if (isEncryptedEnvelope(text)) {
-      setStatus("🔐 Encrypted file — enter password to load…", "var(--gold)");
-      if (vaultEncKey) {
-        try { loaded = await decryptDataObj(text, vaultEncKey); }
-        catch { loaded = null; }
-      }
-      if (!loaded) loaded = await promptAndDecrypt(text);
-      if (!loaded) { setStatus("Decryption cancelled or failed.", "var(--red)"); return; }
-    } else {
-      try { loaded = JSON.parse(text); } catch {
-        setStatus("Invalid file — not a Vault backup.", "var(--red)"); return;
-      }
-    }
-
-    // Validate and merge with existing data
-    const safe = sanitiseData(loaded);
-    if (!safe || !Object.keys(safe).length) {
-      setStatus("File appears empty or invalid.", "var(--red)"); return;
-    }
-
-    // Ask how to apply — merge or replace
-    const choice = confirm(
-      "Load from file?\n\n" +
-      "OK  →  Merge with current data (keeps both)\n" +
-      "Cancel  →  Replace current data (overwrites)"
-    );
-    if (choice) {
-      autoMerge(safe);
-      setStatus("✓ Merged from file", "var(--green)");
-    } else {
-      data = safe;
-      reconcileYears();
-      saveLocal();
-      if (driveMode && driveToken) scheduleSave();
-      render();
-      setStatus("✓ Loaded from file", "var(--green)");
-    }
-    dbg("Local load: applied data from file, " + Object.keys(safe).join(", "));
-
-  } catch (e) {
-    setStatus("Load failed: " + e.message, "var(--red)");
-    dbg("Local load error: " + e.message);
-  }
+  if (linkedInfo) linkedInfo.style.display = linked ? "" : "none";
+  if (linkedName && linked) linkedName.textContent = localFileHandle.name;
+  if (linkBtn)    linkBtn.textContent = linked ? "📂 Change location" : (fsSupport ? "📂 Choose file location" : "⬇ Save file (download)");
+  if (saveNowBtn) saveNowBtn.style.display = linked ? "" : "none";
+  if (unlinkBtn)  unlinkBtn.style.display  = linked ? "" : "none";
+  if (autoNote)   autoNote.style.display   = linked ? "" : "none";
+  if (noSyncNote) noSyncNote.style.display = linked ? "none" : "";
+  if (localCard)  localCard.classList.toggle("active-card", linked);
+  if (localSub)   localSub.textContent = linked
+    ? "Auto-saving to " + (localFileHandle ? localFileHandle.name : "file")
+    : "Save or load a backup file on this device";
 }
 
 // Hidden file input fallback for browsers without showOpenFilePicker
@@ -3801,24 +3127,20 @@ function pickFileViaInput() {
     };
     input.oncancel = () => resolve(null);
     input.click();
-    dbg("Local load: using hidden file input fallback");
   });
 }
 
 function useLocal() {
-  driveMode = false;
-  saveDriveState();
   document.getElementById("setup-modal").classList.add("hidden");
-  setSyncStatus("none", "Local only");
 }
 
 // ─── render ────────────────────────────────────────────────────────────────────
 
-// Top-level render: saves data, schedules a Drive sync, and redraws both panels.
+// Top-level render: saves data, schedules Drive sync and local file sync, redraws both panels.
 // Called after every data mutation.
 function render() {
   saveLocal();
-  if (driveMode && driveToken) scheduleSave();
+  scheduleLocalSave();
   renderSidebar();
   renderMain();
 }
@@ -4574,51 +3896,6 @@ function isUserBusy() {
   return false;
 }
 
-// Silently pull the latest Drive data and merge if it differs from local.
-// Only runs when the user is not actively entering data.
-// Silently pull the latest Drive data and merge if it differs from local.
-// Only runs when the user is not actively entering data.
-// Handles encrypted envelopes transparently using the device key.
-// Silently pull the latest Drive data and merge if it differs from local.
-// Only runs when the user is not actively entering data.
-// Handles encrypted files transparently if the password key is in memory.
-async function silentSyncFromDrive() {
-  if (!driveMode || !driveToken) return;
-  if (isUserBusy()) return;
-  try {
-    const fileId = await driveFindOrCreateFile();
-    const mediaUrl = "https://www.googleapis.com/drive/v3/files/" + fileId + "?alt=media";
-    const resp = await fetch(mediaUrl, { headers: { "Authorization": "Bearer " + driveToken } });
-    if (!resp.ok) return;
-    const text = await resp.text();
-    if (!text || !text.trim().startsWith("{")) return;
-
-    let remote;
-    if (isEncryptedEnvelope(text)) {
-      // Only attempt silent decryption if key is in memory — never prompt silently
-      if (!vaultEncKey) return;
-      try { remote = await decryptDataObj(text, vaultEncKey); } catch { return; }
-    } else {
-      try { remote = JSON.parse(text); } catch { return; }
-    }
-
-    if (!remote || !Object.keys(remote).length) return;
-    if (JSON.stringify(remote) === JSON.stringify(data)) {
-      setSyncStatus("ok", "Synced ✓" + (vaultEncActive ? " 🔐" : "")); return;
-    }
-    if (isUserBusy()) return;
-    dbg("Silent sync: conflict detected, auto-merging");
-    autoMerge(remote);
-  } catch { /* silent fail */ }
-}
-
-// Re-sync when the user returns to this tab
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") silentSyncFromDrive();
-});
-
-// Also poll every 60 s (covers long sessions open in the background)
-setInterval(() => { silentSyncFromDrive(); }, 60000);
 
 // ─── sync conflict resolution ──────────────────────────────────────────────────
 
@@ -4648,7 +3925,6 @@ function autoMerge(remoteData) {
   ensureFYSilent = false;
   saveLocal();
   render();
-  driveSaveToCloud();
   dbg("Auto-merge complete");
 }
 
@@ -4937,59 +4213,6 @@ function mobileAddTransaction() {
 }
 
 // Open the sync status info popup (triggered by clicking the sync pill in the header)
-function openSyncInfoPopup() {
-  document.getElementById("sync-info-popup").classList.remove("hidden");
-}
-
-// ─── tutorial ─────────────────────────────────────────────────────────────────
-// A 3-step onboarding walkthrough shown to new users.
-const TUTORIAL_STEPS = 3;
-let tutorialCurrentStep = 1;
-
-// Open the tutorial popup at step 1
-function openTutorial() {
-  tutorialCurrentStep = 1;
-  renderTutorialStep();
-  document.getElementById("tutorial-popup").classList.remove("hidden");
-}
-
-// Close the tutorial popup
-function closeTutorial() {
-  document.getElementById("tutorial-popup").classList.add("hidden");
-}
-
-// Advance or go back by `dir` steps (+1 or -1), clamped to valid range
-function tutorialStep(dir) {
-  const next = tutorialCurrentStep + dir;
-  if (next < 1 || next > TUTORIAL_STEPS) return;
-  tutorialCurrentStep = next;
-  renderTutorialStep();
-}
-
-// Render the current tutorial step: show/hide panels, update counter, progress dots, and nav buttons
-function renderTutorialStep() {
-  const n = tutorialCurrentStep;
-  // Activate only the current step panel
-  for (let i = 1; i <= TUTORIAL_STEPS; i++) {
-    const el = document.getElementById("tstep-" + i);
-    if (el) el.classList.toggle("active", i === n);
-  }
-  document.getElementById("tstep-counter").textContent = "Step " + n + " of " + TUTORIAL_STEPS;
-  // Nav buttons
-  const prev = document.getElementById("tstep-prev");
-  const next = document.getElementById("tstep-next");
-  prev.style.visibility = n === 1 ? "hidden" : "visible";
-  next.textContent = n === TUTORIAL_STEPS ? "Done ✓" : "Next →";
-  next.onclick = n === TUTORIAL_STEPS ? closeTutorial : () => tutorialStep(1);
-  // Progress dot track
-  const track = document.getElementById("tutorial-track");
-  track.innerHTML = "";
-  for (let i = 1; i <= TUTORIAL_STEPS; i++) {
-    const dot = document.createElement("div");
-    dot.className = "tstep-dot" + (i < n ? " done" : i === n ? " current" : "");
-    track.appendChild(dot);
-  }
-}
 
 
 // ─── mobile menu transaction dropdown ─────────────────────────────────────────
@@ -5115,16 +4338,6 @@ function openMenuSheet() {
 function toggleDesktopMenu() {
   const menu    = document.getElementById("desktop-menu");
   const overlay = document.getElementById("desktop-menu-overlay");
-  // Mirror sync pill state into the dropdown header dot and text
-  const ss = document.getElementById("sync-status");
-  const dot = document.getElementById("dmenu-sync-dot");
-  const txt = document.getElementById("dmenu-sync-text");
-  if (ss && dot && txt) {
-    txt.textContent = ss.textContent;
-    const cls = [...ss.classList].find(c => c.startsWith("sync-")) || "";
-    const state = cls.replace("sync-", "");
-    dot.className = "dmenu-sync-dot" + (state ? " " + state : "");
-  }
   const isOpen = menu.classList.toggle("open");
   overlay.classList.toggle("open", isOpen);
 }
@@ -5278,11 +4491,11 @@ function closeSheets() {
 }
 
 // ─── app initialisation ────────────────────────────────────────────────────────
-// Loads data, restores UI state, connects Drive if previously linked, then renders.
+// Loads data, restores UI state, then renders.
 function initApp() {
   loadLocal();
-  loadDriveState();
   loadEncActive();      // restore encryption enabled flag
+  initLocalFileSync();  // restore linked local file handle if any
   activeYear = "all-years";
 
   // Restore collapsed sidebar state
@@ -5294,49 +4507,10 @@ function initApp() {
 
   document.getElementById("setup-modal").classList.add("hidden");
 
-  // Attempt Drive connection once the Google Identity Services library is ready.
-  // Uses a polling loop because the GIS script loads asynchronously.
-  const tryInitDrive = () => {
-    initTokenClient();
-    if (!driveMode) { setSyncStatus("none", "Local only"); return; }
-    if (driveToken) {
-      // Valid cached token — sync immediately and silently refresh in background
-      setSyncStatus("busy", "Loading…");
-      updateSetupModal();
-      driveSyncFromCloud();
-      if (tokenClient) tokenClient.requestAccessToken({ prompt: "" });
-    } else if (tokenClient) {
-      // No cached token but Drive was enabled — attempt silent re-auth (no popup)
-      setSyncStatus("busy", "Reconnecting…");
-      tokenClient.requestAccessToken({ prompt: "" });
-    } else {
-      setSyncStatus("err", "Auth unavailable");
-    }
-  };
-
-  if (window.google && google.accounts && google.accounts.oauth2) {
-    tryInitDrive();
-  } else {
-    // GIS script not yet loaded — show appropriate status and poll until ready
-    setSyncStatus(driveMode ? "busy" : "none", driveMode ? "Reconnecting…" : "Local only");
-    let attempts = 0;
-    const poll = setInterval(() => {
-      attempts++;
-      if (window.google && google.accounts && google.accounts.oauth2) {
-        clearInterval(poll);
-        tryInitDrive();
-      } else if (attempts > 20) {
-        // Give up after ~5 seconds (20 × 250 ms)
-        clearInterval(poll);
-        if (driveMode) setSyncStatus("err", "Auth unavailable");
-        dbg("GIS not available after polling");
-      }
-    }, 250);
-  }
-
   render();
   updateAddBtn();
   updateYearModeUI();
+  updateEncUI();          // set encryption sub-labels in both menus
 
   // Recurring transactions — process any that fell due since last session,
   // then re-check every hour (handles the app staying open past midnight)
@@ -5568,6 +4742,6 @@ function deleteRecurRule(idx) {
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v2.6.8</div>
+  <div id="version-footer">v2.7.5</div>
 </body>
 </html>
