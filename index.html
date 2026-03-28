@@ -117,7 +117,7 @@
 
   /* ── layout ── */
   #layout { display: flex; flex: 1; overflow: hidden; }
-  #layout-inner { display: flex; flex: 1; overflow: hidden; max-width: 1400px; width: 100%; margin: 0 auto; }
+  #layout-inner { display: flex; flex: 1; overflow: hidden; width: 100%; }
 
   /* ── sidebar ── */
   #sidebar {
@@ -360,7 +360,8 @@
     letter-spacing: 0.02em;
   }
 
-  table { width: 100%; border-collapse: collapse; max-width: 1200px; }
+  /* Table fills the available content area; no max-width cap */
+  table { width: 100%; border-collapse: collapse; }
   thead tr { border-bottom: 1px solid var(--border); }
   th {
     padding: 10px 14px;
@@ -379,11 +380,13 @@
   body.tab-all th.sort-col-type,
   body.tab-all td.tx-type-cell  { display: table-cell; }
 
+  /* All body rows are clickable — cursor and hover defined once here */
   tbody tr {
     border-bottom: 1px solid var(--border);
     transition: background 0.1s;
+    cursor: pointer;
   }
-  tbody tr:hover { background: var(--bg2); }
+  tbody tr:hover { background: var(--bg3); }
   td { padding: 11px 14px; font-size: 13px; color: var(--text-1); }
   td.num    { text-align: right; font-weight: 500; font-variant-numeric: tabular-nums; }
   td.center { text-align: center; }
@@ -393,10 +396,6 @@
   tfoot td { padding: 12px 14px; }
   .foot-label { font-weight: 500; font-size: 12px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
   .foot-total { text-align: right; font-weight: 600; font-size: 15px; font-variant-numeric: tabular-nums; }
-
-  /* ── clickable rows ── */
-  tbody tr { cursor: pointer; }
-  tbody tr:hover { background: var(--bg3); }
 
   /* ── transaction popup ── */
   #tx-popup {
@@ -691,6 +690,7 @@
   .type-pill.dep { background: var(--green-dim); color: var(--green); }
   .type-pill.wit { background: var(--red-dim);   color: var(--red); }
 
+  /* ── Report panel responsive: 2-col cards on narrow screens ── */
   @media (max-width: 640px) {
     #report-summary { grid-template-columns: 1fr 1fr; }
     .report-card.gold { grid-column: span 2; }
@@ -1201,10 +1201,11 @@
     z-index: 199;
   }
   #desktop-menu-overlay.open { display: block; }
+  /* Desktop menu + overlay: hide entirely on mobile (handled by slide-up sheets) */
   @media (max-width: 640px) {
-    #desktop-menu { display: none !important; }
+    #desktop-menu         { display: none !important; }
     #desktop-menu-overlay { display: none !important; }
-    #desktop-menu-btn { display: none !important; }
+    #desktop-menu-btn     { display: none !important; }
   }
 
   @media (max-width: 640px) {
@@ -2214,7 +2215,10 @@
 </div>
 
 <script>
-// ─── seed data ─────────────────────────────────────────────────────────────────
+// ─── seed data ────────────────────────────────────────────────────────────────
+// Baked-in transactions used on first load (when no localStorage data exists).
+// Each entry is [ISO-date-string, amount-as-number].
+// Keys are financial year strings matching yearMode ("24-25", "25-26", etc.).
 const SEED = {
   "24-25": {
     saved: [
@@ -2319,36 +2323,51 @@ const SEED = {
   }
 };
 
-// ─── state ─────────────────────────────────────────────────────────────────────
+// ─── app state ────────────────────────────────────────────────────────────────
+// data         — the live transaction store, mirrored to localStorage + Drive
+// activeYear   — currently selected year key ("24-25", "2025", or "all-years")
+// activeTab    — which tab is showing ("all" | "saved" | "removed" | "report")
+// activeMonth  — "YYYY-MM" string when a month sub-view is active, else null
+// expandedYears— Set of year keys whose month list is open in the sidebar
+// sortKey/Dir  — current table sort column and direction
 let data = {}, activeYear, activeTab = "all";
-let activeMonth = null;   // "YYYY-MM" or null
-let expandedYears = new Set(); // which year dropdowns are open in sidebar
+let activeMonth = null;
+let expandedYears = new Set();
 let sortKey = "date", sortDir = "asc";
+
+// Debounce timer for Drive saves — resets on each data change
 let syncTimer = null;
+// Retry timer and counter for failed Drive saves
 let syncRetryTimer = null;
 let syncRetryCount = 0;
-const SYNC_RETRY_DELAYS = [5000, 15000, 60000]; // 5s, 15s, 60s
+// Retry delays: 5 s, 15 s, 60 s before giving up
+const SYNC_RETRY_DELAYS = [5000, 15000, 60000];
 
-// ─── Drive sync state ──────────────────────────────────────────────────────────
-const DRIVE_FILE_NAME = "vault-data.json";
-const DRIVE_CLIENT_ID = "923866716926-ch3d25r6159hc0ditod3n8g6ufb8pcsk.apps.googleusercontent.com";
-const DRIVE_SCOPE     = "https://www.googleapis.com/auth/drive.file";
-const DRIVE_FILE_KEY   = "vault_drive_file_id";
-const DRIVE_MODE_KEY   = "vault_drive_mode";
-const DRIVE_EMAIL_KEY  = "vault_drive_email";
-const DRIVE_TOKEN_KEY  = "vault_drive_token";
-const DRIVE_EXPIRY_KEY = "vault_drive_expiry";
+// ─── Google Drive sync state ───────────────────────────────────────────────────
+// Uses the Drive File API (scope: drive.file) — only accesses files Vault created.
+// The data file is stored as vault-data.json in the user's Drive root.
+const DRIVE_FILE_NAME  = "vault-data.json";
+const DRIVE_CLIENT_ID  = "923866716926-ch3d25r6159hc0ditod3n8g6ufb8pcsk.apps.googleusercontent.com";
+const DRIVE_SCOPE      = "https://www.googleapis.com/auth/drive.file";
 
-let driveToken  = null;
-let driveFileId = null;
-let driveMode   = false;
-let tokenClient = null;
+// localStorage keys for persisting Drive connection across sessions
+const DRIVE_FILE_KEY   = "vault_drive_file_id";   // cached Drive file ID
+const DRIVE_MODE_KEY   = "vault_drive_mode";       // "true" if Drive is enabled
+const DRIVE_EMAIL_KEY  = "vault_drive_email";      // connected Google account email
+const DRIVE_TOKEN_KEY  = "vault_drive_token";      // cached access token string
+const DRIVE_EXPIRY_KEY = "vault_drive_expiry";     // token expiry timestamp (ms)
 
+let driveToken  = null;   // current OAuth access token (valid for ~1 hour)
+let driveFileId = null;   // Drive file ID once the file has been found/created
+let driveMode   = false;  // true when Drive sync is enabled and connected
+let tokenClient = null;   // GIS TokenClient instance
+
+// Restore Drive connection state from localStorage on startup
 function loadDriveState() {
   try {
     driveFileId = localStorage.getItem(DRIVE_FILE_KEY) || null;
     driveMode   = localStorage.getItem(DRIVE_MODE_KEY) === "true";
-    // Restore cached token if not expired
+    // Restore cached token only if it hasn't expired yet
     const expiry = parseInt(localStorage.getItem(DRIVE_EXPIRY_KEY) || "0", 10);
     if (expiry && Date.now() < expiry) {
       driveToken = localStorage.getItem(DRIVE_TOKEN_KEY) || null;
@@ -2356,6 +2375,7 @@ function loadDriveState() {
   } catch {}
 }
 
+// Persist Drive mode flag and file ID to localStorage
 function saveDriveState() {
   try {
     if (driveFileId) localStorage.setItem(DRIVE_FILE_KEY, driveFileId);
@@ -2364,15 +2384,16 @@ function saveDriveState() {
   } catch {}
 }
 
+// Cache an access token with a 55-minute expiry (tokens last 60 min; 5 min safety margin)
 function saveToken(token) {
   driveToken = token;
   try {
     localStorage.setItem(DRIVE_TOKEN_KEY, token);
-    // Access tokens last 1 hour; store expiry with 5min safety margin
     localStorage.setItem(DRIVE_EXPIRY_KEY, String(Date.now() + 55 * 60 * 1000));
   } catch {}
 }
 
+// Wipe the cached token (called on disconnect or revoke)
 function clearToken() {
   driveToken = null;
   try {
@@ -2381,23 +2402,33 @@ function clearToken() {
   } catch {}
 }
 
-// ─── helpers ───────────────────────────────────────────────────────────────────
-function aud(n) { return n.toLocaleString("en-AU",{style:"currency",currency:"AUD"}); }
+// ─── utility helpers ───────────────────────────────────────────────────────────
+
+// Format a number as AUD currency, e.g. 1234.5 → "$1,234.50"
+function aud(n) { return n.toLocaleString("en-AU", { style: "currency", currency: "AUD" }); }
+
+// Format an ISO date string ("YYYY-MM-DD") as "DD Mon YYYY", e.g. "01 Jan 2025"
 function fmtDate(iso) {
-  const [y,m,d] = iso.split("-");
+  const [y, m, d] = iso.split("-");
   return `${d} ${["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][+m-1]} ${y}`;
 }
-function sumArr(arr) { return arr.reduce((a,b)=>a+b[1],0); }
+
+// Sum the amount field (index 1) from an array of [date, amount] pairs
+function sumArr(arr) { return arr.reduce((a, b) => a + b[1], 0); }
 // ─── year mode ─────────────────────────────────────────────────────────────────
-// "calendar" = Jan-Dec keys like "2025"
-// "financial" = custom start month, keys like "24-25"
-let yearMode = "calendar";
-let fyStartMonth = 7; // 1-12, default July (Australian FY)
-let fyStartDay   = 1; // 1-31, default 1st of the month
+// "calendar"  — Jan–Dec buckets, keys like "2025"
+// "financial" — custom start month/day, keys like "24-25"
+// fyStartMonth and fyStartDay define when the FY begins (default: 1 July, Australian FY)
+let yearMode     = "calendar";
+let fyStartMonth = 7; // 1-based month (7 = July)
+let fyStartDay   = 1; // day of month
+
+// localStorage keys for year mode persistence
 const YEAR_MODE_KEY    = "vault_year_mode";
 const FY_START_KEY     = "vault_fy_start_month";
 const FY_START_DAY_KEY = "vault_fy_start_day";
 
+// Load saved year mode settings from localStorage (called during initApp)
 function loadYearMode() {
   try {
     yearMode     = localStorage.getItem(YEAR_MODE_KEY) || "calendar";
@@ -2405,6 +2436,8 @@ function loadYearMode() {
     fyStartDay   = parseInt(localStorage.getItem(FY_START_DAY_KEY) || "1", 10);
   } catch {}
 }
+
+// Persist year mode settings to localStorage
 function saveYearMode() {
   try {
     localStorage.setItem(YEAR_MODE_KEY, yearMode);
@@ -2413,35 +2446,36 @@ function saveYearMode() {
   } catch {}
 }
 
-// Month names for labels
+// Short month names used for date labels throughout the UI
 const MONTH_NAMES_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+// Full month names — kept for potential future use (date display uses toLocaleString instead)
 const MONTH_NAMES_FULL  = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-// Returns the year bucket key for a given ISO date string
+// Returns the year bucket key for a given ISO date string.
+// In financial mode: returns "YY-YY" (e.g. "24-25") based on fyStartMonth/Day.
+// In calendar mode: returns the 4-digit year string (e.g. "2025").
 function yearKeyForDate(dateStr) {
   const [y, m, d] = dateStr.split("-").map(Number);
   if (yearMode === "financial") {
-    // A date is in the FY that starts in year fyStart when:
-    //   month > fyStartMonth, OR
-    //   month === fyStartMonth AND day >= fyStartDay
+    // A date is "in the new FY" if it's on or after the FY start month/day
     const inNewYear = (m > fyStartMonth) || (m === fyStartMonth && d >= fyStartDay);
     const fyStart = inNewYear ? y : y - 1;
     const fyEnd   = fyStart + 1;
     return `${String(fyStart).slice(-2)}-${String(fyEnd).slice(-2)}`;
   }
-  return String(y); // calendar year
+  return String(y);
 }
 
-// Returns the last day of the FY as a short label e.g. "28 Sep" or "Jun"
+// Returns a short label for when the FY ends, e.g. "30 Jun" or "Jun"
 function fyEndLabel() {
-  // The FY ends the day before fyStartMonth/fyStartDay
+  // The FY ends the day before the configured start month/day
   const d = new Date(2000, fyStartMonth - 1, fyStartDay - 1);
   const day = d.getDate();
   const mon = MONTH_NAMES_SHORT[d.getMonth()];
   return fyStartDay !== 1 ? `${day} ${mon}` : mon;
 }
 
-// Human-readable label for a year key
+// Full human-readable label for a year key, e.g. "FY 2024-25 (1 Jul–30 Jun)"
 function yearLabel(key) {
   if (yearMode === "financial") {
     const startMon = MONTH_NAMES_SHORT[fyStartMonth - 1];
@@ -2451,7 +2485,8 @@ function yearLabel(key) {
   return key;
 }
 
-// Split yearLabel into [main, detail] for two-line sidebar display
+// Split yearLabel into [mainLine, detailLine] for two-line sidebar rendering.
+// e.g. ["FY 2024-25", "(1 Jul–30 Jun)"] or ["2025", ""]
 function yearLabelParts(key) {
   if (yearMode === "financial") {
     const startMon = MONTH_NAMES_SHORT[fyStartMonth - 1];
@@ -2461,7 +2496,7 @@ function yearLabelParts(key) {
   return [key, ""];
 }
 
-// Next suggested year key after the last existing one
+// Suggest the next year key to create after the last existing one
 function nextYear() {
   const years = Object.keys(data);
   if (yearMode === "financial") {
@@ -2473,24 +2508,33 @@ function nextYear() {
   return String(parseInt(years[years.length - 1]) + 1);
 }
 
-// Validate a manually entered year key against current mode
+// Validate a manually entered year key against the current year mode format
 function isValidYearKey(key) {
   if (yearMode === "financial") return /^\d{2}-\d{2}$/.test(key);
   return /^\d{4}$/.test(key);
 }
 
+// Placeholder text for year key input fields
 function yearKeyPlaceholder() {
   return yearMode === "financial" ? "e.g. 26-27" : "e.g. 2026";
 }
+
+// Max character length for year key input fields
 function yearKeyMaxLength() {
   return yearMode === "financial" ? 5 : 4;
 }
 
-// ─── storage ───────────────────────────────────────────────────────────────────
+// ─── local storage ─────────────────────────────────────────────────────────────
+// The canonical data store key. Bumped to v4 when the schema last changed.
+// On first load, falls back to the baked-in SEED data.
+
+// Persist the current data object to localStorage
 function saveLocal() {
   try { localStorage.setItem("savings_data_v4", JSON.stringify(data)); } catch {}
 }
 
+// Load data from localStorage, falling back to SEED if nothing is stored.
+// Also loads year mode settings and reconciles any mis-bucketed transactions.
 function loadLocal() {
   try {
     const stored = localStorage.getItem("savings_data_v4");
@@ -2500,19 +2544,24 @@ function loadLocal() {
   reconcileYears();
 }
 
+// Switch between "calendar" and "financial" year modes.
+// Re-buckets all existing transactions into the new year key format,
+// resets the sidebar selection, and re-renders.
 function switchYearMode(mode) {
   if (yearMode === mode) { closeDesktopMenu(); return; }
   yearMode = mode;
   saveYearMode();
-  // Re-bucket all transactions into the new year format
+  // Flatten all transactions out of their old buckets
   const allTx = { saved: [], removed: [] };
   Object.values(data).forEach(y => {
     y.saved.forEach(tx => allTx.saved.push(tx));
     y.removed.forEach(tx => allTx.removed.push(tx));
   });
+  // Re-bucket under the new mode
   data = {};
   allTx.saved.forEach(tx => { const k = ensureFY(yearKeyForDate(tx[0])); data[k].saved.push(tx); });
   allTx.removed.forEach(tx => { const k = ensureFY(yearKeyForDate(tx[0])); data[k].removed.push(tx); });
+  // Sort each bucket by date
   Object.keys(data).forEach(k => {
     data[k].saved.sort((a,b) => a[0].localeCompare(b[0]));
     data[k].removed.sort((a,b) => a[0].localeCompare(b[0]));
@@ -2528,6 +2577,8 @@ function switchYearMode(mode) {
   toast(`Switched to ${mode === "financial" ? "Financial Year" : "Calendar Year"} view`);
 }
 
+// Called when the FY start day or month selects change.
+// Re-buckets all transactions without switching modes (mode stays "financial").
 function setFyStartSelects() {
   const month = parseInt(document.getElementById("fy-start-month-select").value, 10);
   const day   = parseInt(document.getElementById("fy-start-day-select").value, 10);
@@ -2536,8 +2587,8 @@ function setFyStartSelects() {
   fyStartDay   = day;
   saveYearMode();
   if (yearMode === "financial") {
-    // Re-bucket all transactions with the new start date directly,
-    // bypassing switchYearMode's early-exit guard (yearMode is already "financial")
+    // Re-bucket directly without going through switchYearMode
+    // (which would no-op because yearMode is already "financial")
     ensureFYSilent = true;
     const allTx = { saved: [], removed: [] };
     Object.values(data).forEach(y => {
@@ -2643,7 +2694,10 @@ function updateYearModeUI() {
   updateYearFormatPopup();
 }
 
-// ─── sync status ───────────────────────────────────────────────────────────────
+// ─── sync status display ───────────────────────────────────────────────────────
+
+// Update the sync status pill in the header and mirror to the desktop menu dot.
+// state: "ok" | "busy" | "err" | "none"
 function setSyncStatus(state, msg) {
   const el = document.getElementById("sync-status");
   el.textContent = msg;
@@ -2651,6 +2705,7 @@ function setSyncStatus(state, msg) {
   dbg("[" + new Date().toLocaleTimeString() + "] " + state.toUpperCase() + ": " + msg);
 }
 
+// Append a timestamped message to the debug log textarea (only visible when debug panel is open)
 function dbg(msg) {
   const el = document.getElementById("debug-log");
   if (!el) return;
@@ -2658,6 +2713,9 @@ function dbg(msg) {
 }
 
 // ─── Google Drive API ──────────────────────────────────────────────────────────
+
+// Initialise the Google Identity Services token client.
+// Must be called after the GIS script has loaded.
 function initTokenClient() {
   if (!window.google || !google.accounts || !google.accounts.oauth2) return;
   tokenClient = google.accounts.oauth2.initTokenClient({
@@ -2666,7 +2724,7 @@ function initTokenClient() {
     prompt: "",
     callback: (resp) => {
       if (resp.error) {
-        // If silent refresh fails, fall back to cached token if still valid
+        // Silent refresh failed — fall back to cached token if one exists
         if (!driveToken) {
           setSyncStatus("err", "Auth failed");
           dbg("Drive token error: " + resp.error);
@@ -2685,6 +2743,8 @@ function initTokenClient() {
   });
 }
 
+// Trigger the OAuth consent flow to connect Drive.
+// Polls for GIS readiness if the library hasn't loaded yet.
 function connectDrive() {
   if (!tokenClient) {
     let attempts = 0;
@@ -2704,6 +2764,7 @@ function connectDrive() {
   tokenClient.requestAccessToken({ prompt: "consent" });
 }
 
+// Revoke the current token, clear Drive state, and return to local-only mode
 function disconnectDrive() {
   if (driveToken && window.google && google.accounts && google.accounts.oauth2) {
     google.accounts.oauth2.revoke(driveToken, () => {});
@@ -2717,8 +2778,10 @@ function disconnectDrive() {
   toast("Disconnected from Google Drive");
 }
 
+// Locate (or create) the vault-data.json file in the user's Drive.
+// Returns the file ID. Caches the ID in driveFileId for subsequent calls.
 async function driveFindOrCreateFile() {
-  // Verify existing cached file ID still exists
+  // Verify that any cached file ID still exists and isn't trashed
   if (driveFileId) {
     try {
       const r = await fetch(
@@ -2730,11 +2793,12 @@ async function driveFindOrCreateFile() {
         if (!f.trashed) return driveFileId;
       }
     } catch {}
+    // Cached ID is stale — clear it and search again
     driveFileId = null;
     saveDriveState();
   }
 
-  // Search for existing file by name
+  // Search Drive for an existing file by name
   const search = await fetch(
     `https://www.googleapis.com/drive/v3/files?q=name%3D'${DRIVE_FILE_NAME}'+and+trashed%3Dfalse&fields=files(id)&spaces=drive`,
     { headers: { "Authorization": "Bearer " + driveToken } }
@@ -2748,7 +2812,7 @@ async function driveFindOrCreateFile() {
     }
   }
 
-  // Create new file
+  // No file found — create a new empty one
   const create = await fetch(
     "https://www.googleapis.com/drive/v3/files?fields=id",
     {
@@ -2768,6 +2832,7 @@ async function driveFindOrCreateFile() {
   return driveFileId;
 }
 
+// Upload the current data to Drive using a media upload PATCH request
 async function driveSaveToCloud() {
   if (!driveToken || !driveMode) return;
   setSyncStatus("busy", "Saving…");
@@ -2800,6 +2865,7 @@ async function driveSaveToCloud() {
   }
 }
 
+// Exponential-ish retry schedule for failed saves (5 s → 15 s → 60 s, then give up)
 function scheduleRetry() {
   clearTimeout(syncRetryTimer);
   if (syncRetryCount < SYNC_RETRY_DELAYS.length) {
@@ -2903,6 +2969,9 @@ function useLocal() {
 }
 
 // ─── render ────────────────────────────────────────────────────────────────────
+
+// Top-level render: saves data, schedules a Drive sync, and redraws both panels.
+// Called after every data mutation.
 function render() {
   saveLocal();
   if (driveMode && driveToken) scheduleSave();
@@ -2910,6 +2979,8 @@ function render() {
   renderMain();
 }
 
+// Select a year (or "all-years") and re-render.
+// Exits the report tab if active (report has its own date range controls).
 function setActiveYear(y) {
   activeYear = y;
   activeMonth = null;
@@ -3177,6 +3248,10 @@ function renderMain() {
 }
 
 // ─── actions ───────────────────────────────────────────────────────────────────
+// ─── tab switching ─────────────────────────────────────────────────────────────
+
+// Switch the active tab ("all" | "saved" | "removed" | "report").
+// Shows/hides the table vs report panel and triggers the appropriate render.
 function switchTab(t) {
   activeTab = t; pendingDelete = null;
   const isReport = t === "report";
@@ -3188,6 +3263,8 @@ function switchTab(t) {
   render();
 }
 
+// Set the report date range to a common preset and re-render the report.
+// preset: "month" | "year" | "fy" | "all"
 function setReportPreset(preset) {
   const now   = new Date();
   const pad   = n => String(n).padStart(2,"0");
@@ -3221,6 +3298,8 @@ function setReportPreset(preset) {
   renderReport();
 }
 
+// Build the report panel: aggregate all transactions in the selected date range,
+// update the summary cards, and render the sorted transaction table.
 function renderReport() {
   const from = document.getElementById("report-from").value;
   const to   = document.getElementById("report-to").value;
@@ -3274,6 +3353,8 @@ function renderReport() {
   });
 }
 
+// Toggle sort direction if the same column is clicked; otherwise switch column.
+// Amount defaults to descending; date and type default to ascending.
 function setSort(key) {
   if (sortKey === key) {
     sortDir = sortDir === "asc" ? "desc" : "asc";
@@ -3284,17 +3365,7 @@ function setSort(key) {
   render();
 }
 
-function getSortedRows(rows) {
-  const copy = rows.slice();
-  copy.sort((a, b) => {
-    let av = sortKey === "date" ? a[0] : a[1];
-    let bv = sortKey === "date" ? b[0] : b[1];
-    if (av < bv) return sortDir === "asc" ? -1 :  1;
-    if (av > bv) return sortDir === "asc" ?  1 : -1;
-    return 0;
-  });
-  return copy;
-}
+/* getSortedRows was a helper that duplicated the inline sort in render(); removed. */
 
 function updateSortButtons() {
   const dateEl   = document.getElementById("sort-date");
@@ -3313,11 +3384,14 @@ function updateSortButtons() {
   if (typeEl) typeEl.className = "sort-col-type" + (sortKey === "type" ? " active-" + sortDir : "");
 }
 
-// Returns the year bucket key for a date — alias for yearKeyForDate (used in reconcile/add)
+// Alias kept for call sites that pre-date the rename to yearKeyForDate
 function fyKeyForDate(dateStr) { return yearKeyForDate(dateStr); }
 
-let ensureFYSilent = false; // suppress toast during bulk re-bucketing
+// Flag used during bulk re-bucketing to suppress per-year toast notifications
+let ensureFYSilent = false;
 
+// Ensure a year bucket exists in data; creates it if missing.
+// Shows a toast unless suppressed by ensureFYSilent.
 function ensureFY(key) {
   if (!data[key]) {
     data[key] = { saved: [], removed: [] };
@@ -3326,6 +3400,10 @@ function ensureFY(key) {
   return key;
 }
 
+// ─── transaction actions ───────────────────────────────────────────────────────
+
+// Add a transaction from the desktop inline form (sidebar add-form).
+// Reads date + amount inputs, buckets into the correct FY, sorts, and re-renders.
 function addTransaction() {
   const dv = document.getElementById("inp-date").value;
   const av = parseFloat(document.getElementById("inp-amount").value);
@@ -3342,11 +3420,13 @@ function addTransaction() {
   toast(`${activeTab==="saved" ? "Deposit" : "Withdrawal"} of ${aud(amt)} recorded`);
 }
 
-// ── transaction popup ──────────────────────────────────────────────────────
-let popupIdx  = null;
-let popupType = null; // "saved" | "removed"
-let popupYear = null; // the FY key the transaction belongs to
+// State for the transaction edit popup — tracks which row is being edited
+let popupIdx  = null;  // index within the type array (saved/removed)
+let popupType = null;  // "saved" | "removed"
+let popupYear = null;  // FY key the transaction belongs to
 
+// Open the edit popup for a transaction row.
+// Finds the exact row by matching date + amount (first match).
 function openPopup(date, amt, type, yearKey) {
   popupType = type || activeTab;
   popupYear = yearKey || (activeYear === "all-years" ? null : activeYear);
@@ -3364,6 +3444,7 @@ function openPopup(date, amt, type, yearKey) {
   document.getElementById("tx-popup").classList.remove("hidden");
 }
 
+// Close the popup and clear its state
 function closePopup() {
   document.getElementById("tx-popup").classList.add("hidden");
   popupIdx  = null;
@@ -3371,7 +3452,8 @@ function closePopup() {
   popupYear = null;
 }
 
-// Remove any FY that has zero transactions in both saved and removed
+// Remove any year bucket that has zero transactions in both saved and removed.
+// Resets activeYear if the current selection was pruned.
 function pruneEmptyYears() {
   let changed = false;
   Object.keys(data).forEach(y => {
@@ -3391,7 +3473,9 @@ function pruneEmptyYears() {
   }
 }
 
-// Scan all transactions and move any that sit under the wrong FY key to the correct one
+// Scan every transaction and move any that sit under the wrong year key to the
+// correct one. Run on startup (after loadLocal) to fix any schema-change drift,
+// e.g. if the FY start date was changed between sessions.
 function reconcileYears() {
   ensureFYSilent = true;
   let moved = 0;
@@ -3423,6 +3507,8 @@ function reconcileYears() {
   ensureFYSilent = false;
 }
 
+// Save edits from the transaction popup.
+// If the date moved the transaction to a different year bucket, it is re-bucketed.
 function savePopup() {
   if (popupIdx === null || !popupYear) return;
   const dateVal = document.getElementById("popup-date").value;
@@ -3452,6 +3538,7 @@ function savePopup() {
   render();
 }
 
+// Delete the transaction currently open in the popup
 function deletePopup() {
   if (popupIdx === null || !popupYear) return;
   const list = popupType === "saved" ? data[popupYear].saved : data[popupYear].removed;
@@ -3467,6 +3554,9 @@ document.getElementById("tx-popup").addEventListener("click", function(e) {
   if (e.target === this) closePopup();
 });
 
+// ─── sidebar year management ───────────────────────────────────────────────────
+
+// Show the inline "add year" form in the desktop sidebar
 function showAddYear() {
   document.getElementById("btn-new-year").style.display="none";
   document.getElementById("add-year-form").classList.add("show");
@@ -3489,6 +3579,9 @@ function confirmAddYear() {
   toast(`Created ${yearLabel(label)}`);
 }
 
+// ─── export ────────────────────────────────────────────────────────────────────
+
+// Export the current report date range as a CSV file download
 function exportReportCSV() {
   const from  = document.getElementById("report-from").value;
   const to    = document.getElementById("report-to").value;
@@ -3531,6 +3624,8 @@ function exportReportCSV() {
   toast("Report exported");
 }
 
+// Export the current report date range as an XLSX spreadsheet (uses SheetJS).
+// Produces two sheets: a Summary and a full Transactions list.
 function exportReportXLSX() {
   const from = document.getElementById("report-from").value;
   const to   = document.getElementById("report-to").value;
@@ -3589,6 +3684,8 @@ function exportReportXLSX() {
 }
 
 
+// Legacy full-data CSV export (all years, side-by-side saved/removed columns).
+// Retained for any old callers; the report tab uses exportReportCSV/XLSX instead.
 function exportCSV() {
   const years = Object.keys(data);
   let csv = "Financial Year,Total In ($),Total Out ($),Net ($)\n";
@@ -3611,28 +3708,36 @@ function exportCSV() {
   URL.revokeObjectURL(url); toast("CSV exported!");
 }
 
-// ─── toast ─────────────────────────────────────────────────────────────────────
+// ─── toast notifications ───────────────────────────────────────────────────────
+// Show a brief status message at the top of the screen.
+// color defaults to the app's teal accent; use "#c0392b" for errors.
 let toastTimer2;
-function toast(msg, color="#2E9EA8") {
-  const el=document.getElementById("toast");
-  el.textContent=msg; el.style.background=color; el.style.display="block";
-  clearTimeout(toastTimer2); toastTimer2=setTimeout(()=>{el.style.display="none";},2500);
+function toast(msg, color = "#2E9EA8") {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.style.background = color;
+  el.style.display = "block";
+  clearTimeout(toastTimer2);
+  toastTimer2 = setTimeout(() => { el.style.display = "none"; }, 2500);
 }
 
-// ─── auto sync ────────────────────────────────────────────────────────────────
+// ─── background sync ───────────────────────────────────────────────────────────
+
+// Returns true if the user is currently mid-entry (to avoid clobbering their work)
 function isUserBusy() {
-  // Don't auto-sync if the user is mid-entry on desktop or mobile
-  const desktopDate   = document.getElementById("inp-date");
-  const desktopAmt    = document.getElementById("inp-amount");
-  const mobAmt        = document.getElementById("mob-inp-amount");
-  const addSheetOpen  = document.getElementById("add-sheet").classList.contains("open");
-  if (addSheetOpen) return true;
-  if (desktopDate && desktopDate.value) return true;
-  if (desktopAmt  && desktopAmt.value)  return true;
-  if (mobAmt      && mobAmt.value)      return true;
+  const desktopDate  = document.getElementById("inp-date");
+  const desktopAmt   = document.getElementById("inp-amount");
+  const mobAmt       = document.getElementById("mob-inp-amount");
+  const addSheetOpen = document.getElementById("add-sheet").classList.contains("open");
+  if (addSheetOpen)                          return true;
+  if (desktopDate && desktopDate.value)      return true;
+  if (desktopAmt  && desktopAmt.value)       return true;
+  if (mobAmt      && mobAmt.value)           return true;
   return false;
 }
 
+// Silently pull the latest Drive data and merge if it differs from local.
+// Only runs when the user is not actively entering data.
 async function silentSyncFromDrive() {
   if (!driveMode || !driveToken) return;
   if (isUserBusy()) return;
@@ -3650,35 +3755,40 @@ async function silentSyncFromDrive() {
     if (JSON.stringify(remote) === JSON.stringify(data)) {
       setSyncStatus("ok", "Synced ✓"); return;
     }
-    if (isUserBusy()) return;
+    if (isUserBusy()) return; // re-check after the async fetch
     dbg("Silent sync: conflict detected, auto-merging");
     autoMerge(remote);
-  } catch { /* silent fail */ }
+  } catch { /* silent fail — avoid surfacing background errors to the user */ }
 }
 
-// Sync when user returns to the tab
+// Re-sync when the user returns to this tab
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") silentSyncFromDrive();
 });
 
-// Poll every 60 seconds
+// Also poll every 60 s (covers long sessions open in the background)
 setInterval(() => { silentSyncFromDrive(); }, 60000);
 
-// ─── sync conflict resolution ─────────────────────────────────────────────────
+// ─── sync conflict resolution ──────────────────────────────────────────────────
+
+// Merge remote Drive data into local data using a union/dedup strategy:
+// - Takes the union of all year keys from both sources
+// - Deduplicates transactions by [date|amount] key (local takes priority)
+// - Reconciles any mis-bucketed transactions, saves locally, and pushes merged data back to Drive
 function autoMerge(remoteData) {
-  // Union of all year keys; deduplicate transactions by date+amount
   ensureFYSilent = true;
   const allKeys = new Set([...Object.keys(data), ...Object.keys(remoteData)]);
   allKeys.forEach(k => {
     const l = data[k]       || { saved: [], removed: [] };
     const r = remoteData[k] || { saved: [], removed: [] };
+    // Build a Set of "date|amount" strings from local, then add remote entries not in it
     const dedup = (a, b) => {
       const seen = new Set(a.map(t => t[0] + "|" + t[1]));
       return [...a, ...b.filter(t => !seen.has(t[0] + "|" + t[1]))];
     };
     data[k] = {
-      saved:   dedup(l.saved,   r.saved).sort((a,b)   => a[0].localeCompare(b[0])),
-      removed: dedup(l.removed, r.removed).sort((a,b) => a[0].localeCompare(b[0])),
+      saved:   dedup(l.saved,   r.saved).sort((a, b)   => a[0].localeCompare(b[0])),
+      removed: dedup(l.removed, r.removed).sort((a, b) => a[0].localeCompare(b[0])),
     };
   });
   reconcileYears();
@@ -3689,27 +3799,34 @@ function autoMerge(remoteData) {
   dbg("Auto-merge complete");
 }
 
-// ─── debug ────────────────────────────────────────────────────────────────────
+// ─── sidebar collapse ──────────────────────────────────────────────────────────
+
+// Toggle the desktop sidebar between full and collapsed (icon-only) state
 function toggleSidebar() {
   const sb = document.getElementById("sidebar");
   const isCollapsed = sb.classList.toggle("collapsed");
   try { localStorage.setItem("sidebar_collapsed", isCollapsed); } catch {}
 }
 
+// ─── debug panel ───────────────────────────────────────────────────────────────
+
+// Toggle the debug log panel (also bound to Ctrl+Shift+D)
 function toggleDebug() {
   const el = document.getElementById("debug-panel");
   el.style.display = el.style.display === "none" ? "block" : "none";
 }
-// Open debug panel with Ctrl+Shift+D
+// Keyboard shortcut to open the debug panel
 document.addEventListener("keydown", (e) => {
   if (e.ctrlKey && e.shiftKey && e.key === "D") { e.preventDefault(); toggleDebug(); }
 });
 
-// ─── desktop add transaction ───────────────────────────────────────────────────
-// ── recurring toggle state ──────────────────────────────────────────────────
+// ─── desktop add transaction popup ────────────────────────────────────────────
+
+// Whether the recurring option is currently toggled on in each add form
 let deskRecurOn = false;
 let mobRecurOn  = false;
 
+// Toggle the "make recurring" section inside the desktop add popup
 function toggleDeskRecur() {
   deskRecurOn = !deskRecurOn;
   const fields  = document.getElementById("desk-recur-fields");
@@ -3731,12 +3848,14 @@ function toggleDeskRecur() {
   }
 }
 
+// Show/hide the "day of week" field based on the selected frequency
 function onDeskRecurFreqChange() {
   const freq = document.getElementById("desk-recur-freq").value;
   const wrap = document.getElementById("desk-recur-dow-wrap");
   wrap.style.display = (freq === "weekly" || freq === "fortnightly") ? "flex" : "none";
 }
 
+// Toggle the "make recurring" section inside the mobile add sheet
 function toggleMobRecur() {
   mobRecurOn = !mobRecurOn;
   const fields = document.getElementById("mob-recur-fields");
@@ -3758,12 +3877,14 @@ function toggleMobRecur() {
   }
 }
 
+// Show/hide the "day of week" field on mobile based on selected frequency
 function onMobRecurFreqChange() {
   const freq = document.getElementById("mob-recur-freq").value;
   const wrap = document.getElementById("mob-recur-dow-wrap");
   wrap.style.display = (freq === "weekly" || freq === "fortnightly") ? "block" : "none";
 }
 
+// Update the "manage recurring" pill button in both add forms to show the active rule count
 function updateRecurManagePill() {
   const count = recurRules.length;
   const label = count > 0 ? `🔁 ${count} active rule${count > 1 ? "s" : ""} — manage` : "";
@@ -3776,8 +3897,10 @@ function updateRecurManagePill() {
   });
 }
 
+// Current transaction type for the desktop add popup: "deposit" | "withdraw"
 let deskTxType = "deposit";
 
+// Update the deposit/withdraw toggle buttons and the submit button label/colour
 function setDeskType(type) {
   deskTxType = type;
   const depBtn  = document.getElementById("desk-type-deposit");
@@ -3805,6 +3928,7 @@ function setDeskType(type) {
   }
 }
 
+// Open the desktop add popup, reset all fields to their defaults
 function openDesktopAddSheet() {
   const today = new Date().toISOString().split("T")[0];
   document.getElementById("desk-inp-date").value   = today;
@@ -3825,11 +3949,14 @@ function openDesktopAddSheet() {
   setTimeout(() => document.getElementById("desk-inp-amount").focus(), 100);
 }
 
+// Close the desktop add popup and reset recurring state
 function closeDesktopAddSheet() {
   document.getElementById("desktop-add-popup").classList.add("hidden");
   deskRecurOn = false;
 }
 
+// Submit the desktop add popup — either creates a one-off transaction or
+// schedules a recurring rule (if deskRecurOn is true)
 function desktopAddTransaction() {
   const dv  = document.getElementById("desk-inp-date").value;
   const av  = parseFloat(document.getElementById("desk-inp-amount").value);
@@ -3867,16 +3994,22 @@ function desktopAddTransaction() {
 }
 
 
+// ─── mobile add transaction ────────────────────────────────────────────────────
+
+// Returns true if the viewport is in mobile range (≤640 px)
 function isMobile() { return window.innerWidth <= 640; }
 
+// Switch tab on mobile (same as switchTab but also calls updateAddBtn for compat)
 function mobileTab(t) {
   activeTab = t; pendingDelete = null;
   updateAddBtn();
   switchTab(t);
 }
 
-let mobTxType = "deposit"; // "deposit" | "withdraw"
+// Current transaction type in the mobile add sheet: "deposit" | "withdraw"
+let mobTxType = "deposit";
 
+// Update the deposit/withdraw toggle buttons and submit button in the mobile sheet
 function setMobType(type) {
   mobTxType = type;
   const depBtn = document.getElementById("mob-type-deposit");
@@ -3885,15 +4018,15 @@ function setMobType(type) {
   depBtn.className = "add-type-btn" + (type === "deposit"  ? " active-deposit"  : "");
   witBtn.className = "add-type-btn" + (type === "withdraw" ? " active-withdraw" : "");
   addBtn.textContent = type === "deposit"
-    ? (mobRecurOn ? "Schedule Recurring Deposit" : "Add Deposit")
+    ? (mobRecurOn ? "Schedule Recurring Deposit"    : "Add Deposit")
     : (mobRecurOn ? "Schedule Recurring Withdrawal" : "Add Withdrawal");
   addBtn.style.background = type === "deposit" ? "var(--green)" : "var(--red)";
 }
 
-function updateAddBtn() {
-  // No-op — add button is now static
-}
+/* updateAddBtn: intentionally left as a no-op stub — callers remain for compatibility */
+function updateAddBtn() {}
 
+// Open the mobile add sheet, reset all fields to defaults, and focus the amount input
 function openAddSheet() {
   const today = new Date().toISOString().split("T")[0];
   document.getElementById("mob-inp-date").value   = today;
@@ -3915,12 +4048,13 @@ function openAddSheet() {
   setTimeout(() => document.getElementById("mob-inp-amount").focus(), 100);
 }
 
+// Submit the mobile add sheet — either a one-off transaction or a recurring rule
 function mobileAddTransaction() {
   const av = parseFloat(document.getElementById("mob-inp-amount").value);
   if (isNaN(av) || av <= 0) { toast("Enter a valid amount.", "#c0392b"); return; }
   const amt = parseFloat(av.toFixed(2));
 
-  if (mobRepeat) {
+  if (mobRecurOn) {  // BUG FIX: was incorrectly referencing undefined `mobRepeat`
     const start = document.getElementById("mob-recur-start").value;
     const freq  = document.getElementById("mob-recur-freq").value;
     const dow   = parseInt(document.getElementById("mob-recur-dow").value, 10);
@@ -3947,31 +4081,36 @@ function mobileAddTransaction() {
     const fyKey = ensureFY(fyKeyForDate(dv));
     if (fyKey !== activeYear) { activeYear = fyKey; }
     data[fyKey][tab].push([dv, amt]);
-    data[fyKey][tab].sort((a,b) => a[0].localeCompare(b[0]));
+    data[fyKey][tab].sort((a, b) => a[0].localeCompare(b[0]));
     closeSheets();
     render();
     toast(mobTxType === "deposit" ? "Deposit recorded" : "Withdrawal recorded");
   }
 }
 
+// Open the sync status info popup (triggered by clicking the sync pill in the header)
 function openSyncInfoPopup() {
   document.getElementById("sync-info-popup").classList.remove("hidden");
 }
 
 // ─── tutorial ─────────────────────────────────────────────────────────────────
+// A 3-step onboarding walkthrough shown to new users.
 const TUTORIAL_STEPS = 3;
 let tutorialCurrentStep = 1;
 
+// Open the tutorial popup at step 1
 function openTutorial() {
   tutorialCurrentStep = 1;
   renderTutorialStep();
   document.getElementById("tutorial-popup").classList.remove("hidden");
 }
 
+// Close the tutorial popup
 function closeTutorial() {
   document.getElementById("tutorial-popup").classList.add("hidden");
 }
 
+// Advance or go back by `dir` steps (+1 or -1), clamped to valid range
 function tutorialStep(dir) {
   const next = tutorialCurrentStep + dir;
   if (next < 1 || next > TUTORIAL_STEPS) return;
@@ -3979,26 +4118,22 @@ function tutorialStep(dir) {
   renderTutorialStep();
 }
 
+// Render the current tutorial step: show/hide panels, update counter, progress dots, and nav buttons
 function renderTutorialStep() {
   const n = tutorialCurrentStep;
-  // Show/hide steps
+  // Activate only the current step panel
   for (let i = 1; i <= TUTORIAL_STEPS; i++) {
     const el = document.getElementById("tstep-" + i);
     if (el) el.classList.toggle("active", i === n);
   }
-  // Update counter
   document.getElementById("tstep-counter").textContent = "Step " + n + " of " + TUTORIAL_STEPS;
-  // Update nav buttons
+  // Nav buttons
   const prev = document.getElementById("tstep-prev");
   const next = document.getElementById("tstep-next");
   prev.style.visibility = n === 1 ? "hidden" : "visible";
   next.textContent = n === TUTORIAL_STEPS ? "Done ✓" : "Next →";
-  if (n === TUTORIAL_STEPS) {
-    next.onclick = closeTutorial;
-  } else {
-    next.onclick = () => tutorialStep(1);
-  }
-  // Update progress track
+  next.onclick = n === TUTORIAL_STEPS ? closeTutorial : () => tutorialStep(1);
+  // Progress dot track
   const track = document.getElementById("tutorial-track");
   track.innerHTML = "";
   for (let i = 1; i <= TUTORIAL_STEPS; i++) {
@@ -4009,6 +4144,9 @@ function renderTutorialStep() {
 }
 
 
+// ─── mobile menu transaction dropdown ─────────────────────────────────────────
+// Renders the expandable year/month picker inside the mobile menu sheet.
+// Each year row has a chevron to expand its month list in-place.
 function renderMenuTxDropdown() {
   const dropdown = document.getElementById("menu-tx-dropdown");
   if (!dropdown) return;
@@ -4092,8 +4230,10 @@ function renderMenuTxDropdown() {
   });
 }
 
+// Track whether the transactions dropdown in the mobile menu is open
 let menuTxDropdownOpen = false;
 
+// Toggle the transactions sub-dropdown in the mobile menu
 function toggleMenuTxDropdown() {
   menuTxDropdownOpen = !menuTxDropdownOpen;
   const dropdown = document.getElementById("menu-tx-dropdown");
@@ -4108,6 +4248,7 @@ function toggleMenuTxDropdown() {
   }
 }
 
+// Open the mobile menu slide-up sheet, resetting the transaction dropdown state
 function openMenuSheet() {
   // Reset tx dropdown
   menuTxDropdownOpen = false;
@@ -4136,17 +4277,43 @@ function toggleDesktopMenu() {
   overlay.classList.toggle("open", isOpen);
 }
 
+// ─── desktop dropdown menu ─────────────────────────────────────────────────────
+
+// Toggle the desktop "☰ Menu" dropdown, mirroring the current sync status into it
+function toggleDesktopMenu() {
+  const menu    = document.getElementById("desktop-menu");
+  const overlay = document.getElementById("desktop-menu-overlay");
+  // Mirror sync pill state into the dropdown header dot and text
+  const ss = document.getElementById("sync-status");
+  const dot = document.getElementById("dmenu-sync-dot");
+  const txt = document.getElementById("dmenu-sync-text");
+  if (ss && dot && txt) {
+    txt.textContent = ss.textContent;
+    const cls = [...ss.classList].find(c => c.startsWith("sync-")) || "";
+    const state = cls.replace("sync-", "");
+    dot.className = "dmenu-sync-dot" + (state ? " " + state : "");
+  }
+  const isOpen = menu.classList.toggle("open");
+  overlay.classList.toggle("open", isOpen);
+}
+
+// Close the desktop dropdown menu and its overlay
 function closeDesktopMenu() {
   document.getElementById("desktop-menu").classList.remove("open");
   document.getElementById("desktop-menu-overlay").classList.remove("open");
 }
 
+// ─── mobile year picker sheet ──────────────────────────────────────────────────
+
+// Open the mobile year picker sheet and render its content
 function openYearSheet() {
   renderYearSheet();
   document.getElementById("year-sheet").classList.add("open");
   document.getElementById("sheet-overlay").classList.add("open");
 }
 
+// Build the mobile year picker: one row per year with an expandable month sub-list.
+// Mirrors the desktop sidebar behaviour but in a full-height slide-up sheet.
 function renderYearSheet() {
   const years = Object.keys(data);
   const list = document.getElementById("ysheet-year-list");
@@ -4241,6 +4408,7 @@ function renderYearSheet() {
   });
 }
 
+// Show the "add new year" inline form in the mobile year sheet
 function showYsheetNewForm() {
   document.getElementById("ysheet-new-btn").style.display = "none";
   document.getElementById("ysheet-new-form").classList.add("show");
@@ -4250,10 +4418,14 @@ function showYsheetNewForm() {
   inp.maxLength = yearKeyMaxLength();
   inp.focus();
 }
+
+// Hide the "add new year" form and restore the button
 function hideYsheetNewForm() {
   document.getElementById("ysheet-new-btn").style.display = "";
   document.getElementById("ysheet-new-form").classList.remove("show");
 }
+
+// Confirm creation of a new year from the mobile year sheet input
 function confirmYsheetYear() {
   const label = document.getElementById("ysheet-new-input").value.trim();
   if (!isValidYearKey(label)) { toast(`Format: ${yearKeyPlaceholder()}`, "#c0392b"); return; }
@@ -4266,6 +4438,7 @@ function confirmYsheetYear() {
   toast("Created " + yearLabel(label));
 }
 
+// Close all mobile slide-up sheets and the overlay, and hide the year form
 function closeSheets() {
   document.getElementById("add-sheet").classList.remove("open");
   document.getElementById("year-sheet").classList.remove("open");
@@ -4274,23 +4447,30 @@ function closeSheets() {
   hideYsheetNewForm();
 }
 
-// ─── auth ─────────────────────────────────────────────────────────────────────
+// ─── authentication ────────────────────────────────────────────────────────────
+// Vault uses Google Sign-In for access control. Only the email below is allowed.
+// Auth state is stored in localStorage with a rolling 30-day expiry.
 const ALLOWED_EMAIL = "eliotgriffiths01@gmail.com";
-const WRITE_TOKEN   = "Asc_y_9rbhBS3iQH31WSsVgTdwSJ3EjfSUj-8kfzb3I";
-const AUTH_KEY      = "vault_auth_expiry";
-const AUTH_DAYS     = 30;
+const WRITE_TOKEN   = "Asc_y_9rbhBS3iQH31WSsVgTdwSJ3EjfSUj-8kfzb3I"; // legacy, retained for compat
+const AUTH_KEY      = "vault_auth_expiry"; // localStorage key for expiry timestamp
+const AUTH_DAYS     = 30;                  // days before re-login is required
 
+// Store (or renew) the auth expiry timestamp in localStorage
 function setAuthCookie() {
   const expiry = Date.now() + AUTH_DAYS * 24 * 60 * 60 * 1000;
   try { localStorage.setItem(AUTH_KEY, expiry.toString()); } catch {}
 }
 
+// Remove the auth expiry from localStorage (forces re-login)
 function clearAuthCookie() {
   try { localStorage.removeItem(AUTH_KEY); } catch {}
 }
 
+// Google Sign-In callback — validates the JWT, checks the email allow-list,
+// then either starts the app or shows an error.
 function handleGoogleLogin(response) {
   try {
+    // Decode the ID token payload (middle segment of the JWT, base64url-encoded)
     const payload = JSON.parse(atob(response.credential.split(".")[1]));
     const email   = (payload.email || "").toLowerCase();
     if (email === ALLOWED_EMAIL.toLowerCase()) {
@@ -4307,27 +4487,30 @@ function handleGoogleLogin(response) {
   }
 }
 
+// Check for a valid (non-expired) auth session in localStorage.
+// Returns true if valid and hides the login screen; false if a fresh login is needed.
 function checkAuth() {
   try {
     const expiry = parseInt(localStorage.getItem(AUTH_KEY) || "0", 10);
     if (expiry && Date.now() < expiry) {
-      // Refresh the timer on each valid visit
-      setAuthCookie();
+      setAuthCookie(); // slide the expiry window on each valid visit
       document.getElementById("login-screen").classList.add("hidden");
       return true;
     }
-    // Expired — clear it
     clearAuthCookie();
   } catch {}
   return false;
 }
 
-// ─── init ──────────────────────────────────────────────────────────────────────
+// ─── app initialisation ────────────────────────────────────────────────────────
+// Called once after auth succeeds (either via Google login or a cached session).
+// Loads data, restores UI state, connects Drive if previously linked, then renders.
 function initApp() {
   loadLocal();
   loadDriveState();
   activeYear = "all-years";
 
+  // Restore collapsed sidebar state
   try {
     if (localStorage.getItem("sidebar_collapsed") === "true") {
       document.getElementById("sidebar").classList.add("collapsed");
@@ -4336,19 +4519,19 @@ function initApp() {
 
   document.getElementById("setup-modal").classList.add("hidden");
 
-  // Init Drive token client once GIS is ready
+  // Attempt Drive connection once the Google Identity Services library is ready.
+  // Uses a polling loop because the GIS script loads asynchronously.
   const tryInitDrive = () => {
     initTokenClient();
     if (!driveMode) { setSyncStatus("none", "Local only"); return; }
     if (driveToken) {
-      // Cached token still valid — sync immediately
+      // Valid cached token — sync immediately and silently refresh in background
       setSyncStatus("busy", "Loading…");
       updateSetupModal();
       driveSyncFromCloud();
-      // Also silently refresh token in background so it stays fresh
       if (tokenClient) tokenClient.requestAccessToken({ prompt: "" });
     } else if (tokenClient) {
-      // No cached token — silent refresh (no popup)
+      // No cached token but Drive was enabled — attempt silent re-auth (no popup)
       setSyncStatus("busy", "Reconnecting…");
       tokenClient.requestAccessToken({ prompt: "" });
     } else {
@@ -4359,6 +4542,7 @@ function initApp() {
   if (window.google && google.accounts && google.accounts.oauth2) {
     tryInitDrive();
   } else {
+    // GIS script not yet loaded — show appropriate status and poll until ready
     setSyncStatus(driveMode ? "busy" : "none", driveMode ? "Reconnecting…" : "Local only");
     let attempts = 0;
     const poll = setInterval(() => {
@@ -4367,6 +4551,7 @@ function initApp() {
         clearInterval(poll);
         tryInitDrive();
       } else if (attempts > 20) {
+        // Give up after ~5 seconds (20 × 250 ms)
         clearInterval(poll);
         if (driveMode) setSyncStatus("err", "Auth unavailable");
         dbg("GIS not available after polling");
@@ -4378,26 +4563,33 @@ function initApp() {
   updateAddBtn();
   updateYearModeUI();
 
-  // Recurring transactions — load rules, process any due today, then poll daily
+  // Recurring transactions — process any that fell due since last session,
+  // then re-check every hour (handles the app staying open past midnight)
   loadRecurring();
   runRecurringCheck();
   updateRecurMenuSub();
-  // Check again every hour (catches the case where the app stays open past midnight)
   setInterval(runRecurringCheck, 60 * 60 * 1000);
 }
 
 // ─── recurring transactions ────────────────────────────────────────────────────
-// Rule schema: { id, type ("deposit"|"withdrawal"), amount, freq, dow, startDate, nextDate }
-// freq: "weekly" | "fortnightly" | "monthly" | "quarterly" | "yearly"
-// dow: 0-6 (Sun-Sat), only used for weekly/fortnightly — otherwise null
-// nextDate: ISO string of the next date to post (advances after each posting)
+// Rule schema: { id, type, amount, freq, dow, startDate, nextDate }
+//   id        — Date.now() unique identifier
+//   type      — "deposit" | "withdrawal"
+//   amount    — positive number, stored to 2 decimal places
+//   freq      — "weekly" | "fortnightly" | "monthly" | "quarterly" | "yearly"
+//   dow       — 0–6 (Sun–Sat), only used for weekly/fortnightly; null otherwise
+//   startDate — ISO date when the rule was created / the series starts
+//   nextDate  — ISO date of the next occurrence to post (advances after each posting)
 
+// localStorage key for recurring rules
 const RECUR_KEY = "vault_recurring_v1";
 let recurRules = [];
 
-const DOW_NAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+// Day-of-week and frequency display labels used in the recurring list UI
+const DOW_NAMES   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const FREQ_LABELS = { weekly:"Weekly", fortnightly:"Fortnightly", monthly:"Monthly", quarterly:"Quarterly", yearly:"Yearly" };
 
+// Load recurring rules from localStorage
 function loadRecurring() {
   try {
     const raw = localStorage.getItem(RECUR_KEY);
@@ -4405,12 +4597,14 @@ function loadRecurring() {
   } catch { recurRules = []; }
 }
 
+// Persist recurring rules to localStorage
 function saveRecurring() {
   try { localStorage.setItem(RECUR_KEY, JSON.stringify(recurRules)); } catch {}
 }
 
-// Given a rule, compute the very first occurrence date >= startDate
-// For weekly/fortnightly: advance to the correct day-of-week
+// Compute the first occurrence date on or after startDate.
+// For weekly/fortnightly: advances to the nearest matching day-of-week.
+// For monthly/quarterly/yearly: uses startDate as-is.
 function firstOccurrence(rule) {
   const start = new Date(rule.startDate + "T00:00:00");
   if (rule.freq === "weekly" || rule.freq === "fortnightly") {
@@ -4420,23 +4614,23 @@ function firstOccurrence(rule) {
     d.setDate(d.getDate() + diff);
     return isoDate(d);
   }
-  // monthly/quarterly/yearly: use the start date as-is
   return rule.startDate;
 }
 
-// Given a date string and a freq, return the next occurrence after that date
+// Return the next occurrence date after dateStr for the given frequency
 function nextOccurrence(dateStr, freq) {
   const d = new Date(dateStr + "T00:00:00");
   switch (freq) {
-    case "weekly":      d.setDate(d.getDate() + 7);   break;
-    case "fortnightly": d.setDate(d.getDate() + 14);  break;
-    case "monthly":     d.setMonth(d.getMonth() + 1); break;
-    case "quarterly":   d.setMonth(d.getMonth() + 3); break;
+    case "weekly":      d.setDate(d.getDate() + 7);        break;
+    case "fortnightly": d.setDate(d.getDate() + 14);       break;
+    case "monthly":     d.setMonth(d.getMonth() + 1);      break;
+    case "quarterly":   d.setMonth(d.getMonth() + 3);      break;
     case "yearly":      d.setFullYear(d.getFullYear() + 1); break;
   }
   return isoDate(d);
 }
 
+// Format a Date object as a "YYYY-MM-DD" string
 function isoDate(d) {
   const y  = d.getFullYear();
   const m  = String(d.getMonth() + 1).padStart(2, "0");
@@ -4444,26 +4638,26 @@ function isoDate(d) {
   return `${y}-${m}-${dd}`;
 }
 
+// Return today's date as a "YYYY-MM-DD" string
 function todayISO() {
   return isoDate(new Date());
 }
 
-// Process all recurring rules: post any occurrences where nextDate <= today
-// Returns the number of transactions posted
+// Scan all rules and post any occurrences where nextDate <= today.
+// Uses a while loop to catch rules that are multiple periods overdue (e.g. after a long absence).
+// Returns the count of transactions posted so callers can notify the user.
 function processRecurring() {
   const today = todayISO();
   let posted = 0;
   recurRules.forEach(rule => {
     if (!rule.nextDate) return;
     while (rule.nextDate <= today) {
-      // Post the transaction
-      const tab    = rule.type === "deposit" ? "saved" : "removed";
-      const fyKey  = ensureFY(yearKeyForDate(rule.nextDate));
-      const amt    = parseFloat(rule.amount.toFixed(2));
+      const tab   = rule.type === "deposit" ? "saved" : "removed";
+      const fyKey = ensureFY(yearKeyForDate(rule.nextDate));
+      const amt   = parseFloat(rule.amount.toFixed(2));
       data[fyKey][tab].push([rule.nextDate, amt]);
       data[fyKey][tab].sort((a, b) => a[0].localeCompare(b[0]));
       posted++;
-      // Advance nextDate
       rule.nextDate = nextOccurrence(rule.nextDate, rule.freq);
     }
   });
@@ -4474,7 +4668,7 @@ function processRecurring() {
   return posted;
 }
 
-// Called on app init and by a daily timer
+// Run the recurring check and toast the user if any transactions were auto-posted
 function runRecurringCheck() {
   const posted = processRecurring();
   if (posted > 0) {
@@ -4484,13 +4678,15 @@ function runRecurringCheck() {
   }
 }
 
+// Update the recurring management pill in both add forms
 function updateRecurMenuSub() {
   updateRecurManagePill();
 }
 
-// ── modal UI ──────────────────────────────────────────────────────────────────
+// ─── recurring modal UI ────────────────────────────────────────────────────────
+
+// Open the recurring transactions management modal, pre-filling defaults
 function openRecurringModal() {
-  // Default start date to today
   const inp = document.getElementById("recur-start");
   if (inp && !inp.value) inp.value = todayISO();
   // Default dow to today's day of week
@@ -4501,21 +4697,24 @@ function openRecurringModal() {
   document.getElementById("recurring-modal").classList.remove("hidden");
 }
 
+// Close the recurring transactions modal
 function closeRecurringModal() {
   document.getElementById("recurring-modal").classList.add("hidden");
 }
 
-// Close on backdrop click
+// Close modal when clicking the backdrop
 document.getElementById("recurring-modal").addEventListener("click", function(e) {
   if (e.target === this) closeRecurringModal();
 });
 
+// Show/hide the "day of week" row in the recurring modal based on selected frequency
 function onRecurFreqChange() {
   const freq = document.getElementById("recur-freq").value;
   const wrap = document.getElementById("recur-day-of-week-wrap");
   wrap.style.display = (freq === "weekly" || freq === "fortnightly") ? "flex" : "none";
 }
 
+// Render the list of existing recurring rules inside the modal
 function renderRecurList() {
   const list  = document.getElementById("recur-list");
   const empty = document.getElementById("recur-empty");
@@ -4544,6 +4743,8 @@ function renderRecurList() {
   });
 }
 
+// Create a new recurring rule from the modal form, then immediately process it
+// in case its first occurrence is today or already past.
 function addRecurringRule() {
   const type   = document.getElementById("recur-type").value;
   const amount = parseFloat(document.getElementById("recur-amount").value);
@@ -4551,8 +4752,8 @@ function addRecurringRule() {
   const freq   = document.getElementById("recur-freq").value;
   const dow    = parseInt(document.getElementById("recur-dow").value, 10);
 
-  if (!start)           { toast("Please enter a start date.", "#c0392b"); return; }
-  if (isNaN(amount) || amount <= 0) { toast("Please enter a valid amount.", "#c0392b"); return; }
+  if (!start)                        { toast("Please enter a start date.", "#c0392b"); return; }
+  if (isNaN(amount) || amount <= 0)  { toast("Please enter a valid amount.", "#c0392b"); return; }
 
   const rule = {
     id:        Date.now(),
@@ -4564,15 +4765,14 @@ function addRecurringRule() {
     nextDate:  null,
   };
   rule.nextDate = firstOccurrence(rule);
-
   recurRules.push(rule);
   saveRecurring();
 
-  // Immediately process in case nextDate <= today
+  // Immediately post any occurrences that are already due
   const posted = processRecurring();
   if (posted > 0) { render(); toast(`${posted} transaction${posted > 1 ? "s" : ""} added`, "var(--gold-dim)"); }
 
-  // Reset form
+  // Reset the add form fields
   document.getElementById("recur-amount").value = "";
   document.getElementById("recur-start").value  = todayISO();
   updateRecurMenuSub();
@@ -4580,6 +4780,7 @@ function addRecurringRule() {
   if (posted === 0) toast("Recurring transaction scheduled", "var(--gold-dim)");
 }
 
+// Delete a recurring rule by index and refresh the list
 function deleteRecurRule(idx) {
   recurRules.splice(idx, 1);
   saveRecurring();
@@ -4588,18 +4789,20 @@ function deleteRecurRule(idx) {
   toast("Recurring transaction removed", "var(--text-3)");
 }
 
-
-// Bypass login when running inside a sandboxed iframe (e.g. Claude preview)
+// ─── bootstrap ────────────────────────────────────────────────────────────────
+// Bypass the login screen when running inside a sandboxed iframe (e.g. Claude preview).
+// In production this detects the cross-origin iframe restriction and skips auth.
 const inSandbox = (() => {
   try { return window.self !== window.top; } catch { return true; }
 })();
 
 if (inSandbox || checkAuth()) {
+  // Auth already valid (or sandbox) — hide login and launch the app immediately
   document.getElementById("login-screen").classList.add("hidden");
   initApp();
 }
-// Otherwise wait for Google Sign-In callback (handleGoogleLogin → initApp)
+// Otherwise the Google Sign-In callback (handleGoogleLogin) will call initApp() once the user logs in
 </script>
-  <div id="version-footer">v2.4.6</div>
+  <div id="version-footer">v2.4.8</div>
 </body>
 </html>
