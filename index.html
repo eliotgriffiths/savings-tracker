@@ -1354,7 +1354,7 @@
     <!-- Main view — three storage option cards -->
     <div id="smod-main">
       <div style="display:flex; align-items:center; padding:24px 24px 0;">
-        <h2 style="flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400; color:var(--text-1); margin:0;">☁️ Sync &amp; Backup</h2>
+        <h2 style="flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400; color:var(--text-1); margin:0;">💾 Storage &amp; Backup</h2>
         <button class="modal-close" onclick="document.getElementById('setup-modal').classList.add('hidden')" title="Close">✕</button>
       </div>
       <p style="font-size:12px; color:var(--text-3); padding:6px 24px 20px; margin:0; line-height:1.6;">Choose how your data is stored and backed up.</p>
@@ -1417,6 +1417,7 @@
         <div id="local-nosync-note" style="padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text-3); line-height:1.7;">
           Choose a file location to enable auto-save. Once linked, every change is written automatically. Loading a file gives you the choice to <strong style="color:var(--text-2);">merge</strong> or <strong style="color:var(--text-2);">replace</strong> your current data.
         </div>
+        <button class="info-popup-close-btn" style="margin-top:12px;" onclick="document.getElementById('setup-modal').classList.add('hidden')">Done</button>
 
       </div>
     </div>
@@ -1621,7 +1622,7 @@
     <div class="dmenu-divider"></div>
     <button class="dmenu-btn" onclick="closeDesktopMenu(); setTimeout(openSetup, 50);">
       <span class="dmenu-btn-icon">☁️</span>
-      <div><div class="dmenu-btn-label">Sync &amp; Backup</div><div class="dmenu-btn-sub">Manage storage &amp; cloud sync</div></div>
+      <div><div class="dmenu-btn-label">Storage &amp; Backup</div><div class="dmenu-btn-sub">Manage file saves &amp; backup</div></div>
     </button>
     <div class="dmenu-divider"></div>
     <button class="dmenu-btn" onclick="openEncryptionMenu()">
@@ -1799,7 +1800,7 @@
   </button>
   <button class="menu-item-btn" onclick="closeSheets(); setTimeout(openSetup, 50);">
     <span class="menu-item-icon">☁️</span>
-    <span class="menu-item-label">Sync &amp; Backup</span>
+    <span class="menu-item-label">Storage &amp; Backup</span>
   </button>
   <button class="menu-item-btn" onclick="openEncryptionMenu()">
     <span class="menu-item-icon">🔐</span>
@@ -2745,7 +2746,7 @@ function promptAndDecrypt(encryptedText) {
         disablePasswordEncryption();
         popup.classList.add("hidden");
         cleanup();
-        toast("Recovery successful — encryption disabled. Re-enable with a new password in Sync & Backup.", "var(--gold-dim)");
+        toast("Recovery successful — encryption disabled. Re-enable with a new password in Storage & Backup.", "var(--gold-dim)");
         resolve(result);
       } catch (e) {
         errEl.textContent = "Recovery failed: " + e.message;
@@ -2842,9 +2843,13 @@ async function saveToLocalFile(showPicker = false) {
 }
 
 // Load vault data from a local file, opening a native open dialog.
+// If the file is loaded via the File System Access API, also requests write
+// permission so the same file can be linked for auto-save going forward.
 async function loadFromLocalFile() {
   try {
     let text;
+    let openedHandle = null; // capture the handle for potential auto-save linking
+
     if (window.showOpenFilePicker) {
       try {
         const [handle] = await window.showOpenFilePicker({
@@ -2853,6 +2858,7 @@ async function loadFromLocalFile() {
         });
         const file = await handle.getFile();
         text = await file.text();
+        openedHandle = handle; // keep for write-permission request below
       } catch (e) {
         if (e.name === "AbortError") return;
         text = await pickFileViaInput();
@@ -2895,6 +2901,36 @@ async function loadFromLocalFile() {
       render();
       setLocalFileStatus("✓ Loaded", "var(--green)");
     }
+
+    // ── auto-link the loaded file for future auto-saves ─────────────────────
+    // Request write permission on the opened handle so we can save back to it.
+    // This is a no-op if FSAPI isn't available or if the user already has a
+    // different file linked (we don't override an existing link silently).
+    if (openedHandle && !localFileHandle) {
+      try {
+        const perm = await openedHandle.requestPermission({ mode: "readwrite" });
+        if (perm === "granted") {
+          localFileHandle = openedHandle;
+          localFileLinked = true;
+          await saveLocalFileHandle(openedHandle);
+          // Write immediately so the file reflects the just-loaded data
+          const ok = await writeTolocalFileHandle();
+          setSaveStatus(ok ? "ok" : "err", ok ? "Saved ✓" + (vaultEncActive ? " 🔐" : "") : "Save failed");
+          updateLocalFileUI();
+          updateSetupModal();
+          dbg("Local load: auto-linked for auto-save — " + openedHandle.name);
+          setLocalFileStatus("✓ Loaded & linked for auto-save", "var(--green)");
+        } else {
+          dbg("Local load: write permission denied, not auto-linking");
+        }
+      } catch (e) {
+        dbg("Local load: could not request write permission: " + e.message);
+      }
+    } else if (openedHandle && localFileHandle) {
+      dbg("Local load: existing link kept, new file not auto-linked");
+    }
+    // ── end auto-link ────────────────────────────────────────────────────────
+
   } catch (e) {
     setLocalFileStatus("Load failed: " + e.message, "var(--red)");
     dbg("Local load error: " + e.message);
@@ -2910,7 +2946,7 @@ function setLocalFileStatus(msg, color) {
 }
 
 // ─── password encryption layer ────────────────────────────────────────────────
-// Optional — user sets a password in Sync & Backup. If no password is set,
+// Optional — user sets a password in Storage & Backup. If no password is set,
 // the Drive file is plain JSON. If a password is set, the file is AES-256-GCM
 // encrypted. A one-time hardware recovery key (.vault-recovery file) is also
 // generated so the file can be decrypted if the password is lost.
@@ -3038,7 +3074,7 @@ async function tryDecryptWithRecoveryKey(text, recoveryKey) {
 
 
 // ─── modal ─────────────────────────────────────────────────────────────────────
-// Open the Sync & Backup modal and reset to the main card view
+// Open the Storage & Backup modal and reset to the main card view
 function openSetup() {
   closeSmodPanel();
   updateSetupModal();
@@ -4784,6 +4820,6 @@ function deleteRecurRule(idx) {
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v2.7.8</div>
+  <div id="version-footer">v2.8.1</div>
 </body>
 </html>
