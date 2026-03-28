@@ -1057,6 +1057,25 @@
     #sheet-overlay{ display: none !important; }
   }
 
+  /* ── encryption choice popup ── */
+  #enc-choice-popup {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(4px);
+    z-index: 620;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  #enc-choice-popup.hidden { display: none; }
+
+  /* ── welcome / first-run modal ── */
+  #welcome-modal {
+    position: fixed; inset: 0;
+    background: var(--bg0);
+    z-index: 600;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  #welcome-modal.hidden { display: none; }
+
   /* ── password decryption popup ── */
   #enc-decrypt-popup,
   #enc-set-popup,
@@ -1417,6 +1436,12 @@
         <div id="local-nosync-note" style="padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text-3); line-height:1.7;">
           Choose a file location to enable auto-save. Once linked, every change is written automatically. Loading a file gives you the choice to <strong style="color:var(--text-2);">merge</strong> or <strong style="color:var(--text-2);">replace</strong> your current data.
         </div>
+
+        <!-- Shown only when no file is linked — lets the user wipe the browser data -->
+        <div id="local-clear-section" style="display:none; margin-top:12px; border-top:1px solid var(--border); padding-top:12px;">
+          <button class="btn-local" style="width:100%; color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="clearBrowserData()">🗑 Clear all browser data</button>
+        </div>
+
         <button class="info-popup-close-btn" style="margin-top:12px;" onclick="document.getElementById('setup-modal').classList.add('hidden')">Done</button>
 
       </div>
@@ -1430,12 +1455,15 @@
         <button class="modal-close" onclick="document.getElementById('setup-modal').classList.add('hidden')" title="Close">✕</button>
       </div>
       <div class="smod-panel-body">
-        <p style="font-size:13px; color:var(--text-2); line-height:1.7; margin-bottom:16px; font-weight:300;">Store data only in this browser's local storage. No account or internet connection needed.</p>
-        <button class="btn-local" onclick="useLocal(); closeSmodPanel();">Use browser storage only</button>
-        <div style="margin-top:12px; padding:12px 14px; background:rgba(192,80,74,0.07); border:1px solid rgba(192,80,74,0.25); border-radius:var(--radius);">
-          <div style="font-size:11px; font-weight:600; color:var(--red); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;">⚠️ Risks</div>
-          <div style="font-size:12px; color:var(--text-3); line-height:1.7;">Your data will be <strong style="color:var(--text-2);">permanently lost</strong> if you clear your browser data, uninstall the browser, or switch devices. There is no backup file you can copy or recover from.</div>
+        <p style="font-size:13px; color:var(--text-2); line-height:1.7; margin-bottom:16px; font-weight:300;">Your data is saved inside this browser on this device only. Nothing leaves your device and no file is created — Vault stores everything in browser local storage.</p>
+        <button class="btn-local" style="width:100%; margin-bottom:16px;" onclick="useLocal(); closeSmodPanel();">Continue with browser storage</button>
+        <div style="padding:14px 16px; background:rgba(192,80,74,0.07); border:1px solid rgba(192,80,74,0.25); border-radius:var(--radius); margin-bottom:12px;">
+          <div style="font-size:11px; font-weight:600; color:var(--red); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">⚠️ No backup</div>
+          <div style="font-size:12px; color:var(--text-3); line-height:1.8;">Your data exists only in this browser. It will be <strong style="color:var(--text-2);">permanently lost</strong> if you clear your browser data, uninstall the browser, or switch to another device or browser.</div>
+          <div style="margin-top:10px; font-size:12px; color:var(--text-3); line-height:1.8;">For a recoverable backup, use <strong style="color:var(--text-2);">Local File</strong> instead — it saves to a file you control.</div>
         </div>
+        <button class="btn-local" style="width:100%; color:var(--red); border-color:rgba(192,80,74,0.3); margin-bottom:12px;" onclick="clearBrowserData()">🗑 Clear all browser data</button>
+        <button class="info-popup-close-btn" onclick="document.getElementById('setup-modal').classList.add('hidden')">Done</button>
       </div>
     </div>
 
@@ -2053,6 +2081,80 @@
   </div>
 </div>
 
+<!-- Encryption choice popup — shown when a new file location is first linked -->
+<div id="enc-choice-popup" class="hidden">
+  <div class="modal-box" style="max-width:440px;">
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+      <h2 style="margin:0; flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400;">Encrypt your backup?</h2>
+    </div>
+    <p style="font-size:13px; color:var(--text-2); line-height:1.7; margin-bottom:20px; font-weight:300;">Choose whether to password-protect your backup file. You can change this at any time from <strong style="color:var(--text-1);">Menu → Encryption</strong>.</p>
+
+    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+
+      <button class="smod-card" id="enc-choice-yes" onclick="encChoiceResolve('set')">
+        <div class="smod-card-icon">🔐</div>
+        <div class="smod-card-body">
+          <div class="smod-card-title">Yes — set a password</div>
+          <div class="smod-card-sub">Your file will be AES-256 encrypted. A recovery key is downloaded for safe keeping.</div>
+        </div>
+      </button>
+
+      <button class="smod-card" id="enc-choice-no" onclick="encChoiceResolve('skip')">
+        <div class="smod-card-icon">📄</div>
+        <div class="smod-card-body">
+          <div class="smod-card-title">No — save as plain JSON</div>
+          <div class="smod-card-sub">No password needed. The file is readable by anyone with access to it.</div>
+        </div>
+      </button>
+
+    </div>
+
+    <p style="font-size:11px; color:var(--text-3); text-align:center; line-height:1.6;">You can add or remove encryption later from <strong style="color:var(--text-2);">Menu → Encryption</strong>.</p>
+  </div>
+</div>
+
+<!-- Welcome / first-run modal — shown when no data and no linked file found -->
+<div id="welcome-modal" class="hidden">
+  <div class="modal-box" style="max-width:440px; text-align:center;">
+    <div style="font-size:48px; margin-bottom:12px;">V</div>
+    <h2 style="font-family:'DM Serif Display',serif; font-size:26px; font-weight:400; margin-bottom:6px; color:var(--text-1);">Welcome to Vault</h2>
+    <p style="font-size:13px; color:var(--text-3); margin-bottom:28px; font-weight:300; line-height:1.7;">Your personal savings tracker. Choose how you'd like to save your data to get started.</p>
+
+    <div style="display:flex; flex-direction:column; gap:10px; text-align:left; margin-bottom:20px;">
+
+      <!-- Local file option -->
+      <button class="smod-card" onclick="welcomeChooseFile()" style="border-color:var(--gold-dim); background:rgba(201,168,76,0.05);">
+        <div class="smod-card-icon">💾</div>
+        <div class="smod-card-body">
+          <div class="smod-card-title" style="color:var(--gold);">Save to a file <span style="font-size:10px; font-weight:500; background:rgba(201,168,76,0.15); color:var(--gold); padding:2px 7px; border-radius:10px; margin-left:6px; letter-spacing:0.04em;">RECOMMENDED</span></div>
+          <div class="smod-card-sub">Choose a location on your device — USB, NAS, or any folder. Auto-saves every change.</div>
+        </div>
+      </button>
+
+      <!-- Load existing file -->
+      <button class="smod-card" onclick="welcomeLoadFile()">
+        <div class="smod-card-icon">📂</div>
+        <div class="smod-card-body">
+          <div class="smod-card-title">Load an existing file</div>
+          <div class="smod-card-sub">Open a vault-data.json backup from your device.</div>
+        </div>
+      </button>
+
+      <!-- Browser storage -->
+      <button class="smod-card" onclick="welcomeUseBrowser()" style="border-color:rgba(192,80,74,0.2);">
+        <div class="smod-card-icon">🖥</div>
+        <div class="smod-card-body">
+          <div class="smod-card-title">Browser storage only</div>
+          <div class="smod-card-sub" style="color:var(--red);">No backup — data lost if browser is cleared.</div>
+        </div>
+      </button>
+
+    </div>
+
+    <p style="font-size:11px; color:var(--text-3); line-height:1.6;">You can change this at any time from <strong style="color:var(--text-2);">Menu → Storage &amp; Backup</strong>.</p>
+  </div>
+</div>
+
 <div id="toast"></div>
 <div id="debug-panel" style="position:fixed;bottom:0;left:0;right:0;background:#0a1a1c;border-top:1px solid #2E9EA8;padding:6px 12px;font-size:11px;font-family:monospace;display:none;z-index:998;">
   <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
@@ -2643,10 +2745,32 @@ async function linkLocalFile() {
       suggestedName: filename,
       types: [{ description: "Vault backup", accept: { "application/json": [".json"] } }],
     });
+
+    // ── encryption choice ─────────────────────────────────────────────────────
+    // Only prompt if encryption isn't already set up
+    if (!vaultEncActive) {
+      const choice = await promptEncryptionChoice();
+      if (choice === "set") {
+        // Open the password setup popup — wait for it to complete before writing
+        openEncPasswordPopup();
+        // Wait until the enc-set-popup is dismissed (password set or cancelled)
+        await new Promise(resolve => {
+          const observer = new MutationObserver(() => {
+            if (document.getElementById("enc-set-popup").classList.contains("hidden")) {
+              observer.disconnect();
+              resolve();
+            }
+          });
+          observer.observe(document.getElementById("enc-set-popup"), { attributes: true, attributeFilter: ["class"] });
+        });
+      }
+    }
+    // ── end encryption choice ─────────────────────────────────────────────────
+
     localFileHandle = handle;
     localFileLinked = true;
     await saveLocalFileHandle(handle);
-    // Write current data immediately
+    // Write current data immediately (with encryption if now active)
     const ok = await writeTolocalFileHandle();
     setSaveStatus(ok ? "ok" : "err", ok ? "Saved ✓" + (vaultEncActive ? " 🔐" : "") : "Save failed");
     updateLocalFileUI();
@@ -3176,20 +3300,46 @@ function updateLocalFileUI() {
   const unlinkBtn  = document.getElementById("btn-local-unlink");
   const autoNote   = document.getElementById("local-autosync-note");
   const noSyncNote = document.getElementById("local-nosync-note");
+  const clearSection = document.getElementById("local-clear-section");
   const localCard  = document.getElementById("smod-card-local");
   const localSub   = document.getElementById("smod-local-sub");
 
-  if (linkedInfo) linkedInfo.style.display = linked ? "" : "none";
+  if (linkedInfo)   linkedInfo.style.display   = linked ? "" : "none";
   if (linkedName && linked) linkedName.textContent = localFileHandle.name;
-  if (linkBtn)    linkBtn.textContent = linked ? "📂 Change location" : (fsSupport ? "📂 Choose file location" : "⬇ Save file (download)");
-  if (saveNowBtn) saveNowBtn.style.display = linked ? "" : "none";
-  if (unlinkBtn)  unlinkBtn.style.display  = linked ? "" : "none";
-  if (autoNote)   autoNote.style.display   = linked ? "" : "none";
-  if (noSyncNote) noSyncNote.style.display = linked ? "none" : "";
-  if (localCard)  localCard.classList.toggle("active-card", linked);
-  if (localSub)   localSub.textContent = linked
+  if (linkBtn)      linkBtn.textContent = linked ? "📂 Change location" : (fsSupport ? "📂 Choose file location" : "⬇ Save file (download)");
+  if (saveNowBtn)   saveNowBtn.style.display   = linked ? "" : "none";
+  if (unlinkBtn)    unlinkBtn.style.display     = linked ? "" : "none";
+  if (autoNote)     autoNote.style.display      = linked ? "" : "none";
+  if (noSyncNote)   noSyncNote.style.display    = linked ? "none" : "";
+  if (clearSection) clearSection.style.display  = linked ? "none" : "";
+  if (localCard)    localCard.classList.toggle("active-card", linked);
+  if (localSub)     localSub.textContent = linked
     ? "Auto-saving to " + (localFileHandle ? localFileHandle.name : "file")
     : "Save or load a backup file on this device";
+}
+
+// Wipe all Vault data from browser storage, with a confirmation step.
+// Does NOT touch any linked file — only clears localStorage + resets app state.
+function clearBrowserData() {
+  if (!confirm("Clear all Vault data from this browser?\n\nThis cannot be undone. Any data not saved to a file will be permanently lost.")) return;
+  try {
+    localStorage.removeItem(DATA_KEY);
+    localStorage.removeItem(RECUR_KEY);
+    localStorage.removeItem(SIDEBAR_KEY);
+    localStorage.removeItem(ENC_ACTIVE_KEY);
+  } catch {}
+  // Reset app state
+  data = {};
+  recurRules = [];
+  activeYear  = "all-years";
+  activeMonth = null;
+  activeTab   = "all";
+  expandedYears.clear();
+  disablePasswordEncryption();
+  render();
+  document.getElementById("setup-modal").classList.add("hidden");
+  toast("Browser data cleared");
+  dbg("clearBrowserData: all localStorage data wiped");
 }
 
 // Hidden file input fallback for browsers without showOpenFilePicker
@@ -4569,11 +4719,75 @@ function closeSheets() {
 
 // ─── app initialisation ────────────────────────────────────────────────────────
 // Loads data, restores UI state, then renders.
+// ─── encryption choice popup ──────────────────────────────────────────────────
+// Shown when a new file location is linked for the first time (not on load).
+// Returns a Promise that resolves with "set" (user wants a password),
+// "skip" (no encryption), or "cancel" (shouldn't normally occur).
+
+let _encChoiceResolve = null;
+
+// Show the popup and return a promise that resolves when the user picks an option
+function promptEncryptionChoice() {
+  document.getElementById("enc-choice-popup").classList.remove("hidden");
+  return new Promise(resolve => { _encChoiceResolve = resolve; });
+}
+
+// Called by the popup buttons
+function encChoiceResolve(choice) {
+  document.getElementById("enc-choice-popup").classList.add("hidden");
+  if (_encChoiceResolve) { _encChoiceResolve(choice); _encChoiceResolve = null; }
+}
+
+// ─── first-run / welcome screen ───────────────────────────────────────────────
+
+// Check whether this is a first run: no localStorage data AND no linked file.
+// Called after initLocalFileSync so we know the file handle state.
+function checkFirstRun() {
+  if (inSandbox) return; // never show welcome in the preview sandbox
+  const hasData   = !!localStorage.getItem(DATA_KEY);
+  const hasFile   = localFileLinked && !!localFileHandle;
+  if (!hasData && !hasFile) {
+    document.getElementById("welcome-modal").classList.remove("hidden");
+    dbg("First run detected — showing welcome screen");
+  }
+}
+
+// User chose to save to a new file location
+async function welcomeChooseFile() {
+  document.getElementById("welcome-modal").classList.add("hidden");
+  await linkLocalFile();
+  // If they cancelled the picker, show welcome again
+  if (!localFileHandle) {
+    document.getElementById("welcome-modal").classList.remove("hidden");
+  }
+}
+
+// User chose to load an existing backup file
+async function welcomeLoadFile() {
+  document.getElementById("welcome-modal").classList.add("hidden");
+  await loadFromLocalFile();
+  // If nothing was loaded, show welcome again
+  if (!localFileHandle && !localStorage.getItem(DATA_KEY)) {
+    document.getElementById("welcome-modal").classList.remove("hidden");
+  }
+}
+
+// User chose to use browser storage only
+function welcomeUseBrowser() {
+  document.getElementById("welcome-modal").classList.add("hidden");
+  // Save an empty data marker so we don't show welcome next time
+  saveLocal();
+  toast("Using browser storage — you can change this in Menu → Storage & Backup");
+}
+
 function initApp() {
   loadLocal();
   loadEncActive();      // restore encryption enabled flag
   setSaveStatus("warn", "Browser storage only"); // default until initLocalFileSync confirms a linked file
-  initLocalFileSync();  // restore linked local file handle if any
+  // initLocalFileSync is async — run first-run check after it settles
+  initLocalFileSync().then(() => {
+    checkFirstRun();
+  });
   activeYear = "all-years";
 
   // Restore collapsed sidebar state
@@ -4820,6 +5034,6 @@ function deleteRecurRule(idx) {
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v2.8.1</div>
+  <div id="version-footer">v2.8.5</div>
 </body>
 </html>
