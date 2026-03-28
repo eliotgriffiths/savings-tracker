@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vault</title>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -116,6 +117,7 @@
 
   /* ── layout ── */
   #layout { display: flex; flex: 1; overflow: hidden; }
+  #layout-inner { display: flex; flex: 1; overflow: hidden; max-width: 1400px; width: 100%; margin: 0 auto; }
 
   /* ── sidebar ── */
   #sidebar {
@@ -145,13 +147,19 @@
     border: none;
     border-left: 2px solid transparent;
     color: var(--text-2);
-    padding: 10px 16px;
+    padding: 0;
     text-align: left;
-    cursor: pointer;
+    cursor: default;
     width: 100%;
     transition: background 0.12s, color 0.12s;
+    display: block;
   }
-  .year-btn:hover { background: var(--bg2); color: var(--text-1); }
+  .year-btn-label {
+    cursor: pointer;
+    display: block;
+    transition: background 0.12s, color 0.12s;
+  }
+  .year-btn-label:hover { background: var(--bg2); color: var(--text-1); }
   .year-btn.active {
     background: var(--bg2);
     color: var(--text-1);
@@ -159,6 +167,33 @@
   }
   .year-btn .fy-label { font-weight: 500; font-size: 13px; }
   .year-btn .fy-net { font-size: 11px; margin-top: 2px; font-weight: 300; }
+  .year-btn .fy-chevron {
+    margin-left: auto; font-size: 14px; color: var(--text-2);
+    transition: transform 0.18s, color 0.15s, background 0.15s;
+    flex-shrink: 0;
+    padding: 4px 6px;
+    border-radius: 5px;
+    line-height: 1;
+  }
+  .year-btn .fy-chevron:hover { color: var(--text-1); background: var(--bg3); }
+  .year-btn.expanded .fy-chevron { transform: rotate(90deg); }
+  .year-btn-inner { display: flex; align-items: center; width: 100%; }
+
+  /* month sub-items */
+  .month-list { display: none; }
+  .month-list.open { display: block; }
+  .month-btn {
+    background: transparent; border: none;
+    border-left: 2px solid transparent;
+    color: var(--text-3); padding: 7px 16px 7px 28px;
+    text-align: left; cursor: pointer; width: 100%;
+    font-size: 12px; font-weight: 400;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.12s, color 0.12s;
+    white-space: nowrap;
+  }
+  .month-btn:hover { background: var(--bg2); color: var(--text-2); }
+  .month-btn.active { color: var(--text-1); border-left-color: var(--gold); background: var(--bg2); }
   .pos { color: var(--green) !important; }
   .neg { color: var(--red)   !important; }
 
@@ -202,10 +237,13 @@
     cursor: pointer;
     transition: background 0.12s, color 0.12s;
     letter-spacing: 0.02em;
+    display: block;
   }
   .sidebar-report-btn:hover { background: var(--bg2); color: var(--text-1); }
   .sidebar-report-btn.active { background: var(--bg2); color: var(--gold); border-left: 2px solid var(--gold); }
-  #sidebar-report-btn-wrap { flex-shrink: 0; }
+  #sidebar-report-btn-wrap { flex-shrink: 0; border-bottom: none; }
+  #sidebar-allyears-btn-wrap { flex-shrink: 0; }
+  #sidebar-allyears-btn { border-bottom: none !important; }
 
   #btn-new-year {
     width: 100%; background: transparent; border: 1px dashed var(--border-hi);
@@ -322,7 +360,7 @@
     letter-spacing: 0.02em;
   }
 
-  table { width: 100%; border-collapse: collapse; }
+  table { width: 100%; border-collapse: collapse; max-width: 1200px; }
   thead tr { border-bottom: 1px solid var(--border); }
   th {
     padding: 10px 14px;
@@ -336,7 +374,7 @@
   th.right  { text-align: right; }
   th.center { text-align: center; }
   /* type col: hidden unless all-tab active */
-  th.sort-col-type { display: none; }
+  th.sort-col-type { display: none; cursor: pointer; }
   td.tx-type-cell  { display: none; }
   body.tab-all th.sort-col-type,
   body.tab-all td.tx-type-cell  { display: table-cell; }
@@ -375,6 +413,7 @@
     border-radius: var(--radius-lg);
     padding: 28px;
     width: 100%; max-width: 380px;
+    max-height: 90vh; overflow-y: auto;
   }
   .tx-popup-box h3 {
     font-family: 'DM Serif Display', serif;
@@ -450,6 +489,7 @@
     max-width: 460px;
     width: 100%;
     position: relative;
+    max-height: 90vh; overflow-y: auto;
   }
   .modal-close {
     background: transparent;
@@ -501,6 +541,62 @@
   }
   .btn-local:hover { border-color: var(--border-hi); color: var(--text-1); }
 
+  /* ── recurring transactions modal ── */
+  #recurring-modal {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 250;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  #recurring-modal.hidden { display: none; }
+  #recurring-modal .modal-box { max-width: 520px; max-height: 85vh; display: flex; flex-direction: column; }
+  #recurring-modal .modal-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-shrink: 0; }
+  #recurring-modal .modal-header h2 { flex: 1; margin: 0; }
+  #recurring-modal .modal-desc { font-size: 13px; color: var(--text-2); margin-bottom: 20px; font-weight: 300; line-height: 1.6; flex-shrink: 0; }
+  #recur-list { overflow-y: auto; flex: 1; min-height: 0; margin-bottom: 16px; }
+  .recur-item {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px;
+    margin-bottom: 8px; display: flex; align-items: flex-start; gap: 12px;
+  }
+  .recur-item-info { flex: 1; min-width: 0; }
+  .recur-item-title { font-weight: 500; font-size: 13px; color: var(--text-1); margin-bottom: 3px; }
+  .recur-item-meta  { font-size: 11px; color: var(--text-3); line-height: 1.6; }
+  .recur-item-amt.dep { color: var(--green); font-weight: 600; font-size: 13px; }
+  .recur-item-amt.wit { color: var(--red);   font-weight: 600; font-size: 13px; }
+  .recur-delete-btn {
+    background: transparent; border: none; color: var(--text-3); font-size: 16px;
+    cursor: pointer; padding: 2px 5px; border-radius: 5px; line-height: 1; flex-shrink: 0;
+    transition: color 0.15s, background 0.15s;
+  }
+  .recur-delete-btn:hover { color: var(--red); background: var(--red-dim); }
+  #recur-empty { text-align: center; padding: 32px 0; color: var(--text-3); font-size: 13px; font-weight: 300; }
+  #recur-add-form { border-top: 1px solid var(--border); padding-top: 16px; flex-shrink: 0; }
+  #recur-add-form .recur-form-title {
+    font-size: 12px; font-weight: 600; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px;
+  }
+  .recur-form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .recur-form-row .field { flex: 1; min-width: 120px; }
+  .recur-form-row .field select,
+  .recur-form-row .field input {
+    background: var(--bg3); border: 1px solid var(--border-hi);
+    border-radius: var(--radius); padding: 9px 10px;
+    color: var(--text-1); font-size: 13px;
+    font-family: 'DM Sans', sans-serif; outline: none; width: 100%;
+    transition: border-color 0.15s;
+  }
+  .recur-form-row .field select:focus,
+  .recur-form-row .field input:focus { border-color: var(--gold-dim); }
+  #recur-day-of-week-wrap { display: none; }
+  #recur-add-btn {
+    width: 100%; background: var(--gold); border: none; border-radius: var(--radius);
+    padding: 11px 0; color: #0f0f11; font-weight: 700; font-size: 14px;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: opacity 0.15s; margin-top: 4px;
+  }
+  #recur-add-btn:hover { opacity: 0.88; }
+
   /* ── debug panel ── */
   #debug-panel {
     position: fixed; bottom: 0; left: 0; right: 0;
@@ -521,7 +617,7 @@
   #sidebar { transition: width 0.22s cubic-bezier(0.4,0,0.2,1); }
   #sidebar.collapsed { width: 40px; }
   #sidebar.collapsed #year-list,
-  #sidebar.collapsed #sidebar-report-btn-wrap { display: none; }
+  #sidebar.collapsed #sidebar-allyears-btn-wrap { display: none; }
   #sidebar.collapsed .sidebar-label { display: none; }
   #sidebar.collapsed #sidebar-collapse-btn { transform: rotate(180deg); }
 
@@ -529,7 +625,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 18px 10px 6px 16px;
+    padding: 8px 10px 8px 16px;
     flex-shrink: 0;
   }
   #sidebar-collapse-btn {
@@ -542,6 +638,8 @@
     border-radius: 6px;
     line-height: 1;
     flex-shrink: 0;
+    position: relative;
+    top: 4px;
     transition: color 0.15s, transform 0.22s cubic-bezier(0.4,0,0.2,1);
   }
   #sidebar-collapse-btn:hover { color: var(--text-1); }
@@ -606,21 +704,21 @@
   @media (max-width: 640px) {
     #sidebar { display: none; }
     #sidebar-report-btn-wrap { display: none; }
-    .header-btns .btn-ghost:not(#mob-sync-btn) { display: none; }
+    .header-btns .btn-ghost { display: none; }
     .header-btns .btn-gold { display: none; }
     #add-form { display: none; }
     #header { padding: 0 16px; height: 52px; }
     #header h1 { font-size: 18px; }
-    #mob-sync-btn { display: inline-block !important; }
     #layout { flex-direction: column; }
-    #main { padding-bottom: 68px; }
+    #main { padding-bottom: 100px; }
 
     #year-summary {
       padding: 10px 16px;
       gap: 0;
+      flex-wrap: wrap;
       justify-content: space-between;
     }
-    .fy-title { font-size: 16px; flex: none; }
+    .fy-title { font-size: 15px; flex: 0 0 100%; margin-bottom: 8px; }
     .stat {
       flex: 1;
       align-items: center;
@@ -628,8 +726,9 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 6px 4px;
-      margin-left: 8px;
+      margin-left: 0;
     }
+    .stat + .stat { margin-left: 6px; }
     .stat-label { font-size: 9px; }
     .stat-val { font-size: 13px; }
 
@@ -639,35 +738,46 @@
     th { padding: 10px 12px; }
     .del-btn { font-size: 17px; padding: 6px 10px; }
 
-    /* bottom nav */
-    #bottom-nav {
+    /* floating action buttons */
+    #mob-fabs {
       display: flex !important;
-      position: fixed; bottom: 0; left: 0; right: 0;
-      height: 68px;
-      background: var(--bg1);
-      border-top: 1px solid var(--border);
+      flex-direction: column;
+      gap: 12px;
+      position: fixed;
+      bottom: 24px;
+      right: 20px;
       z-index: 90;
     }
-    .bnav-btn {
-      flex: 1; display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: 3px; background: transparent; border: none;
-      color: var(--text-3); font-size: 10px; font-weight: 500;
+    #fab-add, #fab-menu {
+      height: 52px;
+      border-radius: 26px;
+      padding: 0 14px;
+      font-size: 14px;
+      font-weight: 600;
       font-family: 'DM Sans', sans-serif;
-      cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 0;
-      transition: color 0.15s;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      transition: opacity 0.15s, transform 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      white-space: nowrap;
     }
-    .bnav-btn.active { color: var(--text-1); }
-    .bnav-btn .bnav-icon { font-size: 20px; line-height: 1; }
-    .bnav-btn.bnav-add {
-      color: #0f0f11; border-radius: 12px; margin: 10px 6px;
-      padding: 6px 0; letter-spacing: 0.03em;
+    #fab-add {
       background: var(--gold);
+      color: #0f0f11;
+      border: none;
     }
+    #fab-menu {
+      background: var(--bg3);
+      color: var(--text-1);
+      border: 1px solid var(--border-hi);
+    }
+    #fab-add:active, #fab-menu:active { opacity: 0.85; transform: scale(0.96); }
 
     /* slide-up sheets */
     #menu-sheet, #year-sheet, #add-sheet {
       display: none;
-      position: fixed; bottom: 68px; left: 0; right: 0;
+      position: fixed; bottom: 0; left: 0; right: 0;
       background: var(--bg2);
       border-top: 1px solid var(--border-hi);
       border-radius: 18px 18px 0 0;
@@ -676,6 +786,7 @@
     #menu-sheet.open, #year-sheet.open, #add-sheet.open { display: block; }
 
     #year-sheet { padding: 0 0 12px; max-height: 70vh; overflow-y: auto; }
+    #menu-sheet { max-height: 80vh; overflow-y: auto; overflow-x: hidden; }
     #add-sheet  { padding: 0 20px 32px; }
 
     .sheet-handle {
@@ -687,21 +798,131 @@
     .sheet-title {
       font-family: 'DM Serif Display', serif;
       font-size: 17px; font-weight: 400;
-      padding: 0 16px 10px;
+      padding: 0;
       color: var(--text-1);
+      flex: 1;
     }
-    #add-sheet .sheet-title { padding: 0 0 16px; }
+    .sheet-header {
+      display: flex;
+      align-items: center;
+      padding: 0 16px 10px;
+      gap: 4px;
+    }
+    .sheet-close-btn {
+      background: transparent; border: none;
+      color: var(--text-2); font-size: 18px;
+      cursor: pointer; padding: 4px 6px;
+      line-height: 1; border-radius: 6px;
+      flex-shrink: 0;
+      transition: color 0.15s, background 0.15s;
+    }
+    .sheet-close-btn:hover { color: var(--text-1); background: var(--bg3); }
+    .sheet-back-btn {
+      background: transparent; border: none;
+      color: var(--text-2); font-size: 20px;
+      cursor: pointer; padding: 4px 8px 4px 0;
+      line-height: 1; flex-shrink: 0;
+      transition: color 0.15s;
+    }
+    .sheet-back-btn:hover { color: var(--text-1); }
+    /* ── menu inline transactions dropdown ── */
+    .menu-tx-dropdown {
+      display: none;
+      background: var(--bg1);
+      border-bottom: 1px solid var(--border);
+    }
+    .menu-tx-dropdown.open { display: block; }
+    .menu-tx-dropdown-item {
+      width: 100%; background: transparent; border: none;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 20px 14px 52px;
+      cursor: pointer; font-size: 14px; font-weight: 400;
+      color: var(--text-2); font-family: 'DM Sans', sans-serif;
+      text-align: left; transition: background 0.1s, color 0.1s;
+    }
+    .menu-tx-dropdown-item:last-child { border-bottom: none; }
+    .menu-tx-dropdown-item:hover { background: var(--bg3); color: var(--text-1); }
+    .menu-tx-dropdown-item.active { color: var(--gold); background: var(--bg2); }
+    .menu-tx-year-net { margin-left: auto; font-size: 12px; font-weight: 300; }
+    .menu-tx-all-spacer { flex-shrink: 0; width: 42px; }
+    .menu-tx-dropdown-item.year-row { padding-right: 0; }
+    .menu-tx-year-inner { display: flex; align-items: center; gap: 14px; flex: 1; padding: 14px 20px 14px 52px; }
+    .menu-tx-year-chevron {
+      font-size: 16px; color: var(--text-3);
+      padding: 14px 16px; line-height: 1; flex-shrink: 0;
+      transition: transform 0.18s, color 0.15s;
+    }
+    .menu-tx-dropdown-item.year-row.expanded .menu-tx-year-chevron { transform: rotate(90deg); }
+    .menu-tx-dropdown-item.year-row:hover .menu-tx-year-chevron { color: var(--text-1); }
+    .menu-tx-month-list { display: none; background: var(--bg0); }
+    .menu-tx-month-list.open { display: block; }
+    .menu-tx-month-btn {
+      width: 100%; background: transparent; border: none;
+      border-top: 1px solid var(--border);
+      color: var(--text-3); padding: 12px 20px 12px 68px;
+      text-align: left; cursor: pointer;
+      font-size: 13px; font-weight: 400;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.1s, color 0.1s;
+      display: flex; align-items: center;
+    }
+    .menu-tx-month-btn:hover { background: var(--bg2); color: var(--text-2); }
+    .menu-tx-month-btn.active { color: var(--gold); background: var(--bg2); }
+    .menu-item-arrow { transition: transform 0.2s; }
+    .menu-item-btn.tx-open .menu-item-arrow { transform: rotate(90deg); }
+
+    .ysheet-all-btn {
+      display: flex; align-items: center;
+      width: 100%; background: transparent; border: none;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-2); padding: 15px 16px;
+      text-align: left; cursor: pointer; display: flex;
+      align-items: center;
+      font-size: 15px; font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.1s, color 0.1s;
+    }
+    .ysheet-all-btn:hover { background: var(--bg3); color: var(--text-1); }
+    .ysheet-all-btn.active { color: var(--gold); background: var(--bg3); }
     .ysheet-btn {
       width: 100%; background: transparent; border: none;
       border-bottom: 1px solid var(--border);
-      color: var(--text-1); padding: 15px 16px; text-align: left;
-      cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+      color: var(--text-1); padding: 0; text-align: left;
+      cursor: default; display: block;
       transition: background 0.1s;
     }
-    .ysheet-btn:hover { background: var(--bg3); }
-    .ysheet-btn.active { color: var(--gold); }
+    .ysheet-btn.active .ysheet-btn-label { color: var(--gold); }
+    .ysheet-btn-label {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 15px 16px; cursor: pointer; width: 100%;
+      transition: background 0.1s;
+    }
+    .ysheet-btn-label:hover { background: var(--bg3); }
     .ysheet-btn .yb-label { font-weight: 500; font-size: 15px; }
     .ysheet-btn .yb-net   { font-size: 13px; font-weight: 300; }
+    .ysheet-chevron {
+      font-size: 16px; color: var(--text-2);
+      padding: 6px 10px; border-radius: 6px;
+      transition: transform 0.18s, background 0.15s;
+      flex-shrink: 0; line-height: 1;
+    }
+    .ysheet-chevron:hover { background: var(--bg4); }
+    .ysheet-btn.expanded .ysheet-chevron { transform: rotate(90deg); }
+    .ysheet-month-list { display: none; }
+    .ysheet-month-list.open { display: block; }
+    .ysheet-month-btn {
+      width: 100%; background: transparent; border: none;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-3); padding: 12px 16px 12px 32px;
+      text-align: left; cursor: pointer;
+      font-size: 13px; font-weight: 400;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.1s, color 0.1s;
+      border-left: 2px solid transparent;
+    }
+    .ysheet-month-btn:hover { background: var(--bg3); color: var(--text-2); }
+    .ysheet-month-btn.active { color: var(--gold); border-left-color: var(--gold); background: var(--bg3); }
     .menu-item-btn {
       width: 100%; background: transparent; border: none;
       border-bottom: 1px solid var(--border);
@@ -742,7 +963,7 @@
       width: 100%; font-size: 16px; padding: 13px 14px;
       border-radius: var(--radius);
     }
-    #add-sheet .field input[type=date] { min-width: unset; }
+    #add-sheet .field input[type=date] { min-width: unset; width: 100%; max-width: 100%; box-sizing: border-box; }
 
     /* type toggle */
     .add-type-toggle {
@@ -773,19 +994,38 @@
     #mob-add-btn:hover { opacity: 0.88; }
 
     #sheet-overlay {
-      display: none; position: fixed; inset: 0; bottom: 68px;
+      display: none; position: fixed; inset: 0;
       background: rgba(0,0,0,0.5); z-index: 140;
     }
     #sheet-overlay.open { display: block; }
   }
 
+  @media (max-height: 500px) {
+    /* Landscape on small screens — tighter modal padding */
+    .modal-box, .info-popup-box, .sync-info-box, .tx-popup-box {
+      padding: 16px 20px !important;
+    }
+    #recurring-modal .modal-box {
+      padding: 16px 20px !important;
+    }
+    .tx-popup-actions, .modal-actions { margin-top: 12px !important; }
+    .tx-popup-meta { margin-bottom: 12px !important; }
+    .tx-popup-field { margin-bottom: 8px !important; }
+  }
+
+  @media (min-width: 641px) and (max-width: 900px) {
+    #sidebar { width: 160px; }
+    .year-btn .fy-label { font-size: 12px; }
+    .year-btn .fy-net   { font-size: 10px; }
+    #year-summary { gap: 16px; padding: 12px 16px; }
+  }
+
   @media (min-width: 641px) {
-    #bottom-nav   { display: none; }
+    #mob-fabs     { display: none !important; }
     #menu-sheet   { display: none !important; }
     #year-sheet   { display: none !important; }
     #add-sheet    { display: none !important; }
     #sheet-overlay{ display: none !important; }
-    #mob-sync-btn { display: none; }
   }
 
   /* ── login screen ── */
@@ -843,7 +1083,7 @@
     opacity: 0.5;
   }
   @media (max-width: 640px) {
-    #version-footer { bottom: 74px; }
+    #version-footer { bottom: 10px; }
   }
 
   /* ── desktop menu dropdown ── */
@@ -853,11 +1093,12 @@
     top: 66px;
     right: 20px;
     width: 260px;
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
     background: var(--bg2);
     border: 1px solid var(--border-hi);
     border-radius: var(--radius-lg);
     z-index: 200;
-    overflow: hidden;
     box-shadow: 0 4px 6px rgba(0,0,0,0.2), 0 16px 48px rgba(0,0,0,0.5);
     transform: translateY(-6px);
     opacity: 0;
@@ -965,15 +1206,66 @@
     #desktop-menu-overlay { display: none !important; }
     #desktop-menu-btn { display: none !important; }
   }
+
+  @media (max-width: 640px) {
+    /* Year format popup — larger touch targets on mobile */
+    #year-format-popup .info-popup-box {
+      padding: 24px 20px 28px;
+      max-height: 88vh;
+      overflow-y: auto;
+    }
+    #year-format-popup .info-mode {
+      padding: 18px;
+      margin-bottom: 12px;
+    }
+    #yfmt-fy-config {
+      margin-top: 12px;
+    }
+    #year-format-popup .info-mode-title {
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+    #year-format-popup .info-mode p {
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    #yfmt-fy-config label {
+      font-size: 12px !important;
+      margin-bottom: 10px !important;
+      text-align: center !important;
+    }
+    #fy-start-day-select, #fy-start-month-select {
+      padding: 13px 12px !important;
+      font-size: 15px !important;
+    }
+    #yfmt-fy-config p {
+      text-align: center;
+    }
+    #year-format-popup .info-popup-close-btn {
+      padding: 16px 0 !important;
+      font-size: 15px !important;
+      font-weight: 600 !important;
+      margin-top: 16px !important;
+      background: var(--gold) !important;
+      color: #0f0f11 !important;
+      border-color: var(--gold) !important;
+    }
+    #year-format-popup .modal-close {
+      font-size: 22px;
+      padding: 6px 8px;
+    }
+  }
   /* ── info popup ── */
-  #info-popup {
+  #info-popup,
+  #year-format-popup {
     position: fixed; inset: 0;
     background: rgba(0,0,0,0.6);
     backdrop-filter: blur(4px);
     z-index: 400;
     display: flex; align-items: center; justify-content: center; padding: 20px;
   }
-  #info-popup.hidden { display: none; }
+  #info-popup.hidden,
+  #year-format-popup.hidden { display: none; }
   .info-popup-box {
     background: var(--bg2);
     border: 1px solid var(--border-hi);
@@ -982,6 +1274,7 @@
     max-width: 420px;
     width: 100%;
     position: relative;
+    max-height: 90vh; overflow-y: auto;
   }
   .info-popup-box h3 {
     font-family: 'DM Serif Display', serif;
@@ -1054,6 +1347,7 @@
     padding: 28px 32px 32px;
     max-width: 400px;
     width: 100%;
+    max-height: 90vh; overflow-y: auto;
   }
   .sync-info-box p {
     font-size: 12px; color: var(--text-2);
@@ -1076,7 +1370,7 @@
   .srow-pill {
     font-size: 10px; font-weight: 600; letter-spacing: 0.04em;
     padding: 3px 9px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
-    margin-top: 1px;
+    margin-top: 1px; min-width: 72px; text-align: center;
   }
   .srow-pill.ok   { background: rgba(61,158,110,0.15); color: #5ec497; }
   .srow-pill.busy { background: rgba(201,168,76,0.15); color: var(--gold); }
@@ -1205,6 +1499,27 @@
     transition: opacity 0.15s;
   }
   .btn-tstep-next:hover { opacity: 0.88; }
+  /* ── sidebar add new button ── */
+  #sidebar-addnew-wrap { padding: 10px 14px 14px; flex-shrink: 0; }
+  #sidebar-addnew-btn {
+    width: 100%; background: var(--gold); border: none;
+    border-radius: var(--radius); padding: 9px 0;
+    color: #0f0f11; font-weight: 700; font-size: 13px;
+    font-family: 'DM Sans', sans-serif; cursor: pointer;
+    transition: opacity 0.15s; letter-spacing: 0.02em;
+  }
+  #sidebar-addnew-btn:hover { opacity: 0.88; }
+  #sidebar.collapsed #sidebar-addnew-wrap { display: none; }
+
+  /* ── desktop add popup ── */
+  #desktop-add-popup {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(4px);
+    z-index: 300;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  #desktop-add-popup.hidden { display: none; }
 
 </style>
 </head>
@@ -1243,7 +1558,7 @@
       <button class="modal-info-btn" onclick="document.getElementById('info-popup').classList.remove('hidden')" title="Learn more">?</button>
       <button class="modal-close" onclick="document.getElementById('setup-modal').classList.add('hidden')" title="Close">✕</button>
     </div>
-    <p>Sync your Vault data to Google Drive — no spreadsheet or script setup needed. Your data is saved as a private file in your own Drive. <button onclick="openTutorial()" style="background:none;border:none;color:var(--gold);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;padding:0;font-weight:500;text-decoration:underline;">How does this work?</button></p>
+    <p>Sync your Vault data to Google Drive. Your data is saved as a private file in your own Drive, accessible across all your devices. <button onclick="openTutorial()" style="background:none;border:none;color:var(--gold);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;padding:0;font-weight:500;text-decoration:underline;">How does this work?</button></p>
 
     <div id="drive-connected-info" style="display:none; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; margin-bottom:16px;">
       <div style="font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin-bottom:4px;">Connected Account</div>
@@ -1270,7 +1585,7 @@
         🔗 Google Drive Sync
         <span class="info-badge cloud">Recommended</span>
       </div>
-      <p>Your data is saved as a private JSON file in your own Google Drive. It syncs automatically across all your devices — phone, tablet, and desktop. No spreadsheet or script setup needed. If you clear your browser data or switch devices, nothing is lost.</p>
+      <p>Your data is saved as a private JSON file in your own Google Drive. It syncs automatically across all your devices — phone, tablet, and desktop. If you clear your browser data or switch devices, nothing is lost.</p>
     </div>
     <div class="info-mode">
       <div class="info-mode-title">
@@ -1385,6 +1700,132 @@
   </div>
 </div>
 
+<!-- Year format popup -->
+<div id="year-format-popup" class="hidden">
+  <div class="info-popup-box" style="max-width:400px;">
+    <div style="display:flex; align-items:center; margin-bottom:20px;">
+      <h3 style="margin-bottom:0; flex:1;">Change Year Format</h3>
+      <button class="modal-close" onclick="document.getElementById('year-format-popup').classList.add('hidden')" title="Close">✕</button>
+    </div>
+    <div class="info-mode" id="yfmt-cal" style="cursor:pointer;" onclick="switchYearMode('calendar');">
+      <div class="info-mode-title">
+        📅 Calendar Year
+        <span class="info-badge" id="yfmt-cal-badge" style="background:var(--bg4); color:var(--text-3);">Jan – Dec</span>
+      </div>
+      <p>Groups transactions by calendar year (January to December). Groups are labelled 2024, 2025, etc.</p>
+    </div>
+    <div class="info-mode" id="yfmt-fy" style="cursor:pointer; margin-top:10px;" onclick="switchYearMode('financial');">
+      <div class="info-mode-title">
+        📊 Financial Year
+        <span class="info-badge" id="yfmt-fy-badge" style="background:var(--bg4); color:var(--text-3);">Jul – Jun</span>
+      </div>
+      <p>Groups transactions by a custom financial year. Choose when your financial year starts below.</p>
+      <div id="yfmt-fy-config" onclick="event.stopPropagation();">
+        <label style="font-size:11px; color:var(--text-3); font-weight:600; text-transform:uppercase; letter-spacing:0.08em; display:block; margin-bottom:12px; text-align:center;">Financial Year Starts</label>
+        <div style="display:flex; justify-content:center; gap:8px;">
+          <select id="fy-start-day-select" onchange="setFyStartSelects()"
+            style="background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:10px 12px; color:var(--text-1); font-size:15px; font-family:'DM Sans',sans-serif; outline:none; cursor:pointer; min-width:72px; text-align:center;">
+          </select>
+          <select id="fy-start-month-select" onchange="populateDaySelect(document.getElementById('fy-start-day-select'), parseInt(this.value,10), parseInt(document.getElementById('fy-start-day-select').value,10)||1); setFyStartSelects()"
+            style="background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:10px 12px; color:var(--text-1); font-size:15px; font-family:'DM Sans',sans-serif; outline:none; cursor:pointer; flex:1;">
+              <option value="1">January</option>
+              <option value="2">February</option>
+              <option value="3">March</option>
+              <option value="4">April</option>
+              <option value="5">May</option>
+              <option value="6">June</option>
+              <option value="7">July</option>
+              <option value="8">August</option>
+              <option value="9">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <button class="info-popup-close-btn" style="margin-top:20px;" onclick="document.getElementById('year-format-popup').classList.add('hidden')">Done</button>
+  </div>
+</div>
+
+<!-- Desktop: add transaction popup -->
+<div id="desktop-add-popup" class="hidden" onclick="if(event.target===this)closeDesktopAddSheet()">
+  <div class="tx-popup-box" style="max-width:420px; padding:32px;">
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
+      <h3 style="flex:1; margin:0;">Add Transaction</h3>
+      <button id="desk-manage-recur-btn" onclick="closeDesktopAddSheet(); openRecurringModal();"
+        style="display:none; font-size:11px; color:var(--gold); background:rgba(201,168,76,0.1); border:1px solid var(--gold-dim); border-radius:20px; padding:4px 10px; cursor:pointer; font-family:'DM Sans',sans-serif; white-space:nowrap; transition:opacity 0.15s;"></button>
+      <button class="modal-close" onclick="closeDesktopAddSheet()" title="Close">✕</button>
+    </div>
+
+    <!-- Type toggle -->
+    <div style="display:flex; gap:8px; margin-bottom:22px;">
+      <button id="desk-type-deposit" onclick="setDeskType('deposit')"
+        style="flex:1; border:1px solid var(--border-hi); border-radius:var(--radius); padding:10px 0; font-size:13px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; transition:background 0.15s,color 0.15s,border-color 0.15s; background:var(--green); color:#fff; border-color:var(--green);">
+        💚 Deposit
+      </button>
+      <button id="desk-type-withdraw" onclick="setDeskType('withdraw')"
+        style="flex:1; border:1px solid var(--border-hi); border-radius:var(--radius); padding:10px 0; font-size:13px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; transition:background 0.15s,color 0.15s,border-color 0.15s; background:var(--bg3); color:var(--text-2);">
+        🔴 Withdrawal
+      </button>
+    </div>
+
+    <div class="tx-popup-field">
+      <label>Date</label>
+      <input type="date" id="desk-inp-date" style="color-scheme:dark;">
+    </div>
+    <div class="tx-popup-field">
+      <label>Amount ($)</label>
+      <input type="number" id="desk-inp-amount" min="0.01" step="0.01" placeholder="0.00" inputmode="decimal"
+             onkeydown="if(event.key==='Enter')desktopAddTransaction()">
+    </div>
+
+    <!-- Recurring toggle -->
+    <div style="margin-bottom:18px;">
+      <button id="desk-recur-toggle" onclick="toggleDeskRecur()"
+        style="width:100%; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 14px; color:var(--text-2); font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer; text-align:left; transition:border-color 0.15s, color 0.15s, background 0.15s;">
+        ↺︎ Make this a recurring transaction
+      </button>
+    </div>
+
+    <!-- Recurring options (hidden until toggled) -->
+    <div id="desk-recur-fields" style="display:none; margin-bottom:18px; padding:14px; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius);">
+      <div style="display:flex; gap:10px; margin-bottom:10px;">
+        <div class="tx-popup-field" style="flex:1; margin:0;">
+          <label>Frequency</label>
+          <select id="desk-recur-freq" onchange="onDeskRecurFreqChange()"
+            style="background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%; transition:border-color 0.15s;">
+            <option value="weekly">Weekly</option>
+            <option value="fortnightly">Fortnightly</option>
+            <option value="monthly">Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </div>
+        <div class="tx-popup-field" id="desk-recur-dow-wrap" style="flex:1; margin:0;">
+          <label>Day of week</label>
+          <select id="desk-recur-dow"
+            style="background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%; transition:border-color 0.15s;">
+            <option value="0">Sunday</option>
+            <option value="1">Monday</option>
+            <option value="2">Tuesday</option>
+            <option value="3">Wednesday</option>
+            <option value="4">Thursday</option>
+            <option value="5">Friday</option>
+            <option value="6">Saturday</option>
+          </select>
+        </div>
+      </div>
+      <div style="font-size:11px; color:var(--text-3); line-height:1.6;">The start date sets the first occurrence. Future transactions are added automatically as each date is reached.</div>
+    </div>
+
+    <div class="tx-popup-actions">
+      <button class="btn-save" id="desk-add-btn" onclick="desktopAddTransaction()" style="background:var(--green);">Add Deposit</button>
+      <button class="btn-popup-cancel" onclick="closeDesktopAddSheet()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div id="header">
   <div class="header-left">
     <h1>Vault</h1>
@@ -1392,7 +1833,6 @@
   </div>
   <div class="header-btns">
     <span id="sync-status" class="sync-none" onclick="openSyncInfoPopup()">Not connected</span>
-    <button id="mob-sync-btn" class="btn-ghost" onclick="manualSync()" style="display:none">↻</button>
     <button class="btn-ghost" id="desktop-menu-btn" onclick="toggleDesktopMenu()">☰ Menu</button>
   </div>
 </div>
@@ -1407,32 +1847,44 @@
     </div>
   </div>
   <div class="dmenu-items">
-    <button class="dmenu-btn" onclick="closeDesktopMenu(); setTimeout(manualSync, 50);">
-      <span class="dmenu-btn-icon">↻</span>
-      <div><div class="dmenu-btn-label">Sync Now</div></div>
+    <button class="dmenu-btn" onclick="closeDesktopMenu(); switchTab('report');">
+      <span class="dmenu-btn-icon">📊</span>
+      <div><div class="dmenu-btn-label">Reports & Export</div><div class="dmenu-btn-sub">View reports and export CSV</div></div>
+    </button>
+    <div class="dmenu-divider"></div>
+    <button class="dmenu-btn" onclick="closeDesktopMenu(); openYearFormatPopup();">
+      <span class="dmenu-btn-icon">📅</span>
+      <div><div class="dmenu-btn-label">Change Year Format</div><div class="dmenu-btn-sub" id="dmenu-yearmode-sub">Calendar year</div></div>
     </button>
     <div class="dmenu-divider"></div>
     <button class="dmenu-btn" onclick="closeDesktopMenu(); setTimeout(openSetup, 50);">
       <span class="dmenu-btn-icon">🔗</span>
       <div><div class="dmenu-btn-label">Connect to Google Drive</div><div class="dmenu-btn-sub">Manage cloud sync</div></div>
     </button>
+
   </div>
 </div>
 <div id="desktop-menu-overlay" onclick="closeDesktopMenu()"></div>
 
 <div id="layout">
+  <div id="layout-inner">
   <div id="sidebar">
     <div class="sidebar-header">
-      <span class="sidebar-label">Financial Years</span>
+      <span class="sidebar-label" id="sidebar-years-label">Years</span>
       <button id="sidebar-collapse-btn" onclick="toggleSidebar()" title="Collapse">‹</button>
     </div>
-    <div id="sidebar-report-btn-wrap">
-      <button id="sidebar-report-btn" onclick="switchTab('report')" class="sidebar-report-btn">
-        📊 Report
-      </button>
+    <div id="sidebar-allyears-btn-wrap">
+      <div id="sidebar-allyears-btn" onclick="setActiveYear('all-years')" class="year-btn" style="cursor:pointer;">
+        <div class="year-btn-inner">
+          <div class="year-btn-label" style="flex:1; padding: 10px 0 10px 16px;">
+            <div class="fy-label">All</div>
+            <div class="fy-net" id="sidebar-all-net"></div>
+          </div>
+        </div>
+      </div>
     </div>
     <div id="year-list">
-      <div id="add-year-area">
+      <div id="add-year-area" style="display:none;">
         <button id="btn-new-year" onclick="showAddYear()">+ New Year</button>
         <div id="add-year-form">
           <input id="new-year-input" type="text" maxlength="5" placeholder="e.g. 26-27"
@@ -1443,21 +1895,26 @@
           </div>
         </div>
       </div>
+      <div id="sidebar-addnew-wrap">
+        <button id="sidebar-addnew-btn" onclick="openDesktopAddSheet()">
+          ＋ Add New
+        </button>
+      </div>
     </div>
   </div>
 
   <div id="main">
     <div id="year-summary">
       <div class="fy-title" id="fy-title">FY 20--</div>
-      <div class="stat"><span class="stat-label">Saved In</span>   <span class="stat-val"     id="stat-in"  style="color:var(--green)"></span></div>
+      <div class="stat"><span class="stat-label">Saved</span>   <span class="stat-val"     id="stat-in"  style="color:var(--green)"></span></div>
       <div class="stat"><span class="stat-label">Withdrawn</span>  <span class="stat-val"     id="stat-out" style="color:var(--red)"></span></div>
       <div class="stat"><span class="stat-label">Net</span>         <span class="stat-val big" id="stat-net"></span></div>
     </div>
 
     <div id="tabs">
       <button class="tab-btn active" id="tab-all"     onclick="switchTab('all')"   >All <span id="count-all"></span></button>
-      <button class="tab-btn"        id="tab-saved"   onclick="switchTab('saved')" >💚 Saved <span id="count-saved"></span></button>
-      <button class="tab-btn"        id="tab-removed" onclick="switchTab('removed')">🔴 Withdrawn <span id="count-removed"></span></button>
+      <button class="tab-btn"        id="tab-saved"   onclick="switchTab('saved')" >Saved <span id="count-saved"></span></button>
+      <button class="tab-btn"        id="tab-removed" onclick="switchTab('removed')">Withdrawn <span id="count-removed"></span></button>
     </div>
 
     <div id="add-form">
@@ -1473,9 +1930,9 @@
       <div id="empty-msg" style="display:none">No transactions yet — add one above.</div>
       <table id="tx-table" style="display:none">
         <thead><tr>
-          <th id="sort-date" onclick="setSort('date')" class="sort-col">Date</th>
-          <th id="sort-type" class="sort-col-type">Type</th>
-          <th id="sort-amount" onclick="setSort('amount')" class="sort-col right">Amount</th>
+          <th id="sort-date" onclick="setSort('date')" class="sort-col">Date <span style="font-size:20px; letter-spacing:0; position:relative; bottom:1px;">↑︎</span></th>
+          <th id="sort-type" onclick="setSort('type')" class="sort-col-type">Type <span style="font-size:20px; letter-spacing:0; position:relative; bottom:1px;">↕︎</span></th>
+          <th id="sort-amount" onclick="setSort('amount')" class="sort-col right">Amount <span style="font-size:20px; letter-spacing:0; position:relative; bottom:1px;">↕︎</span></th>
         </tr></thead>
         <tfoot><tr>
           <td class="foot-label" id="foot-label"></td>
@@ -1499,11 +1956,11 @@
             <label>To</label>
             <input type="date" id="report-to" style="color-scheme:dark" oninput="renderReport()">
           </div>
-          <button class="btn-ghost" onclick="setReportPreset('fy')">This FY</button>
+          <button id="report-preset-fy" class="btn-ghost" onclick="setReportPreset('fy')">This FY</button>
           <button class="btn-ghost" onclick="setReportPreset('year')">This Year</button>
           <button class="btn-ghost" onclick="setReportPreset('month')">This Month</button>
           <button class="btn-ghost" onclick="setReportPreset('all')">All Time</button>
-          <button class="btn-gold" onclick="exportReportCSV()" style="margin-left:auto;">⬇ Export CSV</button>
+          <button class="btn-gold" onclick="exportReportXLSX()" style="margin-left:auto;">⬇ Export Spreadsheet</button>
         </div>
       </div>
 
@@ -1538,25 +1995,12 @@
 
   </div>
 </div>
+</div>
 
-<!-- Mobile: bottom nav bar -->
-<div id="bottom-nav" style="display:none">
-  <button class="bnav-btn active" id="bnav-all" onclick="mobileTab('all')">
-    <span class="bnav-icon">📋</span>All
-  </button>
-  <button class="bnav-btn" id="bnav-saved" onclick="mobileTab('saved')">
-    <span class="bnav-icon">💚</span>Saved
-  </button>
-  <button class="bnav-btn" id="bnav-removed" onclick="mobileTab('removed')">
-    <span class="bnav-icon">🔴</span>Withdrawn
-  </button>
-  <button class="bnav-btn bnav-add" id="bnav-add" onclick="openAddSheet()">
-    <span class="bnav-icon">＋</span>
-    <span>Add New</span>
-  </button>
-  <button class="bnav-btn" id="bnav-menu" onclick="openMenuSheet()">
-    <span class="bnav-icon">☰</span>Menu
-  </button>
+<!-- Mobile: floating action buttons -->
+<div id="mob-fabs" style="display:none">
+  <button id="fab-menu" onclick="openMenuSheet()"><span>☰</span> Menu</button>
+  <button id="fab-add"  onclick="openAddSheet()"><span>＋</span> Add New</button>
 </div>
 
 <!-- Mobile: sheet overlay -->
@@ -1565,20 +2009,26 @@
 <!-- Mobile: menu sheet -->
 <div id="menu-sheet">
   <div class="sheet-handle"></div>
-  <div class="sheet-title">Menu</div>
+  <div class="sheet-header">
+    <div class="sheet-title">Menu</div>
+    <button class="sheet-close-btn" onclick="closeSheets();">✕</button>
+  </div>
   <button class="menu-item-btn" onclick="closeSheets(); mobileTab('report');">
     <span class="menu-item-icon">📊</span>
-    <span class="menu-item-label">Report</span>
+    <span class="menu-item-label">Reports & Export</span>
   </button>
-  <button class="menu-item-btn" onclick="closeSheets(); openYearSheet();">
+  <button class="menu-item-btn" id="menu-tx-toggle-btn" onclick="toggleMenuTxDropdown()">
     <span class="menu-item-icon">📅</span>
-    <span class="menu-item-label">Financial Years</span>
+    <span class="menu-item-label" id="mob-years-label">Transactions</span>
     <span class="menu-item-arrow">›</span>
   </button>
-  <button class="menu-item-btn" onclick="closeSheets(); setTimeout(manualSync, 50);">
-    <span class="menu-item-icon">↻</span>
-    <span class="menu-item-label">Sync Now</span>
-    <span id="menu-sync-status" class="menu-item-meta"></span>
+  <div class="menu-tx-dropdown" id="menu-tx-dropdown">
+    <!-- populated by renderMenuTxDropdown() -->
+  </div>
+  <button class="menu-item-btn" onclick="closeSheets(); setTimeout(openYearFormatPopup, 50);">
+    <span class="menu-item-icon">📅</span>
+    <span class="menu-item-label">Change Year Format</span>
+    <span class="menu-item-meta" id="mob-yearmode-sub" style="font-size:11px; color:var(--text-3);">Calendar year</span>
   </button>
   <button class="menu-item-btn" onclick="closeSheets(); setTimeout(openSetup, 50);">
     <span class="menu-item-icon">🔗</span>
@@ -1589,8 +2039,16 @@
 <!-- Mobile: year picker sheet -->
 <div id="year-sheet">
   <div class="sheet-handle"></div>
-  <div class="sheet-title">Financial Years</div>
-  <div id="ysheet-year-list"></div>
+  <div class="sheet-header">
+    <button class="sheet-back-btn" onclick="document.getElementById('year-sheet').classList.remove('open'); openMenuSheet();">‹</button>
+    <div class="sheet-title" id="ysheet-years-title">Years</div>
+    <button class="sheet-close-btn" onclick="closeSheets();">✕</button>
+  </div>
+  <button class="ysheet-all-btn" onclick="setActiveYear('all-years'); closeSheets();">
+    <span style="flex:1">All</span><span id="ysheet-all-net" style="font-size:12px; font-weight:300;"></span>
+  </button>
+  <div id="ysheet-year-list">
+  </div>
   <button id="ysheet-new-btn" onclick="showYsheetNewForm()">+ New Year</button>
   <div id="ysheet-new-form">
     <input id="ysheet-new-input" type="text" maxlength="5" placeholder="e.g. 26-27"
@@ -1605,19 +2063,60 @@
 <!-- Mobile: add transaction sheet -->
 <div id="add-sheet">
   <div class="sheet-handle"></div>
-  <div class="sheet-title">Add Transaction</div>
+  <div class="sheet-header">
+    <div class="sheet-title">Add Transaction</div>
+    <button id="mob-manage-recur-btn" onclick="closeSheets(); openRecurringModal();"
+      style="display:none; font-size:11px; color:var(--gold); background:rgba(201,168,76,0.1); border:1px solid var(--gold-dim); border-radius:20px; padding:4px 10px; cursor:pointer; font-family:'DM Sans',sans-serif; white-space:nowrap;"></button>
+    <button class="sheet-close-btn" onclick="closeSheets();">✕</button>
+  </div>
   <div class="add-type-toggle">
-    <button class="add-type-btn active-deposit" id="mob-type-deposit" onclick="setMobType('deposit')">💚 Deposit</button>
-    <button class="add-type-btn" id="mob-type-withdraw" onclick="setMobType('withdraw')">🔴 Withdrawal</button>
+    <button class="add-type-btn active-deposit" id="mob-type-deposit" onclick="setMobType('deposit')">Deposit</button>
+    <button class="add-type-btn" id="mob-type-withdraw" onclick="setMobType('withdraw')">Withdrawal</button>
   </div>
   <div class="field">
     <label>Date</label>
-    <input type="date" id="mob-inp-date" style="color-scheme:dark">
+    <input type="date" id="mob-inp-date" style="color-scheme:dark; width:100%; box-sizing:border-box; display:block; -webkit-appearance:none; appearance:none;">
   </div>
   <div class="field">
     <label>Amount ($)</label>
     <input type="number" id="mob-inp-amount" min="0.01" step="0.01" placeholder="0.00" inputmode="decimal">
   </div>
+
+  <!-- Recurring toggle -->
+  <button id="mob-recur-toggle" onclick="toggleMobRecur()"
+    style="width:100%; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); padding:11px 14px; color:var(--text-2); font-size:14px; font-family:'DM Sans',sans-serif; cursor:pointer; text-align:left; margin-bottom:12px; transition:border-color 0.15s, color 0.15s, background 0.15s;">
+    <span style="font-size:18px; vertical-align:middle;">↺︎</span> Make this a recurring transaction
+  </button>
+
+  <!-- Recurring options -->
+  <div id="mob-recur-fields" style="display:none; margin-bottom:12px; padding:14px; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius);">
+    <div class="field" style="margin-bottom:10px;">
+      <label>Frequency</label>
+      <select id="mob-recur-freq" onchange="onMobRecurFreqChange()"
+        style="background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:11px 12px; color:var(--text-1); font-size:14px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
+        <option value="weekly">Weekly</option>
+        <option value="fortnightly">Fortnightly</option>
+        <option value="monthly">Monthly</option>
+        <option value="quarterly">Quarterly</option>
+        <option value="yearly">Yearly</option>
+      </select>
+    </div>
+    <div class="field" id="mob-recur-dow-wrap" style="margin-bottom:10px;">
+      <label>Day of week</label>
+      <select id="mob-recur-dow"
+        style="background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:11px 12px; color:var(--text-1); font-size:14px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
+        <option value="0">Sunday</option>
+        <option value="1">Monday</option>
+        <option value="2">Tuesday</option>
+        <option value="3">Wednesday</option>
+        <option value="4">Thursday</option>
+        <option value="5">Friday</option>
+        <option value="6">Saturday</option>
+      </select>
+    </div>
+    <div style="font-size:12px; color:var(--text-3); line-height:1.6;">Future transactions are added automatically as each date is reached.</div>
+  </div>
+
   <button id="mob-add-btn" onclick="mobileAddTransaction()">Add Deposit</button>
 </div>
 
@@ -1638,6 +2137,69 @@
       <button class="btn-save"          onclick="savePopup()">Save Changes</button>
       <button class="btn-delete"        onclick="deletePopup()">Delete</button>
       <button class="btn-popup-cancel"  onclick="closePopup()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Recurring transactions modal -->
+<div id="recurring-modal" class="hidden">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>Recurring Transactions</h2>
+      <button class="modal-close" onclick="closeRecurringModal()">✕</button>
+    </div>
+    <p class="modal-desc">Transactions are added automatically on the day they fall due. Future occurrences are only added once that date is reached.</p>
+
+    <div id="recur-list"></div>
+    <div id="recur-empty" style="display:none">No recurring transactions yet.</div>
+
+    <div id="recur-add-form">
+      <div class="recur-form-title">Add New Recurring Transaction</div>
+      <div class="recur-form-row">
+        <div class="field">
+          <label>Type</label>
+          <select id="recur-type">
+            <option value="deposit">💚 Deposit</option>
+            <option value="withdrawal">🔴 Withdrawal</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Amount ($)</label>
+          <input type="number" id="recur-amount" min="0.01" step="0.01" placeholder="0.00" inputmode="decimal">
+        </div>
+      </div>
+      <div class="recur-form-row">
+        <div class="field">
+          <label>Start Date</label>
+          <input type="date" id="recur-start" style="color-scheme:dark;">
+        </div>
+        <div class="field">
+          <label>Frequency</label>
+          <select id="recur-freq" onchange="onRecurFreqChange()">
+            <option value="weekly">Weekly</option>
+            <option value="fortnightly">Fortnightly</option>
+            <option value="monthly">Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </div>
+      </div>
+      <div class="recur-form-row" id="recur-day-of-week-wrap">
+        <div class="field">
+          <label>Day of Week</label>
+          <select id="recur-dow">
+            <option value="0">Sunday</option>
+            <option value="1">Monday</option>
+            <option value="2">Tuesday</option>
+            <option value="3">Wednesday</option>
+            <option value="4">Thursday</option>
+            <option value="5">Friday</option>
+            <option value="6">Saturday</option>
+          </select>
+        </div>
+        <div class="field" style="flex:1"></div>
+      </div>
+      <button id="recur-add-btn" onclick="addRecurringRule()">+ Add Recurring Transaction</button>
     </div>
   </div>
 </div>
@@ -1759,16 +2321,23 @@ const SEED = {
 
 // ─── state ─────────────────────────────────────────────────────────────────────
 let data = {}, activeYear, activeTab = "all";
+let activeMonth = null;   // "YYYY-MM" or null
+let expandedYears = new Set(); // which year dropdowns are open in sidebar
 let sortKey = "date", sortDir = "asc";
 let syncTimer = null;
+let syncRetryTimer = null;
+let syncRetryCount = 0;
+const SYNC_RETRY_DELAYS = [5000, 15000, 60000]; // 5s, 15s, 60s
 
 // ─── Drive sync state ──────────────────────────────────────────────────────────
 const DRIVE_FILE_NAME = "vault-data.json";
 const DRIVE_CLIENT_ID = "923866716926-ch3d25r6159hc0ditod3n8g6ufb8pcsk.apps.googleusercontent.com";
 const DRIVE_SCOPE     = "https://www.googleapis.com/auth/drive.file";
-const DRIVE_FILE_KEY  = "vault_drive_file_id";
-const DRIVE_MODE_KEY  = "vault_drive_mode";
-const DRIVE_EMAIL_KEY = "vault_drive_email";
+const DRIVE_FILE_KEY   = "vault_drive_file_id";
+const DRIVE_MODE_KEY   = "vault_drive_mode";
+const DRIVE_EMAIL_KEY  = "vault_drive_email";
+const DRIVE_TOKEN_KEY  = "vault_drive_token";
+const DRIVE_EXPIRY_KEY = "vault_drive_expiry";
 
 let driveToken  = null;
 let driveFileId = null;
@@ -1779,6 +2348,11 @@ function loadDriveState() {
   try {
     driveFileId = localStorage.getItem(DRIVE_FILE_KEY) || null;
     driveMode   = localStorage.getItem(DRIVE_MODE_KEY) === "true";
+    // Restore cached token if not expired
+    const expiry = parseInt(localStorage.getItem(DRIVE_EXPIRY_KEY) || "0", 10);
+    if (expiry && Date.now() < expiry) {
+      driveToken = localStorage.getItem(DRIVE_TOKEN_KEY) || null;
+    }
   } catch {}
 }
 
@@ -1790,6 +2364,23 @@ function saveDriveState() {
   } catch {}
 }
 
+function saveToken(token) {
+  driveToken = token;
+  try {
+    localStorage.setItem(DRIVE_TOKEN_KEY, token);
+    // Access tokens last 1 hour; store expiry with 5min safety margin
+    localStorage.setItem(DRIVE_EXPIRY_KEY, String(Date.now() + 55 * 60 * 1000));
+  } catch {}
+}
+
+function clearToken() {
+  driveToken = null;
+  try {
+    localStorage.removeItem(DRIVE_TOKEN_KEY);
+    localStorage.removeItem(DRIVE_EXPIRY_KEY);
+  } catch {}
+}
+
 // ─── helpers ───────────────────────────────────────────────────────────────────
 function aud(n) { return n.toLocaleString("en-AU",{style:"currency",currency:"AUD"}); }
 function fmtDate(iso) {
@@ -1797,11 +2388,102 @@ function fmtDate(iso) {
   return `${d} ${["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][+m-1]} ${y}`;
 }
 function sumArr(arr) { return arr.reduce((a,b)=>a+b[1],0); }
-function nextFY() {
+// ─── year mode ─────────────────────────────────────────────────────────────────
+// "calendar" = Jan-Dec keys like "2025"
+// "financial" = custom start month, keys like "24-25"
+let yearMode = "calendar";
+let fyStartMonth = 7; // 1-12, default July (Australian FY)
+let fyStartDay   = 1; // 1-31, default 1st of the month
+const YEAR_MODE_KEY    = "vault_year_mode";
+const FY_START_KEY     = "vault_fy_start_month";
+const FY_START_DAY_KEY = "vault_fy_start_day";
+
+function loadYearMode() {
+  try {
+    yearMode     = localStorage.getItem(YEAR_MODE_KEY) || "calendar";
+    fyStartMonth = parseInt(localStorage.getItem(FY_START_KEY) || "7", 10);
+    fyStartDay   = parseInt(localStorage.getItem(FY_START_DAY_KEY) || "1", 10);
+  } catch {}
+}
+function saveYearMode() {
+  try {
+    localStorage.setItem(YEAR_MODE_KEY, yearMode);
+    localStorage.setItem(FY_START_KEY, String(fyStartMonth));
+    localStorage.setItem(FY_START_DAY_KEY, String(fyStartDay));
+  } catch {}
+}
+
+// Month names for labels
+const MONTH_NAMES_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTH_NAMES_FULL  = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+// Returns the year bucket key for a given ISO date string
+function yearKeyForDate(dateStr) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  if (yearMode === "financial") {
+    // A date is in the FY that starts in year fyStart when:
+    //   month > fyStartMonth, OR
+    //   month === fyStartMonth AND day >= fyStartDay
+    const inNewYear = (m > fyStartMonth) || (m === fyStartMonth && d >= fyStartDay);
+    const fyStart = inNewYear ? y : y - 1;
+    const fyEnd   = fyStart + 1;
+    return `${String(fyStart).slice(-2)}-${String(fyEnd).slice(-2)}`;
+  }
+  return String(y); // calendar year
+}
+
+// Returns the last day of the FY as a short label e.g. "28 Sep" or "Jun"
+function fyEndLabel() {
+  // The FY ends the day before fyStartMonth/fyStartDay
+  const d = new Date(2000, fyStartMonth - 1, fyStartDay - 1);
+  const day = d.getDate();
+  const mon = MONTH_NAMES_SHORT[d.getMonth()];
+  return fyStartDay !== 1 ? `${day} ${mon}` : mon;
+}
+
+// Human-readable label for a year key
+function yearLabel(key) {
+  if (yearMode === "financial") {
+    const startMon = MONTH_NAMES_SHORT[fyStartMonth - 1];
+    const dayStr   = fyStartDay !== 1 ? `${fyStartDay} ` : "";
+    return `FY 20${key} (${dayStr}${startMon}–${fyEndLabel()})`;
+  }
+  return key;
+}
+
+// Split yearLabel into [main, detail] for two-line sidebar display
+function yearLabelParts(key) {
+  if (yearMode === "financial") {
+    const startMon = MONTH_NAMES_SHORT[fyStartMonth - 1];
+    const dayStr   = fyStartDay !== 1 ? `${fyStartDay} ` : "";
+    return [`FY 20${key}`, `(${dayStr}${startMon}–${fyEndLabel()})`];
+  }
+  return [key, ""];
+}
+
+// Next suggested year key after the last existing one
+function nextYear() {
   const years = Object.keys(data);
-  if (!years.length) return "26-27";
-  const b = parseInt(years[years.length-1].split("-")[1]);
-  return `${b}-${String(b+1).padStart(2,"0")}`;
+  if (yearMode === "financial") {
+    if (!years.length) return "26-27";
+    const b = parseInt(years[years.length - 1].split("-")[1]);
+    return `${b}-${String(b + 1).padStart(2, "0")}`;
+  }
+  if (!years.length) return String(new Date().getFullYear());
+  return String(parseInt(years[years.length - 1]) + 1);
+}
+
+// Validate a manually entered year key against current mode
+function isValidYearKey(key) {
+  if (yearMode === "financial") return /^\d{2}-\d{2}$/.test(key);
+  return /^\d{4}$/.test(key);
+}
+
+function yearKeyPlaceholder() {
+  return yearMode === "financial" ? "e.g. 26-27" : "e.g. 2026";
+}
+function yearKeyMaxLength() {
+  return yearMode === "financial" ? 5 : 4;
 }
 
 // ─── storage ───────────────────────────────────────────────────────────────────
@@ -1814,6 +2496,151 @@ function loadLocal() {
     const stored = localStorage.getItem("savings_data_v4");
     data = stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(SEED));
   } catch { data = JSON.parse(JSON.stringify(SEED)); }
+  loadYearMode();
+  reconcileYears();
+}
+
+function switchYearMode(mode) {
+  if (yearMode === mode) { closeDesktopMenu(); return; }
+  yearMode = mode;
+  saveYearMode();
+  // Re-bucket all transactions into the new year format
+  const allTx = { saved: [], removed: [] };
+  Object.values(data).forEach(y => {
+    y.saved.forEach(tx => allTx.saved.push(tx));
+    y.removed.forEach(tx => allTx.removed.push(tx));
+  });
+  data = {};
+  allTx.saved.forEach(tx => { const k = ensureFY(yearKeyForDate(tx[0])); data[k].saved.push(tx); });
+  allTx.removed.forEach(tx => { const k = ensureFY(yearKeyForDate(tx[0])); data[k].removed.push(tx); });
+  Object.keys(data).forEach(k => {
+    data[k].saved.sort((a,b) => a[0].localeCompare(b[0]));
+    data[k].removed.sort((a,b) => a[0].localeCompare(b[0]));
+  });
+  expandedYears.clear();
+  activeYear = Object.keys(data)[0] || null;
+  activeMonth = null;
+  saveLocal();
+  updateYearModeUI();
+  closeDesktopMenu();
+  closeSheets();
+  render();
+  toast(`Switched to ${mode === "financial" ? "Financial Year" : "Calendar Year"} view`);
+}
+
+function setFyStartSelects() {
+  const month = parseInt(document.getElementById("fy-start-month-select").value, 10);
+  const day   = parseInt(document.getElementById("fy-start-day-select").value, 10);
+  if (!month || !day) return;
+  fyStartMonth = month;
+  fyStartDay   = day;
+  saveYearMode();
+  if (yearMode === "financial") {
+    // Re-bucket all transactions with the new start date directly,
+    // bypassing switchYearMode's early-exit guard (yearMode is already "financial")
+    ensureFYSilent = true;
+    const allTx = { saved: [], removed: [] };
+    Object.values(data).forEach(y => {
+      y.saved.forEach(tx => allTx.saved.push(tx));
+      y.removed.forEach(tx => allTx.removed.push(tx));
+    });
+    data = {};
+    allTx.saved.forEach(tx => { const k = ensureFY(yearKeyForDate(tx[0])); data[k].saved.push(tx); });
+    allTx.removed.forEach(tx => { const k = ensureFY(yearKeyForDate(tx[0])); data[k].removed.push(tx); });
+    Object.keys(data).forEach(k => {
+      data[k].saved.sort((a,b) => a[0].localeCompare(b[0]));
+      data[k].removed.sort((a,b) => a[0].localeCompare(b[0]));
+    });
+    ensureFYSilent = false;
+    expandedYears.clear();
+    activeYear = Object.keys(data)[0] || null;
+    activeMonth = null;
+    saveLocal();
+    updateYearModeUI();
+    render();
+  }
+  updateYearFormatPopup();
+}
+
+function openYearFormatPopup() {
+  updateYearFormatPopup();
+  document.getElementById("year-format-popup").classList.remove("hidden");
+}
+
+// Populate a day <select> with the correct number of days for a given month
+// and set its value. Uses month 2000 for day-count (leap year safe for 29 Feb).
+function populateDaySelect(sel, month, selectedDay) {
+  const daysInMonth = new Date(2000, month, 0).getDate();
+  sel.innerHTML = "";
+  for (let d = 1; d <= daysInMonth; d++) {
+    const opt = document.createElement("option");
+    opt.value = d;
+    opt.textContent = d;
+    if (d === selectedDay) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+
+function updateYearFormatPopup() {
+  const isFY = yearMode === "financial";
+  const calBox   = document.getElementById("yfmt-cal");
+  const fyBox    = document.getElementById("yfmt-fy");
+  const calBadge = document.getElementById("yfmt-cal-badge");
+  const fyBadge  = document.getElementById("yfmt-fy-badge");
+  const fyConfig = document.getElementById("yfmt-fy-config");
+
+  if (calBox) calBox.style.borderColor = !isFY ? "var(--gold)" : "var(--border)";
+  if (fyBox)  fyBox.style.borderColor  =  isFY ? "var(--gold)" : "var(--border)";
+  if (calBadge) { calBadge.style.background = !isFY ? "rgba(201,168,76,0.15)" : "var(--bg4)"; calBadge.style.color = !isFY ? "var(--gold)" : "var(--text-3)"; }
+
+  // Build start/end label, including day if not the 1st
+  const startMon  = MONTH_NAMES_SHORT[fyStartMonth - 1];
+  const dayPrefix = fyStartDay !== 1 ? `${fyStartDay} ` : "";
+  const startName = `${dayPrefix}${startMon}`;
+  const endName   = fyEndLabel();
+
+  if (fyBadge) {
+    fyBadge.textContent = `${startName} – ${endName}`;
+    fyBadge.style.background = isFY ? "rgba(201,168,76,0.15)" : "var(--bg4)";
+    fyBadge.style.color      = isFY ? "var(--gold)" : "var(--text-3)";
+  }
+
+
+
+  // Sync the date input — set it to an arbitrary year with the stored month+day
+  // Sync the day+month selects
+  const monSel = document.getElementById("fy-start-month-select");
+  const daySel = document.getElementById("fy-start-day-select");
+  if (monSel) monSel.value = String(fyStartMonth);
+  if (daySel) populateDaySelect(daySel, fyStartMonth, fyStartDay);
+
+  // Update desktop and mobile menu sub-labels
+  const sub = document.getElementById("dmenu-yearmode-sub");
+  if (sub) sub.textContent = isFY ? `Financial year (${startName}–${endName})` : "Transactions";
+  const mobSub = document.getElementById("mob-yearmode-sub");
+  if (mobSub) mobSub.textContent = isFY ? `Financial (${startName}–${endName})` : "Calendar Year";
+}
+
+function updateYearModeUI() {
+  const isFY = yearMode === "financial";
+  // Update year labels across the UI
+  const yearsLabel = "Transactions";
+  ["sidebar-years-label", "mob-years-label", "ysheet-years-title"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = yearsLabel;
+  });
+  // Show/hide the "This FY" report preset button (only relevant in financial mode)
+  const fyBtn = document.getElementById("report-preset-fy");
+  if (fyBtn) fyBtn.style.display = isFY ? "" : "none";
+  // Update new-year input placeholders
+  ["new-year-input", "ysheet-new-input"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.placeholder = yearKeyPlaceholder();
+      el.maxLength   = yearKeyMaxLength();
+    }
+  });
+  updateYearFormatPopup();
 }
 
 // ─── sync status ───────────────────────────────────────────────────────────────
@@ -1839,12 +2666,18 @@ function initTokenClient() {
     prompt: "",
     callback: (resp) => {
       if (resp.error) {
-        setSyncStatus("err", "Auth failed");
-        dbg("Drive token error: " + resp.error);
+        // If silent refresh fails, fall back to cached token if still valid
+        if (!driveToken) {
+          setSyncStatus("err", "Auth failed");
+          dbg("Drive token error: " + resp.error);
+        } else {
+          dbg("Silent refresh failed, using cached token: " + resp.error);
+          driveSyncFromCloud();
+        }
         return;
       }
-      driveToken = resp.access_token;
-      driveMode  = true;
+      saveToken(resp.access_token);
+      driveMode = true;
       saveDriveState();
       updateSetupModal();
       driveSyncFromCloud();
@@ -1875,7 +2708,7 @@ function disconnectDrive() {
   if (driveToken && window.google && google.accounts && google.accounts.oauth2) {
     google.accounts.oauth2.revoke(driveToken, () => {});
   }
-  driveToken  = null;
+  clearToken();
   driveFileId = null;
   driveMode   = false;
   saveDriveState();
@@ -1958,10 +2791,30 @@ async function driveSaveToCloud() {
       throw new Error(`Upload failed: ${resp.status} ${errBody.substring(0, 200)}`);
     }
     setSyncStatus("ok", "Synced ✓");
+    syncRetryCount = 0;
+    clearTimeout(syncRetryTimer);
     dbg("Drive save OK, " + payload.length + " chars");
   } catch (e) {
-    setSyncStatus("err", "Save failed");
     dbg("Drive save error: " + e.message);
+    scheduleRetry();
+  }
+}
+
+function scheduleRetry() {
+  clearTimeout(syncRetryTimer);
+  if (syncRetryCount < SYNC_RETRY_DELAYS.length) {
+    const delay = SYNC_RETRY_DELAYS[syncRetryCount];
+    syncRetryCount++;
+    setSyncStatus("err", `Save failed — retrying in ${delay/1000}s`);
+    syncRetryTimer = setTimeout(async () => {
+      dbg(`Retry attempt ${syncRetryCount} of ${SYNC_RETRY_DELAYS.length}`);
+      setSyncStatus("busy", "Retrying…");
+      await driveSaveToCloud();
+    }, delay);
+  } else {
+    syncRetryCount = 0;
+    setSyncStatus("err", "Save failed");
+    dbg("All retry attempts exhausted");
   }
 }
 
@@ -1990,10 +2843,12 @@ async function driveSyncFromCloud() {
     if (text && text.trim().startsWith("{")) {
       const remote = JSON.parse(text);
       if (remote && Object.keys(remote).length > 0) {
-        data = Object.assign({}, data, remote);
-        saveLocal();
-        activeYear = Object.keys(data)[0];
-        dbg("Drive load OK, years: " + Object.keys(data).join(", "));
+        if (JSON.stringify(remote) !== JSON.stringify(data)) {
+          dbg("Drive load: conflict detected, auto-merging");
+          autoMerge(remote);
+          return;
+        }
+        dbg("Drive load OK, data matches: " + Object.keys(data).join(", "));
       }
     }
     setSyncStatus("ok", "Synced ✓");
@@ -2008,6 +2863,8 @@ async function driveSyncFromCloud() {
 function scheduleSave() {
   if (!driveMode || !driveToken) return;
   clearTimeout(syncTimer);
+  clearTimeout(syncRetryTimer);
+  syncRetryCount = 0;
   syncTimer = setTimeout(driveSaveToCloud, 1500);
 }
 
@@ -2053,6 +2910,14 @@ function render() {
   renderMain();
 }
 
+function setActiveYear(y) {
+  activeYear = y;
+  activeMonth = null;
+  pendingDelete = null;
+  if (activeTab === "report") switchTab("all");
+  else render();
+}
+
 function renderSidebar() {
   const years = Object.keys(data);
   const gi = years.reduce((a,y)=>a+sumArr(data[y].saved),0);
@@ -2062,34 +2927,162 @@ function renderSidebar() {
   gEl.textContent = aud(gn);
   gEl.className = gn >= 0 ? '' : 'neg';
 
+  // All Years button highlight and net value
+  const ayBtn = document.getElementById("sidebar-allyears-btn");
+  if (ayBtn) ayBtn.className = "year-btn" + (activeYear === "all-years" ? " active" : "");
+  const allNetEl = document.getElementById("sidebar-all-net");
+  if (allNetEl) { allNetEl.textContent = aud(gn); allNetEl.style.color = gn >= 0 ? "var(--green)" : "var(--red)"; }
+
   const list = document.getElementById("year-list");
-  const addArea = document.getElementById("add-year-area");
-  // Remove year buttons only, preserving add-year-area
-  Array.from(list.children).forEach(el => { if (el !== addArea) el.remove(); });
+  const addArea    = document.getElementById("add-year-area");
+  const addNewWrap = document.getElementById("sidebar-addnew-wrap");
+  // Remove year buttons only, preserving static children
+  Array.from(list.children).forEach(el => {
+    if (el !== addArea && el !== addNewWrap) el.remove();
+  });
+
   years.forEach(y => {
     const si=sumArr(data[y].saved), so=sumArr(data[y].removed), n=si-so;
-    const btn = document.createElement("button");
-    btn.className = "year-btn" + (y===activeYear?" active":"");
-    btn.innerHTML = `<div class="fy-label">FY 20${y}</div><div class="fy-net ${n>=0?"pos":"neg"}">${aud(n)}</div>`;
-    btn.onclick = () => { activeYear=y; pendingDelete=null; render(); };
-    list.insertBefore(btn, addArea);
+    const isExpanded = expandedYears.has(y);
+    const isActiveYear = activeYear === y && !activeMonth;
+
+    // ── year row wrapper ──
+    const wrap = document.createElement("div");
+    wrap.className = "year-wrap";
+
+    // ── year button ──
+    const btn = document.createElement("div");
+    btn.className = "year-btn" + (isActiveYear ? " active" : "") + (isExpanded ? " expanded" : "");
+    btn.innerHTML = `
+      <div class="year-btn-inner">
+        <div class="year-btn-label" style="flex:1; padding: 10px 0 10px 16px;">
+          <div class="fy-label">${yearLabelParts(y)[0]}</div>
+          ${yearLabelParts(y)[1] ? `<div class="fy-net" style="font-weight:300; font-size:11px; color:var(--text-3);">${yearLabelParts(y)[1]}</div>` : ""}
+          <div class="fy-net ${n>=0?"pos":"neg"}">${aud(n)}</div>
+        </div>
+        <span class="fy-chevron" title="Show months">›</span>
+      </div>`;
+
+    // Clicking the label area selects the year
+    btn.querySelector(".year-btn-label").onclick = () => {
+      activeYear = y;
+      activeMonth = null;
+      pendingDelete = null;
+      if (activeTab === "report") switchTab("all");
+      else render();
+    };
+
+    // Clicking the chevron toggles the month dropdown only
+    btn.querySelector(".fy-chevron").onclick = (e) => {
+      e.stopPropagation();
+      const wasExpanded = expandedYears.has(y);
+      expandedYears.clear(); // close all others
+      if (!wasExpanded) expandedYears.add(y);
+      // Auto-select year if not already active (but don't exit report tab)
+      if (activeYear !== y) {
+        activeYear = y;
+        activeMonth = null;
+        pendingDelete = null;
+      }
+      render();
+    };
+
+    wrap.appendChild(btn);
+
+    // ── month sub-list ──
+    const monthList = document.createElement("div");
+    monthList.className = "month-list" + (isExpanded ? " open" : "");
+
+    // Gather months that have transactions for this year
+    const monthSet = new Set();
+    [...data[y].saved, ...data[y].removed].forEach(([d]) => {
+      monthSet.add(d.substring(0, 7)); // "YYYY-MM"
+    });
+    const months = Array.from(monthSet).sort();
+
+    months.forEach(m => {
+      const isActiveMonth = activeYear === y && activeMonth === m;
+      const [my, mm] = m.split("-");
+      const label = new Date(+my, +mm - 1, 1).toLocaleString("en-AU", { month: "long", year: "numeric" });
+      const mbtn = document.createElement("button");
+      const mSaved1   = data[y].saved.filter(r => r[0].startsWith(m));
+      const mRemoved1 = data[y].removed.filter(r => r[0].startsWith(m));
+      const mNet1 = sumArr(mSaved1) - sumArr(mRemoved1);
+      mbtn.className = "month-btn" + (isActiveMonth ? " active" : "");
+      mbtn.innerHTML = `<div style="font-weight:400">${label}</div><div style="font-size:11px; font-weight:300; margin-top:2px; color:${mNet1>=0?"var(--green)":"var(--red)"}">${aud(mNet1)}</div>`;
+      mbtn.onclick = (e) => {
+        e.stopPropagation();
+        activeYear = y;
+        activeMonth = m;
+        pendingDelete = null;
+        if (activeTab === "report") switchTab("all");
+        else render();
+      };
+      monthList.appendChild(mbtn);
+    });
+
+    wrap.appendChild(monthList);
+    list.insertBefore(wrap, addArea);
   });
 }
 
 function renderMain() {
-  const fy = data[activeYear] || {saved:[],removed:[]};
-  const ti=sumArr(fy.saved), to=sumArr(fy.removed), tn=ti-to;
+  const isAllYears = activeYear === "all-years";
+  const isMonthView = !isAllYears && !!activeMonth;
+  const years = Object.keys(data);
 
-  document.getElementById("fy-title").textContent = `FY 20${activeYear}`;
+  // Compute totals
+  let ti, to, tn;
+  if (isAllYears) {
+    ti = years.reduce((s,y) => s + sumArr(data[y].saved),   0);
+    to = years.reduce((s,y) => s + sumArr(data[y].removed), 0);
+    tn = ti - to;
+  } else {
+    const fy = data[activeYear] || {saved:[],removed:[]};
+    if (isMonthView) {
+      const ms = activeMonth;
+      ti = fy.saved.filter(r=>r[0].startsWith(ms)).reduce((s,r)=>s+r[1],0);
+      to = fy.removed.filter(r=>r[0].startsWith(ms)).reduce((s,r)=>s+r[1],0);
+    } else {
+      ti = sumArr(fy.saved); to = sumArr(fy.removed);
+    }
+    tn = ti - to;
+  }
+
+  // Title
+  let titleText;
+  if (isAllYears) {
+    titleText = "All Transactions";
+  } else if (isMonthView) {
+    const [my, mm] = activeMonth.split("-");
+    titleText = new Date(+my, +mm - 1, 1).toLocaleString("en-AU", { month: "long", year: "numeric" });
+  } else {
+    titleText = yearLabel(activeYear);
+  }
+  document.getElementById("fy-title").textContent = titleText;
   document.getElementById("stat-in").textContent  = aud(ti);
   document.getElementById("stat-out").textContent = aud(to);
   const sn = document.getElementById("stat-net");
   sn.textContent = aud(tn); sn.style.color = tn>=0 ? 'var(--green)' : 'var(--red)';
 
-  const allCount = fy.saved.length + fy.removed.length;
-  document.getElementById("count-all").textContent     = `(${allCount})`;
-  document.getElementById("count-saved").textContent   = `(${fy.saved.length})`;
-  document.getElementById("count-removed").textContent = `(${fy.removed.length})`;
+  // Counts for tab labels
+  let allSaved, allRemoved;
+  if (isAllYears) {
+    allSaved   = years.reduce((s,y)=>s+data[y].saved.length,0);
+    allRemoved = years.reduce((s,y)=>s+data[y].removed.length,0);
+  } else {
+    const fy = data[activeYear] || {saved:[],removed:[]};
+    if (isMonthView) {
+      const ms = activeMonth;
+      allSaved   = fy.saved.filter(r=>r[0].startsWith(ms)).length;
+      allRemoved = fy.removed.filter(r=>r[0].startsWith(ms)).length;
+    } else {
+      allSaved = fy.saved.length; allRemoved = fy.removed.length;
+    }
+  }
+  document.getElementById("count-all").textContent     = `(${allSaved + allRemoved})`;
+  document.getElementById("count-saved").textContent   = `(${allSaved})`;
+  document.getElementById("count-removed").textContent = `(${allRemoved})`;
   document.getElementById("tab-all").className     = "tab-btn"+(activeTab==="all"     ?" active":"");
   document.getElementById("tab-saved").className   = "tab-btn"+(activeTab==="saved"   ?" active":"");
   document.getElementById("tab-removed").className = "tab-btn"+(activeTab==="removed" ?" active":"");
@@ -2098,13 +3091,12 @@ function renderMain() {
   btnAdd.textContent = activeTab==="saved" ? "+ Add Deposit" : "+ Add Withdrawal";
   btnAdd.className   = "btn-add "+(activeTab==="saved" ? "saved-mode" : "removed-mode");
 
-  // add-form hidden on all tab (and report)
   const isAll    = activeTab === "all";
   const isReport = activeTab === "report";
-  document.getElementById("add-form").style.display = (isAll || isReport) ? "none" : "";
+  // Hide add-form on all-tab, report, all-years, or month view
+  document.getElementById("add-form").style.display = (isAll || isReport || isAllYears || isMonthView) ? "none" : "";
 
-  // body class for CSS type-col visibility
-  document.body.classList.toggle("tab-all", isAll);
+  document.body.classList.toggle("tab-all", isAll || isAllYears || isMonthView);
 
   const tbody = document.getElementById("tx-body");
   const table = document.getElementById("tx-table");
@@ -2112,31 +3104,67 @@ function renderMain() {
 
   if (isReport) return;
 
+  // Build rows — each row: [date, amt, type, yearKey]
   let rows;
-  if (isAll) {
-    // combine saved + removed with a type tag, sort by date then type
-    const saved    = getSortedRows(fy.saved).map(r => [...r, "saved"]);
-    const removed  = getSortedRows(fy.removed).map(r => [...r, "removed"]);
-    rows = [...saved, ...removed].sort((a,b) => {
-      if (a[0] < b[0]) return sortDir === "asc" ? -1 : 1;
-      if (a[0] > b[0]) return sortDir === "asc" ?  1 : -1;
-      return 0;
+  if (isAllYears) {
+    rows = [];
+    years.forEach(y => {
+      if (activeTab === "saved" || activeTab === "all") {
+        data[y].saved.forEach(r => rows.push([r[0], r[1], "saved", y]));
+      }
+      if (activeTab === "removed" || activeTab === "all") {
+        data[y].removed.forEach(r => rows.push([r[0], r[1], "removed", y]));
+      }
     });
+  } else if (isMonthView) {
+    const fy = data[activeYear] || {saved:[],removed:[]};
+    const ms = activeMonth;
+    rows = [];
+    if (activeTab === "saved" || activeTab === "all") {
+      fy.saved.filter(r=>r[0].startsWith(ms)).forEach(r => rows.push([r[0], r[1], "saved", activeYear]));
+    }
+    if (activeTab === "removed" || activeTab === "all") {
+      fy.removed.filter(r=>r[0].startsWith(ms)).forEach(r => rows.push([r[0], r[1], "removed", activeYear]));
+    }
+  } else if (isAll) {
+    const fy = data[activeYear] || {saved:[],removed:[]};
+    rows = [
+      ...fy.saved.map(r => [r[0], r[1], "saved", activeYear]),
+      ...fy.removed.map(r => [r[0], r[1], "removed", activeYear])
+    ];
   } else {
-    rows = getSortedRows(activeTab==="saved" ? fy.saved : fy.removed).map(r => [...r, activeTab]);
+    const fy = data[activeYear] || {saved:[],removed:[]};
+    const src = activeTab === "saved" ? fy.saved : fy.removed;
+    rows = src.map(r => [r[0], r[1], activeTab, activeYear]);
   }
+
+  // Sort
+  rows.sort((a, b) => {
+    let av, bv;
+    if (sortKey === "date")        { av = a[0]; bv = b[0]; }
+    else if (sortKey === "amount") { av = a[1]; bv = b[1]; }
+    else /* type */                { av = a[2]; bv = b[2]; }
+    if (av < bv) return sortDir === "asc" ? -1 :  1;
+    if (av > bv) return sortDir === "asc" ?  1 : -1;
+    if (sortKey !== "date") return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0;
+    return 0;
+  });
 
   if (!rows.length) { table.style.display="none"; empty.style.display="block"; return; }
   table.style.display="table"; empty.style.display="none";
   tbody.innerHTML="";
-  rows.forEach(([date, amt, type], i) => {
+
+  const showTypeCol = isAll || isAllYears || isMonthView;
+  document.body.classList.toggle("tab-all", showTypeCol);
+
+  rows.forEach(([date, amt, type, yearKey], i) => {
     const isDeposit = type === "saved";
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${fmtDate(date)}</td>
       <td class="tx-type-cell"><span class="type-pill ${isDeposit ? "dep" : "wit"}">${isDeposit ? "Deposit" : "Withdrawal"}</span></td>
       <td class="num" style="color:${isDeposit ? 'var(--green)' : 'var(--red)'}">${aud(amt)}</td>`;
-    tr.onclick = () => openPopup(i, type);
+    tr.onclick = () => openPopup(date, amt, type, yearKey);
     tbody.appendChild(tr);
   });
 
@@ -2144,7 +3172,7 @@ function renderMain() {
   document.getElementById("foot-label").textContent = `Total (${rows.length} entries)`;
   const ft = document.getElementById("foot-total");
   ft.textContent = aud(totalAmt);
-  ft.style.color = isAll ? (tn >= 0 ? "var(--green)" : "var(--red)") : (activeTab==="saved" ? "var(--green)" : "var(--red)");
+  ft.style.color = (isAll || isAllYears || isMonthView) ? (tn >= 0 ? "var(--green)" : "var(--red)") : (activeTab==="saved" ? "var(--green)" : "var(--red)");
   updateSortButtons();
 }
 
@@ -2156,9 +3184,6 @@ function switchTab(t) {
   document.getElementById("table-wrap").style.display   = isReport ? "none" : "";
   document.getElementById("report-panel").style.display = isReport ? "flex" : "none";
   document.getElementById("add-form").style.display     = (isReport || isAll) ? "none" : "";
-  // Highlight sidebar report button
-  const srb = document.getElementById("sidebar-report-btn");
-  if (srb) srb.className = "sidebar-report-btn" + (isReport ? " active" : "");
   if (isReport) renderReport();
   render();
 }
@@ -2174,9 +3199,15 @@ function setReportPreset(preset) {
   } else if (preset === "year") {
     from = `${now.getFullYear()}-01-01`;
   } else if (preset === "fy") {
-    // Australian FY: Jul 1 – Jun 30
-    const fyStart = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
-    from = `${fyStart}-07-01`;
+    // Financial year — use configured fyStartMonth + fyStartDay
+    const sm = fyStartMonth; // 1-based
+    const sd = fyStartDay;   // 1-based day
+    // Current date is "in" the new FY if it's past the start month/day
+    const nowM = now.getMonth() + 1;
+    const nowD = now.getDate();
+    const inNewYear = (nowM > sm) || (nowM === sm && nowD >= sd);
+    const fyStart = inNewYear ? now.getFullYear() : now.getFullYear() - 1;
+    from = `${fyStart}-${pad(sm)}-${pad(sd)}`;
   } else {
     // all time — find earliest transaction across all years
     let earliest = "9999-12-31";
@@ -2248,7 +3279,7 @@ function setSort(key) {
     sortDir = sortDir === "asc" ? "desc" : "asc";
   } else {
     sortKey = key;
-    sortDir = key === "date" ? "asc" : "desc"; // sensible defaults
+    sortDir = key === "amount" ? "desc" : "asc"; // amount defaults desc, date/type default asc
   }
   render();
 }
@@ -2267,13 +3298,32 @@ function getSortedRows(rows) {
 
 function updateSortButtons() {
   const dateEl   = document.getElementById("sort-date");
+  const typeEl   = document.getElementById("sort-type");
   const amountEl = document.getElementById("sort-amount");
   if (!dateEl) return;
-  const asc = "↑", desc = "↓", neutral = "↕";
-  dateEl.textContent   = "Date"   + " " + (sortKey === "date"   ? (sortDir === "asc" ? asc : desc) : neutral);
-  amountEl.textContent = "Amount" + " " + (sortKey === "amount" ? (sortDir === "asc" ? asc : desc) : neutral);
+  const arrow = (col) => {
+    const ch = sortKey === col ? (sortDir === "asc" ? "↑︎" : "↓︎") : "↕︎";
+    return ` <span style="font-size:20px; letter-spacing:0; position:relative; bottom:1px;">${ch}</span>`;
+  };
+  dateEl.innerHTML   = "Date"   + arrow("date");
+  amountEl.innerHTML = "Amount" + arrow("amount");
+  if (typeEl) typeEl.innerHTML = "Type" + arrow("type");
   dateEl.className   = "sort-col"       + (sortKey === "date"   ? " active-" + sortDir : "");
   amountEl.className = "sort-col right" + (sortKey === "amount" ? " active-" + sortDir : "");
+  if (typeEl) typeEl.className = "sort-col-type" + (sortKey === "type" ? " active-" + sortDir : "");
+}
+
+// Returns the year bucket key for a date — alias for yearKeyForDate (used in reconcile/add)
+function fyKeyForDate(dateStr) { return yearKeyForDate(dateStr); }
+
+let ensureFYSilent = false; // suppress toast during bulk re-bucketing
+
+function ensureFY(key) {
+  if (!data[key]) {
+    data[key] = { saved: [], removed: [] };
+    if (!ensureFYSilent) toast(`Year group ${yearLabel(key)} added`, "var(--gold-dim)");
+  }
+  return key;
 }
 
 function addTransaction() {
@@ -2281,8 +3331,11 @@ function addTransaction() {
   const av = parseFloat(document.getElementById("inp-amount").value);
   if (!dv || isNaN(av) || av<=0) { toast("Enter a valid date and amount.", "#c0392b"); return; }
   const amt = parseFloat(av.toFixed(2));
-  data[activeYear][activeTab].push([dv, amt]);
-  data[activeYear][activeTab].sort((a,b)=>a[0].localeCompare(b[0]));
+  const fyKey = ensureFY(fyKeyForDate(dv));
+  // Switch active year to the correct FY if it changed
+  if (fyKey !== activeYear) { activeYear = fyKey; }
+  data[fyKey][activeTab].push([dv, amt]);
+  data[fyKey][activeTab].sort((a,b)=>a[0].localeCompare(b[0]));
   document.getElementById("inp-date").value="";
   document.getElementById("inp-amount").value="";
   render();
@@ -2290,18 +3343,22 @@ function addTransaction() {
 }
 
 // ── transaction popup ──────────────────────────────────────────────────────
-let popupIdx = null;
-let popupType = null; // "saved" | "removed" — tracked independently of activeTab
+let popupIdx  = null;
+let popupType = null; // "saved" | "removed"
+let popupYear = null; // the FY key the transaction belongs to
 
-function openPopup(idx, type) {
-  // type defaults to activeTab for saved/removed views
+function openPopup(date, amt, type, yearKey) {
   popupType = type || activeTab;
-  const rows = popupType === "saved" ? data[activeYear].saved : data[activeYear].removed;
-  const [date, amt] = rows[idx];
+  popupYear = yearKey || (activeYear === "all-years" ? null : activeYear);
+  if (!popupYear) return;
+  const rows = popupType === "saved" ? data[popupYear].saved : data[popupYear].removed;
+  // Find the index by matching date and amount (first match)
+  const idx = rows.findIndex(r => r[0] === date && r[1] === amt);
+  if (idx === -1) return;
   popupIdx = idx;
   const isDeposit = popupType === "saved";
   document.getElementById("popup-title").textContent = isDeposit ? "Edit Deposit" : "Edit Withdrawal";
-  document.getElementById("popup-meta").textContent  = "FY 20" + activeYear + "  ·  " + (isDeposit ? "Deposit" : "Withdrawal");
+  document.getElementById("popup-meta").textContent  = yearLabel(popupYear) + "  ·  " + (isDeposit ? "Deposit" : "Withdrawal");
   document.getElementById("popup-date").value   = date;
   document.getElementById("popup-amount").value = amt;
   document.getElementById("tx-popup").classList.remove("hidden");
@@ -2309,27 +3366,97 @@ function openPopup(idx, type) {
 
 function closePopup() {
   document.getElementById("tx-popup").classList.add("hidden");
-  popupIdx = null;
+  popupIdx  = null;
   popupType = null;
+  popupYear = null;
+}
+
+// Remove any FY that has zero transactions in both saved and removed
+function pruneEmptyYears() {
+  let changed = false;
+  Object.keys(data).forEach(y => {
+    if (data[y].saved.length === 0 && data[y].removed.length === 0) {
+      delete data[y];
+      expandedYears.delete(y);
+      changed = true;
+    }
+  });
+  if (changed) {
+    // Reset activeYear to the first available year if the current one was pruned
+    const remaining = Object.keys(data);
+    if (!remaining.includes(activeYear)) {
+      activeYear = remaining[0] || null;
+      activeMonth = null;
+    }
+  }
+}
+
+// Scan all transactions and move any that sit under the wrong FY key to the correct one
+function reconcileYears() {
+  ensureFYSilent = true;
+  let moved = 0;
+  Object.keys(data).forEach(y => {
+    ["saved", "removed"].forEach(tab => {
+      const keep = [];
+      data[y][tab].forEach(tx => {
+        const correct = fyKeyForDate(tx[0]);
+        if (correct !== y) {
+          ensureFY(correct);
+          data[correct][tab].push(tx);
+          moved++;
+        } else {
+          keep.push(tx);
+        }
+      });
+      data[y][tab] = keep;
+    });
+  });
+  // Sort all lists after potential moves
+  if (moved > 0) {
+    Object.keys(data).forEach(y => {
+      data[y].saved.sort((a,b) => a[0].localeCompare(b[0]));
+      data[y].removed.sort((a,b) => a[0].localeCompare(b[0]));
+    });
+    pruneEmptyYears();
+    dbg(`reconcileYears: moved ${moved} transaction(s) to correct FY`);
+  }
+  ensureFYSilent = false;
 }
 
 function savePopup() {
-  if (popupIdx === null) return;
+  if (popupIdx === null || !popupYear) return;
   const dateVal = document.getElementById("popup-date").value;
   const amtVal  = parseFloat(document.getElementById("popup-amount").value);
   if (!dateVal || isNaN(amtVal) || amtVal <= 0) { toast("Enter a valid date and amount.", "#c0392b"); return; }
-  const list = popupType === "saved" ? data[activeYear].saved : data[activeYear].removed;
-  list[popupIdx] = [dateVal, parseFloat(amtVal.toFixed(2))];
-  list.sort((a, b) => a[0].localeCompare(b[0]));
+  const newFY = fyKeyForDate(dateVal);
+  const list  = popupType === "saved" ? data[popupYear].saved : data[popupYear].removed;
+
+  if (newFY !== popupYear) {
+    // Date moved to a different FY — remove from old, add to new
+    list.splice(popupIdx, 1);
+    ensureFY(newFY);
+    const targetList = popupType === "saved" ? data[newFY].saved : data[newFY].removed;
+    targetList.push([dateVal, parseFloat(amtVal.toFixed(2))]);
+    targetList.sort((a, b) => a[0].localeCompare(b[0]));
+    activeYear = newFY;
+    activeMonth = null;
+    toast(`Transaction moved to ${yearLabel(newFY)}`);
+  } else {
+    list[popupIdx] = [dateVal, parseFloat(amtVal.toFixed(2))];
+    list.sort((a, b) => a[0].localeCompare(b[0]));
+    toast("Transaction updated");
+  }
+
+  pruneEmptyYears();
   closePopup();
   render();
-  toast("Transaction updated");
 }
 
 function deletePopup() {
-  if (popupIdx === null) return;
-  const list = popupType === "saved" ? data[activeYear].saved : data[activeYear].removed;
+  if (popupIdx === null || !popupYear) return;
+  const list = popupType === "saved" ? data[popupYear].saved : data[popupYear].removed;
   list.splice(popupIdx, 1);
+  pruneEmptyYears();
   closePopup();
   render();
   toast("Transaction deleted", "var(--red)");
@@ -2343,8 +3470,11 @@ document.getElementById("tx-popup").addEventListener("click", function(e) {
 function showAddYear() {
   document.getElementById("btn-new-year").style.display="none";
   document.getElementById("add-year-form").classList.add("show");
-  document.getElementById("new-year-input").value=nextFY();
-  document.getElementById("new-year-input").focus();
+  const inp = document.getElementById("new-year-input");
+  inp.value = nextYear();
+  inp.placeholder = yearKeyPlaceholder();
+  inp.maxLength = yearKeyMaxLength();
+  inp.focus();
 }
 function hideAddYear() {
   document.getElementById("btn-new-year").style.display="";
@@ -2352,11 +3482,11 @@ function hideAddYear() {
 }
 function confirmAddYear() {
   const label = document.getElementById("new-year-input").value.trim();
-  if (!/^\d{2}-\d{2}$/.test(label)) { toast("Format: YY-YY  e.g. 26-27","#c0392b"); return; }
-  if (data[label]) { toast("Year already exists.","#c0392b"); return; }
+  if (!isValidYearKey(label)) { toast(`Format: ${yearKeyPlaceholder()}`, "#c0392b"); return; }
+  if (data[label]) { toast("Year already exists.", "#c0392b"); return; }
   data[label]={saved:[],removed:[]};
   activeYear=label; hideAddYear(); render();
-  toast(`Created FY 20${label}`);
+  toast(`Created ${yearLabel(label)}`);
 }
 
 function exportReportCSV() {
@@ -2400,6 +3530,64 @@ function exportReportCSV() {
   URL.revokeObjectURL(url);
   toast("Report exported");
 }
+
+function exportReportXLSX() {
+  const from = document.getElementById("report-from").value;
+  const to   = document.getElementById("report-to").value;
+  if (!from || !to) { toast("Set a date range first.", "#c0392b"); return; }
+  if (typeof XLSX === "undefined") { toast("Spreadsheet library not loaded yet — try again in a moment.", "#c0392b"); return; }
+
+  // Gather + sort all transactions in range
+  const all = [];
+  Object.entries(data).forEach(([fy, fyData]) => {
+    fyData.saved.forEach(([d,a])   => { if (d >= from && d <= to) all.push([d, "Deposit",    a,  a, 0]); });
+    fyData.removed.forEach(([d,a]) => { if (d >= from && d <= to) all.push([d, "Withdrawal", a,  0, a]); });
+  });
+  all.sort((a,b) => a[0].localeCompare(b[0]));
+
+  const totalIn  = all.filter(r => r[1]==="Deposit").reduce((s,r)    => s+r[2], 0);
+  const totalOut = all.filter(r => r[1]==="Withdrawal").reduce((s,r) => s+r[2], 0);
+  const net      = totalIn - totalOut;
+
+  const wb = XLSX.utils.book_new();
+
+  // ── Summary sheet ──────────────────────────────────────────────────────────
+  const summaryData = [
+    ["Vault — Report"],
+    [],
+    ["Date Range", `${fmtDate(from)} – ${fmtDate(to)}`],
+    ["Total Deposited",  totalIn],
+    ["Total Withdrawn",  totalOut],
+    ["Net",              net],
+  ];
+  const ws_summary = XLSX.utils.aoa_to_sheet(summaryData);
+  // Column widths
+  ws_summary["!cols"] = [{wch:20},{wch:28}];
+  // Style the title row bold (SheetJS community edition supports cell styles via write options)
+  XLSX.utils.book_append_sheet(wb, ws_summary, "Summary");
+
+  // ── Transactions sheet ─────────────────────────────────────────────────────
+  const txRows = [
+    ["Date", "Type", "Amount (AUD)", "Deposits", "Withdrawals"],
+    ...all.map(([d, type, amt, dep, wit]) => [fmtDate(d), type,
+      type === "Deposit" ? amt : -amt,
+      dep || "",
+      wit || ""
+    ]),
+    [],
+    ["", "Total Deposited",  "", totalIn,  ""],
+    ["", "Total Withdrawn",  "", "",        totalOut],
+    ["", "Net",              "", net,       ""],
+  ];
+  const ws_tx = XLSX.utils.aoa_to_sheet(txRows);
+  ws_tx["!cols"] = [{wch:16},{wch:14},{wch:16},{wch:14},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, ws_tx, "Transactions");
+
+  const fname = `vault-report-${from}-to-${to}.xlsx`;
+  XLSX.writeFile(wb, fname);
+  toast("Spreadsheet exported");
+}
+
 
 function exportCSV() {
   const years = Object.keys(data);
@@ -2463,12 +3651,8 @@ async function silentSyncFromDrive() {
       setSyncStatus("ok", "Synced ✓"); return;
     }
     if (isUserBusy()) return;
-    data = Object.assign({}, data, remote);
-    saveLocal();
-    activeYear = Object.keys(data)[0];
-    setSyncStatus("ok", "Synced ✓");
-    render();
-    toast("Updated from another device");
+    dbg("Silent sync: conflict detected, auto-merging");
+    autoMerge(remote);
   } catch { /* silent fail */ }
 }
 
@@ -2479,6 +3663,31 @@ document.addEventListener("visibilitychange", () => {
 
 // Poll every 60 seconds
 setInterval(() => { silentSyncFromDrive(); }, 60000);
+
+// ─── sync conflict resolution ─────────────────────────────────────────────────
+function autoMerge(remoteData) {
+  // Union of all year keys; deduplicate transactions by date+amount
+  ensureFYSilent = true;
+  const allKeys = new Set([...Object.keys(data), ...Object.keys(remoteData)]);
+  allKeys.forEach(k => {
+    const l = data[k]       || { saved: [], removed: [] };
+    const r = remoteData[k] || { saved: [], removed: [] };
+    const dedup = (a, b) => {
+      const seen = new Set(a.map(t => t[0] + "|" + t[1]));
+      return [...a, ...b.filter(t => !seen.has(t[0] + "|" + t[1]))];
+    };
+    data[k] = {
+      saved:   dedup(l.saved,   r.saved).sort((a,b)   => a[0].localeCompare(b[0])),
+      removed: dedup(l.removed, r.removed).sort((a,b) => a[0].localeCompare(b[0])),
+    };
+  });
+  reconcileYears();
+  ensureFYSilent = false;
+  saveLocal();
+  render();
+  driveSaveToCloud();
+  dbg("Auto-merge complete");
+}
 
 // ─── debug ────────────────────────────────────────────────────────────────────
 function toggleSidebar() {
@@ -2496,14 +3705,172 @@ document.addEventListener("keydown", (e) => {
   if (e.ctrlKey && e.shiftKey && e.key === "D") { e.preventDefault(); toggleDebug(); }
 });
 
-// ─── mobile UI ────────────────────────────────────────────────────────────────
+// ─── desktop add transaction ───────────────────────────────────────────────────
+// ── recurring toggle state ──────────────────────────────────────────────────
+let deskRecurOn = false;
+let mobRecurOn  = false;
+
+function toggleDeskRecur() {
+  deskRecurOn = !deskRecurOn;
+  const fields  = document.getElementById("desk-recur-fields");
+  const btn     = document.getElementById("desk-recur-toggle");
+  const addBtn  = document.getElementById("desk-add-btn");
+  fields.style.display = deskRecurOn ? "block" : "none";
+  if (deskRecurOn) {
+    btn.style.background  = "rgba(201,168,76,0.12)";
+    btn.style.color       = "var(--gold)";
+    btn.style.borderColor = "var(--gold-dim)";
+    btn.innerHTML = '<span style="font-size:18px; vertical-align:middle;">↺︎</span> Recurring — tap to cancel';
+    addBtn.textContent = deskTxType === "deposit" ? "Schedule Recurring Deposit" : "Schedule Recurring Withdrawal";
+  } else {
+    btn.style.background  = "var(--bg3)";
+    btn.style.color       = "var(--text-2)";
+    btn.style.borderColor = "var(--border-hi)";
+    btn.innerHTML = '<span style="font-size:18px; vertical-align:middle;">↺︎</span> Make this a recurring transaction';
+    addBtn.textContent = deskTxType === "deposit" ? "Add Deposit" : "Add Withdrawal";
+  }
+}
+
+function onDeskRecurFreqChange() {
+  const freq = document.getElementById("desk-recur-freq").value;
+  const wrap = document.getElementById("desk-recur-dow-wrap");
+  wrap.style.display = (freq === "weekly" || freq === "fortnightly") ? "flex" : "none";
+}
+
+function toggleMobRecur() {
+  mobRecurOn = !mobRecurOn;
+  const fields = document.getElementById("mob-recur-fields");
+  const btn    = document.getElementById("mob-recur-toggle");
+  const addBtn = document.getElementById("mob-add-btn");
+  fields.style.display = mobRecurOn ? "block" : "none";
+  if (mobRecurOn) {
+    btn.style.background  = "rgba(201,168,76,0.12)";
+    btn.style.color       = "var(--gold)";
+    btn.style.borderColor = "var(--gold-dim)";
+    btn.innerHTML = '<span style="font-size:18px; vertical-align:middle;">↺︎</span> Recurring — tap to cancel';
+    addBtn.textContent = mobTxType === "deposit" ? "Schedule Recurring Deposit" : "Schedule Recurring Withdrawal";
+  } else {
+    btn.style.background  = "var(--bg3)";
+    btn.style.color       = "var(--text-2)";
+    btn.style.borderColor = "var(--border-hi)";
+    btn.innerHTML = '<span style="font-size:18px; vertical-align:middle;">↺︎</span> Make this a recurring transaction';
+    addBtn.textContent = mobTxType === "deposit" ? "Add Deposit" : "Add Withdrawal";
+  }
+}
+
+function onMobRecurFreqChange() {
+  const freq = document.getElementById("mob-recur-freq").value;
+  const wrap = document.getElementById("mob-recur-dow-wrap");
+  wrap.style.display = (freq === "weekly" || freq === "fortnightly") ? "block" : "none";
+}
+
+function updateRecurManagePill() {
+  const count = recurRules.length;
+  const label = count > 0 ? `🔁 ${count} active rule${count > 1 ? "s" : ""} — manage` : "";
+  const show  = count > 0;
+  ["desk-manage-recur-btn", "mob-manage-recur-btn"].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent    = label;
+    el.style.display  = show ? "" : "none";
+  });
+}
+
+let deskTxType = "deposit";
+
+function setDeskType(type) {
+  deskTxType = type;
+  const depBtn  = document.getElementById("desk-type-deposit");
+  const witBtn  = document.getElementById("desk-type-withdraw");
+  const saveBtn = document.getElementById("desk-add-btn");
+
+  if (type === "deposit") {
+    depBtn.style.background   = "var(--green)";
+    depBtn.style.color        = "#fff";
+    depBtn.style.borderColor  = "var(--green)";
+    witBtn.style.background   = "var(--bg3)";
+    witBtn.style.color        = "var(--text-2)";
+    witBtn.style.borderColor  = "var(--border-hi)";
+    saveBtn.textContent       = deskRecurOn ? "Schedule Recurring Deposit"    : "Add Deposit";
+    saveBtn.style.background  = "var(--green)";
+  } else {
+    witBtn.style.background   = "var(--red)";
+    witBtn.style.color        = "#fff";
+    witBtn.style.borderColor  = "var(--red)";
+    depBtn.style.background   = "var(--bg3)";
+    depBtn.style.color        = "var(--text-2)";
+    depBtn.style.borderColor  = "var(--border-hi)";
+    saveBtn.textContent       = deskRecurOn ? "Schedule Recurring Withdrawal" : "Add Withdrawal";
+    saveBtn.style.background  = "var(--red)";
+  }
+}
+
+function openDesktopAddSheet() {
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("desk-inp-date").value   = today;
+  document.getElementById("desk-inp-amount").value = "";
+  setDeskType("deposit");
+  // Reset recurring toggle
+  deskRecurOn = false;
+  document.getElementById("desk-recur-fields").style.display = "none";
+  document.getElementById("desk-recur-toggle").style.background   = "var(--bg3)";
+  document.getElementById("desk-recur-toggle").style.color        = "var(--text-2)";
+  document.getElementById("desk-recur-toggle").style.borderColor  = "var(--border-hi)";
+  document.getElementById("desk-recur-toggle").textContent = "↺︎ Make this a recurring transaction";
+  document.getElementById("desk-recur-freq").value = "weekly";
+  document.getElementById("desk-recur-dow").value  = String(new Date().getDay());
+  onDeskRecurFreqChange();
+  updateRecurManagePill();
+  document.getElementById("desktop-add-popup").classList.remove("hidden");
+  setTimeout(() => document.getElementById("desk-inp-amount").focus(), 100);
+}
+
+function closeDesktopAddSheet() {
+  document.getElementById("desktop-add-popup").classList.add("hidden");
+  deskRecurOn = false;
+}
+
+function desktopAddTransaction() {
+  const dv  = document.getElementById("desk-inp-date").value;
+  const av  = parseFloat(document.getElementById("desk-inp-amount").value);
+  if (!dv || isNaN(av) || av <= 0) { toast("Enter a valid date and amount.", "#c0392b"); return; }
+  const amt = parseFloat(av.toFixed(2));
+  const tab = deskTxType === "deposit" ? "saved" : "removed";
+
+  if (deskRecurOn) {
+    // Create a recurring rule; processRecurring() will post today's occurrence if due
+    const freq = document.getElementById("desk-recur-freq").value;
+    const dow  = parseInt(document.getElementById("desk-recur-dow").value, 10);
+    const rule = {
+      id: Date.now(), type: deskTxType === "deposit" ? "deposit" : "withdrawal",
+      amount: amt, freq, startDate: dv,
+      dow: (freq === "weekly" || freq === "fortnightly") ? dow : null,
+      nextDate: null,
+    };
+    rule.nextDate = firstOccurrence(rule);
+    recurRules.push(rule);
+    saveRecurring();
+    const posted = processRecurring();
+    if (posted > 0) render();
+    updateRecurMenuSub();
+    closeDesktopAddSheet();
+    toast(`Recurring ${rule.type} scheduled${posted > 0 ? " — first entry added" : ""}`);
+  } else {
+    const fyKey = ensureFY(yearKeyForDate(dv));
+    if (fyKey !== activeYear) activeYear = fyKey;
+    data[fyKey][tab].push([dv, amt]);
+    data[fyKey][tab].sort((a,b) => a[0].localeCompare(b[0]));
+    closeDesktopAddSheet();
+    render();
+    toast(deskTxType === "deposit" ? "Deposit recorded" : "Withdrawal recorded");
+  }
+}
+
+
 function isMobile() { return window.innerWidth <= 640; }
 
 function mobileTab(t) {
   activeTab = t; pendingDelete = null;
-  document.getElementById("bnav-all").className     = "bnav-btn" + (t==="all"     ? " active" : "");
-  document.getElementById("bnav-saved").className   = "bnav-btn" + (t==="saved"   ? " active" : "");
-  document.getElementById("bnav-removed").className = "bnav-btn" + (t==="removed" ? " active" : "");
   updateAddBtn();
   switchTab(t);
 }
@@ -2517,7 +3884,9 @@ function setMobType(type) {
   const addBtn = document.getElementById("mob-add-btn");
   depBtn.className = "add-type-btn" + (type === "deposit"  ? " active-deposit"  : "");
   witBtn.className = "add-type-btn" + (type === "withdraw" ? " active-withdraw" : "");
-  addBtn.textContent = type === "deposit" ? "Add Deposit" : "Add Withdrawal";
+  addBtn.textContent = type === "deposit"
+    ? (mobRecurOn ? "Schedule Recurring Deposit" : "Add Deposit")
+    : (mobRecurOn ? "Schedule Recurring Withdrawal" : "Add Withdrawal");
   addBtn.style.background = type === "deposit" ? "var(--green)" : "var(--red)";
 }
 
@@ -2527,26 +3896,62 @@ function updateAddBtn() {
 
 function openAddSheet() {
   const today = new Date().toISOString().split("T")[0];
-  document.getElementById("mob-inp-date").value = today;
+  document.getElementById("mob-inp-date").value   = today;
   document.getElementById("mob-inp-amount").value = "";
-  // Default to deposit each time
   setMobType("deposit");
+  // Reset recurring toggle
+  mobRecurOn = false;
+  document.getElementById("mob-recur-fields").style.display = "none";
+  document.getElementById("mob-recur-toggle").style.background  = "var(--bg3)";
+  document.getElementById("mob-recur-toggle").style.color       = "var(--text-2)";
+  document.getElementById("mob-recur-toggle").style.borderColor = "var(--border-hi)";
+  document.getElementById("mob-recur-toggle").textContent = "↺︎ Make this a recurring transaction";
+  document.getElementById("mob-recur-freq").value = "weekly";
+  document.getElementById("mob-recur-dow").value  = String(new Date().getDay());
+  onMobRecurFreqChange();
+  updateRecurManagePill();
   document.getElementById("add-sheet").classList.add("open");
   document.getElementById("sheet-overlay").classList.add("open");
   setTimeout(() => document.getElementById("mob-inp-amount").focus(), 100);
 }
 
 function mobileAddTransaction() {
-  const dv = document.getElementById("mob-inp-date").value;
   const av = parseFloat(document.getElementById("mob-inp-amount").value);
-  if (!dv || isNaN(av) || av <= 0) { toast("Enter a valid date and amount.", "#c0392b"); return; }
+  if (isNaN(av) || av <= 0) { toast("Enter a valid amount.", "#c0392b"); return; }
   const amt = parseFloat(av.toFixed(2));
-  const tab = mobTxType === "deposit" ? "saved" : "removed";
-  data[activeYear][tab].push([dv, amt]);
-  data[activeYear][tab].sort((a,b) => a[0].localeCompare(b[0]));
-  closeSheets();
-  render();
-  toast(mobTxType === "deposit" ? "Deposit recorded" : "Withdrawal recorded");
+
+  if (mobRepeat) {
+    const start = document.getElementById("mob-recur-start").value;
+    const freq  = document.getElementById("mob-recur-freq").value;
+    const dow   = parseInt(document.getElementById("mob-recur-dow").value, 10);
+    if (!start) { toast("Enter a start date.", "#c0392b"); return; }
+    const rule = {
+      id: Date.now(), type: mobTxType === "deposit" ? "deposit" : "withdrawal",
+      amount: amt, freq, startDate: start,
+      dow: (freq === "weekly" || freq === "fortnightly") ? dow : null,
+      nextDate: null,
+    };
+    rule.nextDate = firstOccurrence(rule);
+    recurRules.push(rule);
+    saveRecurring();
+    const posted = processRecurring();
+    if (posted > 0) render();
+    closeSheets();
+    toast(posted > 0
+      ? `Scheduled + ${posted} transaction${posted > 1 ? "s" : ""} added`
+      : `Recurring ${mobTxType} scheduled`);
+  } else {
+    const dv = document.getElementById("mob-inp-date").value;
+    if (!dv) { toast("Enter a date.", "#c0392b"); return; }
+    const tab   = mobTxType === "deposit" ? "saved" : "removed";
+    const fyKey = ensureFY(fyKeyForDate(dv));
+    if (fyKey !== activeYear) { activeYear = fyKey; }
+    data[fyKey][tab].push([dv, amt]);
+    data[fyKey][tab].sort((a,b) => a[0].localeCompare(b[0]));
+    closeSheets();
+    render();
+    toast(mobTxType === "deposit" ? "Deposit recorded" : "Withdrawal recorded");
+  }
 }
 
 function openSyncInfoPopup() {
@@ -2603,10 +4008,113 @@ function renderTutorialStep() {
   }
 }
 
+
+function renderMenuTxDropdown() {
+  const dropdown = document.getElementById("menu-tx-dropdown");
+  if (!dropdown) return;
+  dropdown.innerHTML = "";
+
+  // "All" item
+  const allBtn = document.createElement("button");
+  allBtn.className = "menu-tx-dropdown-item" + (activeYear === "all-years" ? " active" : "");
+  const allNet = Object.values(data).reduce((s,y) => s + sumArr(y.saved) - sumArr(y.removed), 0);
+  allBtn.innerHTML = `<span style="flex:1">All</span><span class="menu-tx-year-net ${allNet>=0?'pos':'neg'}">${aud(allNet)}</span><span class="menu-tx-all-spacer"></span>`;
+  allBtn.style.cssText += '; display:flex; align-items:center; width:100%;';
+  allBtn.onclick = () => { setActiveYear("all-years"); closeSheets(); menuTxDropdownOpen = false; };
+  dropdown.appendChild(allBtn);
+
+  // Year items with expandable month sub-lists
+  Object.keys(data).forEach(y => {
+    const si = sumArr(data[y].saved), so = sumArr(data[y].removed), n = si - so;
+    const isActiveYear = activeYear === y && !activeMonth;
+    const isExpanded   = expandedYears.has(y);
+
+    // Gather months
+    const monthSet = new Set();
+    [...data[y].saved, ...data[y].removed].forEach(([d]) => monthSet.add(d.substring(0, 7)));
+    const months = Array.from(monthSet).sort();
+
+    // Year row — flex container with inner label area + chevron
+    const yearRow = document.createElement("div");
+    yearRow.className = "menu-tx-dropdown-item year-row" +
+                        (isActiveYear ? " active" : "") +
+                        (isExpanded   ? " expanded" : "");
+    yearRow.style.cssText = "display:flex; align-items:stretch; padding:0;";
+
+    const inner = document.createElement("div");
+    inner.className = "menu-tx-year-inner";
+    inner.style.cssText = "flex:1; display:flex; align-items:center; cursor:pointer;";
+    inner.innerHTML = `<span style="flex:1">${yearLabel(y)}</span><span class="menu-tx-year-net ${n>=0?"pos":"neg"}">${aud(n)}</span>`;
+    inner.onclick = () => { setActiveYear(y); closeSheets(); menuTxDropdownOpen = false; };
+
+    const chevron = document.createElement("span");
+    chevron.className = "menu-tx-year-chevron";
+    chevron.textContent = "›";
+    chevron.onclick = (e) => {
+      e.stopPropagation();
+      const wasExpanded = expandedYears.has(y);
+      expandedYears.clear();
+      if (!wasExpanded) {
+        expandedYears.add(y);
+        if (activeYear !== y) { activeYear = y; activeMonth = null; pendingDelete = null; if (activeTab === "report") activeTab = "all"; }
+        render();
+      }
+      renderMenuTxDropdown();
+    };
+
+    yearRow.appendChild(inner);
+    if (months.length) yearRow.appendChild(chevron);
+    dropdown.appendChild(yearRow);
+
+    // Month sub-list
+    if (isExpanded && months.length) {
+      const mList = document.createElement("div");
+      mList.className = "menu-tx-month-list open";
+      months.forEach(m => {
+        const isActiveMonth = activeYear === y && activeMonth === m;
+        const [my, mm] = m.split("-");
+        const label = new Date(+my, +mm - 1, 1).toLocaleString("en-AU", { month: "long", year: "numeric" });
+        const mbtn = document.createElement("button");
+        const mSaved2   = data[y].saved.filter(r => r[0].startsWith(m));
+        const mRemoved2 = data[y].removed.filter(r => r[0].startsWith(m));
+        const mNet2 = sumArr(mSaved2) - sumArr(mRemoved2);
+        mbtn.className = "menu-tx-month-btn" + (isActiveMonth ? " active" : "");
+        mbtn.innerHTML = `<span style="flex:1">${label}</span><span style="font-size:12px; font-weight:300; margin-left:8px; color:${mNet2>=0?"var(--green)":"var(--red)"}">${aud(mNet2)}</span><span class="menu-tx-all-spacer"></span>`;
+        mbtn.onclick = () => {
+          activeYear = y; activeMonth = m; pendingDelete = null;
+          if (activeTab === "report") activeTab = "all";
+          closeSheets(); menuTxDropdownOpen = false; render();
+        };
+        mList.appendChild(mbtn);
+      });
+      dropdown.appendChild(mList);
+    }
+  });
+}
+
+let menuTxDropdownOpen = false;
+
+function toggleMenuTxDropdown() {
+  menuTxDropdownOpen = !menuTxDropdownOpen;
+  const dropdown = document.getElementById("menu-tx-dropdown");
+  const btn      = document.getElementById("menu-tx-toggle-btn");
+  if (menuTxDropdownOpen) {
+    renderMenuTxDropdown();
+    dropdown.classList.add("open");
+    btn.classList.add("tx-open");
+  } else {
+    dropdown.classList.remove("open");
+    btn.classList.remove("tx-open");
+  }
+}
+
 function openMenuSheet() {
-  const ss = document.getElementById("sync-status");
-  const ms = document.getElementById("menu-sync-status");
-  if (ms && ss) ms.textContent = ss.textContent;
+  // Reset tx dropdown
+  menuTxDropdownOpen = false;
+  const dd = document.getElementById("menu-tx-dropdown");
+  const tb = document.getElementById("menu-tx-toggle-btn");
+  if (dd) dd.classList.remove("open");
+  if (tb) tb.classList.remove("tx-open");
   document.getElementById("menu-sheet").classList.add("open");
   document.getElementById("sheet-overlay").classList.add("open");
 }
@@ -2643,21 +4151,104 @@ function renderYearSheet() {
   const years = Object.keys(data);
   const list = document.getElementById("ysheet-year-list");
   list.innerHTML = "";
+
+  // Update "All" button active state and net total
+  const allBtn = document.querySelector(".ysheet-all-btn");
+  if (allBtn) {
+    allBtn.classList.toggle("active", activeYear === "all-years");
+    const allNet = Object.values(data).reduce((s,y) => s + sumArr(y.saved) - sumArr(y.removed), 0);
+    const netEl = document.getElementById("ysheet-all-net");
+    if (netEl) { netEl.textContent = aud(allNet); netEl.style.color = allNet >= 0 ? "var(--green)" : "var(--red)"; }
+  }
+
   years.forEach(y => {
     const si = sumArr(data[y].saved), so = sumArr(data[y].removed), n = si - so;
-    const btn = document.createElement("button");
-    btn.className = "ysheet-btn" + (y === activeYear ? " active" : "");
-    btn.innerHTML = `<span class="yb-label">FY 20${y}</span><span class="yb-net ${n>=0?"pos":"neg"}">${aud(n)}</span>`;
-    btn.onclick = () => { activeYear = y; closeSheets(); render(); };
-    list.appendChild(btn);
+    const isExpanded = expandedYears.has(y);
+    const isActiveYear = activeYear === y && !activeMonth;
+
+    // Gather months with transactions
+    const monthSet = new Set();
+    [...data[y].saved, ...data[y].removed].forEach(([d]) => monthSet.add(d.substring(0, 7)));
+    const months = Array.from(monthSet).sort();
+
+    const wrap = document.createElement("div");
+
+    // Year row
+    const btn = document.createElement("div");
+    btn.className = "ysheet-btn" + (isActiveYear ? " active" : "") + (isExpanded ? " expanded" : "");
+    btn.innerHTML = `
+      <div class="ysheet-btn-label">
+        <div style="flex:1">
+          <span class="yb-label">${yearLabel(y)}</span>
+          <span class="yb-net ${n>=0?"pos":"neg"}" style="margin-left:8px;">${aud(n)}</span>
+        </div>
+        <span class="ysheet-chevron">›</span>
+      </div>`;
+
+    // Label click — select year and close
+    btn.querySelector(".ysheet-btn-label").onclick = (e) => {
+      if (e.target.closest(".ysheet-chevron")) return;
+      setActiveYear(y);
+      closeSheets();
+    };
+
+    // Chevron click — toggle months without closing sheet
+    btn.querySelector(".ysheet-chevron").onclick = (e) => {
+      e.stopPropagation();
+      const wasExpanded = expandedYears.has(y);
+      expandedYears.clear();
+      if (!wasExpanded) expandedYears.add(y);
+      if (activeYear !== y) {
+        activeYear = y;
+        activeMonth = null;
+        pendingDelete = null;
+        if (activeTab === "report") activeTab = "all";
+      }
+      renderYearSheet(); // re-render sheet in place
+      render();          // update main view
+    };
+
+    wrap.appendChild(btn);
+
+    // Month sub-list
+    if (isExpanded && months.length) {
+      const mList = document.createElement("div");
+      mList.className = "ysheet-month-list open";
+      months.forEach(m => {
+        const isActiveMonth = activeYear === y && activeMonth === m;
+        const [my, mm] = m.split("-");
+        const label = new Date(+my, +mm - 1, 1).toLocaleString("en-AU", { month: "long", year: "numeric" });
+        const mbtn = document.createElement("button");
+        const mSaved3   = data[y].saved.filter(r => r[0].startsWith(m));
+        const mRemoved3 = data[y].removed.filter(r => r[0].startsWith(m));
+        const mNet3 = sumArr(mSaved3) - sumArr(mRemoved3);
+        mbtn.className = "ysheet-month-btn" + (isActiveMonth ? " active" : "");
+        mbtn.innerHTML = `<div style="font-weight:400">${label}</div><div style="font-size:12px; font-weight:300; margin-top:2px; color:${mNet3>=0?"var(--green)":"var(--red)"}">${aud(mNet3)}</div>`;
+        mbtn.onclick = () => {
+          activeYear = y;
+          activeMonth = m;
+          pendingDelete = null;
+          if (activeTab === "report") activeTab = "all";
+          closeSheets();
+          render();
+        };
+        mList.appendChild(mbtn);
+      });
+      wrap.appendChild(mList);
+    }
+
+    list.appendChild(wrap);
   });
 }
 
 function showYsheetNewForm() {
   document.getElementById("ysheet-new-btn").style.display = "none";
   document.getElementById("ysheet-new-form").classList.add("show");
-  document.getElementById("ysheet-new-input").value = nextFY();
-  document.getElementById("ysheet-new-input").focus();
+  const inp = document.getElementById("ysheet-new-input");
+  inp.value = nextYear();
+  inp.placeholder = yearKeyPlaceholder();
+  inp.maxLength = yearKeyMaxLength();
+  inp.focus();
 }
 function hideYsheetNewForm() {
   document.getElementById("ysheet-new-btn").style.display = "";
@@ -2665,14 +4256,14 @@ function hideYsheetNewForm() {
 }
 function confirmYsheetYear() {
   const label = document.getElementById("ysheet-new-input").value.trim();
-  if (!/^\d{2}-\d{2}$/.test(label)) { toast("Format: YY-YY  e.g. 26-27", "#c0392b"); return; }
+  if (!isValidYearKey(label)) { toast(`Format: ${yearKeyPlaceholder()}`, "#c0392b"); return; }
   if (data[label]) { toast("Year already exists.", "#c0392b"); return; }
   data[label] = { saved: [], removed: [] };
   activeYear = label;
   hideYsheetNewForm();
   closeSheets();
   render();
-  toast("Created FY 20" + label);
+  toast("Created " + yearLabel(label));
 }
 
 function closeSheets() {
@@ -2685,7 +4276,7 @@ function closeSheets() {
 
 // ─── auth ─────────────────────────────────────────────────────────────────────
 const ALLOWED_EMAIL = "eliotgriffiths01@gmail.com";
-const WRITE_TOKEN   = "Asc_y_9rbhBS3iQH31WSsVgTdwSJ3EjfSUj-8kfzb3I"; // must match code.gs
+const WRITE_TOKEN   = "Asc_y_9rbhBS3iQH31WSsVgTdwSJ3EjfSUj-8kfzb3I";
 const AUTH_KEY      = "vault_auth_expiry";
 const AUTH_DAYS     = 30;
 
@@ -2735,7 +4326,7 @@ function checkAuth() {
 function initApp() {
   loadLocal();
   loadDriveState();
-  activeYear = Object.keys(data)[0];
+  activeYear = "all-years";
 
   try {
     if (localStorage.getItem("sidebar_collapsed") === "true") {
@@ -2745,14 +4336,23 @@ function initApp() {
 
   document.getElementById("setup-modal").classList.add("hidden");
 
-  // Init Drive token client once GIS is ready, then silently reconnect if mode was on
+  // Init Drive token client once GIS is ready
   const tryInitDrive = () => {
     initTokenClient();
-    if (driveMode && tokenClient) {
+    if (!driveMode) { setSyncStatus("none", "Local only"); return; }
+    if (driveToken) {
+      // Cached token still valid — sync immediately
+      setSyncStatus("busy", "Loading…");
+      updateSetupModal();
+      driveSyncFromCloud();
+      // Also silently refresh token in background so it stays fresh
+      if (tokenClient) tokenClient.requestAccessToken({ prompt: "" });
+    } else if (tokenClient) {
+      // No cached token — silent refresh (no popup)
       setSyncStatus("busy", "Reconnecting…");
       tokenClient.requestAccessToken({ prompt: "" });
-    } else if (!driveMode) {
-      setSyncStatus("none", "Local only");
+    } else {
+      setSyncStatus("err", "Auth unavailable");
     }
   };
 
@@ -2776,7 +4376,218 @@ function initApp() {
 
   render();
   updateAddBtn();
+  updateYearModeUI();
+
+  // Recurring transactions — load rules, process any due today, then poll daily
+  loadRecurring();
+  runRecurringCheck();
+  updateRecurMenuSub();
+  // Check again every hour (catches the case where the app stays open past midnight)
+  setInterval(runRecurringCheck, 60 * 60 * 1000);
 }
+
+// ─── recurring transactions ────────────────────────────────────────────────────
+// Rule schema: { id, type ("deposit"|"withdrawal"), amount, freq, dow, startDate, nextDate }
+// freq: "weekly" | "fortnightly" | "monthly" | "quarterly" | "yearly"
+// dow: 0-6 (Sun-Sat), only used for weekly/fortnightly — otherwise null
+// nextDate: ISO string of the next date to post (advances after each posting)
+
+const RECUR_KEY = "vault_recurring_v1";
+let recurRules = [];
+
+const DOW_NAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const FREQ_LABELS = { weekly:"Weekly", fortnightly:"Fortnightly", monthly:"Monthly", quarterly:"Quarterly", yearly:"Yearly" };
+
+function loadRecurring() {
+  try {
+    const raw = localStorage.getItem(RECUR_KEY);
+    recurRules = raw ? JSON.parse(raw) : [];
+  } catch { recurRules = []; }
+}
+
+function saveRecurring() {
+  try { localStorage.setItem(RECUR_KEY, JSON.stringify(recurRules)); } catch {}
+}
+
+// Given a rule, compute the very first occurrence date >= startDate
+// For weekly/fortnightly: advance to the correct day-of-week
+function firstOccurrence(rule) {
+  const start = new Date(rule.startDate + "T00:00:00");
+  if (rule.freq === "weekly" || rule.freq === "fortnightly") {
+    const targetDow = parseInt(rule.dow, 10);
+    const d = new Date(start);
+    const diff = (targetDow - d.getDay() + 7) % 7;
+    d.setDate(d.getDate() + diff);
+    return isoDate(d);
+  }
+  // monthly/quarterly/yearly: use the start date as-is
+  return rule.startDate;
+}
+
+// Given a date string and a freq, return the next occurrence after that date
+function nextOccurrence(dateStr, freq) {
+  const d = new Date(dateStr + "T00:00:00");
+  switch (freq) {
+    case "weekly":      d.setDate(d.getDate() + 7);   break;
+    case "fortnightly": d.setDate(d.getDate() + 14);  break;
+    case "monthly":     d.setMonth(d.getMonth() + 1); break;
+    case "quarterly":   d.setMonth(d.getMonth() + 3); break;
+    case "yearly":      d.setFullYear(d.getFullYear() + 1); break;
+  }
+  return isoDate(d);
+}
+
+function isoDate(d) {
+  const y  = d.getFullYear();
+  const m  = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+}
+
+function todayISO() {
+  return isoDate(new Date());
+}
+
+// Process all recurring rules: post any occurrences where nextDate <= today
+// Returns the number of transactions posted
+function processRecurring() {
+  const today = todayISO();
+  let posted = 0;
+  recurRules.forEach(rule => {
+    if (!rule.nextDate) return;
+    while (rule.nextDate <= today) {
+      // Post the transaction
+      const tab    = rule.type === "deposit" ? "saved" : "removed";
+      const fyKey  = ensureFY(yearKeyForDate(rule.nextDate));
+      const amt    = parseFloat(rule.amount.toFixed(2));
+      data[fyKey][tab].push([rule.nextDate, amt]);
+      data[fyKey][tab].sort((a, b) => a[0].localeCompare(b[0]));
+      posted++;
+      // Advance nextDate
+      rule.nextDate = nextOccurrence(rule.nextDate, rule.freq);
+    }
+  });
+  if (posted > 0) {
+    saveRecurring();
+    saveLocal();
+  }
+  return posted;
+}
+
+// Called on app init and by a daily timer
+function runRecurringCheck() {
+  const posted = processRecurring();
+  if (posted > 0) {
+    render();
+    updateRecurMenuSub();
+    toast(`${posted} recurring transaction${posted > 1 ? "s" : ""} added`, "var(--gold-dim)");
+  }
+}
+
+function updateRecurMenuSub() {
+  updateRecurManagePill();
+}
+
+// ── modal UI ──────────────────────────────────────────────────────────────────
+function openRecurringModal() {
+  // Default start date to today
+  const inp = document.getElementById("recur-start");
+  if (inp && !inp.value) inp.value = todayISO();
+  // Default dow to today's day of week
+  const dowSel = document.getElementById("recur-dow");
+  if (dowSel) dowSel.value = String(new Date().getDay());
+  onRecurFreqChange();
+  renderRecurList();
+  document.getElementById("recurring-modal").classList.remove("hidden");
+}
+
+function closeRecurringModal() {
+  document.getElementById("recurring-modal").classList.add("hidden");
+}
+
+// Close on backdrop click
+document.getElementById("recurring-modal").addEventListener("click", function(e) {
+  if (e.target === this) closeRecurringModal();
+});
+
+function onRecurFreqChange() {
+  const freq = document.getElementById("recur-freq").value;
+  const wrap = document.getElementById("recur-day-of-week-wrap");
+  wrap.style.display = (freq === "weekly" || freq === "fortnightly") ? "flex" : "none";
+}
+
+function renderRecurList() {
+  const list  = document.getElementById("recur-list");
+  const empty = document.getElementById("recur-empty");
+  list.innerHTML = "";
+  if (!recurRules.length) {
+    empty.style.display = "block";
+    return;
+  }
+  empty.style.display = "none";
+  recurRules.forEach((rule, idx) => {
+    const isDeposit = rule.type === "deposit";
+    const freqLabel = FREQ_LABELS[rule.freq] || rule.freq;
+    const dowLabel  = (rule.freq === "weekly" || rule.freq === "fortnightly")
+                      ? `, every ${DOW_NAMES[rule.dow]}` : "";
+    const nextLabel = rule.nextDate ? `Next: ${fmtDate(rule.nextDate)}` : "Complete";
+    const div = document.createElement("div");
+    div.className = "recur-item";
+    div.innerHTML = `
+      <div class="recur-item-info">
+        <div class="recur-item-title">${isDeposit ? "💚 Deposit" : "🔴 Withdrawal"} · ${freqLabel}${dowLabel}</div>
+        <div class="recur-item-meta">Started ${fmtDate(rule.startDate)} · ${nextLabel}</div>
+      </div>
+      <span class="recur-item-amt ${isDeposit ? "dep" : "wit"}">${aud(rule.amount)}</span>
+      <button class="recur-delete-btn" onclick="deleteRecurRule(${idx})" title="Delete">✕</button>`;
+    list.appendChild(div);
+  });
+}
+
+function addRecurringRule() {
+  const type   = document.getElementById("recur-type").value;
+  const amount = parseFloat(document.getElementById("recur-amount").value);
+  const start  = document.getElementById("recur-start").value;
+  const freq   = document.getElementById("recur-freq").value;
+  const dow    = parseInt(document.getElementById("recur-dow").value, 10);
+
+  if (!start)           { toast("Please enter a start date.", "#c0392b"); return; }
+  if (isNaN(amount) || amount <= 0) { toast("Please enter a valid amount.", "#c0392b"); return; }
+
+  const rule = {
+    id:        Date.now(),
+    type,
+    amount:    parseFloat(amount.toFixed(2)),
+    freq,
+    dow:       (freq === "weekly" || freq === "fortnightly") ? dow : null,
+    startDate: start,
+    nextDate:  null,
+  };
+  rule.nextDate = firstOccurrence(rule);
+
+  recurRules.push(rule);
+  saveRecurring();
+
+  // Immediately process in case nextDate <= today
+  const posted = processRecurring();
+  if (posted > 0) { render(); toast(`${posted} transaction${posted > 1 ? "s" : ""} added`, "var(--gold-dim)"); }
+
+  // Reset form
+  document.getElementById("recur-amount").value = "";
+  document.getElementById("recur-start").value  = todayISO();
+  updateRecurMenuSub();
+  renderRecurList();
+  if (posted === 0) toast("Recurring transaction scheduled", "var(--gold-dim)");
+}
+
+function deleteRecurRule(idx) {
+  recurRules.splice(idx, 1);
+  saveRecurring();
+  updateRecurMenuSub();
+  renderRecurList();
+  toast("Recurring transaction removed", "var(--text-3)");
+}
+
 
 // Bypass login when running inside a sandboxed iframe (e.g. Claude preview)
 const inSandbox = (() => {
@@ -2789,6 +4600,6 @@ if (inSandbox || checkAuth()) {
 }
 // Otherwise wait for Google Sign-In callback (handleGoogleLogin → initApp)
 </script>
-  <div id="version-footer">v1.3.3</div>
+  <div id="version-footer">v2.4.6</div>
 </body>
 </html>
