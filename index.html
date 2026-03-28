@@ -223,25 +223,6 @@
     border-radius: 7px; padding: 6px 0; color: var(--text-2); font-size: 12px;
     font-family: 'DM Sans', sans-serif; cursor: pointer;
   }
-  .sidebar-report-btn {
-    width: 100%;
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid var(--border);
-    color: var(--text-2);
-    padding: 11px 16px;
-    text-align: left;
-    font-size: 13px;
-    font-weight: 500;
-    font-family: 'DM Sans', sans-serif;
-    cursor: pointer;
-    transition: background 0.12s, color 0.12s;
-    letter-spacing: 0.02em;
-    display: block;
-  }
-  .sidebar-report-btn:hover { background: var(--bg2); color: var(--text-1); }
-  .sidebar-report-btn.active { background: var(--bg2); color: var(--gold); border-left: 2px solid var(--gold); }
-  #sidebar-report-btn-wrap { flex-shrink: 0; border-bottom: none; }
   #sidebar-allyears-btn-wrap { flex-shrink: 0; }
   #sidebar-allyears-btn { border-bottom: none !important; }
 
@@ -703,7 +684,6 @@
   ════════════════════════════════════════════ */
   @media (max-width: 640px) {
     #sidebar { display: none; }
-    #sidebar-report-btn-wrap { display: none; }
     .header-btns .btn-ghost { display: none; }
     .header-btns .btn-gold { display: none; }
     #add-form { display: none; }
@@ -877,8 +857,7 @@
       width: 100%; background: transparent; border: none;
       border-bottom: 1px solid var(--border);
       color: var(--text-2); padding: 15px 16px;
-      text-align: left; cursor: pointer; display: flex;
-      align-items: center;
+      text-align: left; cursor: pointer;
       font-size: 15px; font-weight: 500;
       font-family: 'DM Sans', sans-serif;
       transition: background 0.1s, color 0.1s;
@@ -1038,6 +1017,16 @@
     #add-sheet    { display: none !important; }
     #sheet-overlay{ display: none !important; }
   }
+
+  /* ── existing Drive file popup ── */
+  #drive-found-popup {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 500;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  #drive-found-popup.hidden { display: none; }
 
   /* ── login screen ── */
   #login-screen {
@@ -2239,6 +2228,21 @@
   </div>
 </div>
 
+<!-- Existing Drive file found popup — shown on first connect when vault-data.json already exists -->
+<div id="drive-found-popup" class="hidden">
+  <div class="modal-box" style="max-width:400px;">
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+      <h2 style="margin:0; flex:1;">☁️ Existing File Found</h2>
+    </div>
+    <p style="margin-bottom:8px;">A <strong>vault-data.json</strong> file already exists in your Google Drive.</p>
+    <p style="margin-bottom:20px;">Would you like to load that data, or start fresh and overwrite it with your current data?</p>
+    <div class="modal-actions" style="flex-direction:column; gap:10px;">
+      <button class="btn-primary" onclick="driveFoundUseExisting()">☁️ Load from Drive</button>
+      <button class="btn-local" onclick="driveFoundUseNew()">Start fresh (overwrite Drive file)</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 <div id="debug-panel" style="position:fixed;bottom:0;left:0;right:0;background:#0a1a1c;border-top:1px solid #2E9EA8;padding:6px 12px;font-size:11px;font-family:monospace;display:none;z-index:998;">
   <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
@@ -2250,10 +2254,12 @@
 
 <script>
 // ─── seed data ────────────────────────────────────────────────────────────────
-// Baked-in transactions used on first load (when no localStorage data exists).
-// Each entry is [ISO-date-string, amount-as-number].
-// Keys are financial year strings matching yearMode ("24-25", "25-26", etc.).
-const SEED = {
+// SEED: empty starting state for new users in production.
+// PREVIEW_SEED: real transaction data shown only in the Claude preview sandbox.
+const SEED = {};
+
+// Preview-only data — loaded instead of SEED when running inside a sandboxed iframe
+const PREVIEW_SEED = {
   "24-25": {
     saved: [
       ["2024-09-30",100],["2024-10-01",128.66],["2024-10-07",6.53],["2024-10-09",125.81],
@@ -2357,6 +2363,13 @@ const SEED = {
   }
 };
 
+// ─── sandbox detection ────────────────────────────────────────────────────────
+// Detect whether Vault is running inside a sandboxed iframe (e.g. the Claude preview).
+// Used to: bypass login, and load PREVIEW_SEED instead of the empty production SEED.
+const inSandbox = (() => {
+  try { return window.self !== window.top; } catch { return true; }
+})();
+
 // ─── app state ────────────────────────────────────────────────────────────────
 // data         — the live transaction store, mirrored to localStorage + Drive
 // activeYear   — currently selected year key ("24-25", "2025", or "all-years")
@@ -2368,6 +2381,11 @@ let data = {}, activeYear, activeTab = "all";
 let activeMonth = null;
 let expandedYears = new Set();
 let sortKey = "date", sortDir = "asc";
+
+// pendingDelete: vestigial variable from a removed "confirm before delete" feature.
+// Still reset throughout the codebase for navigation safety; kept as a declared null
+// rather than an implicit global to avoid strict-mode errors if the app is ever wrapped.
+let pendingDelete = null;
 
 // Debounce timer for Drive saves — resets on each data change
 let syncTimer = null;
@@ -2567,13 +2585,24 @@ function saveLocal() {
   try { localStorage.setItem("savings_data_v4", JSON.stringify(data)); } catch {}
 }
 
-// Load data from localStorage, falling back to SEED if nothing is stored.
+// Load data from localStorage, falling back to PREVIEW_SEED in the Claude sandbox
+// or an empty state in production if nothing is stored.
 // Also loads year mode settings and reconciles any mis-bucketed transactions.
 function loadLocal() {
   try {
     const stored = localStorage.getItem("savings_data_v4");
-    data = stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(SEED));
-  } catch { data = JSON.parse(JSON.stringify(SEED)); }
+    if (stored) {
+      data = JSON.parse(stored);
+    } else {
+      // In the Claude preview sandbox use the real data so the app looks populated;
+      // in production start with a clean slate.
+      const fallback = inSandbox ? PREVIEW_SEED : SEED;
+      data = JSON.parse(JSON.stringify(fallback));
+    }
+  } catch {
+    const fallback = inSandbox ? PREVIEW_SEED : SEED;
+    data = JSON.parse(JSON.stringify(fallback));
+  }
   loadYearMode();
   reconcileYears();
 }
@@ -2759,6 +2788,7 @@ function initTokenClient() {
     callback: (resp) => {
       if (resp.error) {
         // Silent refresh failed — fall back to cached token if one exists
+        driveIsFirstConnect = false; // clear flag so a retry doesn't re-trigger the popup incorrectly
         if (!driveToken) {
           setSyncStatus("err", "Auth failed");
           dbg("Drive token error: " + resp.error);
@@ -2777,9 +2807,21 @@ function initTokenClient() {
   });
 }
 
+// ── first-connect state ───────────────────────────────────────────────────────
+// driveIsFirstConnect: set true by connectDrive() so driveFindOrCreateFile knows
+//   to show the "existing file found" popup instead of silently reusing the file.
+// driveFoundFileId / driveFoundResolve: hold the Promise resolution while the popup is open.
+// driveForceOverwrite: set by driveFoundUseNew() to skip the remote load and push local data up.
+let driveIsFirstConnect = false;
+let driveFoundFileId    = null;
+let driveFoundResolve   = null;
+let driveForceOverwrite = false;
+
 // Trigger the OAuth consent flow to connect Drive.
 // Polls for GIS readiness if the library hasn't loaded yet.
+// Sets driveIsFirstConnect so the found-file popup fires if an existing vault file exists.
 function connectDrive() {
+  driveIsFirstConnect = true; // mark this as a fresh connection attempt
   if (!tokenClient) {
     let attempts = 0;
     const poll = setInterval(() => {
@@ -2790,6 +2832,7 @@ function connectDrive() {
         tokenClient.requestAccessToken({ prompt: "consent" });
       } else if (attempts > 10) {
         clearInterval(poll);
+        driveIsFirstConnect = false;
         toast("Google Sign-In not ready. Try again.", "#c0392b");
       }
     }, 300);
@@ -2813,7 +2856,9 @@ function disconnectDrive() {
 }
 
 // Locate (or create) the vault-data.json file in the user's Drive.
-// Returns the file ID. Caches the ID in driveFileId for subsequent calls.
+// Returns the file ID. Caches it in driveFileId for subsequent calls.
+// On a first-ever connect (no cached ID), if an existing file is found in Drive,
+// shows a prompt asking whether to load it or overwrite it.
 async function driveFindOrCreateFile() {
   // Verify that any cached file ID still exists and isn't trashed
   if (driveFileId) {
@@ -2834,13 +2879,28 @@ async function driveFindOrCreateFile() {
 
   // Search Drive for an existing file by name
   const search = await fetch(
-    `https://www.googleapis.com/drive/v3/files?q=name%3D'${DRIVE_FILE_NAME}'+and+trashed%3Dfalse&fields=files(id)&spaces=drive`,
+    `https://www.googleapis.com/drive/v3/files?q=name%3D'${DRIVE_FILE_NAME}'+and+trashed%3Dfalse&fields=files(id,modifiedTime,size)&spaces=drive`,
     { headers: { "Authorization": "Bearer " + driveToken } }
   );
   if (search.ok) {
     const res = await search.json();
     if (res.files && res.files.length > 0) {
-      driveFileId = res.files[0].id;
+      const found = res.files[0];
+
+      // On the very first connect ever (no cached ID), ask whether to use the found file
+      if (driveIsFirstConnect) {
+        driveIsFirstConnect = false;
+        // Store the found ID temporarily so the popup handlers can use it
+        driveFoundFileId = found.id;
+        // Show the popup and pause — handlers will resume the sync flow
+        setSyncStatus("busy", "File found…");
+        document.getElementById("drive-found-popup").classList.remove("hidden");
+        // Return a promise that resolves once the user makes a choice
+        return new Promise(resolve => { driveFoundResolve = resolve; });
+      }
+
+      // Subsequent calls: just use the file silently
+      driveFileId = found.id;
       saveDriveState();
       return driveFileId;
     }
@@ -2864,6 +2924,29 @@ async function driveFindOrCreateFile() {
   driveFileId = created.id;
   saveDriveState();
   return driveFileId;
+}
+
+// User chose to load the existing Drive file — use it as the canonical source
+function driveFoundUseExisting() {
+  document.getElementById("drive-found-popup").classList.add("hidden");
+  driveFileId = driveFoundFileId;
+  driveFoundFileId = null;
+  saveDriveState();
+  if (driveFoundResolve) { driveFoundResolve(driveFileId); driveFoundResolve = null; }
+  // driveSyncFromCloud will now load the remote data and replace local
+  setSyncStatus("busy", "Loading…");
+}
+
+// User chose to start fresh — use the found file ID but overwrite it with local data
+function driveFoundUseNew() {
+  document.getElementById("drive-found-popup").classList.add("hidden");
+  driveFileId = driveFoundFileId;  // reuse same file rather than creating a duplicate
+  driveFoundFileId = null;
+  saveDriveState();
+  if (driveFoundResolve) { driveFoundResolve(driveFileId); driveFoundResolve = null; }
+  // After the promise resolves, driveSyncFromCloud will run — we then push local data up
+  // by setting a flag that driveSyncFromCloud checks
+  driveForceOverwrite = true;
 }
 
 // Upload the current data to Drive using a media upload PATCH request
@@ -2923,6 +3006,17 @@ async function driveSyncFromCloud() {
   setSyncStatus("busy", "Loading…");
   try {
     const fileId = await driveFindOrCreateFile();
+
+    // User chose "start fresh" in the found-file popup — skip the download and push local data up
+    if (driveForceOverwrite) {
+      driveForceOverwrite = false;
+      dbg("driveForceOverwrite: pushing local data to Drive");
+      setSyncStatus("ok", "Synced ✓");
+      render();
+      await driveSaveToCloud();
+      return;
+    }
+
     const resp = await fetch(
       `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
       { headers: { "Authorization": "Bearer " + driveToken } }
@@ -2968,12 +3062,7 @@ function scheduleSave() {
   syncTimer = setTimeout(driveSaveToCloud, 1500);
 }
 
-function manualSync() {
-  if (!driveMode || !driveToken) {
-    toast("Not connected. Open Menu → Connect to Google Drive.", "#c0392b"); return;
-  }
-  driveSyncFromCloud();
-}
+
 
 // ─── modal ─────────────────────────────────────────────────────────────────────
 function openSetup() {
@@ -3018,7 +3107,6 @@ function render() {
 function setActiveYear(y) {
   activeYear = y;
   activeMonth = null;
-  pendingDelete = null;
   if (activeTab === "report") switchTab("all");
   else render();
 }
@@ -3072,7 +3160,6 @@ function renderSidebar() {
     btn.querySelector(".year-btn-label").onclick = () => {
       activeYear = y;
       activeMonth = null;
-      pendingDelete = null;
       if (activeTab === "report") switchTab("all");
       else render();
     };
@@ -3087,7 +3174,6 @@ function renderSidebar() {
       if (activeYear !== y) {
         activeYear = y;
         activeMonth = null;
-        pendingDelete = null;
       }
       render();
     };
@@ -3119,7 +3205,6 @@ function renderSidebar() {
         e.stopPropagation();
         activeYear = y;
         activeMonth = m;
-        pendingDelete = null;
         if (activeTab === "report") switchTab("all");
         else render();
       };
@@ -3287,7 +3372,7 @@ function renderMain() {
 // Switch the active tab ("all" | "saved" | "removed" | "report").
 // Shows/hides the table vs report panel and triggers the appropriate render.
 function switchTab(t) {
-  activeTab = t; pendingDelete = null;
+  activeTab = t;
   const isReport = t === "report";
   const isAll    = t === "all";
   document.getElementById("table-wrap").style.display   = isReport ? "none" : "";
@@ -3718,30 +3803,6 @@ function exportReportXLSX() {
 }
 
 
-// Legacy full-data CSV export (all years, side-by-side saved/removed columns).
-// Retained for any old callers; the report tab uses exportReportCSV/XLSX instead.
-function exportCSV() {
-  const years = Object.keys(data);
-  let csv = "Financial Year,Total In ($),Total Out ($),Net ($)\n";
-  years.forEach(y=>{
-    const si=sumArr(data[y].saved).toFixed(2), so=sumArr(data[y].removed).toFixed(2);
-    csv+=`FY 20${y},${si},${so},${(si-so).toFixed(2)}\n`;
-  });
-  years.forEach(y=>{
-    csv+=`\nFY 20${y}\nDate Saved,Amount Saved,Date Withdrawn,Amount Withdrawn\n`;
-    const {saved,removed}=data[y];
-    const maxR=Math.max(saved.length,removed.length);
-    for(let i=0;i<maxR;i++){
-      const s=saved[i]||["",""], r=removed[i]||["",""];
-      csv+=`${s[0]},${s[1]||""},${r[0]},${r[1]||""}\n`;
-    }
-  });
-  const blob=new Blob([csv],{type:"text/csv"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a"); a.href=url; a.download="Savings.csv"; a.click();
-  URL.revokeObjectURL(url); toast("CSV exported!");
-}
-
 // ─── toast notifications ───────────────────────────────────────────────────────
 // Show a brief status message at the top of the screen.
 // color defaults to the app's teal accent; use "#c0392b" for errors.
@@ -4028,14 +4089,9 @@ function desktopAddTransaction() {
 }
 
 
-// ─── mobile add transaction ────────────────────────────────────────────────────
-
-// Returns true if the viewport is in mobile range (≤640 px)
-function isMobile() { return window.innerWidth <= 640; }
-
-// Switch tab on mobile (same as switchTab but also calls updateAddBtn for compat)
+// ─── mobile add transaction ────────────────────────────────────────────────────// Switch tab on mobile (same as switchTab but also calls updateAddBtn for compat)
 function mobileTab(t) {
-  activeTab = t; pendingDelete = null;
+  activeTab = t;
   updateAddBtn();
   switchTab(t);
 }
@@ -4088,7 +4144,7 @@ function mobileAddTransaction() {
   if (isNaN(av) || av <= 0) { toast("Enter a valid amount.", "#c0392b"); return; }
   const amt = parseFloat(av.toFixed(2));
 
-  if (mobRecurOn) {  // BUG FIX: was incorrectly referencing undefined `mobRepeat`
+  if (mobRecurOn) {
     const start = document.getElementById("mob-recur-start").value;
     const freq  = document.getElementById("mob-recur-freq").value;
     const dow   = parseInt(document.getElementById("mob-recur-dow").value, 10);
@@ -4228,7 +4284,7 @@ function renderMenuTxDropdown() {
       expandedYears.clear();
       if (!wasExpanded) {
         expandedYears.add(y);
-        if (activeYear !== y) { activeYear = y; activeMonth = null; pendingDelete = null; if (activeTab === "report") activeTab = "all"; }
+        if (activeYear !== y) { activeYear = y; activeMonth = null; if (activeTab === "report") activeTab = "all"; }
         render();
       }
       renderMenuTxDropdown();
@@ -4253,7 +4309,7 @@ function renderMenuTxDropdown() {
         mbtn.className = "menu-tx-month-btn" + (isActiveMonth ? " active" : "");
         mbtn.innerHTML = `<span style="flex:1">${label}</span><span style="font-size:12px; font-weight:300; margin-left:8px; color:${mNet2>=0?"var(--green)":"var(--red)"}">${aud(mNet2)}</span><span class="menu-tx-all-spacer"></span>`;
         mbtn.onclick = () => {
-          activeYear = y; activeMonth = m; pendingDelete = null;
+          activeYear = y; activeMonth = m;
           if (activeTab === "report") activeTab = "all";
           closeSheets(); menuTxDropdownOpen = false; render();
         };
@@ -4295,22 +4351,6 @@ function openMenuSheet() {
   document.getElementById("sheet-overlay").classList.add("open");
 }
 
-function toggleDesktopMenu() {
-  const menu = document.getElementById("desktop-menu");
-  const overlay = document.getElementById("desktop-menu-overlay");
-  // Mirror sync status into the dropdown header
-  const ss = document.getElementById("sync-status");
-  const dot = document.getElementById("dmenu-sync-dot");
-  const txt = document.getElementById("dmenu-sync-text");
-  if (ss && dot && txt) {
-    txt.textContent = ss.textContent;
-    const cls = [...ss.classList].find(c => c.startsWith("sync-")) || "";
-    const state = cls.replace("sync-", "");
-    dot.className = "dmenu-sync-dot" + (state ? " " + state : "");
-  }
-  const isOpen = menu.classList.toggle("open");
-  overlay.classList.toggle("open", isOpen);
-}
 
 // ─── desktop dropdown menu ─────────────────────────────────────────────────────
 
@@ -4404,7 +4444,6 @@ function renderYearSheet() {
       if (activeYear !== y) {
         activeYear = y;
         activeMonth = null;
-        pendingDelete = null;
         if (activeTab === "report") activeTab = "all";
       }
       renderYearSheet(); // re-render sheet in place
@@ -4430,7 +4469,6 @@ function renderYearSheet() {
         mbtn.onclick = () => {
           activeYear = y;
           activeMonth = m;
-          pendingDelete = null;
           if (activeTab === "report") activeTab = "all";
           closeSheets();
           render();
@@ -4487,7 +4525,6 @@ function closeSheets() {
 // Vault uses Google Sign-In for access control. Only the email below is allowed.
 // Auth state is stored in localStorage with a rolling 30-day expiry.
 const ALLOWED_EMAIL = "eliotgriffiths01@gmail.com";
-const WRITE_TOKEN   = "Asc_y_9rbhBS3iQH31WSsVgTdwSJ3EjfSUj-8kfzb3I"; // legacy, retained for compat
 const AUTH_KEY      = "vault_auth_expiry"; // localStorage key for expiry timestamp
 const AUTH_DAYS     = 30;                  // days before re-login is required
 
@@ -4871,11 +4908,8 @@ function deleteRecurRule(idx) {
 }
 
 // ─── bootstrap ────────────────────────────────────────────────────────────────
-// Bypass the login screen when running inside a sandboxed iframe (e.g. Claude preview).
-// In production this detects the cross-origin iframe restriction and skips auth.
-const inSandbox = (() => {
-  try { return window.self !== window.top; } catch { return true; }
-})();
+// inSandbox is declared near the top of the script (before app state) so that
+// loadLocal() can reference it safely at call time.
 
 if (inSandbox || checkAuth()) {
   // Auth already valid (or sandbox) — hide login and launch the app immediately
@@ -4884,6 +4918,6 @@ if (inSandbox || checkAuth()) {
 }
 // Otherwise the Google Sign-In callback (handleGoogleLogin) will call initApp() once the user logs in
 </script>
-  <div id="version-footer">v2.5.0</div>
+  <div id="version-footer">v2.5.3</div>
 </body>
 </html>
