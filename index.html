@@ -67,6 +67,25 @@
 
   .header-btns { display: flex; gap: 6px; align-items: center; }
 
+  /* ── browser compatibility warning banner ── */
+  #compat-banner {
+    background: rgba(192,80,74,0.1);
+    border-bottom: 1px solid rgba(192,80,74,0.25);
+    flex-shrink: 0;
+  }
+  #compat-banner-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 20px; gap: 12px;
+  }
+  #compat-banner-text {
+    font-size: 12px; color: #e07a75; font-weight: 400; line-height: 1.5;
+  }
+  #compat-banner-dismiss {
+    background: none; border: none; color: #e07a75; font-size: 14px;
+    cursor: pointer; padding: 2px 4px; flex-shrink: 0; opacity: 0.7;
+  }
+  #compat-banner-dismiss:hover { opacity: 1; }
+
   /* ── local save status pill ── */
   #save-status {
     font-size: 11px; font-weight: 500;
@@ -78,7 +97,7 @@
   #save-status.ss-ok   { background: rgba(61,158,110,0.12);  color: #5ec497; }
   #save-status.ss-busy { background: rgba(201,168,76,0.12);  color: var(--gold); }
   #save-status.ss-err  { background: rgba(192,80,74,0.12);   color: #e07a75; }
-  #save-status.ss-warn { background: var(--bg3); color: var(--text-3); border: 1px solid var(--border); }
+  #save-status.ss-warn { background: transparent; color: var(--text-3); border: none; }
   #save-status.ss-none { display: none; }
   .btn-ghost {
     background: transparent;
@@ -1090,6 +1109,15 @@
   #enc-set-popup.hidden,
   #enc-menu-popup.hidden { display: none; }
 
+  #year-format-popup {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 510;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  #year-format-popup.hidden { display: none; }
+
 
 
   /* ── version footer ── */
@@ -1264,16 +1292,6 @@
     }
   }
   /* ── info popup ── */
-  #info-popup,
-  #year-format-popup {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(4px);
-    z-index: 400;
-    display: flex; align-items: center; justify-content: center; padding: 20px;
-  }
-  #info-popup.hidden,
-  #year-format-popup.hidden { display: none; }
   .info-popup-box {
     background: var(--bg2);
     border: 1px solid var(--border-hi);
@@ -1307,8 +1325,6 @@
     text-transform: uppercase; padding: 2px 7px;
     border-radius: 20px;
   }
-  .info-badge.cloud { background: rgba(201,168,76,0.15); color: var(--gold); }
-  .info-badge.local { background: var(--bg4); color: var(--text-3); }
   .info-mode p {
     font-size: 12px; color: var(--text-2);
     line-height: 1.7; font-weight: 300; margin: 0;
@@ -1324,21 +1340,6 @@
   .info-popup-close-btn:hover { border-color: var(--gold-dim); color: var(--text-1); }
 
   /* info trigger button */
-  .modal-info-btn {
-    background: var(--bg3);
-    border: 1px solid var(--border-hi);
-    border-radius: 50%;
-    color: var(--text-2);
-    font-size: 12px;
-    font-weight: 700;
-    font-family: 'DM Sans', sans-serif;
-    cursor: pointer;
-    width: 22px; height: 22px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
-  }
-  .modal-info-btn:hover { border-color: var(--gold-dim); color: var(--gold); background: var(--bg4); }
   /* ── sync info popup ── */
   /* ── sidebar add new button ── */
   #sidebar-addnew-wrap { padding: 10px 14px 14px; flex-shrink: 0; }
@@ -1361,6 +1362,39 @@
     display: flex; align-items: center; justify-content: center; padding: 20px;
   }
   #desktop-add-popup.hidden { display: none; }
+
+  /* ── print styles ── */
+  @media print {
+    /* Hide all UI chrome */
+    #header, #compat-banner, #sidebar, #desktop-menu, #desktop-menu-overlay,
+    #menu-sheet, #year-sheet, #add-sheet, #desktop-add-popup,
+    #setup-modal, #enc-menu-popup, #enc-set-popup, #enc-decrypt-popup,
+    #enc-choice-popup, #welcome-modal, #year-format-popup,
+    #toast, #debug-panel, #mob-fabs, .tabs,
+    #report-controls, .btn-ghost, .btn-gold, .btn-local, .btn-primary { display: none !important; }
+
+    /* Show only the active content panel */
+    body { background: #fff; color: #000; }
+    #layout, #layout-inner, #main { display: block !important; width: 100%; }
+    #main { padding: 0 !important; }
+
+    /* Make all panels visible for print — the active one will have content */
+    #all-panel, #saved-panel, #removed-panel, #report-panel {
+      display: block !important; padding: 0 !important;
+    }
+
+    /* Clean up table styles for print */
+    table { border-collapse: collapse; width: 100%; font-size: 11px; }
+    th, td { border: 1px solid #ccc; padding: 6px 8px; color: #000; }
+    th { background: #f5f5f5; }
+    .tx-row-removed { color: #c00; }
+
+    /* Report summary cards */
+    #report-summary { display: flex !important; gap: 8px; margin-bottom: 12px; }
+    .report-card { border: 1px solid #ccc; padding: 8px 12px; border-radius: 4px; }
+    .rc-label { font-size: 10px; color: #666; }
+    .rc-value { font-size: 16px; font-weight: 600; color: #000; }
+  }
 
 </style>
 </head>
@@ -1467,31 +1501,6 @@
       </div>
     </div>
 
-  </div>
-</div>
-
-<!-- Info popup -->
-<div id="info-popup" class="hidden">
-  <div class="info-popup-box">
-    <div style="display:flex; align-items:center; margin-bottom:20px;">
-      <h3 style="margin-bottom:0; flex:1;">Storage Modes</h3>
-      <button class="modal-close" onclick="document.getElementById('info-popup').classList.add('hidden')" title="Close">✕</button>
-    </div>
-    <div class="info-mode">
-      <div class="info-mode-title">
-        🔗 Google Drive Sync
-        <span class="info-badge cloud">Recommended</span>
-      </div>
-      <p>Your data is saved as a private JSON file in your own Google Drive. It syncs automatically across all your devices — phone, tablet, and desktop. If you clear your browser data or switch devices, nothing is lost.</p>
-    </div>
-    <div class="info-mode">
-      <div class="info-mode-title">
-        💾 Local Only
-        <span class="info-badge local">This device</span>
-      </div>
-      <p>Your data is stored only in your browser's local storage on this device. No account or internet connection is needed, but your data won't be accessible on other devices and will be lost if you clear your browser data.</p>
-    </div>
-    <button class="info-popup-close-btn" onclick="document.getElementById('info-popup').classList.add('hidden')">Got it</button>
   </div>
 </div>
 
@@ -1632,6 +1641,14 @@
   </div>
 </div>
 
+<!-- Browser compatibility warning banner — shown when FSAPI auto-save is not supported -->
+<div id="compat-banner" style="display:none;">
+  <div id="compat-banner-inner">
+    <span id="compat-banner-text">⚠️ Auto-save not supported in this browser — export regularly to avoid data loss.</span>
+    <button onclick="document.getElementById('compat-banner').style.display=\"none\"" id="compat-banner-dismiss">✕</button>
+  </div>
+</div>
+
 <!-- Desktop: dropdown menu -->
 <div id="desktop-menu">
   <div class="dmenu-header">
@@ -1640,7 +1657,17 @@
   <div class="dmenu-items">
     <button class="dmenu-btn" onclick="closeDesktopMenu(); switchTab('report');">
       <span class="dmenu-btn-icon">📊</span>
-      <div><div class="dmenu-btn-label">Reports & Export</div><div class="dmenu-btn-sub">View reports and export CSV</div></div>
+      <div><div class="dmenu-btn-label">Reports & Export</div><div class="dmenu-btn-sub">View reports and export data</div></div>
+    </button>
+    <div class="dmenu-divider"></div>
+    <button class="dmenu-btn" onclick="closeDesktopMenu(); menuExportXLSX();">
+      <span class="dmenu-btn-icon">⬇</span>
+      <div><div class="dmenu-btn-label">Export Spreadsheet</div><div class="dmenu-btn-sub" id="dmenu-export-sub">All transactions as XLSX</div></div>
+    </button>
+    <div class="dmenu-divider"></div>
+    <button class="dmenu-btn" onclick="closeDesktopMenu(); menuPrint();">
+      <span class="dmenu-btn-icon">🖨</span>
+      <div><div class="dmenu-btn-label">Print</div><div class="dmenu-btn-sub" id="dmenu-print-sub">Print current view</div></div>
     </button>
     <div class="dmenu-divider"></div>
     <button class="dmenu-btn" onclick="closeDesktopMenu(); openYearFormatPopup();">
@@ -1756,7 +1783,6 @@
           <button class="btn-ghost" onclick="setReportPreset('year')">This Year</button>
           <button class="btn-ghost" onclick="setReportPreset('month')">This Month</button>
           <button class="btn-ghost" onclick="setReportPreset('all')">All Time</button>
-          <button class="btn-gold" onclick="exportReportXLSX()" style="margin-left:auto;">⬇ Export Spreadsheet</button>
         </div>
       </div>
 
@@ -1812,6 +1838,15 @@
   <button class="menu-item-btn" onclick="closeSheets(); mobileTab('report');">
     <span class="menu-item-icon">📊</span>
     <span class="menu-item-label">Reports & Export</span>
+  </button>
+  <button class="menu-item-btn" onclick="closeSheets(); menuExportXLSX();">
+    <span class="menu-item-icon">⬇</span>
+    <span class="menu-item-label">Export Spreadsheet</span>
+    <span class="menu-item-meta" id="mob-export-sub" style="font-size:11px; color:var(--text-3);">XLSX</span>
+  </button>
+  <button class="menu-item-btn" onclick="closeSheets(); menuPrint();">
+    <span class="menu-item-icon">🖨</span>
+    <span class="menu-item-label">Print</span>
   </button>
   <button class="menu-item-btn" id="menu-tx-toggle-btn" onclick="toggleMenuTxDropdown()">
     <span class="menu-item-icon">📅</span>
@@ -1891,6 +1926,10 @@
 
   <!-- Recurring options -->
   <div id="mob-recur-fields" style="display:none; margin-bottom:12px; padding:14px; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius);">
+    <div class="field" style="margin-bottom:10px;">
+      <label>Start date</label>
+      <input type="date" id="mob-recur-start" style="background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:11px 12px; color:var(--text-1); font-size:14px; font-family:'DM Sans',sans-serif; outline:none; width:100%; color-scheme:dark;">
+    </div>
     <div class="field" style="margin-bottom:10px;">
       <label>Frequency</label>
       <select id="mob-recur-freq" onchange="onMobRecurFreqChange()"
@@ -2122,12 +2161,12 @@
 
     <div style="display:flex; flex-direction:column; gap:10px; text-align:left; margin-bottom:20px;">
 
-      <!-- Local file option -->
-      <button class="smod-card" onclick="welcomeChooseFile()" style="border-color:var(--gold-dim); background:rgba(201,168,76,0.05);">
+      <!-- Local file option — sub text updated by JS based on browser support -->
+      <button class="smod-card" id="welcome-file-card" onclick="welcomeChooseFile()" style="border-color:var(--gold-dim); background:rgba(201,168,76,0.05);">
         <div class="smod-card-icon">💾</div>
         <div class="smod-card-body">
           <div class="smod-card-title" style="color:var(--gold);">Save to a file <span style="font-size:10px; font-weight:500; background:rgba(201,168,76,0.15); color:var(--gold); padding:2px 7px; border-radius:10px; margin-left:6px; letter-spacing:0.04em;">RECOMMENDED</span></div>
-          <div class="smod-card-sub">Choose a location on your device — USB, NAS, or any folder. Auto-saves every change.</div>
+          <div class="smod-card-sub" id="welcome-file-sub">Choose a location on your device — USB, NAS, or any folder. Auto-saves every change.</div>
         </div>
       </button>
 
@@ -2276,19 +2315,20 @@ const PREVIEW_SEED = {
 };
 
 // ─── sandbox detection ────────────────────────────────────────────────────────
-// Detect whether Vault is running inside a sandboxed iframe (e.g. the Claude preview).
-// Used to load PREVIEW_SEED instead of the empty production SEED in the preview window.
+// True when running inside a sandboxed iframe (e.g. the Claude.ai preview panel).
+// Used to load PREVIEW_SEED (populated data) instead of the empty production SEED,
+// and to suppress the first-run welcome screen in the preview.
 const inSandbox = (() => {
   try { return window.self !== window.top; } catch { return true; }
 })();
 
 // ─── app state ────────────────────────────────────────────────────────────────
-// data         — the live transaction store, mirrored to localStorage + Drive
-// activeYear   — currently selected year key ("24-25", "2025", or "all-years")
-// activeTab    — which tab is showing ("all" | "saved" | "removed" | "report")
-// activeMonth  — "YYYY-MM" string when a month sub-view is active, else null
-// expandedYears— Set of year keys whose month list is open in the sidebar
-// sortKey/Dir  — current table sort column and direction
+// data          — the live transaction store, mirrored to localStorage and auto-saved to file
+// activeYear    — currently selected year key ("24-25", "2025", or "all-years")
+// activeTab     — which tab is showing ("all" | "saved" | "removed" | "report")
+// activeMonth   — "YYYY-MM" string when a month sub-view is active, else null
+// expandedYears — Set of year keys whose month list is open in the sidebar
+// sortKey/Dir   — current table sort column and direction
 let data = {}, activeYear, activeTab = "all";
 let activeMonth = null;
 let expandedYears = new Set();
@@ -2348,7 +2388,6 @@ function saveYearMode() {
 // Short month names used for date labels throughout the UI
 const MONTH_NAMES_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 // Full month names — kept for potential future use (date display uses toLocaleString instead)
-const MONTH_NAMES_FULL  = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
 // Returns the year bucket key for a given ISO date string.
 // In financial mode: returns "YY-YY" (e.g. "24-25") based on fyStartMonth/Day.
@@ -2424,8 +2463,9 @@ function yearKeyMaxLength() {
 }
 
 // ─── local storage ─────────────────────────────────────────────────────────────
-// The canonical data store key. Bumped to v4 when the schema last changed.
-// On first load, falls back to the baked-in SEED data.
+// Primary in-session data store (browser localStorage).
+// DATA_KEY is the canonical key — bumped when the schema changes.
+// On first load with no stored data, falls back to PREVIEW_SEED (sandbox) or SEED (production).
 const DATA_KEY    = "savings_data_v4";   // main transaction data store
 const SIDEBAR_KEY = "sidebar_collapsed"; // persists sidebar collapsed state
 
@@ -2434,8 +2474,10 @@ function saveLocal() {
   try { localStorage.setItem(DATA_KEY, JSON.stringify(data)); } catch {}
 }
 
-// Load data from localStorage, falling back to PREVIEW_SEED in the Claude sandbox
-// or an empty state in production if nothing is stored.
+// Load data from localStorage. Falls back to PREVIEW_SEED in the Claude sandbox
+// (so the preview looks populated) or an empty SEED in production.
+// After loading, year mode settings are restored and any mis-bucketed transactions
+// are reconciled.
 function loadLocal() {
   try {
     const stored = localStorage.getItem(DATA_KEY);
@@ -2603,10 +2645,8 @@ function updateYearModeUI() {
   updateYearFormatPopup();
 }
 
-// ─── sync status display ───────────────────────────────────────────────────────
+// ─── debug helpers ───────────────────────────────────────────────────────────────
 
-// Update the sync status pill in the header and mirror to the desktop menu dot.
-// state: "ok" | "busy" | "err" | "none"
 // Append a timestamped message to the debug log textarea (only visible when debug panel is open)
 function dbg(msg) {
   const el = document.getElementById("debug-log");
@@ -2615,7 +2655,14 @@ function dbg(msg) {
 }
 
 // ─── local file auto-sync ─────────────────────────────────────────────────────
-// Build the vault file payload — plain JSON or encrypted envelope.
+// Auto-saves data to a user-chosen file location using the File System Access API.
+// The file handle is persisted in IndexedDB so auto-save resumes across sessions.
+// Falls back to manual download/upload on browsers without FSAPI (Safari, Firefox).
+
+// Build the vault file payload — plain JSON or AES-256-GCM encrypted envelope.
+// Format when encrypted: { vault_enc: 3, iv, ct, riv, rct }
+//   ct  — ciphertext encrypted with the password key
+//   rct — ciphertext encrypted with the recovery key (enables recovery without password)
 async function buildVaultPayload() {
   if (vaultEncActive && vaultEncKey) {
     if (vaultRecovKey) {
@@ -2629,19 +2676,21 @@ async function buildVaultPayload() {
   return JSON.stringify(data, null, 2);
 }
 
-// Uses the File System Access API + IndexedDB to persist a file handle across
-// sessions, enabling automatic saves to a user-chosen location — just like Drive.
-//
-// Browsers without FSAPI (Safari, Firefox) fall back to manual download/upload.
-// IndexedDB is used because file handles can't be stored in localStorage.
+// Auto-saves data to a user-chosen file using the File System Access API (FSAPI).
+// Supported in Chrome 86+ and Edge 86+. The file handle is persisted in IndexedDB
+// so auto-save resumes across sessions without re-picking the location.
+// On unsupported browsers (Safari, Firefox, iOS), a warning is shown and
+// the user can still manually export/import via the Storage & Backup panel.
 
-const LOCAL_FILE_DB    = "vault-local-file";  // IndexedDB database name
-const LOCAL_FILE_STORE = "handles";           // object store name
-const LOCAL_FILE_KEY   = "save-handle";       // key for the stored file handle
+const LOCAL_FILE_DB    = "vault-local-file";  // IndexedDB database name (Tier 1)
+const LOCAL_FILE_STORE = "handles";           // IndexedDB object store name
+const LOCAL_FILE_KEY   = "save-handle";       // key for the stored FSAPI handle
 
-let localFileHandle    = null;  // FileSystemFileHandle — null if not linked
-let localSyncTimer     = null;  // debounce timer for auto-save
-let localFileLinked    = false; // true when a handle is loaded and verified
+let localFileHandle    = null;  // Tier 1: FileSystemFileHandle — null if not linked
+let localSyncTimer     = null;  // debounce timer used by both Tier 1 and Tier 2
+let localFileLinked    = false; // true when Tier 1 or Tier 2 auto-save is active
+
+
 
 // ── IndexedDB helpers ─────────────────────────────────────────────────────────
 
@@ -2691,6 +2740,8 @@ async function clearLocalFileHandle() {
     db.close();
   } catch {}
 }
+
+
 
 // ── initialisation ────────────────────────────────────────────────────────────
 
@@ -2899,6 +2950,8 @@ function promptAndDecrypt(encryptedText) {
 }
 
 // Update the header save-status pill
+// Update the header save-status pill.
+// state: "ok" (green) | "busy" (gold) | "err" (red) | "warn" (muted, browser-only) | "none" (hidden)
 function setSaveStatus(state, msg) {
   const el = document.getElementById("save-status");
   if (!el) return;
@@ -2906,7 +2959,8 @@ function setSaveStatus(state, msg) {
   el.textContent = msg || "";
 }
 
-// Schedule a debounced auto-save to the linked file (mirrors scheduleSave for Drive)
+// Schedule a debounced auto-save to the linked file.
+// Called from render() after every data mutation — debounced 1.5s to batch rapid changes.
 function scheduleLocalSave() {
   if (!localFileHandle) return;
   setSaveStatus("busy", "Saving…");
@@ -2951,6 +3005,7 @@ async function saveToLocalFile(showPicker = false) {
       await writable.write(blob);
       await writable.close();
       setLocalFileStatus("✓ Saved" + (vaultEncActive ? " 🔐" : ""), "var(--green)");
+      resetCompatExportCount();
       dbg("Local save: one-off save via picker");
     } catch (e) {
       if (e.name !== "AbortError") setLocalFileStatus("Save failed: " + e.message, "var(--red)");
@@ -2964,11 +3019,13 @@ async function saveToLocalFile(showPicker = false) {
   a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
   setLocalFileStatus("✓ Download started" + (vaultEncActive ? " 🔐" : ""), "var(--green)");
+  resetCompatExportCount(); // reset the reminder counter after a successful export
 }
 
-// Load vault data from a local file, opening a native open dialog.
-// If the file is loaded via the File System Access API, also requests write
-// permission so the same file can be linked for auto-save going forward.
+// Load vault data from a local file, opening a native open dialog (FSAPI) or
+// a hidden file input fallback (Safari/Firefox).
+// After loading, requests write permission on the handle so the same file
+// can be auto-linked for future saves — no need to pick the location again.
 async function loadFromLocalFile() {
   try {
     let text;
@@ -3071,7 +3128,7 @@ function setLocalFileStatus(msg, color) {
 
 // ─── password encryption layer ────────────────────────────────────────────────
 // Optional — user sets a password in Storage & Backup. If no password is set,
-// the Drive file is plain JSON. If a password is set, the file is AES-256-GCM
+// the backup file is plain JSON. If a password is set, the file is AES-256-GCM
 // encrypted. A one-time hardware recovery key (.vault-recovery file) is also
 // generated so the file can be decrypted if the password is lost.
 //
@@ -3080,7 +3137,7 @@ function setLocalFileStatus(msg, color) {
 // Recovery file format (downloadable JSON):
 // { "vault_recovery": 1, "key": "<b64-raw-AES-key>", "created": "<ISO-date>" }
 //
-// The recovery key is a raw AES-256 key that can decrypt the Drive file directly
+// The recovery key is a raw AES-256 key that can decrypt the backup file directly
 // (without knowing the password). It must be kept safe by the user.
 
 const ENC_PWD_SALT    = "vault-enc-v3-salt-2025"; // fixed app salt for PBKDF2
@@ -3172,7 +3229,7 @@ async function enablePasswordEncryption(password) {
 }
 
 // Disable password encryption — removes the key from memory and clears the flag.
-// The Drive file will be overwritten with plain JSON on next save.
+// The backup file will be overwritten with plain JSON on the next auto-save.
 function disablePasswordEncryption() {
   vaultEncKey    = null;
   vaultRecovKey  = null;
@@ -3181,7 +3238,7 @@ function disablePasswordEncryption() {
   dbg("Enc: password encryption disabled");
 }
 
-// Attempt to decrypt a Drive file using a password. Returns null on wrong password.
+// Attempt to decrypt an encrypted backup file using a password. Returns null on wrong password.
 async function tryDecryptWithPassword(text, password) {
   try {
     const key = await deriveKeyFromPassword(password);
@@ -3189,7 +3246,7 @@ async function tryDecryptWithPassword(text, password) {
   } catch { return null; }
 }
 
-// Attempt to decrypt a Drive file using a loaded recovery key. Returns null on failure.
+// Attempt to decrypt an encrypted backup file using a loaded recovery key file. Returns null on failure.
 async function tryDecryptWithRecoveryKey(text, recoveryKey) {
   try {
     return await decryptDataObj(text, recoveryKey);
@@ -3206,6 +3263,8 @@ function openSetup() {
 }
 
 // Navigate into a submenu panel
+// Navigate from the Storage & Backup main card view into a named sub-panel.
+// Hides the card grid and shows the requested panel ("local", "browser").
 function openSmodPanel(name) {
   document.getElementById("smod-main").style.display = "none";
   document.querySelectorAll(".smod-panel").forEach(p => p.classList.remove("open"));
@@ -3214,18 +3273,23 @@ function openSmodPanel(name) {
 }
 
 // Return to the main card view from a panel
+// Return from a sub-panel back to the Storage & Backup main card view.
 function closeSmodPanel() {
   document.querySelectorAll(".smod-panel").forEach(p => p.classList.remove("open"));
   const main = document.getElementById("smod-main");
   if (main) main.style.display = "";
 }
 
+// Refresh the Storage & Backup modal — updates enc UI and local file UI.
+// Called after connecting/disconnecting a file, changing encryption state, or opening the modal.
 function updateSetupModal() {
   updateEncUI();
   updateLocalFileUI();
 }
 
 // Open the encryption menu popup from the main menu
+// Open the Encryption menu popup from either the desktop dropdown or mobile menu.
+// Updates the UI to reflect current encryption state before showing.
 function openEncryptionMenu() {
   closeDesktopMenu();
   closeSheets();
@@ -3290,6 +3354,9 @@ function confirmDisableEnc() {
   updateEncUI();
   toast("Encryption removed");
 }
+// Refresh the Local File panel UI to reflect whether a file is currently linked.
+// Updates button labels, shows/hides the linked file info, clear section, and notes.
+// Also updates the Local File card subtitle on the main Storage & Backup view.
 function updateLocalFileUI() {
   const linked     = localFileLinked && !!localFileHandle;
   const fsSupport  = !!window.showSaveFilePicker;
@@ -3318,8 +3385,9 @@ function updateLocalFileUI() {
     : "Save or load a backup file on this device";
 }
 
-// Wipe all Vault data from browser storage, with a confirmation step.
-// Does NOT touch any linked file — only clears localStorage + resets app state.
+// Wipe all Vault data from browser localStorage, with a confirmation step.
+// Also unlinks the auto-save file handle (so emptied data is not written back
+// to the file). Resets all in-memory state and shows the welcome screen.
 function clearBrowserData() {
   if (!confirm("Clear all Vault data from this browser?\n\nThis cannot be undone. Any data not saved to a file will be permanently lost.")) return;
 
@@ -3382,11 +3450,12 @@ function useLocal() {
 
 // ─── render ────────────────────────────────────────────────────────────────────
 
-// Top-level render: saves data, schedules Drive sync and local file sync, redraws both panels.
-// Called after every data mutation.
+// Top-level render: saves to localStorage, schedules a debounced local file auto-save,
+// and redraws both the sidebar and main panel. Called after every data mutation.
 function render() {
   saveLocal();
   scheduleLocalSave();
+  tickCompatExportCount(); // track changes since last export on unsupported browsers
   renderSidebar();
   renderMain();
 }
@@ -3759,6 +3828,7 @@ function renderReport() {
       <td class="right" style="color:${colour}">${aud(a)}</td>`;
     tbody.appendChild(tr);
   });
+  updateExportMenuSub();
 }
 
 // Toggle sort direction if the same column is clicked; otherwise switch column.
@@ -3881,10 +3951,10 @@ function pruneEmptyYears() {
   }
 }
 
-// Sanitise a raw data object loaded from localStorage or Drive.
-// Ensures every year bucket has the correct shape and all transactions are valid.
-// Removes any entries that are not [ISO-date-string, positive-number] pairs.
-// Returns the sanitised object (mutates in place for efficiency).
+// Sanitise a raw data object before use — guards against corruption or
+// tampered backup files. Ensures every year bucket has the correct shape
+// { saved: [], removed: [] } and filters out any transaction that is not
+// a valid [ISO-date-string, positive-finite-number] pair.
 function sanitiseData(d) {
   if (!d || typeof d !== "object" || Array.isArray(d)) return {};
   const ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -3903,9 +3973,9 @@ function sanitiseData(d) {
   return d;
 }
 
-// Scan every transaction and move any that sit under the wrong year key to the
-// correct one. Run on startup (after loadLocal) to fix any schema-change drift,
-// e.g. if the FY start date was changed between sessions.
+// Scan every transaction and move any that sit under the wrong year key.
+// Run on startup to fix drift caused by changing year mode or FY start date
+// between sessions, and after merging loaded files.
 function reconcileYears() {
   ensureFYSilent = true;
   let moved = 0;
@@ -4009,50 +4079,38 @@ function confirmAddYear() {
   toast(`Created ${yearLabel(label)}`);
 }
 
-// ─── export ────────────────────────────────────────────────────────────────────
+// ─── export ───────────────────────────────────────────────────────────────────
+
+// Export from the menu — uses report date range if set, otherwise all-time.
+// Works from any tab, not just the report view.
+function menuExportXLSX() {
+  const from = document.getElementById("report-from").value;
+  const to   = document.getElementById("report-to").value;
+  // If no date range is set, default to all-time
+  if (!from || !to) setReportPreset("all");
+  exportReportXLSX();
+  updateExportMenuSub();
+}
+
+// Update the Export Spreadsheet sub-label in both menus to reflect the current date range
+function updateExportMenuSub() {
+  const from = document.getElementById("report-from").value;
+  const to   = document.getElementById("report-to").value;
+  const label = (from && to) ? fmtDate(from) + " – " + fmtDate(to) : "All transactions";
+  const d = document.getElementById("dmenu-export-sub");
+  const m = document.getElementById("mob-export-sub");
+  if (d) d.textContent = label;
+  if (m) m.textContent = label;
+}
+
+// Print from the menu — triggers the browser print dialog.
+// A print stylesheet (defined in <style>) hides UI chrome and shows only the
+// active content panel, so the output is clean regardless of which tab is open.
+function menuPrint() {
+  window.print();
+}
 
 // Export the current report date range as a CSV file download
-function exportReportCSV() {
-  const from  = document.getElementById("report-from").value;
-  const to    = document.getElementById("report-to").value;
-  if (!from || !to) { toast("Set a date range first.", "#c0392b"); return; }
-
-  // Gather all transactions in range across all years
-  const deposits = [], withdrawals = [];
-  Object.entries(data).forEach(([fy, fyData]) => {
-    fyData.saved.forEach(([d,a])   => { if (d >= from && d <= to) deposits.push([d,a]); });
-    fyData.removed.forEach(([d,a]) => { if (d >= from && d <= to) withdrawals.push([d,a]); });
-  });
-  deposits.sort((a,b)    => a[0].localeCompare(b[0]));
-  withdrawals.sort((a,b) => a[0].localeCompare(b[0]));
-
-  const totalIn  = deposits.reduce((s,[,a])    => s+a, 0);
-  const totalOut = withdrawals.reduce((s,[,a]) => s+a, 0);
-  const net      = totalIn - totalOut;
-
-  let csv = `Vault — Report\n`;
-  csv += `Date Range,${from} to ${to}\n`;
-  csv += `Total Deposited,${totalIn.toFixed(2)}\n`;
-  csv += `Total Withdrawn,${totalOut.toFixed(2)}\n`;
-  csv += `Net,${net.toFixed(2)}\n\n`;
-  csv += `Date,Type,Amount\n`;
-
-  // Combined sorted list
-  const all = [
-    ...deposits.map(([d,a])    => [d, "Deposit",    a]),
-    ...withdrawals.map(([d,a]) => [d, "Withdrawal", a]),
-  ].sort((a,b) => a[0].localeCompare(b[0]));
-
-  all.forEach(([d,type,a]) => { csv += `${d},${type},${a.toFixed(2)}\n`; });
-
-  const fname = `vault-report-${from}-to-${to}.csv`;
-  const blob  = new Blob([csv], {type:"text/csv"});
-  const url   = URL.createObjectURL(blob);
-  const a     = document.createElement("a");
-  a.href = url; a.download = fname; a.click();
-  URL.revokeObjectURL(url);
-  toast("Report exported");
-}
 
 // Export the current report date range as an XLSX spreadsheet (uses SheetJS).
 // Produces two sheets: a Summary and a full Transactions list.
@@ -4127,31 +4185,16 @@ function toast(msg, color = "#2E9EA8") {
   toastTimer2 = setTimeout(() => { el.style.display = "none"; }, 2500);
 }
 
-// ─── background sync ───────────────────────────────────────────────────────────
+// ─── merge / conflict resolution ────────────────────────────────────────────────
 
-// Returns true if the user is currently mid-entry (to avoid clobbering their work)
-function isUserBusy() {
-  const desktopDate  = document.getElementById("inp-date");
-  const desktopAmt   = document.getElementById("inp-amount");
-  const mobAmt       = document.getElementById("mob-inp-amount");
-  const addSheetOpen = document.getElementById("add-sheet").classList.contains("open");
-  if (addSheetOpen)                          return true;
-  if (desktopDate && desktopDate.value)      return true;
-  if (desktopAmt  && desktopAmt.value)       return true;
-  if (mobAmt      && mobAmt.value)           return true;
-  return false;
-}
-
-
-// ─── sync conflict resolution ──────────────────────────────────────────────────
-
-// Merge remote Drive data into local data using a union/dedup strategy:
+// Merge two data sets using a union/dedup strategy:
 // - Takes the union of all year keys from both sources
-// - Deduplicates transactions by [date|amount] key (local takes priority)
-// - Reconciles any mis-bucketed transactions, saves locally, and pushes merged data back to Drive
+// - Deduplicates transactions by [date|amount] key (local data takes priority)
+// - Used when loading a file with conflicting transactions
+// - Reconciles any mis-bucketed transactions, saves locally, and schedules a file write
 function autoMerge(remoteData) {
   ensureFYSilent = true;
-  // Sanitise remote data before merging — guards against corrupted/tampered Drive files
+  // Sanitise incoming data before merging — guards against corrupted or tampered files
   const safeRemote = sanitiseData(remoteData);
   const allKeys = new Set([...Object.keys(data), ...Object.keys(safeRemote)]);
   allKeys.forEach(k => {
@@ -4409,8 +4452,9 @@ function openAddSheet() {
   document.getElementById("mob-recur-toggle").style.color       = "var(--text-2)";
   document.getElementById("mob-recur-toggle").style.borderColor = "var(--border-hi)";
   document.getElementById("mob-recur-toggle").textContent = "↺︎ Make this a recurring transaction";
-  document.getElementById("mob-recur-freq").value = "weekly";
-  document.getElementById("mob-recur-dow").value  = String(new Date().getDay());
+  document.getElementById("mob-recur-freq").value  = "weekly";
+  document.getElementById("mob-recur-dow").value   = String(new Date().getDay());
+  document.getElementById("mob-recur-start").value = todayISO();
   onMobRecurFreqChange();
   updateRecurManagePill();
   document.getElementById("add-sheet").classList.add("open");
@@ -4597,11 +4641,6 @@ function closeDesktopMenu() {
 // ─── mobile year picker sheet ──────────────────────────────────────────────────
 
 // Open the mobile year picker sheet and render its content
-function openYearSheet() {
-  renderYearSheet();
-  document.getElementById("year-sheet").classList.add("open");
-  document.getElementById("sheet-overlay").classList.add("open");
-}
 
 // Build the mobile year picker: one row per year with an expandable month sub-list.
 // Mirrors the desktop sidebar behaviour but in a full-height slide-up sheet.
@@ -4737,7 +4776,9 @@ function closeSheets() {
 }
 
 // ─── app initialisation ────────────────────────────────────────────────────────
-// Loads data, restores UI state, then renders.
+// Entry point: loads data from localStorage, restores UI state, attempts to restore
+// any previously linked local file handle, then renders. Shows the welcome screen
+// on first run (no data + no linked file).
 // ─── encryption choice popup ──────────────────────────────────────────────────
 // Shown when a new file location is linked for the first time (not on load).
 // Returns a Promise that resolves with "set" (user wants a password),
@@ -4746,21 +4787,86 @@ function closeSheets() {
 let _encChoiceResolve = null;
 
 // Show the popup and return a promise that resolves when the user picks an option
+// Show the encryption choice popup and return a Promise that resolves with
+// the user's choice: "set" (wants a password) or "skip" (plain JSON).
 function promptEncryptionChoice() {
   document.getElementById("enc-choice-popup").classList.remove("hidden");
   return new Promise(resolve => { _encChoiceResolve = resolve; });
 }
 
 // Called by the popup buttons
+// Called by enc-choice-popup buttons — resolves the Promise from promptEncryptionChoice().
 function encChoiceResolve(choice) {
   document.getElementById("enc-choice-popup").classList.add("hidden");
   if (_encChoiceResolve) { _encChoiceResolve(choice); _encChoiceResolve = null; }
 }
 
-// ─── first-run / welcome screen ───────────────────────────────────────────────
+// ─── browser compatibility ────────────────────────────────────────────────────
+// Detects whether the File System Access API (showSaveFilePicker) is available.
+// If not, shows a persistent banner, updates the welcome screen card, and
+// schedules periodic export reminders after every N transactions.
 
-// Check whether this is a first run: no localStorage data AND no linked file.
-// Called after initLocalFileSync so we know the file handle state.
+const COMPAT_BANNER_KEY    = "vault_compat_dismissed"; // localStorage key
+const COMPAT_REMINDER_KEY  = "vault_tx_since_export";  // tx count since last export
+const COMPAT_REMINDER_EVERY = 10;                       // remind every N transactions
+
+// True when this browser supports the File System Access API for auto-save
+function fsapiSupported() {
+  return !!window.showSaveFilePicker;
+}
+
+// Called once on startup — shows the banner and updates the welcome screen
+// to reflect what's available in this browser.
+function initCompatWarning() {
+  if (fsapiSupported()) return; // nothing to warn about
+
+  // Show the persistent header banner (unless dismissed this session)
+  const banner = document.getElementById("compat-banner");
+  if (banner) banner.style.display = "";
+
+  // Update the welcome screen file card to explain the limitation
+  const fileSub = document.getElementById("welcome-file-sub");
+  if (fileSub) {
+    fileSub.textContent = "Manual export only — auto-save requires Chrome or Edge. You can still save and load files manually.";
+    fileSub.style.color = "var(--text-3)";
+  }
+  const fileCard = document.getElementById("welcome-file-card");
+  if (fileCard) {
+    fileCard.style.borderColor = "var(--border)";
+    fileCard.style.background  = "";
+  }
+
+  dbg("Browser compat: FSAPI not available — auto-save disabled");
+}
+
+// Track transactions since last manual export on unsupported browsers.
+// Called from saveToLocalFile() when a download is triggered.
+function resetCompatExportCount() {
+  if (fsapiSupported()) return;
+  try { localStorage.setItem(COMPAT_REMINDER_KEY, "0"); } catch {}
+}
+
+// Increment the transaction counter and show a reminder toast at the threshold.
+// Called from render() on unsupported browsers.
+function tickCompatExportCount() {
+  if (fsapiSupported()) return;
+  try {
+    const count = parseInt(localStorage.getItem(COMPAT_REMINDER_KEY) || "0", 10) + 1;
+    localStorage.setItem(COMPAT_REMINDER_KEY, count.toString());
+    if (count > 0 && count % COMPAT_REMINDER_EVERY === 0) {
+      toast("⚠️ " + count + " changes since last export — consider saving a backup via Menu → Storage & Backup", "var(--red)");
+      dbg("Compat reminder: " + count + " tx since last export");
+    }
+  } catch {}
+}
+
+// ─── first-run / welcome screen ───────────────────────────────────────────────
+// Shown on first launch (no localStorage data and no linked file handle).
+// Also shown after clearBrowserData() so the user is prompted to set up
+// storage again rather than being left with an empty, unsaved state.
+
+// Detect first run: no meaningful data in localStorage AND no linked file.
+// Called after initLocalFileSync() resolves so the file handle state is known.
 function checkFirstRun() {
   if (inSandbox) return; // never show welcome in the preview sandbox
   const hasFile      = localFileLinked && !!localFileHandle;
@@ -4774,6 +4880,8 @@ function checkFirstRun() {
 }
 
 // User chose to save to a new file location
+// Welcome screen: user chose "Save to a file" — hide welcome and open the file picker.
+// If the picker is cancelled, re-show the welcome screen.
 async function welcomeChooseFile() {
   document.getElementById("welcome-modal").classList.add("hidden");
   await linkLocalFile();
@@ -4784,6 +4892,8 @@ async function welcomeChooseFile() {
 }
 
 // User chose to load an existing backup file
+// Welcome screen: user chose "Load an existing file" — hide welcome and open the file loader.
+// If nothing was loaded/linked, re-show the welcome screen.
 async function welcomeLoadFile() {
   document.getElementById("welcome-modal").classList.add("hidden");
   await loadFromLocalFile();
@@ -4794,6 +4904,8 @@ async function welcomeLoadFile() {
 }
 
 // User chose to use browser storage only
+// Welcome screen: user chose browser storage only.
+// Saves an empty data marker to localStorage so the welcome screen does not refire.
 function welcomeUseBrowser() {
   document.getElementById("welcome-modal").classList.add("hidden");
   // Save an empty data marker so we don't show welcome next time
@@ -4823,7 +4935,9 @@ function initApp() {
   render();
   updateAddBtn();
   updateYearModeUI();
-  updateEncUI();          // set encryption sub-labels in both menus
+  updateEncUI();
+  updateExportMenuSub();  // set export sub-label in both menus
+  initCompatWarning();
 
   // Recurring transactions — process any that fell due since last session,
   // then re-check every hour (handles the app staying open past midnight)
@@ -5055,6 +5169,6 @@ function deleteRecurRule(idx) {
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v2.8.6</div>
+  <div id="version-footer">v2.9.2</div>
 </body>
 </html>
