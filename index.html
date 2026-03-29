@@ -1448,9 +1448,9 @@
       <div class="smod-panel-body">
 
         <!-- Auto-sync connected state -->
-        <div id="local-linked-info" style="display:none; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; margin-bottom:14px;">
-          <div style="font-size:10px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin-bottom:3px;">File path</div>
-          <div id="local-linked-name" style="font-size:12px; color:var(--text-2); font-weight:400; word-break:break-all; font-family: monospace;"></div>
+        <div id="local-linked-info" style="display:none; background:var(--green-dim); border:1px solid rgba(61,158,110,0.2); border-radius:var(--radius); padding:10px 14px; margin-bottom:14px; align-items:center; gap:8px;">
+          <span style="font-size:14px; line-height:1; color:#5ec497;">✓</span>
+          <span style="font-size:13px; color:#5ec497; font-weight:500;">File linked — auto-saving active</span>
         </div>
 
         <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
@@ -3371,8 +3371,7 @@ function updateLocalFileUI() {
   const localCard  = document.getElementById("smod-card-local");
   const localSub   = document.getElementById("smod-local-sub");
 
-  if (linkedInfo)   linkedInfo.style.display   = linked ? "" : "none";
-  if (linkedName && linked) linkedName.textContent = localFileHandle.name;
+  if (linkedInfo)   linkedInfo.style.display   = linked ? "flex" : "none";
   if (linkBtn)      linkBtn.textContent = linked ? "📂 Change location" : (fsSupport ? "📂 Choose file location" : "⬇ Save file (download)");
   if (saveNowBtn)   saveNowBtn.style.display   = linked ? "" : "none";
   if (unlinkBtn)    unlinkBtn.style.display     = linked ? "" : "none";
