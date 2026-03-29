@@ -1449,8 +1449,8 @@
 
         <!-- Auto-sync connected state -->
         <div id="local-linked-info" style="display:none; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; margin-bottom:14px;">
-          <div style="font-size:10px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin-bottom:3px;">Auto-saving to</div>
-          <div id="local-linked-name" style="font-size:13px; color:var(--text-1); font-weight:500; word-break:break-all;"></div>
+          <div style="font-size:10px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin-bottom:3px;">File path</div>
+          <div id="local-linked-name" style="font-size:12px; color:var(--text-2); font-weight:400; word-break:break-all; font-family: monospace;"></div>
         </div>
 
         <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
@@ -1465,7 +1465,7 @@
         <div id="local-file-status" style="display:none; font-size:12px; text-align:center; padding:4px 0; margin-bottom:8px;"></div>
 
         <div id="local-autosync-note" style="display:none; padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text-3); line-height:1.7;">
-          ✓ Auto-saving — every change is written to the linked file automatically, just like Drive sync.
+          ✓ Auto-saving — every change is written to the linked file automatically.
         </div>
         <div id="local-nosync-note" style="padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text-3); line-height:1.7;">
           Choose a file location to enable auto-save. Once linked, every change is written automatically. Loading a file gives you the choice to <strong style="color:var(--text-2);">merge</strong> or <strong style="color:var(--text-2);">replace</strong> your current data.
@@ -5169,6 +5169,6 @@ function deleteRecurRule(idx) {
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v2.9.2</div>
+  <div id="version-footer">v2.9.3</div>
 </body>
 </html>
