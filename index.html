@@ -4679,6 +4679,7 @@ async function gdHandleRedirect() {
     };
     gdLinked = true;
     gdSaveTokens(gdTokens);
+    saveLocal(); // ensure localStorage has data so checkFirstRun doesn't fire welcome screen
 
     // ── search for existing vault file in Drive ────────────────────────────────
     setGDStatus("Checking for existing Vault file…", "var(--gold)");
@@ -7243,8 +7244,8 @@ function tickCompatExportCount() {
 // Called after initLocalFileSync() resolves so the file handle state is known.
 function checkFirstRun() {
   if (inSandbox) return;
-  // Don't show welcome if an OAuth redirect is being processed
-  if (gdRedirectInProgress) return;
+  // Don't show welcome if an OAuth redirect is being processed or Drive is already linked
+  if (gdRedirectInProgress || gdLinked) return;
   const hasFile   = localFileLinked && !!localFileHandle;
   const storedRaw = localStorage.getItem(DATA_KEY);
   const hasData   = storedRaw && storedRaw !== "{}" && storedRaw !== "null";
@@ -7536,6 +7537,6 @@ function deleteRecurRule(idx) {
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v3.4.2</div>
+  <div id="version-footer">v3.4.3</div>
 </body>
 </html>
