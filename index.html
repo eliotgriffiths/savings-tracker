@@ -4679,7 +4679,9 @@ async function gdHandleRedirect() {
     };
     gdLinked = true;
     gdSaveTokens(gdTokens);
-    saveLocal(); // ensure localStorage has data so checkFirstRun doesn't fire welcome screen
+    // Write a Drive-connected marker to a separate key so checkFirstRun knows
+    // not to show the welcome screen on future loads (even with no transactions yet)
+    try { localStorage.setItem("vault_gd_connected", "1"); } catch {}
 
     // ── search for existing vault file in Drive ────────────────────────────────
     setGDStatus("Checking for existing Vault file…", "var(--gold)");
@@ -4896,6 +4898,7 @@ function unlinkGoogleDrive() {
   gdLinked = false;
   gdTokens = null;
   gdClearTokens();
+  try { localStorage.removeItem("vault_gd_connected"); } catch {}
   setSaveStatus("warn", "Browser storage only");
   updateGoogleDriveUI();
   updateSetupModal();
@@ -7244,8 +7247,15 @@ function tickCompatExportCount() {
 // Called after initLocalFileSync() resolves so the file handle state is known.
 function checkFirstRun() {
   if (inSandbox) return;
-  // Don't show welcome if an OAuth redirect is being processed or Drive is already linked
-  if (gdRedirectInProgress || gdLinked) return;
+  // Suppress welcome screen in all OAuth-related scenarios:
+  // 1. gd_verifier in sessionStorage = page just loaded after Google redirect (most reliable signal)
+  // 2. gdRedirectInProgress = gdHandleRedirect is mid-flight
+  // 3. gdLinked = Drive already successfully connected this session
+  // 4. vault_gd_connected marker = Drive was connected in a previous session
+  if (sessionStorage.getItem("gd_verifier")) return;
+  if (gdRedirectInProgress) return;
+  if (gdLinked) return;
+  if (localStorage.getItem("vault_gd_connected")) return;
   const hasFile   = localFileLinked && !!localFileHandle;
   const storedRaw = localStorage.getItem(DATA_KEY);
   const hasData   = storedRaw && storedRaw !== "{}" && storedRaw !== "null";
@@ -7537,6 +7547,6 @@ function deleteRecurRule(idx) {
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v3.4.3</div>
+  <div id="version-footer">v3.4.4</div>
 </body>
 </html>
