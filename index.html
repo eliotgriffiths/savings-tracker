@@ -4631,11 +4631,16 @@ async function connectGoogleDrive() {
 }
 
 // Called on app start — checks if we're returning from an OAuth redirect
+let gdRedirectInProgress = false;
+
 async function gdHandleRedirect() {
   const params   = new URLSearchParams(window.location.search);
   const code     = params.get("code");
   const verifier = sessionStorage.getItem("gd_verifier");
   if (!code || !verifier) return;
+
+  // Flag immediately — before any async work — so checkFirstRun skips the welcome screen
+  gdRedirectInProgress = true;
 
   // Clean the URL immediately
   window.history.replaceState({}, "", GD_REDIRECT_URI);
@@ -4742,6 +4747,9 @@ async function gdHandleRedirect() {
   } catch (e) {
     setGDStatus("Connection failed: " + e.message, "var(--red)");
     dbg("GD: auth error: " + e.message);
+  } finally {
+    // Always clear the redirect flag when done — whether success or failure
+    gdRedirectInProgress = false;
   }
 }
 
@@ -7234,13 +7242,12 @@ function tickCompatExportCount() {
 // Detect first run: no meaningful data in localStorage AND no linked file.
 // Called after initLocalFileSync() resolves so the file handle state is known.
 function checkFirstRun() {
-  if (inSandbox) return; // never show welcome in the preview sandbox
-  // Don't show welcome screen if we're mid-OAuth redirect — Drive init will handle the flow
-  if (window.location.search.includes("code=") || window.location.hash.includes("code=")) return;
-  const hasFile      = localFileLinked && !!localFileHandle;
-  const storedRaw    = localStorage.getItem(DATA_KEY);
-  // Truly empty = no localStorage entry, OR the entry is an empty object "{}"
-  const hasData = storedRaw && storedRaw !== "{}" && storedRaw !== "null";
+  if (inSandbox) return;
+  // Don't show welcome if an OAuth redirect is being processed
+  if (gdRedirectInProgress) return;
+  const hasFile   = localFileLinked && !!localFileHandle;
+  const storedRaw = localStorage.getItem(DATA_KEY);
+  const hasData   = storedRaw && storedRaw !== "{}" && storedRaw !== "null";
   if (!hasData && !hasFile) {
     document.getElementById("welcome-modal").classList.remove("hidden");
     dbg("First run detected — showing welcome screen");
@@ -7529,6 +7536,6 @@ function deleteRecurRule(idx) {
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v3.4.1</div>
+  <div id="version-footer">v3.4.2</div>
 </body>
 </html>
