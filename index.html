@@ -7235,6 +7235,8 @@ function tickCompatExportCount() {
 // Called after initLocalFileSync() resolves so the file handle state is known.
 function checkFirstRun() {
   if (inSandbox) return; // never show welcome in the preview sandbox
+  // Don't show welcome screen if we're mid-OAuth redirect — Drive init will handle the flow
+  if (window.location.search.includes("code=") || window.location.hash.includes("code=")) return;
   const hasFile      = localFileLinked && !!localFileHandle;
   const storedRaw    = localStorage.getItem(DATA_KEY);
   // Truly empty = no localStorage entry, OR the entry is an empty object "{}"
@@ -7284,8 +7286,12 @@ function initApp() {
   loadEncActive();
   initNAS();
   setSaveStatus("warn", "Browser storage only");
-  initLocalFileSync().then(() => { checkFirstRun(); });
-  initGoogleDrive();
+  // Wait for both local file and Google Drive init before deciding first run
+  // so OAuth redirects are fully handled before the welcome screen check
+  Promise.all([
+    initLocalFileSync(),
+    initGoogleDrive(),
+  ]).then(() => { checkFirstRun(); });
   activeYear = "all-years";
 
   // Restore collapsed sidebar state
@@ -7523,6 +7529,6 @@ function deleteRecurRule(idx) {
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v3.4.0</div>
+  <div id="version-footer">v3.4.1</div>
 </body>
 </html>
