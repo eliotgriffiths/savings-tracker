@@ -4534,9 +4534,10 @@ function connectCloudService(service) {
 
 // ─── Google Drive (OAuth 2.0 PKCE) ────────────────────────────────────────────
 
-const GD_CLIENT_ID    = "923866716926-ch3d25r6159hc0ditod3n8g6ufb8pcsk.apps.googleusercontent.com";
-const GD_REDIRECT_URI = "https://vaultsavings.app";
-const GD_SCOPE        = "https://www.googleapis.com/auth/drive.file";
+const GD_CLIENT_ID     = "923866716926-ch3d25r6159hc0ditod3n8g6ufb8pcsk.apps.googleusercontent.com";
+const GD_CLIENT_SECRET = "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";
+const GD_REDIRECT_URI  = "https://vaultsavings.app";
+const GD_SCOPE         = "https://www.googleapis.com/auth/drive.file";
 const GD_KEY          = "vault_gd_v1"; // localStorage key for tokens + file id
 
 let gdTokens  = null; // { accessToken, refreshToken, expiresAt, email, fileId }
@@ -4583,6 +4584,7 @@ async function gdRefreshAccessToken() {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         client_id:     GD_CLIENT_ID,
+        client_secret: GD_CLIENT_SECRET,
         grant_type:    "refresh_token",
         refresh_token: gdTokens.refreshToken,
       }),
@@ -4655,6 +4657,7 @@ async function gdHandleRedirect() {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         client_id:     GD_CLIENT_ID,
+        client_secret: GD_CLIENT_SECRET,
         redirect_uri:  GD_REDIRECT_URI,
         grant_type:    "authorization_code",
         code_verifier: verifier,
@@ -7535,6 +7538,6 @@ function deleteRecurRule(idx) {
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v3.4.6</div>
+  <div id="version-footer">v3.4.7</div>
 </body>
 </html>
