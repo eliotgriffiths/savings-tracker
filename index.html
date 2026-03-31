@@ -7246,23 +7246,7 @@ function tickCompatExportCount() {
 // Detect first run: no meaningful data in localStorage AND no linked file.
 // Called after initLocalFileSync() resolves so the file handle state is known.
 function checkFirstRun() {
-  if (inSandbox) return;
-  // Suppress welcome screen in all OAuth-related scenarios:
-  // 1. gd_verifier in sessionStorage = page just loaded after Google redirect (most reliable signal)
-  // 2. gdRedirectInProgress = gdHandleRedirect is mid-flight
-  // 3. gdLinked = Drive already successfully connected this session
-  // 4. vault_gd_connected marker = Drive was connected in a previous session
-  if (sessionStorage.getItem("gd_verifier")) return;
-  if (gdRedirectInProgress) return;
-  if (gdLinked) return;
-  if (localStorage.getItem("vault_gd_connected")) return;
-  const hasFile   = localFileLinked && !!localFileHandle;
-  const storedRaw = localStorage.getItem(DATA_KEY);
-  const hasData   = storedRaw && storedRaw !== "{}" && storedRaw !== "null";
-  if (!hasData && !hasFile) {
-    document.getElementById("welcome-modal").classList.remove("hidden");
-    dbg("First run detected — showing welcome screen");
-  }
+  // Welcome screen disabled — users go straight to the app
 }
 
 // User chose to save to a new file location
@@ -7547,6 +7531,6 @@ function deleteRecurRule(idx) {
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v3.4.4</div>
+  <div id="version-footer">v3.4.5</div>
 </body>
 </html>
