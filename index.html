@@ -4661,7 +4661,11 @@ async function gdHandleRedirect() {
         code,
       }),
     });
-    if (!res.ok) throw new Error("Token exchange failed: HTTP " + res.status);
+    if (!res.ok) {
+      const errBody = await res.text();
+      dbg("GD: token exchange failed: " + res.status + " — " + errBody);
+      throw new Error("Token exchange failed: HTTP " + res.status + " — " + errBody);
+    }
     const json = await res.json();
 
     // Get user email
@@ -7531,6 +7535,6 @@ function deleteRecurRule(idx) {
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v3.4.5</div>
+  <div id="version-footer">v3.4.6</div>
 </body>
 </html>
