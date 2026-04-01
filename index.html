@@ -3030,6 +3030,7 @@ function loadLocal() {
     data = JSON.parse(JSON.stringify(fallback));
   }
   migrateTxSchema();
+  deduplicateLegacyTx();
   loadYearMode();
   reconcileYears();
 }
@@ -6459,10 +6460,81 @@ function migrateRemoteTxSchema(remoteData) {
   return assignLegacyIds(remoteData);
 }
 
+// Detect if a data object contains only legacy-migrated IDs (tx_legacy_ prefix)
+// and no user-generated IDs (tx_deviceid_ prefix). Used to decide whether to
+// re-normalise IDs before merging.
+function hasOnlyLegacyIds(dataObj) {
+  let hasLegacy = false, hasReal = false;
+  Object.values(dataObj).forEach(fy => {
+    ["saved", "removed"].forEach(tab => {
+      (fy[tab] || []).forEach(tx => {
+        if (!tx[2]) return;
+        if (tx[2].startsWith("tx_legacy_")) hasLegacy = true;
+        else hasReal = true;
+      });
+    });
+  });
+  return hasLegacy && !hasReal;
+}
+
+// Deduplicate transactions within the local data object.
+// Groups by date+amount within each year+tab bucket and keeps only the
+// correct count (max 1 per unique date+amount unless they genuinely differ).
+// Used to clean up duplicates caused by two-device legacy migration.
+// Re-assigns deterministic legacy IDs after deduplication so future merges
+// produce consistent results.
+function deduplicateLegacyTx() {
+  let removed = 0;
+  Object.keys(data).forEach(y => {
+    ["saved", "removed"].forEach(tab => {
+      // Sort by date first so position-based grouping is stable
+      data[y][tab].sort((a, b) => a[0].localeCompare(b[0]));
+      // Group by date+amount, keeping track of how many we've seen
+      const seen = new Map();
+      const deduped = [];
+      data[y][tab].forEach(tx => {
+        const key = tx[0] + "|" + tx[1];
+        // For legacy IDs, check if this is a duplicate by parsing the position
+        // from the ID itself — if two tx have the same date+amount and the same
+        // position in the sorted order, they're the same transaction
+        const posInGroup = seen.get(key) || 0;
+        const expectedId = legacyTxId(y, tab, tx[0], tx[1], posInGroup);
+        // Keep if: no legacy ID (real tx), or ID matches expected position,
+        // or it's a genuinely different position
+        if (!tx[2] || !tx[2].startsWith("tx_legacy_") || tx[2] === expectedId) {
+          deduped.push(tx);
+          seen.set(key, posInGroup + 1);
+        } else {
+          // Check if this is a duplicate by seeing if we already have a tx
+          // at this position with the correct ID
+          const alreadyHave = deduped.some(d =>
+            d[0] === tx[0] && d[1] === tx[1] && d[2] === expectedId
+          );
+          if (!alreadyHave) {
+            // Reassign to expected ID and keep
+            tx[2] = expectedId;
+            deduped.push(tx);
+            seen.set(key, posInGroup + 1);
+          } else {
+            removed++;
+          }
+        }
+      });
+      data[y][tab] = deduped;
+    });
+  });
+  if (removed > 0) {
+    dbg("deduplicateLegacyTx: removed " + removed + " duplicate(s)");
+    saveLocal();
+  }
+  return removed;
+}
+
 // ID-aware merge — merges remoteData into local data using transaction IDs and timestamps.
 // Old files (no IDs) are migrated first using deterministic position-based IDs,
 // so both devices independently produce the same IDs for the same transactions.
-// Tombstones ensure deletions propagate. Never drops or duplicates a transaction.
+// Files that were already migrated with legacy IDs are re-normalised so IDs
+// match across devices. Tombstones ensure deletions propagate.
 function autoMerge(remoteData, remoteTombstones) {
   ensureFYSilent = true;
   let safeRemote = sanitiseData(remoteData);
@@ -6480,12 +6552,23 @@ function autoMerge(remoteData, remoteTombstones) {
     });
   });
 
-  // If remote file is old, assign deterministic legacy IDs before merging
-  // This ensures both devices produce identical IDs for the same transactions
+  // If remote file is old (no IDs), assign deterministic legacy IDs
   const remoteIsOld = Object.values(safeRemote).some(hasUnmigratedTx);
   if (remoteIsOld) {
     safeRemote = migrateRemoteTxSchema(safeRemote);
     dbg("autoMerge: migrated remote legacy IDs");
+  }
+
+  // If remote has ONLY legacy IDs (was previously migrated independently),
+  // re-normalise both sides so IDs are consistent before merging.
+  // This prevents duplicates when two devices independently ran migrateTxSchema.
+  const remoteIsLegacyOnly = hasOnlyLegacyIds(safeRemote);
+  const localIsLegacyOnly  = hasOnlyLegacyIds(data);
+  if (remoteIsLegacyOnly || localIsLegacyOnly) {
+    // Re-assign deterministic IDs to both sides from scratch
+    assignLegacyIds(safeRemote);
+    assignLegacyIds(data);
+    dbg("autoMerge: re-normalised legacy IDs on both sides");
   }
 
   // ID-aware merge
@@ -7538,6 +7621,6 @@ function deleteRecurRule(idx) {
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v3.4.7</div>
+  <div id="version-footer">v3.4.8</div>
 </body>
 </html>
