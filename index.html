@@ -4696,31 +4696,48 @@ async function gdHandleRedirect() {
     const existingId = await gdSearchForFile();
 
     if (existingId) {
-      // Found an existing file — ask what to do
-      const loadExisting = confirm(
-        "A Vault file was found in your Google Drive.\n\nOK  →  Load it (merge with your current data)\nCancel  →  Overwrite it with your current data"
-      );
       gdTokens.fileId = existingId;
       gdSaveTokens(gdTokens);
 
-      if (loadExisting) {
-        const raw = await gdReadFile();
-        if (raw) {
-          let loaded;
-          if (isEncryptedEnvelope(raw)) {
-            setGDStatus("Drive file is encrypted — enter password…", "var(--gold)");
-            loaded = await promptAndDecrypt(raw);
-            if (!loaded) { setGDStatus("Decryption cancelled.", "var(--red)"); return; }
-          } else {
-            try { loaded = JSON.parse(raw); } catch { loaded = null; }
-          }
-          if (loaded) {
-            const { data: rawData, tombstones: remoteTombstones, ...settings } = unwrapPayload(loaded);
-            const safe = sanitiseData(rawData);
-            if (safe && Object.keys(safe).length) {
-              autoMerge(safe, remoteTombstones);
+      const raw = await gdReadFile();
+      if (raw) {
+        let loaded;
+        if (isEncryptedEnvelope(raw)) {
+          setGDStatus("Drive file is encrypted — enter password…", "var(--gold)");
+          loaded = await promptAndDecrypt(raw);
+          if (!loaded) { setGDStatus("Decryption cancelled.", "var(--red)"); return; }
+        } else {
+          try { loaded = JSON.parse(raw); } catch { loaded = null; }
+        }
+        if (loaded) {
+          const { data: rawData, tombstones: remoteTombstones, ...settings } = unwrapPayload(loaded);
+          const safe = sanitiseData(rawData);
+          if (safe && Object.keys(safe).length) {
+
+            // If local data has only legacy IDs (never had user-created transactions),
+            // replace entirely rather than merging — this prevents migration duplication
+            // when connecting Drive on a fresh device that loaded an old file
+            if (hasOnlyLegacyIds(data)) {
+              dbg("GD: local has only legacy IDs — replacing with Drive data to prevent duplication");
+              remoteTombstones.forEach(id => tombstones.add(id));
+              saveTombstones();
+              data = safe;
+              migrateTxSchema();
+              reconcileYears();
               applyPayloadSettings(settings, true);
-              toast("Merged existing Drive data");
+              saveLocal();
+              render();
+              toast("Loaded data from Google Drive");
+            } else {
+              // Local has user-created transactions — merge normally
+              const loadExisting = confirm(
+                "A Vault file was found in your Google Drive.\n\nOK  →  Merge with your current data\nCancel  →  Overwrite it with your current data"
+              );
+              if (loadExisting) {
+                autoMerge(safe, remoteTombstones);
+                applyPayloadSettings(settings, true);
+                toast("Merged existing Drive data");
+              }
             }
           }
         }
@@ -6477,55 +6494,35 @@ function hasOnlyLegacyIds(dataObj) {
   return hasLegacy && !hasReal;
 }
 
-// Deduplicate transactions within the local data object.
-// Groups by date+amount within each year+tab bucket and keeps only the
-// correct count (max 1 per unique date+amount unless they genuinely differ).
-// Used to clean up duplicates caused by two-device legacy migration.
-// Re-assigns deterministic legacy IDs after deduplication so future merges
-// produce consistent results.
+// Clean up duplicates already in local data from previous bad merges.
+// Groups by date+amount and removes extras where all copies have legacy IDs
+// (meaning they came from independent migration, not genuine separate transactions).
 function deduplicateLegacyTx() {
+  if (!hasOnlyLegacyIds(data)) return 0;
   let removed = 0;
   Object.keys(data).forEach(y => {
     ["saved", "removed"].forEach(tab => {
-      // Sort by date first so position-based grouping is stable
       data[y][tab].sort((a, b) => a[0].localeCompare(b[0]));
-      // Group by date+amount, keeping track of how many we've seen
       const seen = new Map();
       const deduped = [];
       data[y][tab].forEach(tx => {
-        const key = tx[0] + "|" + tx[1];
-        // For legacy IDs, check if this is a duplicate by parsing the position
-        // from the ID itself — if two tx have the same date+amount and the same
-        // position in the sorted order, they're the same transaction
-        const posInGroup = seen.get(key) || 0;
-        const expectedId = legacyTxId(y, tab, tx[0], tx[1], posInGroup);
-        // Keep if: no legacy ID (real tx), or ID matches expected position,
-        // or it's a genuinely different position
-        if (!tx[2] || !tx[2].startsWith("tx_legacy_") || tx[2] === expectedId) {
+        const k = tx[0] + "|" + tx[1];
+        const count = seen.get(k) || 0;
+        // Keep only one copy of each date+amount when all are legacy IDs
+        if (count === 0) {
           deduped.push(tx);
-          seen.set(key, posInGroup + 1);
+          seen.set(k, 1);
         } else {
-          // Check if this is a duplicate by seeing if we already have a tx
-          // at this position with the correct ID
-          const alreadyHave = deduped.some(d =>
-            d[0] === tx[0] && d[1] === tx[1] && d[2] === expectedId
-          );
-          if (!alreadyHave) {
-            // Reassign to expected ID and keep
-            tx[2] = expectedId;
-            deduped.push(tx);
-            seen.set(key, posInGroup + 1);
-          } else {
-            removed++;
-          }
+          removed++;
         }
       });
       data[y][tab] = deduped;
     });
   });
   if (removed > 0) {
-    dbg("deduplicateLegacyTx: removed " + removed + " duplicate(s)");
+    assignLegacyIds(data);
     saveLocal();
+    dbg("deduplicateLegacyTx: removed " + removed + " duplicate(s)");
   }
   return removed;
 }
@@ -6559,46 +6556,102 @@ function autoMerge(remoteData, remoteTombstones) {
     dbg("autoMerge: migrated remote legacy IDs");
   }
 
-  // If remote has ONLY legacy IDs (was previously migrated independently),
-  // re-normalise both sides so IDs are consistent before merging.
-  // This prevents duplicates when two devices independently ran migrateTxSchema.
+  // If either side has only legacy IDs (independently migrated old files),
+  // use count-based merge: for each date+amount group, keep MIN(local, remote)
+  // copies. This eliminates migration duplicates while preserving genuine
+  // transactions that only exist on one side.
   const remoteIsLegacyOnly = hasOnlyLegacyIds(safeRemote);
   const localIsLegacyOnly  = hasOnlyLegacyIds(data);
+
   if (remoteIsLegacyOnly || localIsLegacyOnly) {
-    // Re-assign deterministic IDs to both sides from scratch
-    assignLegacyIds(safeRemote);
-    assignLegacyIds(data);
-    dbg("autoMerge: re-normalised legacy IDs on both sides");
-  }
+    dbg("autoMerge: count-based merge for legacy data");
 
-  // ID-aware merge
-  const allKeys = new Set([...Object.keys(data), ...Object.keys(safeRemote)]);
-  allKeys.forEach(y => {
-    if (!data[y]) data[y] = { saved: [], removed: [] };
-    const remote = safeRemote[y] || { saved: [], removed: [] };
+    const allYears = new Set([...Object.keys(data), ...Object.keys(safeRemote)]);
+    allYears.forEach(y => {
+      if (!data[y]) data[y] = { saved: [], removed: [] };
+      const remote = safeRemote[y] || { saved: [], removed: [] };
 
-    ["saved", "removed"].forEach(tab => {
-      const localById = new Map();
-      data[y][tab].forEach(tx => { if (tx[2]) localById.set(tx[2], tx); });
+      ["saved", "removed"].forEach(tab => {
+        // Count each side
+        const localCounts = new Map(), remoteCounts = new Map();
+        data[y][tab].forEach(tx => {
+          const k = tx[0] + "|" + tx[1];
+          localCounts.set(k, (localCounts.get(k) || 0) + 1);
+        });
+        remote[tab].forEach(tx => {
+          const k = tx[0] + "|" + tx[1];
+          remoteCounts.set(k, (remoteCounts.get(k) || 0) + 1);
+        });
 
-      remote[tab].forEach(rtx => {
-        if (!rtx[2]) return;
-        if (tombstones.has(rtx[2])) return;
+        // Decide how many of each key to keep:
+        // - Present on both sides → MIN (removes migration duplicates)
+        // - Only on one side → that side's count (genuine new transaction)
+        const keepCounts = new Map();
+        new Set([...localCounts.keys(), ...remoteCounts.keys()]).forEach(k => {
+          const lc = localCounts.get(k) || 0;
+          const rc = remoteCounts.get(k) || 0;
+          keepCounts.set(k, (lc > 0 && rc > 0) ? Math.min(lc, rc) : Math.max(lc, rc));
+        });
 
-        if (localById.has(rtx[2])) {
-          // Same ID — keep newer timestamp
-          const ltx = localById.get(rtx[2]);
-          if ((rtx[3] || 0) > (ltx[3] || 0)) localById.set(rtx[2], rtx);
-        } else {
-          // New from remote — add it
-          localById.set(rtx[2], rtx);
-        }
+        // Rebuild from local, taking exactly keepCounts of each key
+        data[y][tab].sort((a, b) => a[0].localeCompare(b[0]));
+        const kept = new Map();
+        data[y][tab] = data[y][tab].filter(tx => {
+          const k = tx[0] + "|" + tx[1];
+          const have = kept.get(k) || 0;
+          if (have < (keepCounts.get(k) || 0)) { kept.set(k, have + 1); return true; }
+          return false;
+        });
+
+        // Add any from remote that we still need
+        const needed = new Map();
+        data[y][tab].forEach(tx => {
+          const k = tx[0] + "|" + tx[1];
+          needed.set(k, (needed.get(k) || 0) + 1);
+        });
+        remote[tab].forEach(rtx => {
+          const k = rtx[0] + "|" + rtx[1];
+          const have = needed.get(k) || 0;
+          if (have < (keepCounts.get(k) || 0)) {
+            data[y][tab].push(rtx);
+            needed.set(k, have + 1);
+          }
+        });
+
+        data[y][tab].sort((a, b) => a[0].localeCompare(b[0]));
       });
-
-      data[y][tab] = [...localById.values()]
-        .sort((a, b) => a[0].localeCompare(b[0]));
     });
-  });
+
+    // Re-assign clean deterministic IDs after count-based merge
+    assignLegacyIds(data);
+
+  } else {
+    // ── ID-aware merge for new-format files ──────────────────────────────────
+    const allKeys = new Set([...Object.keys(data), ...Object.keys(safeRemote)]);
+    allKeys.forEach(y => {
+      if (!data[y]) data[y] = { saved: [], removed: [] };
+      const remote = safeRemote[y] || { saved: [], removed: [] };
+
+      ["saved", "removed"].forEach(tab => {
+        const localById = new Map();
+        data[y][tab].forEach(tx => { if (tx[2]) localById.set(tx[2], tx); });
+
+        remote[tab].forEach(rtx => {
+          if (!rtx[2]) return;
+          if (tombstones.has(rtx[2])) return;
+          if (localById.has(rtx[2])) {
+            const ltx = localById.get(rtx[2]);
+            if ((rtx[3] || 0) > (ltx[3] || 0)) localById.set(rtx[2], rtx);
+          } else {
+            localById.set(rtx[2], rtx);
+          }
+        });
+
+        data[y][tab] = [...localById.values()]
+          .sort((a, b) => a[0].localeCompare(b[0]));
+      });
+    });
+  }
 
   reconcileYears();
   ensureFYSilent = false;
@@ -7621,6 +7674,6 @@ function deleteRecurRule(idx) {
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v3.4.8</div>
+  <div id="version-footer">v3.5.0</div>
 </body>
 </html>
