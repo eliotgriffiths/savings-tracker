@@ -548,7 +548,8 @@
   .smod-card:hover { border-color: var(--border-hi); background: var(--bg2); }
   .smod-card.smod-card-warn { border-color: rgba(192,80,74,0.2); }
   .smod-card.smod-card-warn:hover { border-color: rgba(192,80,74,0.45); }
-  .smod-card-icon { font-size: 20px; width: 28px; text-align: center; flex-shrink: 0; }
+  .smod-card-icon { width: 28px; text-align: center; flex-shrink: 0; color: var(--text-3); display: flex; align-items: center; justify-content: center; }
+  .smod-card:hover .smod-card-icon { color: var(--text-2); }
   .smod-card-body { flex: 1; }
   .smod-card-title { font-size: 13px; font-weight: 600; color: var(--text-1); margin-bottom: 2px; }
   .smod-card-sub { font-size: 11px; color: var(--text-3); font-weight: 400; }
@@ -561,8 +562,9 @@
   .smod-panel {
     display: none;
     flex-direction: column;
+    width: 100%;
   }
-  .smod-panel.open { display: flex; }
+  .smod-panel.open { display: flex; width: 100%; }
   .smod-panel-header {
     display: flex; align-items: center; gap: 8px;
     padding: 16px 20px;
@@ -581,6 +583,20 @@
   }
   .smod-back:hover { color: var(--text-1); }
   .smod-panel-body { padding: 20px; }
+
+  /* On mobile, setup modal floats as a clean centred overlay */
+  @media (max-width: 600px) {
+    #setup-modal {
+      padding: 20px 16px;
+    }
+    #setup-modal .modal-box {
+      max-width: 100%;
+      border-radius: 18px;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      padding: 0;
+    }
+  }
 
   /* ── recurring transactions modal ── */
   #recurring-modal {
@@ -612,6 +628,22 @@
     transition: color 0.15s, background 0.15s;
   }
   .recur-delete-btn:hover { color: var(--red); background: var(--red-dim); }
+  .recur-edit-btn {
+    background: transparent; border: none; color: var(--text-3); font-size: 13px;
+    cursor: pointer; padding: 2px 7px; border-radius: 5px; line-height: 1; flex-shrink: 0;
+    transition: color 0.15s, background 0.15s; font-family: 'DM Sans', sans-serif;
+  }
+  .recur-edit-btn:hover { color: var(--gold); background: rgba(201,168,76,0.1); }
+  .recur-edit-form {
+    display: none; margin-top: 12px; padding-top: 12px;
+    border-top: 1px solid var(--border); flex-direction: column; gap: 10px;
+  }
+  .recur-edit-form.open { display: flex; }
+  .recur-edit-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .recur-edit-form .field { flex: 1; min-width: 100px; }
+  .recur-edit-form label { font-size: 11px; color: var(--text-3); font-weight: 500; display: block; margin-bottom: 4px; }
+  .recur-edit-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .recur-item { flex-wrap: wrap; }
   #recur-empty { text-align: center; padding: 32px 0; color: var(--text-3); font-size: 13px; font-weight: 300; }
   #recur-add-form { border-top: 1px solid var(--border); padding-top: 16px; flex-shrink: 0; }
   #recur-add-form .recur-form-title {
@@ -1487,13 +1519,13 @@
 
 <!-- Setup modal -->
 <div id="setup-modal">
-  <div class="modal-box" style="padding:0; overflow:hidden; max-width:420px;">
+  <div class="modal-box" style="padding:0; overflow-y:auto; max-width:420px; width:100%;">
 
     <!-- Main view — three storage option cards -->
-    <div id="smod-main">
+    <div id="smod-main" style="width:100%;">
       <div style="display:flex; align-items:center; padding:24px 24px 0;">
         <h2 style="flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400; color:var(--text-1); margin:0;">Save &amp; Backup</h2>
-        <button class="modal-close" onclick="document.getElementById('setup-modal').classList.add('hidden')" title="Close">✕</button>
+        <button class="modal-close" onclick="closeSetup()" title="Close">✕</button>
       </div>
       <p style="font-size:12px; color:var(--text-3); padding:6px 24px 20px; margin:0; line-height:1.6;">Choose how your data is stored and backed up.</p>
 
@@ -1502,7 +1534,12 @@
 
         <!-- Cloud Services card -->
         <button class="smod-card" id="smod-card-cloud" onclick="openCloudPicker()">
-          <div class="smod-card-icon"></div>
+          <div class="smod-card-icon">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M14 12a3 3 0 0 0-.5-5.95A5 5 0 0 0 4 8.5a3 3 0 0 0 .5 5.95" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <path d="M9 11v5M7 14l2-2 2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
           <div class="smod-card-body">
             <div class="smod-card-title">Cloud Service</div>
             <div class="smod-card-sub" id="smod-cloud-sub">Sync to Google Drive, OneDrive, or Dropbox</div>
@@ -1512,7 +1549,14 @@
 
         <!-- Network Location / NAS card -->
         <button class="smod-card" id="smod-card-nas" onclick="openSmodPanel('nas')">
-          <div class="smod-card-icon"></div>
+          <div class="smod-card-icon">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="1" y="3" width="16" height="5" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+              <rect x="1" y="10" width="16" height="5" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+              <circle cx="14" cy="5.5" r="1" fill="currentColor"/>
+              <circle cx="14" cy="12.5" r="1" fill="currentColor"/>
+            </svg>
+          </div>
           <div class="smod-card-body">
             <div class="smod-card-title">Network Location / NAS</div>
             <div class="smod-card-sub" id="smod-nas-sub">Sync to Nextcloud, a NAS, or any home server</div>
@@ -1522,7 +1566,13 @@
 
         <!-- Local File card -->
         <button class="smod-card" id="smod-card-local" onclick="openSmodPanel('local')">
-          <div class="smod-card-icon"></div>
+          <div class="smod-card-icon">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10 1H4a1.5 1.5 0 0 0-1.5 1.5v13A1.5 1.5 0 0 0 4 17h10a1.5 1.5 0 0 0 1.5-1.5V6.5L10 1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" fill="none"/>
+              <path d="M10 1v5.5h5.5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              <path d="M9 9v4M7 11l2 2 2-2" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
           <div class="smod-card-body">
             <div class="smod-card-title">Local File</div>
             <div class="smod-card-sub" id="smod-local-sub">Save or load a backup file on this device</div>
@@ -1532,7 +1582,15 @@
 
         <!-- Browser Storage card -->
         <button class="smod-card smod-card-warn" onclick="openSmodPanel('browser')">
-          <div class="smod-card-icon"></div>
+          <div class="smod-card-icon">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="1.5" y="3" width="15" height="12" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+              <path d="M1.5 7h15" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="4.5" cy="5" r="0.75" fill="currentColor"/>
+              <circle cx="7" cy="5" r="0.75" fill="currentColor"/>
+              <path d="M9 11h4" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" opacity="0.5"/>
+            </svg>
+          </div>
           <div class="smod-card-body">
             <div class="smod-card-title">Browser Storage Only</div>
             <div class="smod-card-sub">No backup — data lost if browser is cleared</div>
@@ -1551,13 +1609,13 @@
           <svg width="16" height="16" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px; margin-right:6px;"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>
           Google Drive
         </span>
-        <button class="modal-close" onclick="document.getElementById('setup-modal').classList.add('hidden')" title="Close">✕</button>
+        <button class="modal-close" onclick="closeSetup()" title="Close">✕</button>
       </div>
       <div class="smod-panel-body">
 
         <!-- Connected state -->
         <div id="gd-linked-info" style="display:none; background:var(--green-dim); border:1px solid rgba(61,158,110,0.2); border-radius:var(--radius); padding:10px 14px; margin-bottom:14px; align-items:center; gap:8px;">
-          <span style="font-size:14px; line-height:1; color:#5ec497;"></div>
+          <span style="font-size:14px; line-height:1; color:#5ec497;"></span>
           <div style="flex:1;">
             <div style="font-size:13px; color:#5ec497; font-weight:500;">Connected — auto-saving active</div>
             <div id="gd-linked-email" style="font-size:11px; color:var(--text-3); margin-top:2px;"></div>
@@ -1570,8 +1628,8 @@
             Sign in with Google
           </button>
           <div style="display:flex; gap:8px;">
-            <button class="btn-local" style="flex:1;" id="btn-gd-save-now" onclick="saveToGoogleDrive(true)">⬇ Save now</button>
-            <button class="btn-local" style="flex:1;" id="btn-gd-load" onclick="loadFromGoogleDrive()">⬆ Load from Drive</button>
+            <button class="btn-local" style="flex:1;" id="btn-gd-save-now" onclick="saveToGoogleDrive(true)">Save now</button>
+            <button class="btn-local" style="flex:1;" id="btn-gd-load" style="flex:1; background:var(--bg3);" onclick="loadFromGoogleDrive()">Load from Drive</button>
           </div>
           <button class="btn-local" id="btn-gd-unlink" style="display:none; color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="unlinkGoogleDrive()">Disconnect</button>
         </div>
@@ -1585,7 +1643,7 @@
           Sign in with Google to enable auto-save. Vault only accesses the single file it creates — it cannot see any other files in your Drive.
         </div>
 
-        <button class="info-popup-close-btn" style="margin-top:12px;" onclick="document.getElementById('setup-modal').classList.add('hidden')">Done</button>
+        <button class="info-popup-close-btn" style="margin-top:12px;" onclick="closeSetup()">Done</button>
       </div>
     </div>
 
@@ -1594,7 +1652,7 @@
       <div class="smod-panel-header">
         <button class="smod-back" onclick="closeSmodPanel()">‹ Back</button>
         <span class="smod-panel-title">Network Location / NAS</span>
-        <button class="modal-close" onclick="document.getElementById('setup-modal').classList.add('hidden')" title="Close">✕</button>
+        <button class="modal-close" onclick="closeSetup()" title="Close">✕</button>
       </div>
       <div class="smod-panel-body">
 
@@ -1625,8 +1683,8 @@
         <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
           <button class="btn-primary" id="btn-nas-connect" onclick="connectNAS()">Connect &amp; save now</button>
           <div style="display:flex; gap:8px;">
-            <button class="btn-local" style="flex:1;" id="btn-nas-save-now" onclick="saveToNAS(true)">⬇ Save now</button>
-            <button class="btn-local" style="flex:1;" onclick="loadFromNAS()">⬆ Load from server</button>
+            <button class="btn-local" style="flex:1;" id="btn-nas-save-now" onclick="saveToNAS(true)">Save now</button>
+            <button class="btn-local" style="flex:1; background:var(--bg3);" onclick="loadFromNAS()">Load from server</button>
           </div>
           <button class="btn-local" id="btn-nas-unlink" style="display:none; color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="unlinkNAS()">Disconnect</button>
         </div>
@@ -1643,7 +1701,7 @@
           </div>
         </div>
 
-        <button class="info-popup-close-btn" style="margin-top:12px;" onclick="document.getElementById('setup-modal').classList.add('hidden')">Done</button>
+        <button class="info-popup-close-btn" style="margin-top:12px;" onclick="closeSetup()">Done</button>
 
       </div>
     </div>
@@ -1653,39 +1711,32 @@
       <div class="smod-panel-header">
         <button class="smod-back" onclick="closeSmodPanel()">‹ Back</button>
         <span class="smod-panel-title">Local File</span>
-        <button class="modal-close" onclick="document.getElementById('setup-modal').classList.add('hidden')" title="Close">✕</button>
+        <button class="modal-close" onclick="closeSetup()" title="Close">✕</button>
       </div>
       <div class="smod-panel-body">
 
-        <!-- Auto-sync connected state -->
-        <div id="local-linked-info" style="display:none; background:var(--green-dim); border:1px solid rgba(61,158,110,0.2); border-radius:var(--radius); padding:10px 14px; margin-bottom:14px; align-items:center; gap:8px;">
-          <span style="font-size:14px; line-height:1; color:#5ec497;"></span>
+        <div id="local-linked-info" style="display:none; background:var(--green-dim); border:1px solid rgba(61,158,110,0.2); border-radius:var(--radius); padding:10px 14px; margin-bottom:14px;">
           <span style="font-size:13px; color:#5ec497; font-weight:500;">File linked — auto-saving active</span>
         </div>
 
-        <!-- Unsupported browser warning -->
         <div id="local-unsupported-info" style="display:none; background:rgba(192,80,74,0.07); border:1px solid rgba(192,80,74,0.25); border-radius:var(--radius); padding:12px 14px; margin-bottom:14px;">
           <div style="font-size:11px; font-weight:600; color:var(--red); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;"><span id="local-unsupported-title">Auto-save not available</span></div>
           <div id="local-unsupported-text" style="font-size:12px; color:var(--text-3); line-height:1.7;"></div>
           <div style="margin-top:8px; font-size:12px; color:var(--text-3); line-height:1.7;">For auto-save, use <strong style="color:var(--text-2);">Network Location / NAS</strong> or a <strong style="color:var(--text-2);">cloud service</strong> instead.</div>
-          <button onclick="openCompatInfo()" style="margin-top:10px; background:none; border:1px solid rgba(192,80,74,0.3); border-radius:6px; color:var(--red); font-size:11px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; padding:5px 10px; opacity:0.85;">ℹ Learn more</button>
+          <button onclick="openCompatInfo()" style="margin-top:10px; background:none; border:1px solid rgba(192,80,74,0.3); border-radius:6px; color:var(--red); font-size:11px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; padding:5px 10px;">Learn more</button>
         </div>
 
-        <!-- Permission re-grant needed after browser restart -->
-        <div id="local-permission-info" style="display:none; background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.25); border-radius:var(--radius); padding:10px 14px; margin-bottom:14px; align-items:center; gap:10px;">
-          <span style="font-size:14px; line-height:1; color:var(--gold);"></span>
-          <div style="flex:1;">
-            <div style="font-size:13px; color:var(--gold); font-weight:500; margin-bottom:2px;">Permission needed</div>
-            <div style="font-size:11px; color:var(--text-3); line-height:1.5;">Browser requires re-authorisation after restart.</div>
-          </div>
-          <button class="btn-gold" style="font-size:11px; padding:5px 10px; flex-shrink:0;" onclick="reauthoriseLocalFile()">Reconnect</button>
+        <div id="local-permission-info" style="display:none; background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.25); border-radius:var(--radius); padding:10px 14px; margin-bottom:14px;">
+          <div style="font-size:13px; color:var(--gold); font-weight:500; margin-bottom:2px;">Permission needed</div>
+          <div style="font-size:11px; color:var(--text-3); line-height:1.5; margin-bottom:8px;">Browser requires re-authorisation after restart.</div>
+          <button class="btn-gold" style="font-size:11px; padding:5px 10px;" onclick="reauthoriseLocalFile()">Reconnect</button>
         </div>
 
         <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
           <button class="btn-primary" id="btn-local-link" onclick="linkLocalFile()">Choose file location</button>
           <div style="display:flex; gap:8px;">
-            <button class="btn-local" style="flex:1;" id="btn-local-save-now" onclick="saveToLocalFile(true)" style="display:none;">⬇ Save now</button>
-            <button class="btn-local" style="flex:1;" onclick="loadFromLocalFile()">⬆ Load file</button>
+            <button class="btn-local" style="flex:1;" id="btn-local-save-now" onclick="saveToLocalFile(true)">Save now</button>
+            <button class="btn-local" style="flex:1; background:var(--bg3);" onclick="loadFromLocalFile()">Load file</button>
           </div>
           <button class="btn-local" id="btn-local-unlink" style="display:none; color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="unlinkLocalFile()">Unlink file location</button>
         </div>
@@ -1699,33 +1750,40 @@
           Choose a file location to enable auto-save. Once linked, every change is written automatically. Loading a file gives you the choice to <strong style="color:var(--text-2);">merge</strong> or <strong style="color:var(--text-2);">replace</strong> your current data.
         </div>
 
-        <!-- Shown only when no file is linked — lets the user wipe the browser data -->
         <div id="local-clear-section" style="display:none; margin-top:12px; border-top:1px solid var(--border); padding-top:12px;">
           <button class="btn-local" style="width:100%; color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="clearBrowserData()">Clear browser data</button>
         </div>
 
-        <button class="info-popup-close-btn" style="margin-top:12px;" onclick="document.getElementById('setup-modal').classList.add('hidden')">Done</button>
+        <button class="info-popup-close-btn" style="margin-top:12px;" onclick="closeSetup()">Done</button>
 
       </div>
     </div>
-
     <!-- ── Panel: Browser Storage ── -->
     <div id="smod-panel-browser" class="smod-panel">
       <div class="smod-panel-header">
         <button class="smod-back" onclick="closeSmodPanel()">‹ Back</button>
         <span class="smod-panel-title">Browser Storage</span>
-        <button class="modal-close" onclick="document.getElementById('setup-modal').classList.add('hidden')" title="Close">✕</button>
+        <button class="modal-close" onclick="closeSetup()" title="Close">✕</button>
       </div>
       <div class="smod-panel-body">
+
         <p style="font-size:13px; color:var(--text-2); line-height:1.7; margin-bottom:16px; font-weight:300;">Your data is saved inside this browser on this device only. Nothing leaves your device and no file is created — Vault stores everything in browser local storage.</p>
-        <button class="btn-local" style="width:100%; margin-bottom:16px;" onclick="useLocal(); closeSmodPanel();">Continue with browser storage</button>
+
+        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
+          <button class="btn-local" style="width:100%;" onclick="useLocal(); closeSmodPanel();">Continue with browser storage</button>
+        </div>
+
         <div style="padding:14px 16px; background:rgba(192,80,74,0.07); border:1px solid rgba(192,80,74,0.25); border-radius:var(--radius); margin-bottom:12px;">
           <div style="font-size:11px; font-weight:600; color:var(--red); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">No backup</div>
           <div style="font-size:12px; color:var(--text-3); line-height:1.8;">Your data exists only in this browser. It will be <strong style="color:var(--text-2);">permanently lost</strong> if you clear your browser data, uninstall the browser, or switch to another device or browser.</div>
           <div style="margin-top:10px; font-size:12px; color:var(--text-3); line-height:1.8;">For a recoverable backup, use <strong style="color:var(--text-2);">Local File</strong> instead — it saves to a file you control.</div>
         </div>
-        <button class="btn-local" style="width:100%; color:var(--red); border-color:rgba(192,80,74,0.3); margin-bottom:12px;" onclick="clearBrowserData()">Clear browser data</button>
-        <button class="info-popup-close-btn" onclick="document.getElementById('setup-modal').classList.add('hidden')">Done</button>
+
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button class="btn-local" style="width:100%; color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="clearBrowserData()">Clear browser data</button>
+          <button class="info-popup-close-btn" onclick="closeSetup()">Done</button>
+        </div>
+
       </div>
     </div>
 
@@ -1767,8 +1825,8 @@
 <div id="cloud-picker-popup" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:400; align-items:center; justify-content:center; padding:20px;">
   <div class="info-popup-box" style="max-width:400px; width:100%;">
     <div style="display:flex; align-items:center; margin-bottom:6px;">
+      <button class="smod-back" onclick="closeCloudPicker()" style="font-size:15px; padding:0 10px 0 0;">‹ Back</button>
       <h3 style="flex:1; margin:0;">Cloud Service</h3>
-      <button class="modal-close" onclick="closeCloudPicker()" title="Close">✕</button>
     </div>
     <p style="font-size:12px; color:var(--text-3); margin:0 0 20px; line-height:1.6;">Choose a cloud service to sync your Vault data. Auto-saves every change and works on all browsers and devices.</p>
 
@@ -1811,8 +1869,6 @@
       </button>
 
     </div>
-
-    <button class="info-popup-close-btn" style="margin-top:16px;" onclick="closeCloudPicker()">Cancel</button>
   </div>
 </div>
 
@@ -1946,8 +2002,8 @@
 
     <!-- Recurring options (hidden until toggled) -->
     <div id="desk-recur-fields" style="display:none; margin-bottom:18px; padding:14px; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius);">
-      <div style="margin-bottom:10px;">
-        <div class="tx-popup-field" style="margin:0;">
+      <div style="margin-bottom:10px; display:flex; gap:10px; flex-wrap:wrap;">
+        <div class="tx-popup-field" style="margin:0; flex:1; min-width:120px;">
           <label>Frequency</label>
           <select id="desk-recur-freq"
             style="background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%; transition:border-color 0.15s;">
@@ -1957,6 +2013,10 @@
             <option value="quarterly">Quarterly</option>
             <option value="yearly">Yearly</option>
           </select>
+        </div>
+        <div class="tx-popup-field" style="margin:0; flex:1; min-width:120px;">
+          <label>End Date <span style="color:var(--text-3); font-weight:300;">(optional)</span></label>
+          <input type="date" id="desk-recur-end" style="color-scheme:dark; background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
         </div>
       </div>
       <div style="font-size:11px; color:var(--text-3); line-height:1.6;">The transaction date above will be used as the start date for this recurring transaction. Future occurrences are added automatically as each date is reached.</div>
@@ -2013,6 +2073,11 @@
     <button class="dmenu-btn" onclick="closeDesktopMenu(); menuPrint();">
       <span class="dmenu-btn-icon"></span>
       <div><div class="dmenu-btn-label">Print</div><div class="dmenu-btn-sub" id="dmenu-print-sub">Print current view</div></div>
+    </button>
+    <div class="dmenu-divider"></div>
+    <button class="dmenu-btn" onclick="closeDesktopMenu(); openRecurringModal();">
+      <span class="dmenu-btn-icon"></span>
+      <div><div class="dmenu-btn-label">Recurring Transactions</div><div class="dmenu-btn-sub" id="dmenu-recur-sub">None active</div></div>
     </button>
     <div class="dmenu-divider"></div>
     <button class="dmenu-btn" onclick="closeDesktopMenu(); openYearFormatPopup();">
@@ -2346,6 +2411,20 @@
   <!-- Section: Settings -->
   <div class="menu-section-label">Settings</div>
 
+  <button class="menu-item-btn" onclick="closeSheets(); openRecurringModal();">
+    <span class="menu-item-icon">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        <path d="M8 6v2l1.5 1.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
+    <span class="menu-item-body">
+      <span class="menu-item-label">Recurring Transactions</span>
+      <span class="menu-item-sub" id="mob-recur-manage-sub">None active</span>
+    </span>
+  </button>
+
   <button class="menu-item-btn" onclick="closeSheets(); setTimeout(openYearFormatPopup, 50);">
     <span class="menu-item-icon">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -2458,6 +2537,10 @@
         <option value="yearly">Yearly</option>
       </select>
     </div>
+    <div class="field" style="margin-bottom:10px;">
+      <label>End Date <span style="color:var(--text-3); font-weight:300;">(optional)</span></label>
+      <input type="date" id="mob-recur-end" style="color-scheme:dark; background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:11px 12px; color:var(--text-1); font-size:14px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
+    </div>
     <div style="font-size:12px; color:var(--text-3); line-height:1.6;">The transaction date above will be used as the start date for this recurring transaction. Future occurrences are added automatically as each date is reached.</div>
   </div>
 
@@ -2526,6 +2609,12 @@
             <option value="quarterly">Quarterly</option>
             <option value="yearly">Yearly</option>
           </select>
+        </div>
+      </div>
+      <div class="recur-form-row">
+        <div class="field">
+          <label>End Date <span style="color:var(--text-3); font-weight:300;">(optional)</span></label>
+          <input type="date" id="recur-end" style="color-scheme:dark;">
         </div>
       </div>
       <div style="font-size:11px; color:var(--text-3); line-height:1.6; margin-bottom:12px;">The start date sets the first occurrence. For weekly and fortnightly rules, the same day of the week as the start date will be used for all future occurrences.</div>
@@ -3029,8 +3118,6 @@ function loadLocal() {
     const fallback = inSandbox ? PREVIEW_SEED : SEED;
     data = JSON.parse(JSON.stringify(fallback));
   }
-  migrateTxSchema();
-  deduplicateLegacyTx();
   loadYearMode();
   reconcileYears();
 }
@@ -3839,7 +3926,6 @@ async function loadFromLocalFile() {
       saveTombstones();
       applyPayloadSettings(settings, true);
       data = safe;
-      migrateTxSchema();
       reconcileYears();
       saveLocal();
       render();
@@ -4195,7 +4281,18 @@ function openSetup() {
   closeSmodPanel();
   updateSetupModal();
   document.getElementById("setup-modal").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
 }
+
+function closeSetup() {
+  document.getElementById("setup-modal").classList.add("hidden");
+  document.body.style.overflow = "";
+}
+
+// Close setup modal when clicking the backdrop
+document.getElementById("setup-modal").addEventListener("click", function(e) {
+  if (e.target === this) closeSetup();
+});
 
 // Navigate into a submenu panel
 // Navigate from the Save & Backup main card view into a named sub-panel.
@@ -4313,7 +4410,7 @@ function updateLocalFileUI() {
   if (!fsSupport && !linked && !pending) updateLocalUnsupportedBanner();
   if (linkedInfo)   linkedInfo.style.display   = linked ? "flex" : "none";
   if (permInfo)     permInfo.style.display      = pending ? "flex" : "none";
-  if (linkBtn)      linkBtn.textContent = linked ? "Change location" : (fsSupport ? "Choose file location" : "⬇ Save file (download)");
+  if (linkBtn)      linkBtn.textContent = linked ? "Change location" : (fsSupport ? "Choose file location" : "Save file (download)");
   if (saveNowBtn)   saveNowBtn.style.display   = linked ? "" : "none";
   if (unlinkBtn)    unlinkBtn.style.display     = (linked || pending) ? "" : "none";
   if (autoNote)     autoNote.style.display      = linked ? "" : "none";
@@ -4444,7 +4541,6 @@ async function loadFromNAS() {
       saveTombstones();
       applyPayloadSettings(settings, true);
       data = safe;
-      migrateTxSchema();
       reconcileYears();
       saveLocal();
       render();
@@ -4509,12 +4605,13 @@ function initNAS() {
 // ─── cloud service picker ──────────────────────────────────────────────────────
 
 function openCloudPicker() {
-  document.getElementById("setup-modal").classList.add("hidden");
+  closeSetup();
   document.getElementById("cloud-picker-popup").classList.remove("hidden");
 }
 
 function closeCloudPicker() {
   document.getElementById("cloud-picker-popup").classList.add("hidden");
+  openSetup();
 }
 
 document.getElementById("cloud-picker-popup").addEventListener("click", function(e) {
@@ -4713,31 +4810,22 @@ async function gdHandleRedirect() {
           const { data: rawData, tombstones: remoteTombstones, ...settings } = unwrapPayload(loaded);
           const safe = sanitiseData(rawData);
           if (safe && Object.keys(safe).length) {
-
-            // If local data has only legacy IDs (never had user-created transactions),
-            // replace entirely rather than merging — this prevents migration duplication
-            // when connecting Drive on a fresh device that loaded an old file
-            if (hasOnlyLegacyIds(data)) {
-              dbg("GD: local has only legacy IDs — replacing with Drive data to prevent duplication");
+            const loadExisting = confirm(
+              "A Vault file was found in your Google Drive.\n\nOK  →  Merge with your current data\nCancel  →  Overwrite it with your current data"
+            );
+            if (loadExisting) {
+              autoMerge(safe, remoteTombstones);
+              applyPayloadSettings(settings, true);
+              toast("Merged existing Drive data");
+            } else {
               remoteTombstones.forEach(id => tombstones.add(id));
               saveTombstones();
               data = safe;
-              migrateTxSchema();
               reconcileYears();
               applyPayloadSettings(settings, true);
               saveLocal();
               render();
               toast("Loaded data from Google Drive");
-            } else {
-              // Local has user-created transactions — merge normally
-              const loadExisting = confirm(
-                "A Vault file was found in your Google Drive.\n\nOK  →  Merge with your current data\nCancel  →  Overwrite it with your current data"
-              );
-              if (loadExisting) {
-                autoMerge(safe, remoteTombstones);
-                applyPayloadSettings(settings, true);
-                toast("Merged existing Drive data");
-              }
             }
           }
         }
@@ -4906,7 +4994,6 @@ async function loadFromGoogleDrive() {
       saveTombstones();
       applyPayloadSettings(settings, true);
       data = safe;
-      migrateTxSchema();
       reconcileYears();
       saveLocal();
       render();
@@ -5047,7 +5134,7 @@ function clearBrowserData() {
   renderMain();
   setSaveStatus("warn", "Browser storage only");
   updateLocalFileUI();
-  document.getElementById("setup-modal").classList.add("hidden");
+  closeSetup();
 
   dbg("clearBrowserData: all localStorage data wiped, file unlinked");
 
@@ -5071,7 +5158,7 @@ function pickFileViaInput() {
 }
 
 function useLocal() {
-  document.getElementById("setup-modal").classList.add("hidden");
+  closeSetup();
 }
 
 // ─── edge case fixes ──────────────────────────────────────────────────────────
@@ -6424,234 +6511,47 @@ function toast(msg, color = "#2E9EA8") {
 // Migrate existing transactions to the new schema: [date, amount, id, ts]
 // Called on every loadLocal() — safe to run repeatedly (skips already-migrated rows)
 // Generate a deterministic legacy ID for an unmigrated transaction.
-// Uses year key, tab, date, amount, and position-within-group so that:
-// - Two devices migrating the same transaction independently produce the same ID
-// - Two transactions with the same date+amount get different IDs (different position index)
-function legacyTxId(yearKey, tab, date, amount, positionInGroup) {
-  return "tx_legacy_" + yearKey + "_" + tab + "_" + date + "_" + amount + "_" + positionInGroup;
-}
-
-// Assign deterministic legacy IDs to all unmigrated transactions in a data object.
-// Sorts each tab by date first (matching the app's natural order) so position is stable.
-function assignLegacyIds(dataObj) {
-  Object.keys(dataObj).forEach(y => {
-    ["saved", "removed"].forEach(tab => {
-      if (!Array.isArray(dataObj[y][tab])) return;
-      // Sort by date to ensure consistent ordering before assigning positions
-      dataObj[y][tab].sort((a, b) => a[0].localeCompare(b[0]));
-      // Track how many times each date+amount combo has appeared so far
-      const groupCounter = new Map();
-      dataObj[y][tab] = dataObj[y][tab].map(tx => {
-        if (tx.length >= 4 && tx[2] && tx[3]) return tx; // already has an ID
-        const key = tx[0] + "|" + tx[1];
-        const pos = groupCounter.get(key) || 0;
-        groupCounter.set(key, pos + 1);
-        const id = legacyTxId(y, tab, tx[0], tx[1], pos);
-        const ts = new Date(tx[0] + "T00:00:00").getTime();
-        return [tx[0], tx[1], id, ts];
-      });
-    });
-  });
-  return dataObj;
-}
-
-function migrateTxSchema() {
-  const before = JSON.stringify(data);
-  assignLegacyIds(data);
-  if (JSON.stringify(data) !== before) {
-    saveLocal();
-    dbg("migrateTxSchema: assigned deterministic legacy IDs");
-  }
-}
-
-// Check if a year bucket contains any unmigrated transactions (no ID)
-function hasUnmigratedTx(yearBucket) {
-  return ["saved", "removed"].some(tab =>
-    yearBucket[tab] && yearBucket[tab].some(tx => !tx[2])
-  );
-}
-
-// Migrate a remote data object — assigns the same deterministic IDs that the local
-// migration would have assigned, so both sides produce identical IDs for the same transaction.
-function migrateRemoteTxSchema(remoteData) {
-  return assignLegacyIds(remoteData);
-}
-
-// Detect if a data object contains only legacy-migrated IDs (tx_legacy_ prefix)
-// and no user-generated IDs (tx_deviceid_ prefix). Used to decide whether to
-// re-normalise IDs before merging.
-function hasOnlyLegacyIds(dataObj) {
-  let hasLegacy = false, hasReal = false;
-  Object.values(dataObj).forEach(fy => {
-    ["saved", "removed"].forEach(tab => {
-      (fy[tab] || []).forEach(tx => {
-        if (!tx[2]) return;
-        if (tx[2].startsWith("tx_legacy_")) hasLegacy = true;
-        else hasReal = true;
-      });
-    });
-  });
-  return hasLegacy && !hasReal;
-}
-
-// Clean up duplicates already in local data from previous bad merges.
-// Groups by date+amount and removes extras where all copies have legacy IDs
-// (meaning they came from independent migration, not genuine separate transactions).
-function deduplicateLegacyTx() {
-  if (!hasOnlyLegacyIds(data)) return 0;
-  let removed = 0;
-  Object.keys(data).forEach(y => {
-    ["saved", "removed"].forEach(tab => {
-      data[y][tab].sort((a, b) => a[0].localeCompare(b[0]));
-      const seen = new Map();
-      const deduped = [];
-      data[y][tab].forEach(tx => {
-        const k = tx[0] + "|" + tx[1];
-        const count = seen.get(k) || 0;
-        // Keep only one copy of each date+amount when all are legacy IDs
-        if (count === 0) {
-          deduped.push(tx);
-          seen.set(k, 1);
-        } else {
-          removed++;
-        }
-      });
-      data[y][tab] = deduped;
-    });
-  });
-  if (removed > 0) {
-    assignLegacyIds(data);
-    saveLocal();
-    dbg("deduplicateLegacyTx: removed " + removed + " duplicate(s)");
-  }
-  return removed;
-}
-
 // ID-aware merge — merges remoteData into local data using transaction IDs and timestamps.
-// Old files (no IDs) are migrated first using deterministic position-based IDs,
-// so both devices independently produce the same IDs for the same transactions.
-// Files that were already migrated with legacy IDs are re-normalised so IDs
-// match across devices. Tombstones ensure deletions propagate.
+// tx_legacy_ IDs from the old format are treated as regular IDs. Tombstones propagate deletions.
 function autoMerge(remoteData, remoteTombstones) {
   ensureFYSilent = true;
-  let safeRemote = sanitiseData(remoteData);
+  const safeRemote = sanitiseData(remoteData);
 
-  // Apply remote tombstones locally
   if (remoteTombstones && remoteTombstones.length) {
     remoteTombstones.forEach(id => tombstones.add(id));
     saveTombstones();
   }
 
-  // Remove any local transactions that appear in the tombstone list
   Object.keys(data).forEach(y => {
     ["saved", "removed"].forEach(tab => {
       data[y][tab] = data[y][tab].filter(tx => !tombstones.has(tx[2]));
     });
   });
 
-  // If remote file is old (no IDs), assign deterministic legacy IDs
-  const remoteIsOld = Object.values(safeRemote).some(hasUnmigratedTx);
-  if (remoteIsOld) {
-    safeRemote = migrateRemoteTxSchema(safeRemote);
-    dbg("autoMerge: migrated remote legacy IDs");
-  }
+  const allKeys = new Set([...Object.keys(data), ...Object.keys(safeRemote)]);
+  allKeys.forEach(y => {
+    if (!data[y]) data[y] = { saved: [], removed: [] };
+    const remote = safeRemote[y] || { saved: [], removed: [] };
 
-  // If either side has only legacy IDs (independently migrated old files),
-  // use count-based merge: for each date+amount group, keep MIN(local, remote)
-  // copies. This eliminates migration duplicates while preserving genuine
-  // transactions that only exist on one side.
-  const remoteIsLegacyOnly = hasOnlyLegacyIds(safeRemote);
-  const localIsLegacyOnly  = hasOnlyLegacyIds(data);
+    ["saved", "removed"].forEach(tab => {
+      const localById = new Map();
+      data[y][tab].forEach(tx => { if (tx[2]) localById.set(tx[2], tx); });
 
-  if (remoteIsLegacyOnly || localIsLegacyOnly) {
-    dbg("autoMerge: count-based merge for legacy data");
-
-    const allYears = new Set([...Object.keys(data), ...Object.keys(safeRemote)]);
-    allYears.forEach(y => {
-      if (!data[y]) data[y] = { saved: [], removed: [] };
-      const remote = safeRemote[y] || { saved: [], removed: [] };
-
-      ["saved", "removed"].forEach(tab => {
-        // Count each side
-        const localCounts = new Map(), remoteCounts = new Map();
-        data[y][tab].forEach(tx => {
-          const k = tx[0] + "|" + tx[1];
-          localCounts.set(k, (localCounts.get(k) || 0) + 1);
-        });
-        remote[tab].forEach(tx => {
-          const k = tx[0] + "|" + tx[1];
-          remoteCounts.set(k, (remoteCounts.get(k) || 0) + 1);
-        });
-
-        // Decide how many of each key to keep:
-        // - Present on both sides → MIN (removes migration duplicates)
-        // - Only on one side → that side's count (genuine new transaction)
-        const keepCounts = new Map();
-        new Set([...localCounts.keys(), ...remoteCounts.keys()]).forEach(k => {
-          const lc = localCounts.get(k) || 0;
-          const rc = remoteCounts.get(k) || 0;
-          keepCounts.set(k, (lc > 0 && rc > 0) ? Math.min(lc, rc) : Math.max(lc, rc));
-        });
-
-        // Rebuild from local, taking exactly keepCounts of each key
-        data[y][tab].sort((a, b) => a[0].localeCompare(b[0]));
-        const kept = new Map();
-        data[y][tab] = data[y][tab].filter(tx => {
-          const k = tx[0] + "|" + tx[1];
-          const have = kept.get(k) || 0;
-          if (have < (keepCounts.get(k) || 0)) { kept.set(k, have + 1); return true; }
-          return false;
-        });
-
-        // Add any from remote that we still need
-        const needed = new Map();
-        data[y][tab].forEach(tx => {
-          const k = tx[0] + "|" + tx[1];
-          needed.set(k, (needed.get(k) || 0) + 1);
-        });
-        remote[tab].forEach(rtx => {
-          const k = rtx[0] + "|" + rtx[1];
-          const have = needed.get(k) || 0;
-          if (have < (keepCounts.get(k) || 0)) {
-            data[y][tab].push(rtx);
-            needed.set(k, have + 1);
-          }
-        });
-
-        data[y][tab].sort((a, b) => a[0].localeCompare(b[0]));
+      remote[tab].forEach(rtx => {
+        if (!rtx[2]) return;
+        if (tombstones.has(rtx[2])) return;
+        if (localById.has(rtx[2])) {
+          const ltx = localById.get(rtx[2]);
+          if ((rtx[3] || 0) > (ltx[3] || 0)) localById.set(rtx[2], rtx);
+        } else {
+          localById.set(rtx[2], rtx);
+        }
       });
+
+      data[y][tab] = [...localById.values()]
+        .sort((a, b) => a[0].localeCompare(b[0]));
     });
-
-    // Re-assign clean deterministic IDs after count-based merge
-    assignLegacyIds(data);
-
-  } else {
-    // ── ID-aware merge for new-format files ──────────────────────────────────
-    const allKeys = new Set([...Object.keys(data), ...Object.keys(safeRemote)]);
-    allKeys.forEach(y => {
-      if (!data[y]) data[y] = { saved: [], removed: [] };
-      const remote = safeRemote[y] || { saved: [], removed: [] };
-
-      ["saved", "removed"].forEach(tab => {
-        const localById = new Map();
-        data[y][tab].forEach(tx => { if (tx[2]) localById.set(tx[2], tx); });
-
-        remote[tab].forEach(rtx => {
-          if (!rtx[2]) return;
-          if (tombstones.has(rtx[2])) return;
-          if (localById.has(rtx[2])) {
-            const ltx = localById.get(rtx[2]);
-            if ((rtx[3] || 0) > (ltx[3] || 0)) localById.set(rtx[2], rtx);
-          } else {
-            localById.set(rtx[2], rtx);
-          }
-        });
-
-        data[y][tab] = [...localById.values()]
-          .sort((a, b) => a[0].localeCompare(b[0]));
-      });
-    });
-  }
+  });
 
   reconcileYears();
   ensureFYSilent = false;
@@ -6820,10 +6720,11 @@ function desktopAddTransaction() {
 
   if (deskRecurOn) {
     const freq     = document.getElementById("desk-recur-freq").value;
+    const end      = document.getElementById("desk-recur-end")?.value || null;
     const startDow = new Date(dv + "T00:00:00").getDay();
     const rule = {
       id: Date.now(), type: deskTxType === "deposit" ? "deposit" : "withdrawal",
-      amount: amt, freq, startDate: dv,
+      amount: amt, freq, startDate: dv, endDate: end || null,
       dow: (freq === "weekly" || freq === "fortnightly") ? startDow : null,
       nextDate: null,
     };
@@ -6890,6 +6791,8 @@ function openAddSheet() {
   document.getElementById("mob-recur-toggle").style.borderColor = "var(--border-hi)";
   document.getElementById("mob-recur-toggle").textContent = "↺︎ Make this a recurring transaction";
   document.getElementById("mob-recur-freq").value  = "weekly";
+  const mobRecurEnd = document.getElementById("mob-recur-end");
+  if (mobRecurEnd) mobRecurEnd.value = "";
   updateRecurManagePill();
   document.getElementById("add-sheet").classList.add("open");
   document.getElementById("sheet-overlay").classList.add("open");
@@ -6906,11 +6809,12 @@ function mobileAddTransaction() {
   if (mobRecurOn) {
     const dv   = document.getElementById("mob-inp-date").value;
     const freq = document.getElementById("mob-recur-freq").value;
+    const end  = document.getElementById("mob-recur-end")?.value || null;
     if (!dv) { toast("Enter a date.", "#c0392b"); return; }
     const startDow = new Date(dv + "T00:00:00").getDay();
     const rule = {
       id: Date.now(), type: mobTxType === "deposit" ? "deposit" : "withdrawal",
-      amount: amt, freq, startDate: dv,
+      amount: amt, freq, startDate: dv, endDate: end || null,
       dow: (freq === "weekly" || freq === "fortnightly") ? startDow : null,
       nextDate: null,
     };
@@ -7446,7 +7350,7 @@ function initApp() {
     }
   } catch {}
 
-  document.getElementById("setup-modal").classList.add("hidden");
+  closeSetup();
 
   // If encryption is active, show lock screen before rendering
   if (vaultEncActive) {
@@ -7538,9 +7442,15 @@ function todayISO() {
 function processRecurring() {
   const today = todayISO();
   let posted = 0;
+
   recurRules.forEach(rule => {
     if (!rule.nextDate) return;
     while (rule.nextDate <= today) {
+      // Stop if end date has been passed
+      if (rule.endDate && rule.nextDate > rule.endDate) {
+        rule.nextDate = null;
+        break;
+      }
       const tab   = rule.type === "deposit" ? "saved" : "removed";
       const fyKey = ensureFY(yearKeyForDate(rule.nextDate));
       const amt   = parseFloat(rule.amount.toFixed(2));
@@ -7548,9 +7458,26 @@ function processRecurring() {
       data[fyKey][tab].sort((a, b) => a[0].localeCompare(b[0]));
       posted++;
       rule.nextDate = nextOccurrence(rule.nextDate, rule.freq);
+      // Check end date after advancing
+      if (rule.endDate && rule.nextDate > rule.endDate) {
+        rule.nextDate = null;
+        break;
+      }
     }
   });
-  if (posted > 0) {
+
+  // Remove rules whose end date was yesterday or earlier (day after end date)
+  // This ensures any transaction on the end date itself was already posted
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const before = recurRules.length;
+  recurRules = recurRules.filter(rule =>
+    !rule.endDate || rule.endDate > yesterday
+  );
+  if (recurRules.length < before) {
+    dbg(`processRecurring: removed ${before - recurRules.length} completed rule(s)`);
+  }
+
+  if (posted > 0 || recurRules.length < before) {
     saveRecurring();
     saveLocal();
   }
@@ -7571,6 +7498,12 @@ function runRecurringCheck() {
 // Update the recurring management pill in both add forms
 function updateRecurMenuSub() {
   updateRecurManagePill();
+  const count = recurRules.length;
+  const label = count === 0 ? "None active" : `${count} active rule${count > 1 ? "s" : ""}`;
+  const dmenu = document.getElementById("dmenu-recur-sub");
+  const mob   = document.getElementById("mob-recur-manage-sub");
+  if (dmenu) dmenu.textContent = label;
+  if (mob)   mob.textContent   = label;
 }
 
 // ─── recurring modal UI ────────────────────────────────────────────────────────
@@ -7609,17 +7542,88 @@ function renderRecurList() {
     const isDeposit = rule.type === "deposit";
     const freqLabel = FREQ_LABELS[rule.freq] || rule.freq;
     const nextLabel = rule.nextDate ? `Next: ${fmtDate(rule.nextDate)}` : "Complete";
+    const endLabel  = rule.endDate ? ` · Ends: ${fmtDate(rule.endDate)}` : "";
     const div = document.createElement("div");
     div.className = "recur-item";
     div.innerHTML = `
-      <div class="recur-item-info">
-        <div class="recur-item-title">${isDeposit ? "Deposit" : "Withdrawal"} · ${freqLabel}</div>
-        <div class="recur-item-meta">Started ${fmtDate(rule.startDate)} · ${nextLabel}</div>
-      </div>
-      <span class="recur-item-amt ${isDeposit ? "dep" : "wit"}">${aud(rule.amount)}</span>
-      <button class="recur-delete-btn" onclick="deleteRecurRule(${idx})" title="Delete">✕</button>`;
+      <div class="recur-item-info" style="width:100%;">
+        <div style="display:flex; align-items:flex-start; gap:12px;">
+          <div style="flex:1; min-width:0;">
+            <div class="recur-item-title">${isDeposit ? "Deposit" : "Withdrawal"} · ${freqLabel}</div>
+            <div class="recur-item-meta">Started ${fmtDate(rule.startDate)} · ${nextLabel}${endLabel}</div>
+          </div>
+          <span class="recur-item-amt ${isDeposit ? "dep" : "wit"}">${aud(rule.amount)}</span>
+          <button class="recur-edit-btn" onclick="toggleRecurEdit(${idx})" title="Edit">Edit</button>
+          <button class="recur-delete-btn" onclick="deleteRecurRule(${idx})" title="Delete">✕</button>
+        </div>
+        <div class="recur-edit-form" id="recur-edit-${idx}">
+          <div class="recur-edit-row">
+            <div class="field">
+              <label>Amount ($)</label>
+              <input type="number" id="recur-edit-amt-${idx}" min="0.01" step="0.01"
+                value="${rule.amount}" inputmode="decimal"
+                style="background:var(--bg4); border:1px solid var(--border-hi); border-radius:var(--radius); padding:7px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
+            </div>
+            <div class="field">
+              <label>Frequency</label>
+              <select id="recur-edit-freq-${idx}"
+                style="background:var(--bg4); border:1px solid var(--border-hi); border-radius:var(--radius); padding:7px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
+                ${["weekly","fortnightly","monthly","quarterly","yearly"].map(f =>
+                  `<option value="${f}" ${f === rule.freq ? "selected" : ""}>${FREQ_LABELS[f]}</option>`
+                ).join("")}
+              </select>
+            </div>
+          </div>
+          <div class="recur-edit-row">
+            <div class="field">
+              <label>Next Date</label>
+              <input type="date" id="recur-edit-next-${idx}"
+                value="${rule.nextDate || ""}" style="color-scheme:dark; background:var(--bg4); border:1px solid var(--border-hi); border-radius:var(--radius); padding:7px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
+            </div>
+            <div class="field">
+              <label>End Date <span style="color:var(--text-3); font-weight:300;">(optional)</span></label>
+              <input type="date" id="recur-edit-end-${idx}"
+                value="${rule.endDate || ""}" style="color-scheme:dark; background:var(--bg4); border:1px solid var(--border-hi); border-radius:var(--radius); padding:7px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
+            </div>
+          </div>
+          <div class="recur-edit-actions">
+            <button class="btn-popup-cancel" onclick="toggleRecurEdit(${idx})">Cancel</button>
+            <button class="btn-confirm" onclick="saveRecurEdit(${idx})">Save</button>
+          </div>
+        </div>
+      </div>`;
     list.appendChild(div);
   });
+}
+
+function toggleRecurEdit(idx) {
+  const form = document.getElementById("recur-edit-" + idx);
+  if (!form) return;
+  form.classList.toggle("open");
+}
+
+function saveRecurEdit(idx) {
+  const rule = recurRules[idx];
+  if (!rule) return;
+  const amt  = parseFloat(document.getElementById("recur-edit-amt-" + idx)?.value);
+  const freq = document.getElementById("recur-edit-freq-" + idx)?.value;
+  const next = document.getElementById("recur-edit-next-" + idx)?.value;
+  const end  = document.getElementById("recur-edit-end-" + idx)?.value || null;
+  if (isNaN(amt) || amt <= 0) { toast("Enter a valid amount.", "#c0392b"); return; }
+  if (end && next && end <= next) { toast("End date must be after next date.", "#c0392b"); return; }
+  rule.amount   = parseFloat(amt.toFixed(2));
+  rule.freq     = freq;
+  rule.nextDate = next || rule.nextDate;
+  rule.endDate  = end;
+  if (freq === "weekly" || freq === "fortnightly") {
+    const base = next || rule.startDate;
+    rule.dow = new Date(base + "T00:00:00").getDay();
+  }
+  saveRecurring();
+  triggerCloudSync();
+  updateRecurMenuSub();
+  renderRecurList();
+  toast("Recurring transaction updated");
 }
 
 // Create a new recurring rule from the modal form, then immediately process it
@@ -7629,11 +7633,12 @@ function addRecurringRule() {
   const amount = parseFloat(document.getElementById("recur-amount").value);
   const start  = document.getElementById("recur-start").value;
   const freq   = document.getElementById("recur-freq").value;
+  const end    = document.getElementById("recur-end")?.value || null;
 
   if (!start)                        { toast("Please enter a start date.", "#c0392b"); return; }
   if (isNaN(amount) || amount <= 0)  { toast("Please enter a valid amount.", "#c0392b"); return; }
+  if (end && end <= start)           { toast("End date must be after start date.", "#c0392b"); return; }
 
-  // Derive day-of-week from start date for weekly/fortnightly
   const startDow = new Date(start + "T00:00:00").getDay();
 
   const rule = {
@@ -7643,19 +7648,19 @@ function addRecurringRule() {
     freq,
     dow:       (freq === "weekly" || freq === "fortnightly") ? startDow : null,
     startDate: start,
+    endDate:   end || null,
     nextDate:  null,
   };
   rule.nextDate = firstOccurrence(rule);
   recurRules.push(rule);
   saveRecurring();
 
-  // Immediately post any occurrences that are already due
   const posted = processRecurring();
   if (posted > 0) { render(); triggerCloudSync(); toast(`${posted} transaction${posted > 1 ? "s" : ""} added`, "var(--gold-dim)"); }
 
-  // Reset the add form fields
   document.getElementById("recur-amount").value = "";
   document.getElementById("recur-start").value  = todayISO();
+  if (document.getElementById("recur-end")) document.getElementById("recur-end").value = "";
   updateRecurMenuSub();
   renderRecurList();
   if (posted === 0) toast("Recurring transaction scheduled", "var(--gold-dim)");
@@ -7674,6 +7679,6 @@ function deleteRecurRule(idx) {
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v3.5.0</div>
+  <div id="version-footer">v3.7.7</div>
 </body>
 </html>
