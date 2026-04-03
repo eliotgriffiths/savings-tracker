@@ -1301,6 +1301,16 @@
   }
 
   .dmenu-items { padding: 6px 0; }
+  .dmenu-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 10px 16px 4px;
+    margin-top: 2px;
+  }
+  .dmenu-section-label:first-child { margin-top: 0; }
   .dmenu-btn {
     width: 100%;
     background: transparent;
@@ -1314,15 +1324,18 @@
     text-align: left;
   }
   .dmenu-btn:hover { background: var(--bg3); }
-  .dmenu-btn:hover .dmenu-btn-icon { color: var(--text-1); }
+  .dmenu-btn:hover .dmenu-btn-icon { color: var(--text-1); background: var(--bg3); }
   .dmenu-btn-icon {
-    font-size: 15px;
-    width: 22px;
-    text-align: center;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
-    color: var(--text-3);
-    transition: color 0.12s;
-    line-height: 1;
+    color: var(--text-2);
+    background: var(--bg3);
+    border-radius: 8px;
+    transition: color 0.12s, background 0.12s;
   }
   .dmenu-btn-label {
     font-size: 13px;
@@ -2055,43 +2068,106 @@
     <div class="dmenu-header-label">Vault</div>
   </div>
   <div class="dmenu-items">
+
+    <!-- Section: View -->
+    <div class="dmenu-section-label">View</div>
+
     <button class="dmenu-btn" onclick="closeDesktopMenu(); switchTab('report');">
-      <span class="dmenu-btn-icon"></span>
+      <span class="dmenu-btn-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1 13 L4 8 L7 10 L10 5 L13 7 L15 3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="4" cy="8" r="1.25" fill="currentColor"/>
+          <circle cx="10" cy="5" r="1.25" fill="currentColor"/>
+        </svg>
+      </span>
       <div><div class="dmenu-btn-label">Search</div><div class="dmenu-btn-sub">Search and filter your transactions</div></div>
     </button>
-    <div class="dmenu-divider"></div>
+
     <button class="dmenu-btn" onclick="closeDesktopMenu(); switchTab('charts');">
-      <span class="dmenu-btn-icon"></span>
+      <span class="dmenu-btn-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="9" width="3" height="5" rx="0.75" fill="currentColor" opacity="0.5"/>
+          <rect x="6" y="6" width="3" height="8" rx="0.75" fill="currentColor" opacity="0.75"/>
+          <rect x="11" y="3" width="3" height="11" rx="0.75" fill="currentColor"/>
+          <path d="M1 1h14" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" opacity="0.2"/>
+        </svg>
+      </span>
       <div><div class="dmenu-btn-label">Charts</div><div class="dmenu-btn-sub">Visual breakdown of your savings</div></div>
     </button>
-    <div class="dmenu-divider"></div>
+
+    <!-- Section: Data -->
+    <div class="dmenu-section-label">Data</div>
+
     <button class="dmenu-btn" onclick="closeDesktopMenu(); menuExportXLSX();">
-      <span class="dmenu-btn-icon">⬇</span>
+      <span class="dmenu-btn-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="1" width="12" height="14" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M5 5.5h6M5 8h6M5 10.5h4" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+          <path d="M10 10.5l2 2-2 2" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
       <div><div class="dmenu-btn-label">Export Spreadsheet</div><div class="dmenu-btn-sub" id="dmenu-export-sub">All transactions as XLSX</div></div>
     </button>
-    <div class="dmenu-divider"></div>
+
     <button class="dmenu-btn" onclick="closeDesktopMenu(); menuPrint();">
-      <span class="dmenu-btn-icon"></span>
+      <span class="dmenu-btn-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="1" width="10" height="7" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <rect x="1" y="5.5" width="14" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <rect x="4" y="9.5" width="8" height="4" rx="0.75" stroke="currentColor" stroke-width="1.25" fill="none"/>
+          <circle cx="12" cy="8.5" r="0.75" fill="currentColor"/>
+        </svg>
+      </span>
       <div><div class="dmenu-btn-label">Print</div><div class="dmenu-btn-sub" id="dmenu-print-sub">Print current view</div></div>
     </button>
-    <div class="dmenu-divider"></div>
+
+    <!-- Section: Settings -->
+    <div class="dmenu-section-label">Settings</div>
+
     <button class="dmenu-btn" onclick="closeDesktopMenu(); openRecurringModal();">
-      <span class="dmenu-btn-icon"></span>
+      <span class="dmenu-btn-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M8 6v2l1.5 1.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
       <div><div class="dmenu-btn-label">Recurring Transactions</div><div class="dmenu-btn-sub" id="dmenu-recur-sub">None active</div></div>
     </button>
-    <div class="dmenu-divider"></div>
+
     <button class="dmenu-btn" onclick="closeDesktopMenu(); openYearFormatPopup();">
-      <span class="dmenu-btn-icon"></span>
-      <div><div class="dmenu-btn-label">Change Year Format</div><div class="dmenu-btn-sub" id="dmenu-yearmode-sub">Calendar year</div></div>
+      <span class="dmenu-btn-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M5 1v3M11 1v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <rect x="3.5" y="8.5" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.7"/>
+          <rect x="9.5" y="8.5" width="3" height="3" rx="0.5" fill="currentColor" opacity="0.4"/>
+        </svg>
+      </span>
+      <div><div class="dmenu-btn-label">Year Format</div><div class="dmenu-btn-sub" id="dmenu-yearmode-sub">Calendar year</div></div>
     </button>
-    <div class="dmenu-divider"></div>
+
     <button class="dmenu-btn" onclick="closeDesktopMenu(); setTimeout(openSetup, 50);">
-      <span class="dmenu-btn-icon"></span>
+      <span class="dmenu-btn-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="8" cy="8" r="1" fill="currentColor"/>
+        </svg>
+      </span>
       <div><div class="dmenu-btn-label">Save &amp; Backup</div><div class="dmenu-btn-sub">Manage file saves &amp; backup</div></div>
     </button>
-    <div class="dmenu-divider"></div>
+
     <button class="dmenu-btn" onclick="openEncryptionMenu()">
-      <span class="dmenu-btn-icon"></span>
+      <span class="dmenu-btn-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="7" width="10" height="8" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="8" cy="11" r="1.25" fill="currentColor"/>
+          <path d="M8 12.25v1.25" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+        </svg>
+      </span>
       <div><div class="dmenu-btn-label">Encryption</div><div class="dmenu-btn-sub" id="dmenu-enc-sub">Off — backups unencrypted</div></div>
     </button>
 
@@ -2299,12 +2375,25 @@
 </div>
 </div>
 
-<div id="pdf-preview-overlay" style="display:none; position:fixed; inset:0; z-index:600; background:#fff; flex-direction:column;">
-  <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 16px; background:#f5f5f5; border-bottom:1px solid #ddd; flex-shrink:0;">
-    <span style="font-size:13px; font-weight:600; color:#111; font-family:'DM Sans',sans-serif;">Print Preview</span>
-    <button onclick="closePdfPreview()" style="background:#111; border:none; color:#fff; font-size:12px; font-weight:600; font-family:'DM Sans',sans-serif; padding:6px 14px; border-radius:6px; cursor:pointer;">✕ Close</button>
+<div id="pdf-preview-overlay" style="display:none; position:fixed; inset:0; z-index:600; background:rgba(0,0,0,0.7); align-items:center; justify-content:center; padding:20px;">
+  <div id="pdf-preview-modal" style="display:flex; flex-direction:column; background:var(--bg2); border-radius:var(--radius-lg); border:1px solid var(--border-hi); box-shadow:0 24px 64px rgba(0,0,0,0.6); overflow:hidden; flex-shrink:0;">
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--border); flex-shrink:0; gap:12px;">
+      <span style="font-size:14px; font-weight:600; color:var(--text-1); font-family:'DM Sans',sans-serif; letter-spacing:0.01em;">Print Preview</span>
+      <div style="display:flex; gap:8px;">
+        <button onclick="printPdfFrame()" style="background:var(--gold); border:none; color:#1a1200; font-size:12px; font-weight:600; font-family:'DM Sans',sans-serif; padding:7px 16px; border-radius:7px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+            <rect x="3" y="1" width="10" height="7" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <rect x="1" y="5.5" width="14" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <rect x="4" y="9.5" width="8" height="4" rx="0.75" stroke="currentColor" stroke-width="1.25" fill="none"/>
+            <circle cx="12" cy="8.5" r="0.75" fill="currentColor"/>
+          </svg>
+          Print
+        </button>
+        <button onclick="closePdfPreview()" style="background:var(--bg3); border:1px solid var(--border); color:var(--text-2); font-size:12px; font-weight:600; font-family:'DM Sans',sans-serif; padding:7px 14px; border-radius:7px; cursor:pointer;">✕ Close</button>
+      </div>
+    </div>
+    <iframe id="pdf-preview-frame" style="border:none; background:#fff; display:block; overflow:hidden;"></iframe>
   </div>
-  <iframe id="pdf-preview-frame" style="flex:1; border:none; width:100%; background:#fff;"></iframe>
 </div>
 
 <div id="chart-tooltip"></div>
@@ -4632,8 +4721,8 @@ function connectCloudService(service) {
 
 // ─── Google Drive (OAuth 2.0 PKCE) ────────────────────────────────────────────
 
-const GD_CLIENT_ID     = "923866716926-ch3d25r6159hc0ditod3n8g6ufb8pcsk.apps.googleusercontent.com";
-const GD_CLIENT_SECRET = "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";
+const GD_CLIENT_ID     = "923866716926-itggirqssdf84o6ijtqcud2u9ss833vl.apps.googleusercontent.com";
+const GD_CLIENT_SECRET = "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";
 const GD_REDIRECT_URI  = "https://vaultsavings.app";
 const GD_SCOPE         = "https://www.googleapis.com/auth/drive.file";
 const GD_KEY          = "vault_gd_v1"; // localStorage key for tokens + file id
@@ -6219,20 +6308,69 @@ function updateExportMenuSub() {
 // Print from the menu — triggers the browser print dialog.
 // A print stylesheet (defined in <style>) hides UI chrome and shows only the
 // active content panel, so the output is clean regardless of which tab is open.
+// A4 portrait ratio: 1 : √2
+const A4_RATIO = 1 / Math.SQRT2; // width / height
+const A4_DESIGN_WIDTH = 794; // px — A4 at 96dpi, the iframe's fixed rendering width
+
+function sizePdfModal() {
+  const modal   = document.getElementById("pdf-preview-modal");
+  const toolbar = modal ? modal.querySelector("div") : null;
+  const frame   = document.getElementById("pdf-preview-frame");
+  if (!modal || !toolbar || !frame) return;
+
+  const PAD      = 40;
+  const toolbarH = toolbar.offsetHeight || 53;
+  const availW   = window.innerWidth  - PAD;
+  const availH   = window.innerHeight - PAD;
+
+  // Determine modal dimensions constrained to A4 ratio
+  const iframeH_if_width_limited  = availW / A4_RATIO - toolbarH;
+  const iframeH_if_height_limited = availH - toolbarH;
+
+  let modalW, modalH;
+  if (iframeH_if_width_limited <= iframeH_if_height_limited) {
+    modalW = availW;
+    modalH = availW / A4_RATIO;
+  } else {
+    modalH = availH;
+    modalW = (availH - toolbarH) * A4_RATIO;
+  }
+
+  modal.style.width  = modalW + "px";
+  modal.style.height = modalH + "px";
+
+  // Scale the iframe content so the A4 design always fills the modal width
+  const iframeH = modalH - toolbarH;
+  const scale   = modalW / A4_DESIGN_WIDTH;
+  frame.style.width           = A4_DESIGN_WIDTH + "px";
+  frame.style.height          = (iframeH / scale) + "px";
+  frame.style.transform       = `scale(${scale})`;
+  frame.style.transformOrigin = "top left";
+  frame.style.flex            = "none";
+}
+
 function showPdfPreview(html) {
   const overlay = document.getElementById("pdf-preview-overlay");
   const frame   = document.getElementById("pdf-preview-frame");
   if (!overlay || !frame) return;
-  // Write into the iframe's srcdoc — works in sandboxed iframes
   frame.srcdoc = html;
   overlay.style.display = "flex";
   document.body.style.overflow = "hidden";
+  // Size after a brief paint so toolbar height is available
+  requestAnimationFrame(() => { sizePdfModal(); });
 }
 
 function closePdfPreview() {
   const overlay = document.getElementById("pdf-preview-overlay");
   if (overlay) overlay.style.display = "none";
   document.body.style.overflow = "";
+}
+
+function printPdfFrame() {
+  const frame = document.getElementById("pdf-preview-frame");
+  if (!frame || !frame.contentWindow) return;
+  frame.contentWindow.focus();
+  frame.contentWindow.print();
 }
 
 function menuPrint() {
@@ -6401,29 +6539,11 @@ function openPdfWindow({ title, subLine, rows }) {
   <span>Vault — Personal Savings Tracker</span>
   <span>${title}${subLine ? " · " + subLine : ""}</span>
 </footer>
-<script>window.onload = () => window.print();<\/script>
 </body>
 </html>`;
 
-  // In sandbox (Claude preview): render inline as a full-screen overlay
-  if (inSandbox) {
-    showPdfPreview(html);
-    return;
-  }
-
-  // Encode as a data URL and navigate
-  const encoded = "data:text/html;charset=utf-8," + encodeURIComponent(html);
-
-  // On desktop try a new tab; on iOS navigate current tab
-  const ua = navigator.userAgent || "";
-  const isIOS = /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
-
-  if (isIOS) {
-    window.location.href = encoded;
-  } else {
-    const win = window.open(encoded, "_blank");
-    if (!win) window.location.href = encoded; // popup blocked fallback
-  }
+  // Always show in the in-app overlay — user clicks Print to invoke native dialog
+  showPdfPreview(html);
 }
 
 // Export the current report date range as a CSV file download
@@ -6583,6 +6703,12 @@ document.addEventListener("keydown", (e) => {
   if (e.ctrlKey && e.shiftKey && e.key === "D") { e.preventDefault(); toggleDebug(); }
   // Intercept Ctrl+P / Cmd+P and route through Vault's print function
   if ((e.ctrlKey || e.metaKey) && e.key === "p") { e.preventDefault(); menuPrint(); }
+});
+
+// Keep the PDF preview modal at A4 aspect ratio on resize
+window.addEventListener("resize", () => {
+  const overlay = document.getElementById("pdf-preview-overlay");
+  if (overlay && overlay.style.display !== "none") sizePdfModal();
 });
 
 // ─── desktop add transaction popup ────────────────────────────────────────────
@@ -7679,6 +7805,6 @@ function deleteRecurRule(idx) {
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v3.7.7</div>
+  <div id="version-footer">v3.8.2</div>
 </body>
 </html>
