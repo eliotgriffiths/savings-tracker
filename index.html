@@ -6,6 +6,8 @@
 <title>Vault</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f0f11'/%3E%3Crect x='7' y='7' width='50' height='50' rx='9' fill='%231a1a1d' stroke='%23c9a84c' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23242428' stroke='%23c9a84c' stroke-width='1.2'/%3E%3Ccircle cx='48' cy='16' r='4' fill='%23242428' stroke='%23c9a84c' stroke-width='1.2'/%3E%3Ccircle cx='16' cy='48' r='4' fill='%23242428' stroke='%23c9a84c' stroke-width='1.2'/%3E%3Ccircle cx='48' cy='48' r='4' fill='%23242428' stroke='%23c9a84c' stroke-width='1.2'/%3E%3Ccircle cx='16' cy='16' r='1.5' fill='%23c9a84c'/%3E%3Ccircle cx='48' cy='16' r='1.5' fill='%23c9a84c'/%3E%3Ccircle cx='16' cy='48' r='1.5' fill='%23c9a84c'/%3E%3Ccircle cx='48' cy='48' r='1.5' fill='%23c9a84c'/%3E%3Ccircle cx='30' cy='32' r='16' fill='%23111113' stroke='%23c9a84c' stroke-width='1.8'/%3E%3Ccircle cx='30' cy='32' r='10' fill='%231e1e22' stroke='%23c9a84c' stroke-width='1.2'/%3E%3Cline x1='30' y1='16' x2='30' y2='20' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='30' y1='44' x2='30' y2='48' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='14' y1='32' x2='18' y2='32' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='42' y1='32' x2='46' y2='32' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='18.7' y1='20.7' x2='21.9' y2='23.9' stroke='%23c9a84c' stroke-width='1.2' stroke-linecap='round'/%3E%3Cline x1='41.3' y1='20.7' x2='38.1' y2='23.9' stroke='%23c9a84c' stroke-width='1.2' stroke-linecap='round'/%3E%3Cline x1='18.7' y1='43.3' x2='21.9' y2='40.1' stroke='%23c9a84c' stroke-width='1.2' stroke-linecap='round'/%3E%3Cline x1='41.3' y1='43.3' x2='38.1' y2='40.1' stroke='%23c9a84c' stroke-width='1.2' stroke-linecap='round'/%3E%3Ccircle cx='30' cy='32' r='4' fill='%23c9a84c'/%3E%3Ccircle cx='30' cy='32' r='1.8' fill='%230f0f11'/%3E%3Cline x1='30' y1='28' x2='30' y2='17' stroke='%23c9a84c' stroke-width='1.8' stroke-linecap='round'/%3E%3Crect x='41' y='29.5' width='9' height='5' rx='2.5' fill='%23c9a84c'/%3E%3Crect x='43' y='31' width='5' height='2' rx='1' fill='%230f0f11'/%3E%3Crect x='7' y='20' width='3' height='7' rx='1.5' fill='%23c9a84c'/%3E%3Crect x='7' y='37' width='3' height='7' rx='1.5' fill='%23c9a84c'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230f0f11'/%3E%3Crect x='18' y='18' width='144' height='144' rx='26' fill='%231a1a1d' stroke='%23c9a84c' stroke-width='5'/%3E%3Ccircle cx='40' cy='40' r='13' fill='%23242428' stroke='%23c9a84c' stroke-width='3'/%3E%3Ccircle cx='140' cy='40' r='13' fill='%23242428' stroke='%23c9a84c' stroke-width='3'/%3E%3Ccircle cx='40' cy='140' r='13' fill='%23242428' stroke='%23c9a84c' stroke-width='3'/%3E%3Ccircle cx='140' cy='140' r='13' fill='%23242428' stroke='%23c9a84c' stroke-width='3'/%3E%3Ccircle cx='40' cy='40' r='5' fill='%23c9a84c'/%3E%3Ccircle cx='140' cy='40' r='5' fill='%23c9a84c'/%3E%3Ccircle cx='40' cy='140' r='5' fill='%23c9a84c'/%3E%3Ccircle cx='140' cy='140' r='5' fill='%23c9a84c'/%3E%3Ccircle cx='85' cy='90' r='48' fill='%23111113' stroke='%23c9a84c' stroke-width='5'/%3E%3Ccircle cx='85' cy='90' r='32' fill='%231e1e22' stroke='%23c9a84c' stroke-width='4'/%3E%3Cline x1='85' y1='42' x2='85' y2='52' stroke='%23c9a84c' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='85' y1='128' x2='85' y2='138' stroke='%23c9a84c' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='37' y1='90' x2='47' y2='90' stroke='%23c9a84c' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='123' y1='90' x2='133' y2='90' stroke='%23c9a84c' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='50.9' y1='56.9' x2='58' y2='64' stroke='%23c9a84c' stroke-width='3' stroke-linecap='round'/%3E%3Cline x1='119.1' y1='56.9' x2='112' y2='64' stroke='%23c9a84c' stroke-width='3' stroke-linecap='round'/%3E%3Cline x1='50.9' y1='123.1' x2='58' y2='116' stroke='%23c9a84c' stroke-width='3' stroke-linecap='round'/%3E%3Cline x1='119.1' y1='123.1' x2='112' y2='116' stroke='%23c9a84c' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='85' cy='90' r='12' fill='%23c9a84c'/%3E%3Ccircle cx='85' cy='90' r='5' fill='%230f0f11'/%3E%3Cline x1='85' y1='78' x2='85' y2='44' stroke='%23c9a84c' stroke-width='4' stroke-linecap='round'/%3E%3Crect x='113' y='83' width='28' height='14' rx='7' fill='%23c9a84c'/%3E%3Crect x='118' y='87' width='18' height='6' rx='3' fill='%230f0f11'/%3E%3Crect x='18' y='56' width='8' height='22' rx='4' fill='%23c9a84c'/%3E%3Crect x='18' y='102' width='8' height='22' rx='4' fill='%23c9a84c'/%3E%3C/svg%3E">
 <style>
   :root {
     --bg0:       #0f0f11;
@@ -29,6 +31,19 @@
     --radius-lg: 16px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  /* ── custom scrollbar ── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-hi, rgba(255,255,255,0.13));
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--gold-dim, #8a6f2e); }
+  ::-webkit-scrollbar-corner { background: transparent; }
+  html { scrollbar-width: thin; scrollbar-color: var(--border-hi, rgba(255,255,255,0.13)) transparent; }
+  html.sandbox-mode { scrollbar-width: auto; scrollbar-color: auto; }
+  html.sandbox-mode ::-webkit-scrollbar { width: auto; height: auto; }
 
   body {
     font-family: 'DM Sans', system-ui, sans-serif;
@@ -303,48 +318,6 @@
   .tab-btn.active { color: var(--text-1); border-bottom-color: var(--gold); }
 
   /* ── add form ── */
-  #add-form {
-    padding: 14px 24px;
-    background: var(--bg1);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    gap: 12px;
-    align-items: flex-end;
-    flex-wrap: wrap;
-    flex-shrink: 0;
-  }
-  .field { display: flex; flex-direction: column; gap: 5px; }
-  .field label { font-size: 10px; color: var(--text-3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
-  .field input {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 8px 12px;
-    color: var(--text-1);
-    font-size: 13px;
-    font-family: 'DM Sans', sans-serif;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-  .field input:focus { border-color: var(--gold-dim); }
-  .field input[type=date] { min-width: 155px; color-scheme: dark; }
-  .field input[type=number] { width: 130px; }
-  #btn-add {
-    border: none;
-    border-radius: var(--radius);
-    padding: 9px 20px;
-    color: #fff;
-    font-weight: 600;
-    font-size: 13px;
-    font-family: 'DM Sans', sans-serif;
-    cursor: pointer;
-    transition: opacity 0.15s;
-    letter-spacing: 0.02em;
-  }
-  #btn-add:hover { opacity: 0.85; }
-  .saved-mode   { background: var(--green); }
-  .removed-mode { background: var(--red); }
-
   /* ── transaction table ── */
   #table-wrap { flex: 1; overflow-y: auto; padding: 20px 24px 24px; }
   #empty-msg {
@@ -607,6 +580,12 @@
     display: flex; align-items: center; justify-content: center; padding: 20px;
   }
   #recurring-modal.hidden { display: none; }
+  #add-recurring-popup { display: none; }
+  #add-recurring-popup:not(.hidden) { display: flex; }
+  #recur-edit-popup { display: none; }
+  #recur-edit-popup:not(.hidden) { display: flex; }
+  #recur-delete-popup { display: none; }
+  #recur-delete-popup:not(.hidden) { display: flex; }
   #recurring-modal .modal-box { max-width: 520px; max-height: 85vh; display: flex; flex-direction: column; }
   #recurring-modal .modal-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-shrink: 0; }
   #recurring-modal .modal-header h2 { flex: 1; margin: 0; }
@@ -615,7 +594,8 @@
   .recur-item {
     background: var(--bg3); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 14px 16px;
-    margin-bottom: 8px; display: flex; align-items: flex-start; gap: 12px;
+    margin-bottom: 8px; display: flex; flex-direction: column; align-items: stretch;
+  }
   }
   .recur-item-info { flex: 1; min-width: 0; }
   .recur-item-title { font-weight: 500; font-size: 13px; color: var(--text-1); margin-bottom: 3px; }
@@ -623,33 +603,20 @@
   .recur-item-amt.dep { color: var(--green); font-weight: 600; font-size: 13px; }
   .recur-item-amt.wit { color: var(--red);   font-weight: 600; font-size: 13px; }
   .recur-delete-btn {
-    background: transparent; border: none; color: var(--text-3); font-size: 16px;
-    cursor: pointer; padding: 2px 5px; border-radius: 5px; line-height: 1; flex-shrink: 0;
-    transition: color 0.15s, background 0.15s;
+    background: transparent; border: none; color: var(--red); font-size: 13px;
+    cursor: pointer; padding: 2px 7px; border-radius: 5px; line-height: 1; flex-shrink: 0;
+    transition: color 0.15s, background 0.15s; font-family: 'DM Sans', sans-serif; font-weight: 500;
   }
-  .recur-delete-btn:hover { color: var(--red); background: var(--red-dim); }
+  .recur-delete-btn:hover { background: var(--red-dim); }
   .recur-edit-btn {
     background: transparent; border: none; color: var(--text-3); font-size: 13px;
     cursor: pointer; padding: 2px 7px; border-radius: 5px; line-height: 1; flex-shrink: 0;
     transition: color 0.15s, background 0.15s; font-family: 'DM Sans', sans-serif;
   }
   .recur-edit-btn:hover { color: var(--gold); background: rgba(201,168,76,0.1); }
-  .recur-edit-form {
-    display: none; margin-top: 12px; padding-top: 12px;
-    border-top: 1px solid var(--border); flex-direction: column; gap: 10px;
-  }
-  .recur-edit-form.open { display: flex; }
-  .recur-edit-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .recur-edit-form .field { flex: 1; min-width: 100px; }
-  .recur-edit-form label { font-size: 11px; color: var(--text-3); font-weight: 500; display: block; margin-bottom: 4px; }
-  .recur-edit-actions { display: flex; gap: 8px; justify-content: flex-end; }
   .recur-item { flex-wrap: wrap; }
   #recur-empty { text-align: center; padding: 32px 0; color: var(--text-3); font-size: 13px; font-weight: 300; }
-  #recur-add-form { border-top: 1px solid var(--border); padding-top: 16px; flex-shrink: 0; }
-  #recur-add-form .recur-form-title {
-    font-size: 12px; font-weight: 600; color: var(--text-3);
-    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px;
-  }
+  #recur-add-form { flex-shrink: 0; }
   .recur-form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
   .recur-form-row .field { flex: 1; min-width: 120px; }
   .recur-form-row .field select,
@@ -665,9 +632,15 @@
   #recur-add-btn {
     width: 100%; background: var(--gold); border: none; border-radius: var(--radius);
     padding: 11px 0; color: #0f0f11; font-weight: 700; font-size: 14px;
-    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: opacity 0.15s; margin-top: 4px;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: opacity 0.15s;
   }
   #recur-add-btn:hover { opacity: 0.88; }
+  #recur-submit-btn {
+    background: var(--gold); border: none; border-radius: var(--radius);
+    padding: 11px 0; color: #0f0f11; font-weight: 700; font-size: 14px;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: opacity 0.15s;
+  }
+  #recur-submit-btn:hover { opacity: 0.88; }
 
   /* ── debug panel ── */
   #debug-panel {
@@ -818,7 +791,6 @@
     #sidebar { display: none; }
     .header-btns .btn-ghost { display: none; }
     .header-btns .btn-gold { display: none; }
-    #add-form { display: none; }
     #header { padding: 0 16px; height: 52px; }
     #header h1 { font-size: 18px; }
     #layout { flex-direction: column; }
@@ -899,7 +871,8 @@
 
     #year-sheet { padding: 0 0 12px; max-height: 70vh; overflow-y: auto; }
     #menu-sheet { max-height: 80vh; overflow-y: auto; overflow-x: hidden; }
-    #add-sheet  { padding: 0 20px 32px; }
+    #add-sheet  { padding: 0 20px 32px; box-sizing: border-box; }
+    #add-sheet *, #add-sheet *::before, #add-sheet *::after { box-sizing: border-box; }
 
     .sheet-handle {
       width: 32px; height: 3px;
@@ -1110,8 +1083,29 @@
     #add-sheet .field input {
       width: 100%; font-size: 16px; padding: 13px 14px;
       border-radius: var(--radius);
+      background: var(--bg3);
+      border: 1px solid var(--border-hi);
+      color: var(--text-1);
+      color-scheme: dark;
+      box-sizing: border-box;
     }
-    #add-sheet .field input[type=date] { min-width: unset; width: 100%; max-width: 100%; box-sizing: border-box; }
+    #add-sheet .field input[type=date] {
+      min-width: 0;
+      width: calc(100vw - 40px);
+      max-width: 100%;
+    }
+    #mob-recur-end {
+      min-width: 0;
+      width: calc(100vw - 68px);
+      max-width: 100%;
+      padding: 0 12px;
+      font-size: 14px;
+      height: 48px;
+      line-height: 48px;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    #add-sheet .field input:focus { border-color: var(--gold-dim); outline: none; }
 
     /* type toggle */
     .add-type-toggle {
@@ -1196,6 +1190,22 @@
     display: flex; align-items: center; justify-content: center; padding: 20px;
   }
   #enc-choice-popup.hidden { display: none; }
+  #drive-merge-popup {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(4px);
+    z-index: 620;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  #drive-merge-popup.hidden { display: none; }
+  #backup-switch-popup {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(4px);
+    z-index: 620;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  #backup-switch-popup.hidden { display: none; }
 
   /* ── welcome / first-run modal ── */
   #welcome-modal {
@@ -1499,7 +1509,7 @@
     #header, #compat-banner, #sidebar, #desktop-menu, #desktop-menu-overlay,
     #menu-sheet, #year-sheet, #add-sheet, #desktop-add-popup,
     #setup-modal, #enc-menu-popup, #enc-set-popup, #enc-decrypt-popup,
-    #enc-choice-popup, #welcome-modal, #year-format-popup,
+    #enc-choice-popup, #drive-merge-popup, #welcome-modal, #year-format-popup,
     #toast, #debug-panel, #mob-fabs, .tabs,
     #report-controls, .btn-ghost, .btn-gold, .btn-local, .btn-primary { display: none !important; }
 
@@ -1640,10 +1650,6 @@
             <svg width="14" height="14" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px; margin-right:6px;"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>
             Sign in with Google
           </button>
-          <div style="display:flex; gap:8px;">
-            <button class="btn-local" style="flex:1;" id="btn-gd-save-now" onclick="saveToGoogleDrive(true)">Save now</button>
-            <button class="btn-local" style="flex:1;" id="btn-gd-load" style="flex:1; background:var(--bg3);" onclick="loadFromGoogleDrive()">Load from Drive</button>
-          </div>
           <button class="btn-local" id="btn-gd-unlink" style="display:none; color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="unlinkGoogleDrive()">Disconnect</button>
         </div>
 
@@ -1930,7 +1936,7 @@
   <div class="info-popup-box" style="max-width:400px;">
     <div style="display:flex; align-items:center; margin-bottom:20px;">
       <h3 style="margin-bottom:0; flex:1;">Change Year Format</h3>
-      <button class="modal-close" onclick="document.getElementById('year-format-popup').classList.add('hidden')" title="Close">✕</button>
+      <button class="modal-close" onclick="closeYearFormatPopup()" title="Close">✕</button>
     </div>
     <div class="info-mode" id="yfmt-cal" style="cursor:pointer;" onclick="switchYearMode('calendar');">
       <div class="info-mode-title">
@@ -1969,7 +1975,7 @@
         </div>
       </div>
     </div>
-    <button class="info-popup-close-btn" style="margin-top:20px;" onclick="document.getElementById('year-format-popup').classList.add('hidden')">Done</button>
+    <button class="info-popup-close-btn" style="margin-top:20px;" onclick="closeYearFormatPopup()">Done</button>
   </div>
 </div>
 
@@ -2016,10 +2022,10 @@
     <!-- Recurring options (hidden until toggled) -->
     <div id="desk-recur-fields" style="display:none; margin-bottom:18px; padding:14px; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius);">
       <div style="margin-bottom:10px; display:flex; gap:10px; flex-wrap:wrap;">
-        <div class="tx-popup-field" style="margin:0; flex:1; min-width:120px;">
+        <div class="tx-popup-field" style="margin:0; flex:1; min-width:120px; display:flex; flex-direction:column;">
           <label>Frequency</label>
           <select id="desk-recur-freq"
-            style="background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%; transition:border-color 0.15s;">
+            style="background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%; transition:border-color 0.15s; flex:1; min-height:0;">
             <option value="weekly">Weekly</option>
             <option value="fortnightly">Fortnightly</option>
             <option value="monthly">Monthly</option>
@@ -2027,9 +2033,9 @@
             <option value="yearly">Yearly</option>
           </select>
         </div>
-        <div class="tx-popup-field" style="margin:0; flex:1; min-width:120px;">
+        <div class="tx-popup-field" style="margin:0; flex:1; min-width:120px; display:flex; flex-direction:column;">
           <label>End Date <span style="color:var(--text-3); font-weight:300;">(optional)</span></label>
-          <input type="date" id="desk-recur-end" style="color-scheme:dark; background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
+          <input type="date" id="desk-recur-end" style="color-scheme:dark; background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%; max-width:100%; box-sizing:border-box; flex:1; min-height:0;">
         </div>
       </div>
       <div style="font-size:11px; color:var(--text-3); line-height:1.6;">The transaction date above will be used as the start date for this recurring transaction. Future occurrences are added automatically as each date is reached.</div>
@@ -2224,15 +2230,6 @@
       <button class="tab-btn active" id="tab-all"     onclick="switchTab('all')"   >All <span id="count-all"></span></button>
       <button class="tab-btn"        id="tab-saved"   onclick="switchTab('saved')" >Saved <span id="count-saved"></span></button>
       <button class="tab-btn"        id="tab-removed" onclick="switchTab('removed')">Withdrawn <span id="count-removed"></span></button>
-    </div>
-
-    <div id="add-form">
-      <div class="field"><label>Date</label>
-        <input type="date" id="inp-date"   onkeydown="if(event.key==='Enter')addTransaction()"></div>
-      <div class="field"><label>Amount ($)</label>
-        <input type="number" id="inp-amount" min="0.01" step="0.01" placeholder="0.00"
-               onkeydown="if(event.key==='Enter')addTransaction()"></div>
-      <button id="btn-add" class="saved-mode" onclick="addTransaction()">+ Add Deposit</button>
     </div>
 
     <div id="table-wrap">
@@ -2600,7 +2597,7 @@
   </div>
   <div class="field">
     <label>Date</label>
-    <input type="date" id="mob-inp-date" style="color-scheme:dark; width:100%; box-sizing:border-box; display:block; -webkit-appearance:none; appearance:none;">
+    <input type="date" id="mob-inp-date">
   </div>
   <div class="field">
     <label>Amount ($)</label>
@@ -2618,7 +2615,7 @@
     <div class="field" style="margin-bottom:10px;">
       <label>Frequency</label>
       <select id="mob-recur-freq"
-        style="background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:11px 12px; color:var(--text-1); font-size:14px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
+        style="background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:11px 12px; color:var(--text-1); font-size:14px; font-family:'DM Sans',sans-serif; outline:none; width:100%; height:48px;">
         <option value="weekly">Weekly</option>
         <option value="fortnightly">Fortnightly</option>
         <option value="monthly">Monthly</option>
@@ -2628,7 +2625,7 @@
     </div>
     <div class="field" style="margin-bottom:10px;">
       <label>End Date <span style="color:var(--text-3); font-weight:300;">(optional)</span></label>
-      <input type="date" id="mob-recur-end" style="color-scheme:dark; background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:11px 12px; color:var(--text-1); font-size:14px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
+      <input type="date" id="mob-recur-end" style="color-scheme:dark; background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:11px 12px; color:var(--text-1); font-size:14px; font-family:'DM Sans',sans-serif; outline:none;">
     </div>
     <div style="font-size:12px; color:var(--text-3); line-height:1.6;">The transaction date above will be used as the start date for this recurring transaction. Future occurrences are added automatically as each date is reached.</div>
   </div>
@@ -2669,8 +2666,20 @@
     <div id="recur-list"></div>
     <div id="recur-empty" style="display:none">No recurring transactions yet.</div>
 
+    <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:8px; flex-shrink:0;">
+      <button id="recur-add-btn" onclick="openAddRecurringPopup()">+ Add New Recurring Transaction</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Recurring Transaction popup -->
+<div id="add-recurring-popup" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center; padding:20px;">
+  <div class="modal-box" style="max-width:480px; position:relative;">
+    <button class="modal-close" onclick="closeAddRecurringPopup()" style="position:absolute; top:14px; right:14px;">✕</button>
+    <div class="modal-header" style="padding-right:32px;">
+      <h2>Add Recurring Transaction</h2>
+    </div>
     <div id="recur-add-form">
-      <div class="recur-form-title">Add New Recurring Transaction</div>
       <div class="recur-form-row">
         <div class="field">
           <label>Type</label>
@@ -2707,7 +2716,83 @@
         </div>
       </div>
       <div style="font-size:11px; color:var(--text-3); line-height:1.6; margin-bottom:12px;">The start date sets the first occurrence. For weekly and fortnightly rules, the same day of the week as the start date will be used for all future occurrences.</div>
-      <button id="recur-add-btn" onclick="addRecurringRule()">+ Add Recurring Transaction</button>
+      <div style="display:flex; gap:8px;">
+        <button id="recur-submit-btn" onclick="addRecurringRule()" style="flex:1;">+ Add Recurring Transaction</button>
+        <button onclick="closeAddRecurringPopup()" style="background:var(--bg3); border:1px solid var(--border-hi); color:var(--text-2); border-radius:var(--radius); padding:10px 18px; font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer;">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recurring: Edit popup -->
+<div id="recur-edit-popup" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:300; align-items:center; justify-content:center; padding:20px;">
+  <div class="modal-box" style="max-width:420px; position:relative;">
+    <button class="modal-close" onclick="closeRecurEditPopup()" style="position:absolute; top:14px; right:14px;">✕</button>
+    <div class="modal-header" style="padding-right:32px;">
+      <h2>Edit Recurring Transaction</h2>
+    </div>
+    <div class="recur-form-row">
+      <div class="field">
+        <label>Amount ($)</label>
+        <input type="number" id="rep-amt" min="0.01" step="0.01" inputmode="decimal"
+          style="background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
+      </div>
+      <div class="field">
+        <label>Frequency</label>
+        <select id="rep-freq"
+          style="background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
+          <option value="weekly">Weekly</option>
+          <option value="fortnightly">Fortnightly</option>
+          <option value="monthly">Monthly</option>
+          <option value="quarterly">Quarterly</option>
+          <option value="yearly">Yearly</option>
+        </select>
+      </div>
+    </div>
+    <div class="recur-form-row">
+      <div class="field">
+        <label>Next Date</label>
+        <input type="date" id="rep-next" style="color-scheme:dark; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
+      </div>
+      <div class="field">
+        <label>End Date <span style="color:var(--text-3); font-weight:300;">(optional)</span></label>
+        <input type="date" id="rep-end" style="color-scheme:dark; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; margin-top:4px;">
+      <button onclick="saveRecurEditPopup()" style="flex:1; background:var(--gold); border:none; border-radius:var(--radius); padding:11px 0; color:#0f0f11; font-weight:700; font-size:14px; font-family:'DM Sans',sans-serif; cursor:pointer;">Save Changes</button>
+      <button onclick="closeRecurEditPopup()" style="background:var(--bg3); border:1px solid var(--border-hi); color:var(--text-2); border-radius:var(--radius); padding:11px 18px; font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Recurring: Delete confirm popup -->
+<div id="recur-delete-popup" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:300; align-items:center; justify-content:center; padding:20px;">
+  <div class="modal-box" style="max-width:400px; position:relative;">
+    <button class="modal-close" onclick="closeRecurDeletePopup()" style="position:absolute; top:14px; right:14px;">✕</button>
+    <div class="modal-header" style="padding-right:32px;">
+      <h2>Remove Recurring Rule?</h2>
+    </div>
+    <p style="font-size:13px; color:var(--text-2); margin-bottom:16px; line-height:1.6;" id="rdel-title"></p>
+    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;">
+      <label id="rdel-keep-label" style="display:flex; align-items:center; gap:12px; font-size:13px; color:var(--text-1); cursor:pointer; padding:12px 14px; background:var(--bg3); border:2px solid var(--gold); border-radius:var(--radius); transition:border-color 0.15s, background 0.15s;" onclick="rdel_select('keep')">
+        <input type="radio" name="rdel-mode" id="rdel-keep" value="keep" checked style="display:none;">
+        <span style="width:18px; height:18px; border-radius:50%; border:2px solid var(--gold); background:var(--gold); flex-shrink:0; display:flex; align-items:center; justify-content:center;" id="rdel-keep-dot">
+          <span style="width:8px; height:8px; border-radius:50%; background:#0f0f11; display:block;"></span>
+        </span>
+        Keep all previously added transactions
+      </label>
+      <label id="rdel-remove-label" style="display:flex; align-items:center; gap:12px; font-size:13px; color:var(--text-2); cursor:pointer; padding:12px 14px; background:var(--bg3); border:2px solid var(--border); border-radius:var(--radius); transition:border-color 0.15s, background 0.15s;" onclick="rdel_select('remove')">
+        <input type="radio" name="rdel-mode" id="rdel-remove" value="remove" style="display:none;">
+        <span style="width:18px; height:18px; border-radius:50%; border:2px solid var(--border); background:transparent; flex-shrink:0; display:flex; align-items:center; justify-content:center;" id="rdel-remove-dot">
+          <span style="width:8px; height:8px; border-radius:50%; background:transparent; display:block;"></span>
+        </span>
+        Remove all previously added transactions
+      </label>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button onclick="confirmDeleteRecurRule()" style="flex:1; background:var(--red); border:none; border-radius:var(--radius); padding:11px 0; color:#fff; font-size:14px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer;">Confirm Delete</button>
+      <button onclick="closeRecurDeletePopup()" style="background:var(--bg3); border:1px solid var(--border-hi); color:var(--text-2); border-radius:var(--radius); padding:11px 18px; font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer;">Cancel</button>
     </div>
   </div>
 </div>
@@ -2717,7 +2802,7 @@
   <div class="modal-box" style="max-width:400px;">
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
       <h2 style="margin:0; flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400;">Encryption</h2>
-      <button class="modal-close" onclick="document.getElementById('enc-menu-popup').classList.add('hidden')" title="Close">✕</button>
+      <button class="modal-close" onclick="closeEncryptionMenu()" title="Close">✕</button>
     </div>
     <div id="enc-status-row" style="font-size:13px; color:var(--text-2); margin-bottom:16px; line-height:1.7; font-weight:300;"></div>
     <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
@@ -2727,7 +2812,7 @@
     <div id="enc-section" style="padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text-3); line-height:1.7;">
       Password-encrypts your backup files using AES-256. A recovery key file is downloaded when you set a password — keep it safe. Without it, a forgotten password means your data cannot be recovered.
     </div>
-    <button class="info-popup-close-btn" style="margin-top:12px;" onclick="document.getElementById('enc-menu-popup').classList.add('hidden')">Done</button>
+    <button class="info-popup-close-btn" style="margin-top:12px;" onclick="closeEncryptionMenu()">Done</button>
   </div>
 </div>
 
@@ -2817,6 +2902,81 @@
     </div>
 
     <p style="font-size:11px; color:var(--text-3); text-align:center; line-height:1.6;">You can add or remove encryption later from <strong style="color:var(--text-2);">Menu → Encryption</strong>.</p>
+  </div>
+</div>
+
+<!-- Backup switch confirmation popup -->
+<div id="backup-switch-popup" class="hidden">
+  <div class="modal-box" style="max-width:420px;">
+    <div style="margin-bottom:16px;">
+      <h2 style="margin:0 0 8px; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400;">Switch backup location?</h2>
+      <p style="font-size:13px; color:var(--text-2); line-height:1.7; font-weight:300;">
+        You're currently connected to <strong id="bswitch-from" style="color:var(--text-1);"></strong>.
+        Switching to <strong id="bswitch-to" style="color:var(--text-1);"></strong> will disconnect your current backup location.
+      </p>
+    </div>
+    <div style="font-size:12px; color:var(--text-3); background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:10px 14px; margin-bottom:20px; line-height:1.6;">
+      Your data stays safe in the app — only the backup connection changes. You can reconnect the previous location at any time.
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button onclick="resolveBackupSwitch(true)" style="flex:1; background:var(--gold); border:none; border-radius:var(--radius); padding:11px 0; color:#0f0f11; font-weight:700; font-size:14px; font-family:'DM Sans',sans-serif; cursor:pointer;">Switch Location</button>
+      <button onclick="resolveBackupSwitch(false)" style="background:var(--bg3); border:1px solid var(--border-hi); color:var(--text-2); border-radius:var(--radius); padding:11px 18px; font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Drive merge dialog — shown when an existing Vault file is found in Drive on sign-in -->
+<div id="drive-merge-popup" class="hidden">
+  <div class="modal-box" style="max-width:460px;">
+    <div style="margin-bottom:16px;">
+      <h2 style="margin:0 0 8px; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400;" id="merge-dialog-title">Existing Vault file found</h2>
+      <p style="font-size:13px; color:var(--text-2); line-height:1.7; font-weight:300;" id="merge-dialog-desc">A Vault file already exists in your Google Drive. How would you like to proceed?</p>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:8px;">
+
+      <button class="smod-card" onclick="resolveDriveMerge('merge')">
+        <div class="smod-card-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="5" cy="10" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <circle cx="15" cy="10" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <path d="M8 10h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M10 7v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="smod-card-body">
+          <div class="smod-card-title">Merge</div>
+          <div class="smod-card-sub">Combine the Drive file and app data — all transactions from both are kept.</div>
+        </div>
+      </button>
+
+      <button class="smod-card" onclick="resolveDriveMerge('overwrite-drive')">
+        <div class="smod-card-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="4" width="11" height="13" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <path d="M13 7l5-3v12l-5-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+        </div>
+        <div class="smod-card-body">
+          <div class="smod-card-title">Overwrite Drive file</div>
+          <div class="smod-card-sub">Keep your current app data and replace the Drive file with it.</div>
+        </div>
+      </button>
+
+      <button class="smod-card" onclick="resolveDriveMerge('overwrite-app')">
+        <div class="smod-card-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="7" y="4" width="11" height="13" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <path d="M7 7L2 4v12l5-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+        </div>
+        <div class="smod-card-body">
+          <div class="smod-card-title">Overwrite app data</div>
+          <div class="smod-card-sub">Replace your current app data with the Drive file. Your local data will be lost.</div>
+        </div>
+      </button>
+
+    </div>
   </div>
 </div>
 
@@ -2989,6 +3149,7 @@ const PREVIEW_SEED = {
 const inSandbox = (() => {
   try { return window.self !== window.top; } catch { return true; }
 })();
+if (inSandbox) document.documentElement.classList.add("sandbox-mode");
 
 // ─── app state ────────────────────────────────────────────────────────────────
 // data          — the live transaction store, mirrored to localStorage and auto-saved to file
@@ -3283,6 +3444,11 @@ function setFyStartSelects() {
 function openYearFormatPopup() {
   updateYearFormatPopup();
   document.getElementById("year-format-popup").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
+function closeYearFormatPopup() {
+  document.getElementById("year-format-popup").classList.add("hidden");
+  document.body.style.overflow = "";
 }
 
 // Populate a day <select> with the correct number of days for a given month
@@ -3334,7 +3500,7 @@ function updateYearFormatPopup() {
 
   // Update desktop and mobile menu sub-labels
   const sub = document.getElementById("dmenu-yearmode-sub");
-  if (sub) sub.textContent = isFY ? `Financial year (${startName}–${endName})` : "Transactions";
+  if (sub) sub.textContent = isFY ? `Financial year (${startName}–${endName})` : "Calendar year";
   const mobSub = document.getElementById("mob-yearmode-sub");
   if (mobSub) mobSub.textContent = isFY ? `Financial (${startName}–${endName})` : "Calendar Year";
 }
@@ -3514,6 +3680,13 @@ async function initLocalFileSync() {
 
 // Open a save dialog so the user picks where to save. Stores the handle for auto-save.
 async function linkLocalFile() {
+  const current = activeBackupLabel();
+  let oldSnapshot = null;
+  if (current && current !== "Local File") {
+    const ok = await confirmBackupSwitch(current, "Local File");
+    if (!ok) return;
+    oldSnapshot = await disconnectAllBackupsAndReadData();
+  }
   if (!window.showSaveFilePicker) {
     // FSAPI not available — fall back to one-off download
     await saveToLocalFile(false);
@@ -3557,6 +3730,7 @@ async function linkLocalFile() {
     updateSetupModal();
     toast("Auto-save linked — " + handle.name);
     dbg("Local file: linked to " + handle.name);
+    if (oldSnapshot) await applyOldBackupMergeChoice(oldSnapshot);
   } catch (e) {
     if (e.name !== "AbortError") {
       setLocalFileStatus("Failed to link: " + e.message, "var(--red)");
@@ -4326,13 +4500,24 @@ async function unlockWithRecoveryFile(input) {
 
 // ── inactivity timer ──────────────────────────────────────────────────────────
 
+let syncPendingAfterIdle = false;
+
 function resetLockTimer() {
-  if (!vaultEncActive) return;
+  if (!vaultEncActive && !localFileHandle && !nasLinked && !gdLinked) return;
   clearLockTimer();
   lockTimer = setTimeout(() => {
-    if (vaultEncActive && !vaultIsLocked) {
+    if (vaultIsLocked) return;
+
+    if (vaultEncActive) {
       showLockScreen("Vault locked after 15 minutes of inactivity. Enter your password to continue.");
       dbg("Lock: auto-locked after inactivity");
+      return;
+    }
+
+    // Mark that a sync is needed — will fire on next interaction
+    if (localFileHandle || nasLinked || gdLinked) {
+      syncPendingAfterIdle = true;
+      dbg("Inactivity: sync flagged — will pull on next interaction");
     }
   }, LOCK_INACTIVITY_MS);
 }
@@ -4344,7 +4529,16 @@ function clearLockTimer() {
 // Track user activity — reset timer on any interaction
 function initActivityTracking() {
   ["mousemove", "mousedown", "keydown", "touchstart", "scroll", "click"].forEach(evt => {
-    document.addEventListener(evt, () => { if (!vaultIsLocked) resetLockTimer(); }, { passive: true });
+    document.addEventListener(evt, async () => {
+      if (vaultIsLocked) return;
+      if (syncPendingAfterIdle) {
+        syncPendingAfterIdle = false;
+        dbg("Inactivity: interaction detected — pulling latest data");
+        await triggerCloudSync();
+        render();
+      }
+      resetLockTimer();
+    }, { passive: true });
   });
 }
 
@@ -4418,6 +4612,11 @@ function openEncryptionMenu() {
   closeSheets();
   updateEncUI();
   document.getElementById("enc-menu-popup").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
+function closeEncryptionMenu() {
+  document.getElementById("enc-menu-popup").classList.add("hidden");
+  document.body.style.overflow = "";
 }
 
 function updateEncUI() {
@@ -4555,6 +4754,13 @@ async function readFromNAS(cfg) {
 }
 
 async function connectNAS() {
+  const current = activeBackupLabel();
+  let oldSnapshot = null;
+  if (current && current !== "Network Location / NAS") {
+    const ok = await confirmBackupSwitch(current, "Network Location / NAS");
+    if (!ok) return;
+    oldSnapshot = await disconnectAllBackupsAndReadData();
+  }
   const url  = (document.getElementById("nas-url")  || {}).value?.trim();
   const user = (document.getElementById("nas-user") || {}).value?.trim();
   const pass = (document.getElementById("nas-pass") || {}).value || "";
@@ -4620,12 +4826,19 @@ async function loadFromNAS() {
     const { data: rawData, tombstones: remoteTombstones, ...settings } = unwrapPayload(parsed);
     const safe = sanitiseData(rawData);
     if (!safe || !Object.keys(safe).length) { setNASStatus("Server file appears empty or invalid.", "var(--red)"); return; }
-    const merge = confirm("Load from server?\n\nOK  →  Merge with current data\nCancel  →  Replace current data");
-    if (merge) {
+    const nasSnapshot = { data: safe, tombstones: remoteTombstones, settings };
+    const choice = await showDriveMergeDialog(
+      "Existing Vault file found on server",
+      "A Vault file already exists on your network location. How would you like to proceed?"
+    );
+    if (choice === "merge") {
       autoMerge(safe, remoteTombstones);
-      applyPayloadSettings(settings, true);
+      applyPayloadSettings(settings, false);
+      render();
       toast("Merged data from server");
-    } else {
+    } else if (choice === "overwrite-drive") {
+      toast("Server file will be overwritten with your current data");
+    } else if (choice === "overwrite-app") {
       remoteTombstones.forEach(id => tombstones.add(id));
       saveTombstones();
       applyPayloadSettings(settings, true);
@@ -4633,9 +4846,10 @@ async function loadFromNAS() {
       reconcileYears();
       saveLocal();
       render();
-      toast("Replaced data from server");
+      toast("App data replaced with server data");
     }
-    setNASStatus("Loaded successfully.", "var(--green)");
+    setNASStatus("Connected.", "var(--green)");
+    if (oldSnapshot) await applyOldBackupMergeChoice(oldSnapshot);
   } catch (e) {
     setNASStatus("Could not parse server data.", "var(--red)");
     dbg("NAS load parse error: " + e.message);
@@ -4696,6 +4910,7 @@ function initNAS() {
 function openCloudPicker() {
   closeSetup();
   document.getElementById("cloud-picker-popup").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
 }
 
 function closeCloudPicker() {
@@ -4802,6 +5017,13 @@ async function gdEnsureToken() {
 // ── OAuth flow ────────────────────────────────────────────────────────────────
 
 async function connectGoogleDrive() {
+  const current = activeBackupLabel();
+  let oldSnapshot = null;
+  if (current && current !== "Google Drive") {
+    const ok = await confirmBackupSwitch(current, "Google Drive");
+    if (!ok) return;
+    oldSnapshot = await disconnectAllBackupsAndReadData();
+  }
   const verifier   = gdGenerateCodeVerifier();
   const challenge  = await gdCodeChallenge(verifier);
   sessionStorage.setItem("gd_verifier", verifier);
@@ -4899,14 +5121,20 @@ async function gdHandleRedirect() {
           const { data: rawData, tombstones: remoteTombstones, ...settings } = unwrapPayload(loaded);
           const safe = sanitiseData(rawData);
           if (safe && Object.keys(safe).length) {
-            const loadExisting = confirm(
-              "A Vault file was found in your Google Drive.\n\nOK  →  Merge with your current data\nCancel  →  Overwrite it with your current data"
+            const choice = await showDriveMergeDialog(
+              "Existing Vault file found in Google Drive",
+              "A Vault file already exists in your Google Drive. How would you like to proceed?"
             );
-            if (loadExisting) {
+            if (choice === "merge") {
               autoMerge(safe, remoteTombstones);
-              applyPayloadSettings(settings, true);
+              applyPayloadSettings(settings, false);
+              render();
               toast("Merged existing Drive data");
-            } else {
+            } else if (choice === "overwrite-drive") {
+              // Keep local data, write over Drive — do nothing to local data
+              toast("Drive file will be overwritten with your current data");
+            } else if (choice === "overwrite-app") {
+              // Replace local data with Drive data
               remoteTombstones.forEach(id => tombstones.add(id));
               saveTombstones();
               data = safe;
@@ -4914,7 +5142,7 @@ async function gdHandleRedirect() {
               applyPayloadSettings(settings, true);
               saveLocal();
               render();
-              toast("Loaded data from Google Drive");
+              toast("App data replaced with Drive data");
             }
           }
         }
@@ -4948,6 +5176,9 @@ async function gdHandleRedirect() {
     // Open the Google Drive panel
     document.getElementById("setup-modal").classList.remove("hidden");
     openSmodPanel("googledrive");
+
+    // If we switched from another backup location, offer to merge/overwrite
+    if (oldSnapshot) await applyOldBackupMergeChoice(oldSnapshot);
 
   } catch (e) {
     setGDStatus("Connection failed: " + e.message, "var(--red)");
@@ -5106,6 +5337,135 @@ function unlinkGoogleDrive() {
   toast("Google Drive disconnected");
 }
 
+// Returns a label for whichever backup source is currently active, or null if none
+function activeBackupLabel() {
+  if (localFileHandle) return "Local File";
+  if (nasLinked)       return "Network Location / NAS";
+  if (gdLinked)        return "Google Drive";
+  return null;
+}
+
+// Silently disconnect whichever backup source is currently active.
+// Returns a snapshot of the remote data before disconnecting (for merge dialog).
+async function disconnectAllBackupsAndReadData() {
+  let remoteSnapshot = null; // { data, tombstones, settings }
+
+  if (localFileHandle) {
+    try {
+      const file = await localFileHandle.getFile();
+      const text = await file.text();
+      if (text) {
+        let parsed;
+        if (isEncryptedEnvelope(text)) {
+          if (vaultEncKey) { try { parsed = await decryptDataObj(text, vaultEncKey); } catch {} }
+        } else {
+          try { parsed = JSON.parse(text); } catch {}
+        }
+        if (parsed) {
+          const { data: d, tombstones: t, ...s } = unwrapPayload(parsed);
+          remoteSnapshot = { data: sanitiseData(d), tombstones: t, settings: s };
+        }
+      }
+    } catch {}
+    localFileHandle = null;
+    localFileLinked = false;
+    clearLocalFileHandle();
+    updateLocalFileUI();
+  }
+
+  if (nasLinked && nasConfig) {
+    try {
+      const text = await readFromNAS();
+      if (text) {
+        let parsed;
+        try { parsed = JSON.parse(text); } catch {}
+        if (parsed) {
+          const { data: d, tombstones: t, ...s } = unwrapPayload(parsed);
+          remoteSnapshot = { data: sanitiseData(d), tombstones: t, settings: s };
+        }
+      }
+    } catch {}
+    nasLinked = false;
+    nasConfig = null;
+    try { localStorage.removeItem(NAS_KEY); } catch {}
+    updateNASUI();
+  }
+
+  if (gdLinked) {
+    try {
+      const text = await gdReadFile();
+      if (text) {
+        let parsed;
+        if (isEncryptedEnvelope(text)) {
+          if (vaultEncKey) { try { parsed = await decryptDataObj(text, vaultEncKey); } catch {} }
+        } else {
+          try { parsed = JSON.parse(text); } catch {}
+        }
+        if (parsed) {
+          const { data: d, tombstones: t, ...s } = unwrapPayload(parsed);
+          remoteSnapshot = { data: sanitiseData(d), tombstones: t, settings: s };
+        }
+      }
+    } catch {}
+    gdLinked = false;
+    gdTokens = null;
+    gdClearTokens();
+    try { localStorage.removeItem("vault_gd_connected"); } catch {}
+    updateGoogleDriveUI();
+  }
+
+  updateSetupModal();
+  return remoteSnapshot;
+}
+
+// Kept for simple cases where we don't need the old data
+function disconnectAllBackups() {
+  disconnectAllBackupsAndReadData(); // fire and forget
+}
+
+// Apply the user's chosen merge option after connecting a new backup location.
+// snapshot: { data, tombstones, settings } from the old location, or null.
+async function applyOldBackupMergeChoice(snapshot) {
+  if (!snapshot || !snapshot.data || !Object.keys(snapshot.data).length) return;
+  const choice = await showDriveMergeDialog(
+    "Data found in previous backup",
+    "Your previous backup location had existing data. How would you like to handle it?"
+  );
+  if (choice === "merge") {
+    autoMerge(snapshot.data, snapshot.tombstones || []);
+    applyPayloadSettings(snapshot.settings, false);
+    render();
+    toast("Previous backup data merged");
+  } else if (choice === "overwrite-drive") {
+    toast("New backup location will be overwritten with your current data");
+  } else if (choice === "overwrite-app") {
+    snapshot.tombstones?.forEach(id => tombstones.add(id));
+    saveTombstones();
+    data = snapshot.data;
+    reconcileYears();
+    applyPayloadSettings(snapshot.settings, true);
+    saveLocal();
+    render();
+    toast("App data replaced with previous backup data");
+  }
+}
+
+// Show a styled confirmation popup before switching backup locations.
+// Resolves true if user confirms, false if they cancel.
+let _backupSwitchResolve = null;
+function confirmBackupSwitch(fromLabel, toLabel) {
+  document.getElementById("bswitch-from").textContent = fromLabel;
+  document.getElementById("bswitch-to").textContent   = toLabel;
+  document.getElementById("backup-switch-popup").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+  return new Promise(resolve => { _backupSwitchResolve = resolve; });
+}
+function resolveBackupSwitch(confirmed) {
+  document.getElementById("backup-switch-popup").classList.add("hidden");
+  document.body.style.overflow = "";
+  if (_backupSwitchResolve) { _backupSwitchResolve(confirmed); _backupSwitchResolve = null; }
+}
+
 // ── UI ────────────────────────────────────────────────────────────────────────
 
 function setGDStatus(msg, color) {
@@ -5120,7 +5480,6 @@ function updateGoogleDriveUI() {
   const linked     = gdLinked && !!gdTokens;
   const linkedInfo = document.getElementById("gd-linked-info");
   const emailEl    = document.getElementById("gd-linked-email");
-  const saveNowBtn = document.getElementById("btn-gd-save-now");
   const unlinkBtn  = document.getElementById("btn-gd-unlink");
   const connectBtn = document.getElementById("btn-gd-connect");
   const autoNote   = document.getElementById("gd-autosync-note");
@@ -5130,7 +5489,6 @@ function updateGoogleDriveUI() {
 
   if (linkedInfo) linkedInfo.style.display = linked ? "flex" : "none";
   if (emailEl && gdTokens?.email) emailEl.textContent = gdTokens.email;
-  if (saveNowBtn) saveNowBtn.style.display = linked ? "" : "none";
   if (unlinkBtn)  unlinkBtn.style.display  = linked ? "" : "none";
   if (connectBtn) connectBtn.innerHTML     = linked
     ? '<svg width="14" height="14" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px; margin-right:6px;"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>Reconnect Google'
@@ -5526,14 +5884,9 @@ function renderMain() {
   document.getElementById("tab-saved").className   = "tab-btn"+(activeTab==="saved"   ?" active":"");
   document.getElementById("tab-removed").className = "tab-btn"+(activeTab==="removed" ?" active":"");
 
-  const btnAdd = document.getElementById("btn-add");
-  btnAdd.textContent = activeTab==="saved" ? "+ Add Deposit" : "+ Add Withdrawal";
-  btnAdd.className   = "btn-add "+(activeTab==="saved" ? "saved-mode" : "removed-mode");
-
   const isAll    = activeTab === "all";
   const isReport = activeTab === "report";
   const isCharts = activeTab === "charts";
-  document.getElementById("add-form").style.display = (isAll || isReport || isCharts || isAllYears || isMonthView) ? "none" : "";
 
   document.body.classList.toggle("tab-all", isAll || isAllYears || isMonthView);
 
@@ -5628,7 +5981,6 @@ function switchTab(t) {
   document.getElementById("table-wrap").style.display    = (isReport || isCharts) ? "none" : "";
   document.getElementById("report-panel").style.display  = isReport ? "flex" : "none";
   document.getElementById("charts-panel").style.display  = isCharts ? "flex" : "none";
-  document.getElementById("add-form").style.display      = (isReport || isCharts || isAll) ? "none" : "";
   document.getElementById("year-summary").style.display  = (isReport || isCharts) ? "none" : "";
   document.getElementById("tabs").style.display          = (isReport || isCharts) ? "none" : "";
   if (isReport) renderReport();
@@ -6078,24 +6430,6 @@ function ensureFY(key) {
 
 // ─── transaction actions ───────────────────────────────────────────────────────
 
-// Add a transaction from the desktop inline form (sidebar add-form).
-// Reads date + amount inputs, buckets into the correct FY, sorts, and re-renders.
-function addTransaction() {
-  const dv = document.getElementById("inp-date").value;
-  const av = parseFloat(document.getElementById("inp-amount").value);
-  if (!dv || isNaN(av) || av<=0) { toast("Enter a valid date and amount.", "#c0392b"); return; }
-  const amt = parseFloat(av.toFixed(2));
-  const fyKey = ensureFY(fyKeyForDate(dv));
-  // Switch active year to the correct FY if it changed
-  if (fyKey !== activeYear) { activeYear = fyKey; }
-  data[fyKey][activeTab].push([dv, amt]);
-  data[fyKey][activeTab].sort((a,b)=>a[0].localeCompare(b[0]));
-  document.getElementById("inp-date").value="";
-  document.getElementById("inp-amount").value="";
-  render();
-  toast(`${activeTab==="saved" ? "Deposit" : "Withdrawal"} of ${aud(amt)} recorded`);
-}
-
 // State for the transaction edit popup — tracks which row is being edited
 let popupIdx  = null;  // index within the type array (saved/removed)
 let popupType = null;  // "saved" | "removed"
@@ -6412,6 +6746,7 @@ function printSearchResults() {
     title:   "Search Results",
     subLine: `${fmtDate(from)} – ${fmtDate(to)} · ${typePart}${amtPart}`,
     rows,
+    filter:  reportTypeFilter === "dep" ? "saved" : reportTypeFilter === "wit" ? "removed" : "all",
   });
 }
 
@@ -6423,39 +6758,67 @@ function printCurrentView() {
   let rows = [];
   let viewTitle = "", viewSub = "";
 
+  const tabLabel = activeTab === "saved" ? "Deposits only" : activeTab === "removed" ? "Withdrawals only" : "All transactions";
+  const addDep = activeTab !== "removed";
+  const addWit = activeTab !== "saved";
+
   if (isAllYears) {
     viewTitle = "All Transactions";
-    viewSub   = "Complete history";
+    viewSub   = tabLabel;
     years.forEach(y => {
-      data[y].saved.forEach(r   => rows.push({ date: r[0], amt: r[1], type: "Deposit" }));
-      data[y].removed.forEach(r => rows.push({ date: r[0], amt: r[1], type: "Withdrawal" }));
+      if (addDep) data[y].saved.forEach(r   => rows.push({ date: r[0], amt: r[1], type: "Deposit" }));
+      if (addWit) data[y].removed.forEach(r => rows.push({ date: r[0], amt: r[1], type: "Withdrawal" }));
     });
   } else if (isMonthView) {
     const [my, mm] = activeMonth.split("-");
     viewTitle = new Date(+my, +mm - 1, 1).toLocaleString("en-AU", { month: "long", year: "numeric" });
-    viewSub   = ""; // year already shown in the title
+    viewSub   = tabLabel;
     const fy  = data[activeYear] || { saved: [], removed: [] };
-    fy.saved.filter(r => r[0].startsWith(activeMonth)).forEach(r =>
+    if (addDep) fy.saved.filter(r => r[0].startsWith(activeMonth)).forEach(r =>
       rows.push({ date: r[0], amt: r[1], type: "Deposit" }));
-    fy.removed.filter(r => r[0].startsWith(activeMonth)).forEach(r =>
+    if (addWit) fy.removed.filter(r => r[0].startsWith(activeMonth)).forEach(r =>
       rows.push({ date: r[0], amt: r[1], type: "Withdrawal" }));
   } else {
     viewTitle = yearLabel(activeYear);
-    viewSub   = activeTab === "saved" ? "Deposits only" : activeTab === "removed" ? "Withdrawals only" : "All transactions";
+    viewSub   = tabLabel;
     const fy  = data[activeYear] || { saved: [], removed: [] };
-    if (activeTab !== "removed") fy.saved.forEach(r   => rows.push({ date: r[0], amt: r[1], type: "Deposit" }));
-    if (activeTab !== "saved")   fy.removed.forEach(r => rows.push({ date: r[0], amt: r[1], type: "Withdrawal" }));
+    if (addDep) fy.saved.forEach(r   => rows.push({ date: r[0], amt: r[1], type: "Deposit" }));
+    if (addWit) fy.removed.forEach(r => rows.push({ date: r[0], amt: r[1], type: "Withdrawal" }));
   }
 
   rows.sort((a, b) => a.date.localeCompare(b.date));
-  openPdfWindow({ title: viewTitle, subLine: viewSub, rows });
+  openPdfWindow({ title: viewTitle, subLine: viewSub, rows, filter: activeTab });
 }
 
-function openPdfWindow({ title, subLine, rows }) {
+function openPdfWindow({ title, subLine, rows, filter = "all" }) {
   const totalDep = rows.filter(r => r.type === "Deposit").reduce((s, r) => s + r.amt, 0);
   const totalWit = rows.filter(r => r.type === "Withdrawal").reduce((s, r) => s + r.amt, 0);
   const net      = totalDep - totalWit;
   const today    = new Date().toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" });
+
+  const depCount = rows.filter(r => r.type === "Deposit").length;
+  const witCount = rows.filter(r => r.type === "Withdrawal").length;
+
+  const showDep = filter !== "removed";
+  const showWit = filter !== "saved";
+  const showNet = filter === "all";
+
+  const summaryCards = `
+    ${showDep ? `<div class="summary-card dep">
+      <div class="label">Total Deposited</div>
+      <div class="value">${aud(totalDep)}</div>
+      <div class="count">${depCount} transaction${depCount !== 1 ? "s" : ""}</div>
+    </div>` : ""}
+    ${showWit ? `<div class="summary-card wit">
+      <div class="label">Total Withdrawn</div>
+      <div class="value">${aud(totalWit)}</div>
+      <div class="count">${witCount} transaction${witCount !== 1 ? "s" : ""}</div>
+    </div>` : ""}
+    ${showNet ? `<div class="summary-card net">
+      <div class="label">Net</div>
+      <div class="value" style="color:#7a6020">${net >= 0 ? aud(net) : "-" + aud(Math.abs(net))}</div>
+      <div class="count">${net >= 0 ? "surplus" : "deficit"}</div>
+    </div>` : ""}`;
 
   const tableRows = rows.map(r => {
     const isWit = r.type === "Withdrawal";
@@ -6515,21 +6878,7 @@ function openPdfWindow({ title, subLine, rows }) {
   </div>
 </header>
 <div class="summary">
-  <div class="summary-card dep">
-    <div class="label">Total Deposited</div>
-    <div class="value">${aud(totalDep)}</div>
-    <div class="count">${rows.filter(r=>r.type==="Deposit").length} transactions</div>
-  </div>
-  <div class="summary-card wit">
-    <div class="label">Total Withdrawn</div>
-    <div class="value">${aud(totalWit)}</div>
-    <div class="count">${rows.filter(r=>r.type==="Withdrawal").length} transactions</div>
-  </div>
-  <div class="summary-card net">
-    <div class="label">Net</div>
-    <div class="value" style="color:#7a6020">${net >= 0 ? aud(net) : '-' + aud(Math.abs(net))}</div>
-    <div class="count">${net >= 0 ? "surplus" : "deficit"}</div>
-  </div>
+  ${summaryCards}
 </div>
 <table>
   <thead><tr><th>Date</th><th>Type</th><th class="amt">Amount</th></tr></thead>
@@ -7262,6 +7611,23 @@ function promptEncryptionChoice() {
   return new Promise(resolve => { _encChoiceResolve = resolve; });
 }
 
+// Drive merge dialog — shown when an existing Vault file is found in Drive on sign-in
+let _driveMergeResolve = null;
+function showDriveMergeDialog(title, desc) {
+  const titleEl = document.getElementById("merge-dialog-title");
+  const descEl  = document.getElementById("merge-dialog-desc");
+  if (titleEl) titleEl.textContent = title || "Existing Vault file found";
+  if (descEl)  descEl.textContent  = desc  || "A Vault file already exists in your backup location. How would you like to proceed?";
+  document.getElementById("drive-merge-popup").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+  return new Promise(resolve => { _driveMergeResolve = resolve; });
+}
+function resolveDriveMerge(choice) {
+  document.getElementById("drive-merge-popup").classList.add("hidden");
+  document.body.style.overflow = "";
+  if (_driveMergeResolve) { _driveMergeResolve(choice); _driveMergeResolve = null; }
+}
+
 // Called by the popup buttons
 // Called by enc-choice-popup buttons — resolves the Promise from promptEncryptionChoice().
 function encChoiceResolve(choice) {
@@ -7522,6 +7888,62 @@ function loadRecurring() {
     const raw = localStorage.getItem(RECUR_KEY);
     recurRules = raw ? JSON.parse(raw) : [];
   } catch { recurRules = []; }
+
+  // In sandbox mode, seed with example recurring rules if none are stored
+  if (inSandbox && recurRules.length === 0) {
+    recurRules = [
+      {
+        id:        "sandbox-recur-1",
+        type:      "saved",
+        amount:    250.00,
+        freq:      "fortnightly",
+        dow:       3, // Wednesday
+        startDate: "2024-10-02",
+        nextDate:  "2026-04-16",
+        endDate:   null,
+      },
+      {
+        id:        "sandbox-recur-2",
+        type:      "saved",
+        amount:    50.00,
+        freq:      "weekly",
+        dow:       1, // Monday
+        startDate: "2024-10-07",
+        nextDate:  "2026-04-06",
+        endDate:   null,
+      },
+      {
+        id:        "sandbox-recur-3",
+        type:      "removed",
+        amount:    18.99,
+        freq:      "monthly",
+        dow:       null,
+        startDate: "2024-10-15",
+        nextDate:  "2026-04-15",
+        endDate:   null,
+      },
+      {
+        id:        "sandbox-recur-4",
+        type:      "removed",
+        amount:    649.00,
+        freq:      "quarterly",
+        dow:       null,
+        startDate: "2024-10-01",
+        nextDate:  "2026-04-01",
+        endDate:   null,
+      },
+      {
+        id:        "sandbox-recur-5",
+        type:      "saved",
+        amount:    100.00,
+        freq:      "weekly",
+        dow:       5, // Friday
+        startDate: "2025-01-03",
+        nextDate:  "2026-04-10",
+        endDate:   "2026-06-30",
+      },
+    ];
+  }
 }
 
 // Persist recurring rules to localStorage
@@ -7636,21 +8058,75 @@ function updateRecurMenuSub() {
 
 // Open the recurring transactions management modal, pre-filling defaults
 function openRecurringModal() {
-  const inp = document.getElementById("recur-start");
-  if (inp && !inp.value) inp.value = todayISO();
   renderRecurList();
   document.getElementById("recurring-modal").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
 }
 
 // Close the recurring transactions modal
 function closeRecurringModal() {
   document.getElementById("recurring-modal").classList.add("hidden");
+  document.body.style.overflow = "";
 }
 
 // Close modal when clicking the backdrop
 document.getElementById("recurring-modal").addEventListener("click", function(e) {
   if (e.target === this) closeRecurringModal();
 });
+
+function openAddRecurringPopup() {
+  const inp = document.getElementById("recur-start");
+  if (inp && !inp.value) inp.value = todayISO();
+  document.getElementById("add-recurring-popup").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
+
+function closeAddRecurringPopup() {
+  document.getElementById("add-recurring-popup").classList.add("hidden");
+  document.body.style.overflow = "hidden"; // keep hidden — recurring modal still open
+}
+
+document.getElementById("add-recurring-popup").addEventListener("click", function(e) {
+  if (e.target === this) closeAddRecurringPopup();
+});
+document.getElementById("recur-edit-popup").addEventListener("click", function(e) {
+  if (e.target === this) closeRecurEditPopup();
+});
+document.getElementById("recur-delete-popup").addEventListener("click", function(e) {
+  if (e.target === this) closeRecurDeletePopup();
+});
+
+function rdel_select(val) {
+  document.getElementById("rdel-keep").checked   = val === "keep";
+  document.getElementById("rdel-remove").checked = val === "remove";
+  const keepLabel   = document.getElementById("rdel-keep-label");
+  const removeLabel = document.getElementById("rdel-remove-label");
+  const keepDot     = document.getElementById("rdel-keep-dot");
+  const removeDot   = document.getElementById("rdel-remove-dot");
+  if (val === "keep") {
+    keepLabel.style.borderColor   = "var(--gold)";
+    keepLabel.style.color         = "var(--text-1)";
+    keepDot.style.borderColor     = "var(--gold)";
+    keepDot.style.background      = "var(--gold)";
+    keepDot.firstElementChild.style.background = "#0f0f11";
+    removeLabel.style.borderColor = "var(--border)";
+    removeLabel.style.color       = "var(--text-2)";
+    removeDot.style.borderColor   = "var(--border)";
+    removeDot.style.background    = "transparent";
+    removeDot.firstElementChild.style.background = "transparent";
+  } else {
+    removeLabel.style.borderColor = "var(--red)";
+    removeLabel.style.color       = "var(--text-1)";
+    removeDot.style.borderColor   = "var(--red)";
+    removeDot.style.background    = "var(--red)";
+    removeDot.firstElementChild.style.background = "#fff";
+    keepLabel.style.borderColor   = "var(--border)";
+    keepLabel.style.color         = "var(--text-2)";
+    keepDot.style.borderColor     = "var(--border)";
+    keepDot.style.background      = "transparent";
+    keepDot.firstElementChild.style.background = "transparent";
+  }
+}
 
 function onRecurFreqChange() { /* day-of-week selector removed */ }
 
@@ -7668,73 +8144,69 @@ function renderRecurList() {
     const isDeposit = rule.type === "deposit";
     const freqLabel = FREQ_LABELS[rule.freq] || rule.freq;
     const nextLabel = rule.nextDate ? `Next: ${fmtDate(rule.nextDate)}` : "Complete";
-    const endLabel  = rule.endDate ? ` · Ends: ${fmtDate(rule.endDate)}` : "";
+    const endMeta   = rule.endDate ? ` · Ends: ${fmtDate(rule.endDate)}` : "";
     const div = document.createElement("div");
     div.className = "recur-item";
     div.innerHTML = `
-      <div class="recur-item-info" style="width:100%;">
-        <div style="display:flex; align-items:flex-start; gap:12px;">
-          <div style="flex:1; min-width:0;">
-            <div class="recur-item-title">${isDeposit ? "Deposit" : "Withdrawal"} · ${freqLabel}</div>
-            <div class="recur-item-meta">Started ${fmtDate(rule.startDate)} · ${nextLabel}${endLabel}</div>
-          </div>
-          <span class="recur-item-amt ${isDeposit ? "dep" : "wit"}">${aud(rule.amount)}</span>
-          <button class="recur-edit-btn" onclick="toggleRecurEdit(${idx})" title="Edit">Edit</button>
-          <button class="recur-delete-btn" onclick="deleteRecurRule(${idx})" title="Delete">✕</button>
-        </div>
-        <div class="recur-edit-form" id="recur-edit-${idx}">
-          <div class="recur-edit-row">
-            <div class="field">
-              <label>Amount ($)</label>
-              <input type="number" id="recur-edit-amt-${idx}" min="0.01" step="0.01"
-                value="${rule.amount}" inputmode="decimal"
-                style="background:var(--bg4); border:1px solid var(--border-hi); border-radius:var(--radius); padding:7px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
-            </div>
-            <div class="field">
-              <label>Frequency</label>
-              <select id="recur-edit-freq-${idx}"
-                style="background:var(--bg4); border:1px solid var(--border-hi); border-radius:var(--radius); padding:7px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
-                ${["weekly","fortnightly","monthly","quarterly","yearly"].map(f =>
-                  `<option value="${f}" ${f === rule.freq ? "selected" : ""}>${FREQ_LABELS[f]}</option>`
-                ).join("")}
-              </select>
-            </div>
-          </div>
-          <div class="recur-edit-row">
-            <div class="field">
-              <label>Next Date</label>
-              <input type="date" id="recur-edit-next-${idx}"
-                value="${rule.nextDate || ""}" style="color-scheme:dark; background:var(--bg4); border:1px solid var(--border-hi); border-radius:var(--radius); padding:7px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
-            </div>
-            <div class="field">
-              <label>End Date <span style="color:var(--text-3); font-weight:300;">(optional)</span></label>
-              <input type="date" id="recur-edit-end-${idx}"
-                value="${rule.endDate || ""}" style="color-scheme:dark; background:var(--bg4); border:1px solid var(--border-hi); border-radius:var(--radius); padding:7px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
-            </div>
-          </div>
-          <div class="recur-edit-actions">
-            <button class="btn-popup-cancel" onclick="toggleRecurEdit(${idx})">Cancel</button>
-            <button class="btn-confirm" onclick="saveRecurEdit(${idx})">Save</button>
-          </div>
-        </div>
-      </div>`;
+      <div style="display:flex; align-items:center; gap:8px; width:100%;">
+        <div class="recur-item-title" style="flex:1; min-width:0;">${isDeposit ? "Deposit" : "Withdrawal"} · ${freqLabel}</div>
+        <span class="recur-item-amt ${isDeposit ? "dep" : "wit"}" style="flex-shrink:0;">${aud(rule.amount)}</span>
+        <button class="recur-edit-btn" onclick="openRecurEditPopup(${idx})">Edit</button>
+        <button class="recur-delete-btn" onclick="openRecurDeletePopup(${idx})">Delete</button>
+      </div>
+      <div class="recur-item-meta" style="width:100%; margin-top:3px;">Started ${fmtDate(rule.startDate)} · ${nextLabel}${endMeta}</div>`;
     list.appendChild(div);
   });
 }
 
-function toggleRecurEdit(idx) {
-  const form = document.getElementById("recur-edit-" + idx);
-  if (!form) return;
-  form.classList.toggle("open");
-}
+// Track which rule index the edit/delete popups are operating on
+let _recurPopupIdx = null;
 
-function saveRecurEdit(idx) {
+function openRecurEditPopup(idx) {
   const rule = recurRules[idx];
   if (!rule) return;
-  const amt  = parseFloat(document.getElementById("recur-edit-amt-" + idx)?.value);
-  const freq = document.getElementById("recur-edit-freq-" + idx)?.value;
-  const next = document.getElementById("recur-edit-next-" + idx)?.value;
-  const end  = document.getElementById("recur-edit-end-" + idx)?.value || null;
+  _recurPopupIdx = idx;
+  document.getElementById("rep-amt").value  = rule.amount;
+  document.getElementById("rep-freq").value = rule.freq;
+  document.getElementById("rep-next").value = rule.nextDate || "";
+  document.getElementById("rep-end").value  = rule.endDate  || "";
+  document.getElementById("recur-edit-popup").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
+
+function closeRecurEditPopup() {
+  document.getElementById("recur-edit-popup").classList.add("hidden");
+  _recurPopupIdx = null;
+  document.body.style.overflow = "hidden"; // recurring modal still open
+}
+
+function openRecurDeletePopup(idx) {
+  const rule = recurRules[idx];
+  if (!rule) return;
+  _recurPopupIdx = idx;
+  const isDeposit = rule.type === "deposit";
+  document.getElementById("rdel-title").textContent =
+    `${isDeposit ? "Deposit" : "Withdrawal"} · ${FREQ_LABELS[rule.freq] || rule.freq} · ${aud(rule.amount)}`;
+  // Reset radio to default (keep)
+  rdel_select("keep");
+  document.getElementById("recur-delete-popup").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
+
+function closeRecurDeletePopup() {
+  document.getElementById("recur-delete-popup").classList.add("hidden");
+  _recurPopupIdx = null;
+  document.body.style.overflow = "hidden"; // recurring modal still open
+}
+
+function saveRecurEditPopup() {
+  const idx  = _recurPopupIdx;
+  const rule = recurRules[idx];
+  if (!rule) return;
+  const amt  = parseFloat(document.getElementById("rep-amt").value);
+  const freq = document.getElementById("rep-freq").value;
+  const next = document.getElementById("rep-next").value;
+  const end  = document.getElementById("rep-end").value || null;
   if (isNaN(amt) || amt <= 0) { toast("Enter a valid amount.", "#c0392b"); return; }
   if (end && next && end <= next) { toast("End date must be after next date.", "#c0392b"); return; }
   rule.amount   = parseFloat(amt.toFixed(2));
@@ -7748,8 +8220,34 @@ function saveRecurEdit(idx) {
   saveRecurring();
   triggerCloudSync();
   updateRecurMenuSub();
+  closeRecurEditPopup();
   renderRecurList();
   toast("Recurring transaction updated");
+}
+
+function confirmDeleteRecurRule() {
+  const idx  = _recurPopupIdx;
+  const rule = recurRules[idx];
+  if (!rule) return;
+  const mode = document.getElementById("rdel-remove")?.checked ? "remove" : "keep";
+  if (mode === "remove") {
+    const ruleType = rule.type === "deposit" ? "saved" : "removed";
+    const ruleAmt  = rule.amount;
+    const start    = rule.startDate;
+    Object.keys(data).forEach(fy => {
+      data[fy][ruleType] = data[fy][ruleType].filter(([d, a]) =>
+        !(d >= start && Math.abs(a - ruleAmt) < 0.001)
+      );
+    });
+    render();
+  }
+  recurRules.splice(idx, 1);
+  saveRecurring();
+  triggerCloudSync();
+  updateRecurMenuSub();
+  closeRecurDeletePopup();
+  renderRecurList();
+  toast("Recurring transaction removed", "var(--text-3)");
 }
 
 // Create a new recurring rule from the modal form, then immediately process it
@@ -7787,24 +8285,17 @@ function addRecurringRule() {
   document.getElementById("recur-amount").value = "";
   document.getElementById("recur-start").value  = todayISO();
   if (document.getElementById("recur-end")) document.getElementById("recur-end").value = "";
+  closeAddRecurringPopup();
   updateRecurMenuSub();
   renderRecurList();
   if (posted === 0) toast("Recurring transaction scheduled", "var(--gold-dim)");
 }
 
 // Delete a recurring rule by index and refresh the list
-function deleteRecurRule(idx) {
-  recurRules.splice(idx, 1);
-  saveRecurring();
-  updateRecurMenuSub();
-  renderRecurList();
-  toast("Recurring transaction removed", "var(--text-3)");
-}
-
 // ─── bootstrap ────────────────────────────────────────────────────────────────
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v3.8.2</div>
+  <div id="version-footer">v4.1.3</div>
 </body>
 </html>
