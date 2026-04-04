@@ -6,7 +6,7 @@
 <title>Vault</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f0f11'/%3E%3Crect x='7' y='7' width='50' height='50' rx='9' fill='%231a1a1d' stroke='%23c9a84c' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23242428' stroke='%23c9a84c' stroke-width='1.2'/%3E%3Ccircle cx='48' cy='16' r='4' fill='%23242428' stroke='%23c9a84c' stroke-width='1.2'/%3E%3Ccircle cx='16' cy='48' r='4' fill='%23242428' stroke='%23c9a84c' stroke-width='1.2'/%3E%3Ccircle cx='48' cy='48' r='4' fill='%23242428' stroke='%23c9a84c' stroke-width='1.2'/%3E%3Ccircle cx='16' cy='16' r='1.5' fill='%23c9a84c'/%3E%3Ccircle cx='48' cy='16' r='1.5' fill='%23c9a84c'/%3E%3Ccircle cx='16' cy='48' r='1.5' fill='%23c9a84c'/%3E%3Ccircle cx='48' cy='48' r='1.5' fill='%23c9a84c'/%3E%3Ccircle cx='30' cy='32' r='16' fill='%23111113' stroke='%23c9a84c' stroke-width='1.8'/%3E%3Ccircle cx='30' cy='32' r='10' fill='%231e1e22' stroke='%23c9a84c' stroke-width='1.2'/%3E%3Cline x1='30' y1='16' x2='30' y2='20' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='30' y1='44' x2='30' y2='48' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='14' y1='32' x2='18' y2='32' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='42' y1='32' x2='46' y2='32' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='18.7' y1='20.7' x2='21.9' y2='23.9' stroke='%23c9a84c' stroke-width='1.2' stroke-linecap='round'/%3E%3Cline x1='41.3' y1='20.7' x2='38.1' y2='23.9' stroke='%23c9a84c' stroke-width='1.2' stroke-linecap='round'/%3E%3Cline x1='18.7' y1='43.3' x2='21.9' y2='40.1' stroke='%23c9a84c' stroke-width='1.2' stroke-linecap='round'/%3E%3Cline x1='41.3' y1='43.3' x2='38.1' y2='40.1' stroke='%23c9a84c' stroke-width='1.2' stroke-linecap='round'/%3E%3Ccircle cx='30' cy='32' r='4' fill='%23c9a84c'/%3E%3Ccircle cx='30' cy='32' r='1.8' fill='%230f0f11'/%3E%3Cline x1='30' y1='28' x2='30' y2='17' stroke='%23c9a84c' stroke-width='1.8' stroke-linecap='round'/%3E%3Crect x='41' y='29.5' width='9' height='5' rx='2.5' fill='%23c9a84c'/%3E%3Crect x='43' y='31' width='5' height='2' rx='1' fill='%230f0f11'/%3E%3Crect x='7' y='20' width='3' height='7' rx='1.5' fill='%23c9a84c'/%3E%3Crect x='7' y='37' width='3' height='7' rx='1.5' fill='%23c9a84c'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f0f11'/%3E%3Crect x='3' y='3' width='26' height='26' rx='4' fill='%231a1a1d' stroke='%23c9a84c' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23c9a84c' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='16' r='3.5' fill='%23c9a84c'/%3E%3Cline x1='16' y1='7' x2='16' y2='10' stroke='%23c9a84c' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='16' y1='22' x2='16' y2='25' stroke='%23c9a84c' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='7' y1='16' x2='10' y2='16' stroke='%23c9a84c' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='22' y1='16' x2='25' y2='16' stroke='%23c9a84c' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='16' y1='12.5' x2='16' y2='7.5' stroke='%23c9a84c' stroke-width='2' stroke-linecap='round'/%3E%3Crect x='19' y='14.5' width='5' height='3' rx='1.5' fill='%23c9a84c'/%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230f0f11'/%3E%3Crect x='18' y='18' width='144' height='144' rx='26' fill='%231a1a1d' stroke='%23c9a84c' stroke-width='5'/%3E%3Ccircle cx='40' cy='40' r='13' fill='%23242428' stroke='%23c9a84c' stroke-width='3'/%3E%3Ccircle cx='140' cy='40' r='13' fill='%23242428' stroke='%23c9a84c' stroke-width='3'/%3E%3Ccircle cx='40' cy='140' r='13' fill='%23242428' stroke='%23c9a84c' stroke-width='3'/%3E%3Ccircle cx='140' cy='140' r='13' fill='%23242428' stroke='%23c9a84c' stroke-width='3'/%3E%3Ccircle cx='40' cy='40' r='5' fill='%23c9a84c'/%3E%3Ccircle cx='140' cy='40' r='5' fill='%23c9a84c'/%3E%3Ccircle cx='40' cy='140' r='5' fill='%23c9a84c'/%3E%3Ccircle cx='140' cy='140' r='5' fill='%23c9a84c'/%3E%3Ccircle cx='85' cy='90' r='48' fill='%23111113' stroke='%23c9a84c' stroke-width='5'/%3E%3Ccircle cx='85' cy='90' r='32' fill='%231e1e22' stroke='%23c9a84c' stroke-width='4'/%3E%3Cline x1='85' y1='42' x2='85' y2='52' stroke='%23c9a84c' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='85' y1='128' x2='85' y2='138' stroke='%23c9a84c' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='37' y1='90' x2='47' y2='90' stroke='%23c9a84c' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='123' y1='90' x2='133' y2='90' stroke='%23c9a84c' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='50.9' y1='56.9' x2='58' y2='64' stroke='%23c9a84c' stroke-width='3' stroke-linecap='round'/%3E%3Cline x1='119.1' y1='56.9' x2='112' y2='64' stroke='%23c9a84c' stroke-width='3' stroke-linecap='round'/%3E%3Cline x1='50.9' y1='123.1' x2='58' y2='116' stroke='%23c9a84c' stroke-width='3' stroke-linecap='round'/%3E%3Cline x1='119.1' y1='123.1' x2='112' y2='116' stroke='%23c9a84c' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='85' cy='90' r='12' fill='%23c9a84c'/%3E%3Ccircle cx='85' cy='90' r='5' fill='%230f0f11'/%3E%3Cline x1='85' y1='78' x2='85' y2='44' stroke='%23c9a84c' stroke-width='4' stroke-linecap='round'/%3E%3Crect x='113' y='83' width='28' height='14' rx='7' fill='%23c9a84c'/%3E%3Crect x='118' y='87' width='18' height='6' rx='3' fill='%230f0f11'/%3E%3Crect x='18' y='56' width='8' height='22' rx='4' fill='%23c9a84c'/%3E%3Crect x='18' y='102' width='8' height='22' rx='4' fill='%23c9a84c'/%3E%3C/svg%3E">
 <style>
   :root {
@@ -4080,12 +4080,13 @@ let _pendingYearModeChange = null;
 function applyPayloadSettings({ recurring, yearMode: ym, fyStartMonth: fym, fyStartDay: fyd, settingsTs }, isStartup) {
   // ── Recurring rules ───────────────────────────────────────────────────────
   if (recurring && Array.isArray(recurring)) {
-    // Merge rules by ID — keep any rules that exist locally but not in remote, and vice versa
     const existingIds = new Set(recurRules.map(r => r.id));
-    const remoteIds   = new Set(recurring.map(r => r.id));
-    // Add remote rules not in local
-    recurring.forEach(r => { if (!existingIds.has(r.id)) recurRules.push(r); });
-    // Note: we don't remove local rules missing from remote — deletion is handled separately
+    // Add remote rules not in local, skipping any that have been deliberately deleted
+    recurring.forEach(r => {
+      if (!existingIds.has(r.id) && !recurDeletedIds.has(String(r.id))) {
+        recurRules.push(r);
+      }
+    });
     saveRecurring();
     dbg("applyPayloadSettings: merged recurring rules, total=" + recurRules.length);
   }
@@ -7885,8 +7886,10 @@ function initApp() {
 //   nextDate  — ISO date of the next occurrence to post (advances after each posting)
 
 // localStorage key for recurring rules
-const RECUR_KEY = "vault_recurring_v1";
-let recurRules = [];
+const RECUR_KEY         = "vault_recurring_v1";
+const RECUR_DELETED_KEY = "vault_recurring_deleted_v1";
+let recurRules      = [];
+let recurDeletedIds = new Set(); // IDs of rules that have been deliberately deleted
 
 // Day-of-week and frequency display labels used in the recurring list UI
 const DOW_NAMES   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -7898,6 +7901,10 @@ function loadRecurring() {
     const raw = localStorage.getItem(RECUR_KEY);
     recurRules = raw ? JSON.parse(raw) : [];
   } catch { recurRules = []; }
+  try {
+    const rawDel = localStorage.getItem(RECUR_DELETED_KEY);
+    recurDeletedIds = rawDel ? new Set(JSON.parse(rawDel)) : new Set();
+  } catch { recurDeletedIds = new Set(); }
 
   // In sandbox mode, seed with example recurring rules only on first load
   // (i.e. when nothing has ever been saved — not when rules were deliberately deleted)
@@ -7955,12 +7962,15 @@ function loadRecurring() {
         endDate:   "2026-06-30",
       },
     ];
+    // Persist immediately so deletions survive page reloads
+    try { localStorage.setItem(RECUR_KEY, JSON.stringify(recurRules)); } catch {}
   }
 }
 
 // Persist recurring rules to localStorage
 function saveRecurring() {
   try { localStorage.setItem(RECUR_KEY, JSON.stringify(recurRules)); } catch {}
+  try { localStorage.setItem(RECUR_DELETED_KEY, JSON.stringify([...recurDeletedIds])); } catch {}
 }
 
 // Compute the first occurrence date on or after startDate.
@@ -8253,6 +8263,7 @@ function confirmDeleteRecurRule() {
     });
     render();
   }
+  recurDeletedIds.add(String(rule.id));
   recurRules.splice(idx, 1);
   saveRecurring();
   triggerCloudSync();
@@ -8308,6 +8319,6 @@ function addRecurringRule() {
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v4.1.5</div>
+  <div id="version-footer">v4.1.7</div>
 </body>
 </html>
