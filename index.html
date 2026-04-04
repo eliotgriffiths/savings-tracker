@@ -5018,11 +5018,14 @@ async function gdEnsureToken() {
 
 async function connectGoogleDrive() {
   const current = activeBackupLabel();
-  let oldSnapshot = null;
   if (current && current !== "Google Drive") {
     const ok = await confirmBackupSwitch(current, "Google Drive");
     if (!ok) return;
-    oldSnapshot = await disconnectAllBackupsAndReadData();
+    const oldSnapshot = await disconnectAllBackupsAndReadData();
+    // Persist snapshot across the OAuth redirect in sessionStorage
+    if (oldSnapshot && oldSnapshot.data && Object.keys(oldSnapshot.data).length) {
+      try { sessionStorage.setItem("gd_pre_switch_snapshot", JSON.stringify(oldSnapshot)); } catch {}
+    }
   }
   const verifier   = gdGenerateCodeVerifier();
   const challenge  = await gdCodeChallenge(verifier);
@@ -5178,7 +5181,14 @@ async function gdHandleRedirect() {
     openSmodPanel("googledrive");
 
     // If we switched from another backup location, offer to merge/overwrite
-    if (oldSnapshot) await applyOldBackupMergeChoice(oldSnapshot);
+    const preSwitchRaw = sessionStorage.getItem("gd_pre_switch_snapshot");
+    sessionStorage.removeItem("gd_pre_switch_snapshot");
+    if (preSwitchRaw) {
+      try {
+        const preSwitchSnapshot = JSON.parse(preSwitchRaw);
+        if (preSwitchSnapshot) await applyOldBackupMergeChoice(preSwitchSnapshot);
+      } catch {}
+    }
 
   } catch (e) {
     setGDStatus("Connection failed: " + e.message, "var(--red)");
@@ -7889,8 +7899,10 @@ function loadRecurring() {
     recurRules = raw ? JSON.parse(raw) : [];
   } catch { recurRules = []; }
 
-  // In sandbox mode, seed with example recurring rules if none are stored
-  if (inSandbox && recurRules.length === 0) {
+  // In sandbox mode, seed with example recurring rules only on first load
+  // (i.e. when nothing has ever been saved — not when rules were deliberately deleted)
+  const everSaved = localStorage.getItem(RECUR_KEY) !== null;
+  if (inSandbox && !everSaved) {
     recurRules = [
       {
         id:        "sandbox-recur-1",
@@ -8296,6 +8308,6 @@ function addRecurringRule() {
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
 </script>
-  <div id="version-footer">v4.1.3</div>
+  <div id="version-footer">v4.1.5</div>
 </body>
 </html>
