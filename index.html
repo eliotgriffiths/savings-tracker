@@ -157,7 +157,7 @@
     transition: border-color 0.15s, color 0.15s;
     white-space: nowrap;
   }
-  .btn-ghost:hover { border-color: var(--border-hi); color: var(--text-1); }
+  @media (hover: hover) { .btn-ghost:hover { border-color: var(--border-hi); color: var(--text-1); } }
 
   .btn-gold {
     background: var(--gold);
@@ -219,7 +219,7 @@
     display: block;
     transition: background 0.12s, color 0.12s;
   }
-  .year-btn-label:hover { background: var(--bg2); color: var(--text-1); }
+  @media (hover: hover) { .year-btn-label:hover { background: var(--bg2); color: var(--text-1); } }
   .year-btn.active {
     background: var(--bg2);
     color: var(--text-1);
@@ -252,7 +252,7 @@
     transition: background 0.12s, color 0.12s;
     white-space: nowrap;
   }
-  .month-btn:hover { background: var(--bg2); color: var(--text-2); }
+  @media (hover: hover) { .month-btn:hover { background: var(--bg2); color: var(--text-2); } }
   .month-btn.active { color: var(--text-1); border-left-color: var(--gold); background: var(--bg2); }
   .pos { color: var(--green) !important; }
   .neg { color: var(--red)   !important; }
@@ -344,7 +344,7 @@
     letter-spacing: 0.02em;
     margin-bottom: -1px;
   }
-  .tab-btn:hover { color: var(--text-2); }
+  @media (hover: hover) { .tab-btn:hover { color: var(--text-2); } }
   .tab-btn.active { color: var(--text-1); border-bottom-color: var(--gold); }
 
   /* ── transaction table ── */
@@ -384,7 +384,7 @@
     transition: background 0.1s;
     cursor: pointer;
   }
-  tbody tr:hover { background: var(--bg3); }
+  @media (hover: hover) { tbody tr:hover { background: var(--bg3); } }
   td { padding: 11px 14px; font-size: 13px; color: var(--text-1); }
   td.num    { text-align: right; font-weight: 500; font-variant-numeric: tabular-nums; }
   td.center { text-align: center; }
@@ -536,7 +536,7 @@
     font-weight: 500; font-size: 13px; font-family: 'DM Sans', sans-serif;
     cursor: pointer; transition: border-color 0.15s, color 0.15s;
   }
-  .btn-local:hover { border-color: var(--border-hi); color: var(--text-1); }
+  @media (hover: hover) { .btn-local:hover { border-color: var(--border-hi); color: var(--text-1); } }
 
   /* ── setup modal submenu redesign ── */
   .smod-card {
@@ -755,7 +755,7 @@
   #report-table th { padding: 10px 14px; font-size: 10px; color: var(--text-3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
   #report-table th.right { text-align: right; }
   #report-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; cursor: default; }
-  #report-table tbody tr:hover { background: var(--bg2); }
+  @media (hover: hover) { #report-table tbody tr:hover { background: var(--bg2); } }
   #report-table td { padding: 11px 14px; font-size: 13px; }
   #report-table td.right { text-align: right; font-weight: 500; font-variant-numeric: tabular-nums; }
   .type-pill {
@@ -981,7 +981,7 @@
       transition: background 0.1s, color 0.1s;
       display: flex; align-items: center;
     }
-    .menu-tx-month-btn:hover { background: var(--bg2); color: var(--text-2); }
+    @media (hover: hover) { .menu-tx-month-btn:hover { background: var(--bg2); color: var(--text-2); } }
     .menu-tx-month-btn.active { color: var(--gold); background: var(--bg2); }
     .menu-item-arrow { transition: transform 0.2s; }
     .menu-item-btn.tx-open .menu-item-arrow { transform: rotate(90deg); }
@@ -1011,7 +1011,7 @@
       padding: 15px 16px; cursor: pointer; width: 100%;
       transition: background 0.1s;
     }
-    .ysheet-btn-label:hover { background: var(--bg3); }
+    @media (hover: hover) { .ysheet-btn-label:hover { background: var(--bg3); } }
     .ysheet-btn .yb-label { font-weight: 500; font-size: 15px; }
     .ysheet-btn .yb-net   { font-size: 13px; font-weight: 300; }
     .ysheet-chevron {
@@ -1034,7 +1034,7 @@
       transition: background 0.1s, color 0.1s;
       border-left: 2px solid transparent;
     }
-    .ysheet-month-btn:hover { background: var(--bg3); color: var(--text-2); }
+    @media (hover: hover) { .ysheet-month-btn:hover { background: var(--bg3); color: var(--text-2); } }
     .ysheet-month-btn.active { color: var(--gold); border-left-color: var(--gold); background: var(--bg3); }
     .menu-item-btn {
       width: 100%; background: transparent; border: none;
@@ -1044,9 +1044,9 @@
       transition: background 0.12s;
       position: relative;
     }
-    .menu-item-btn:hover { background: var(--bg3); }
     .menu-item-btn:last-child { border-bottom: none; }
     .menu-item-btn:active { background: var(--bg4); }
+    @media (hover: hover) { .menu-item-btn:hover { background: var(--bg3); } }
 
     /* Icon badge — small rounded square with subtle background */
     .menu-item-icon {
@@ -1057,13 +1057,13 @@
       font-size: 15px; font-weight: 600; line-height: 1;
       transition: background 0.12s, color 0.12s;
     }
-    .menu-item-btn:hover .menu-item-icon { background: var(--bg3); color: var(--text-1); }
+    @media (hover: hover) { .menu-item-btn:hover .menu-item-icon { background: var(--bg3); color: var(--text-1); } }
 
     .menu-item-body { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; text-align: left; }
     .menu-item-label { font-size: 14px; color: var(--text-1); font-weight: 500; line-height: 1.3; }
     .menu-item-sub   { font-size: 11px; color: var(--text-3); font-weight: 400; line-height: 1.3; }
     .menu-item-arrow { font-size: 16px; color: var(--text-3); flex-shrink: 0; transition: transform 0.2s, color 0.15s; }
-    .menu-item-btn:hover .menu-item-arrow { color: var(--text-2); }
+    @media (hover: hover) { .menu-item-btn:hover .menu-item-arrow { color: var(--text-2); } }
     .menu-item-btn.tx-open .menu-item-arrow { transform: rotate(90deg); }
 
     /* Section divider label */
@@ -1365,8 +1365,7 @@
     transition: background 0.12s;
     text-align: left;
   }
-  .dmenu-btn:hover { background: var(--bg3); }
-  .dmenu-btn:hover .dmenu-btn-icon { color: var(--text-1); background: var(--bg3); }
+  @media (hover: hover) { .dmenu-btn:hover { background: var(--bg3); } .dmenu-btn:hover .dmenu-btn-icon { color: var(--text-1); background: var(--bg3); } }
   .dmenu-btn-icon {
     width: 30px;
     height: 30px;
@@ -2003,13 +2002,13 @@
     <div style="display:flex; flex-direction:column; gap:8px;">
 
       <!-- Google Drive -->
-      <button class="smod-card" onclick="connectCloudService('googledrive')" style="text-align:left;">
+      <button class="smod-card" id="cloud-picker-gd-card" onclick="connectCloudService('googledrive')" style="text-align:left;">
         <div class="smod-card-icon" style="font-size:22px;">
           <svg width="22" height="22" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>
         </div>
         <div class="smod-card-body">
           <div class="smod-card-title">Google Drive</div>
-          <div class="smod-card-sub">Save to your Google Drive</div>
+          <div class="smod-card-sub" id="cloud-picker-gd-sub">Save to your Google Drive</div>
         </div>
         <div class="smod-card-chevron">›</div>
       </button>
@@ -2969,103 +2968,69 @@
 <!-- Encryption menu popup — opened from the main menu -->
 <!-- Save status legend popup — explains what each pill state means -->
 <div id="save-status-legend-popup" class="hidden">
-  <div class="modal-box" style="max-width:420px;">
-
-    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-      <h2 style="margin:0; flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400;">Backup status</h2>
+  <div class="modal-box" style="max-width:380px;">
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
+      <h2 style="margin:0; flex:1; font-family:'DM Serif Display',serif; font-size:18px; font-weight:400;">Backup status</h2>
       <button class="modal-close" onclick="closeSaveStatusLegend()" title="Close">✕</button>
     </div>
-    <p style="margin:0 0 18px; font-size:12px; color:var(--text-3); line-height:1.5; font-weight:300;">Tap the status pill in the header any time to see this guide.</p>
 
-    <!-- Green group -->
-    <div style="margin-bottom:10px;">
-      <div style="font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#5ec497; margin-bottom:6px; padding-left:2px;">All good</div>
-      <div style="display:flex; flex-direction:column; gap:6px;">
-
-        <div style="display:flex; gap:12px; align-items:flex-start; padding:12px 14px; background:rgba(61,158,110,0.06); border:1px solid rgba(61,158,110,0.15); border-radius:10px;">
-          <div style="display:inline-flex; align-items:center; gap:5px; padding:2px 8px 2px 6px; border-radius:20px; background:rgba(61,158,110,0.12); border:1px solid rgba(61,158,110,0.2); flex-shrink:0; margin-top:1px;">
-            <span style="width:6px;height:6px;border-radius:50%;background:#5ec497;flex-shrink:0;display:inline-block;"></span>
-            <span style="font-size:10px; font-weight:600; color:#5ec497; white-space:nowrap;">Backed up</span>
-          </div>
-          <span style="font-size:12px; color:var(--text-3); line-height:1.6;">Every change has been written to your backup. Your data is safe.</span>
+    <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:6px;">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#5ec497; padding:6px 2px 4px;">All good</div>
+      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:rgba(61,158,110,0.06); border:1px solid rgba(61,158,110,0.15); border-radius:8px;">
+        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:rgba(61,158,110,0.12); border:1px solid rgba(61,158,110,0.25); flex-shrink:0;">
+          <span style="width:5px;height:5px;border-radius:50%;background:#5ec497;flex-shrink:0;display:inline-block;"></span>
+          <span style="font-size:10px; font-weight:600; color:#5ec497; white-space:nowrap;">Backed up</span>
         </div>
-
-        <div style="display:flex; gap:12px; align-items:flex-start; padding:12px 14px; background:rgba(61,158,110,0.06); border:1px solid rgba(61,158,110,0.15); border-radius:10px;">
-          <div style="display:inline-flex; align-items:center; gap:5px; padding:2px 8px 2px 6px; border-radius:20px; background:rgba(61,158,110,0.12); border:1px solid rgba(61,158,110,0.2); flex-shrink:0; margin-top:1px;">
-            <span style="width:6px;height:6px;border-radius:50%;background:#5ec497;flex-shrink:0;display:inline-block;"></span>
-            <span style="font-size:10px; font-weight:600; color:#5ec497; white-space:nowrap;">Backed up · encrypted</span>
-          </div>
-          <span style="font-size:12px; color:var(--text-3); line-height:1.6;">Your backup is also password-protected with AES-256 encryption.</span>
+        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Every change has been saved to your backup.</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:rgba(61,158,110,0.06); border:1px solid rgba(61,158,110,0.15); border-radius:8px;">
+        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:rgba(61,158,110,0.12); border:1px solid rgba(61,158,110,0.25); flex-shrink:0;">
+          <span style="width:5px;height:5px;border-radius:50%;background:#5ec497;flex-shrink:0;display:inline-block;"></span>
+          <span style="font-size:10px; font-weight:600; color:#5ec497; white-space:nowrap;">Backed up · encrypted</span>
         </div>
-
+        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">As above, with AES-256 encryption applied before saving.</span>
+      </div>
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--gold); padding:10px 2px 4px;">In progress</div>
+      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:rgba(201,168,76,0.06); border:1px solid rgba(201,168,76,0.15); border-radius:8px;">
+        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:rgba(201,168,76,0.12); border:1px solid rgba(201,168,76,0.25); flex-shrink:0;">
+          <span style="width:5px;height:5px;border-radius:50%;background:var(--gold);flex-shrink:0;display:inline-block;"></span>
+          <span style="font-size:10px; font-weight:600; color:var(--gold); white-space:nowrap;">Syncing…</span>
+        </div>
+        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Writing a change to your backup now. Takes under a second.</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:rgba(201,168,76,0.06); border:1px solid rgba(201,168,76,0.15); border-radius:8px;">
+        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:rgba(201,168,76,0.12); border:1px solid rgba(201,168,76,0.25); flex-shrink:0;">
+          <span style="width:5px;height:5px;border-radius:50%;background:var(--gold);flex-shrink:0;display:inline-block;"></span>
+          <span style="font-size:10px; font-weight:600; color:var(--gold); white-space:nowrap;">Reconnecting…</span>
+        </div>
+        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Restoring your backup connection on startup.</span>
+      </div>
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#c8923a; padding:10px 2px 4px;">Needs attention</div>
+      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:rgba(200,146,58,0.06); border:1px solid rgba(200,146,58,0.15); border-radius:8px;">
+        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:rgba(200,146,58,0.12); border:1px solid rgba(200,146,58,0.25); flex-shrink:0;">
+          <span style="width:5px;height:5px;border-radius:50%;background:#c8923a;flex-shrink:0;display:inline-block;"></span>
+          <span style="font-size:10px; font-weight:600; color:#c8923a; white-space:nowrap;">No backup</span>
+        </div>
+        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Data is in browser storage only — set up a backup in Menu → Save &amp; Backup.</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:rgba(200,146,58,0.06); border:1px solid rgba(200,146,58,0.15); border-radius:8px;">
+        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:rgba(200,146,58,0.12); border:1px solid rgba(200,146,58,0.25); flex-shrink:0;">
+          <span style="width:5px;height:5px;border-radius:50%;background:#c8923a;flex-shrink:0;display:inline-block;"></span>
+          <span style="font-size:10px; font-weight:600; color:#c8923a; white-space:nowrap;">Permission needed</span>
+        </div>
+        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">File access was lost after restart. Go to Save &amp; Backup → Local File.</span>
+      </div>
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#e07a75; padding:10px 2px 4px;">Error</div>
+      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:rgba(192,80,74,0.06); border:1px solid rgba(192,80,74,0.15); border-radius:8px;">
+        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:rgba(192,80,74,0.12); border:1px solid rgba(192,80,74,0.25); flex-shrink:0;">
+          <span style="width:5px;height:5px;border-radius:50%;background:#e07a75;flex-shrink:0;display:inline-block;"></span>
+          <span style="font-size:10px; font-weight:600; color:#e07a75; white-space:nowrap;">Sync failed</span>
+        </div>
+        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Backup write failed. Check your backup source in Menu → Save &amp; Backup.</span>
       </div>
     </div>
 
-    <!-- Gold group -->
-    <div style="margin-bottom:10px;">
-      <div style="font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--gold); margin-bottom:6px; padding-left:2px;">In progress</div>
-      <div style="display:flex; flex-direction:column; gap:6px;">
-
-        <div style="display:flex; gap:12px; align-items:flex-start; padding:12px 14px; background:rgba(201,168,76,0.06); border:1px solid rgba(201,168,76,0.15); border-radius:10px;">
-          <div style="display:inline-flex; align-items:center; gap:5px; padding:2px 8px 2px 6px; border-radius:20px; background:rgba(201,168,76,0.12); border:1px solid rgba(201,168,76,0.2); flex-shrink:0; margin-top:1px;">
-            <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;display:inline-block;"></span>
-            <span style="font-size:10px; font-weight:600; color:var(--gold); white-space:nowrap;">Syncing…</span>
-          </div>
-          <span style="font-size:12px; color:var(--text-3); line-height:1.6;">A change is being written to your backup right now. Usually takes less than a second.</span>
-        </div>
-
-        <div style="display:flex; gap:12px; align-items:flex-start; padding:12px 14px; background:rgba(201,168,76,0.06); border:1px solid rgba(201,168,76,0.15); border-radius:10px;">
-          <div style="display:inline-flex; align-items:center; gap:5px; padding:2px 8px 2px 6px; border-radius:20px; background:rgba(201,168,76,0.12); border:1px solid rgba(201,168,76,0.2); flex-shrink:0; margin-top:1px;">
-            <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;display:inline-block;"></span>
-            <span style="font-size:10px; font-weight:600; color:var(--gold); white-space:nowrap;">Reconnecting…</span>
-          </div>
-          <span style="font-size:12px; color:var(--text-3); line-height:1.6;">The app is restoring your backup connection after startup. Should resolve in a few seconds.</span>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- Amber group -->
-    <div style="margin-bottom:10px;">
-      <div style="font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#c8923a; margin-bottom:6px; padding-left:2px;">Needs attention</div>
-      <div style="display:flex; flex-direction:column; gap:6px;">
-
-        <div style="display:flex; gap:12px; align-items:flex-start; padding:12px 14px; background:rgba(200,146,58,0.06); border:1px solid rgba(200,146,58,0.15); border-radius:10px;">
-          <div style="display:inline-flex; align-items:center; gap:5px; padding:2px 8px 2px 6px; border-radius:20px; background:rgba(200,146,58,0.12); border:1px solid rgba(200,146,58,0.2); flex-shrink:0; margin-top:1px;">
-            <span style="width:6px;height:6px;border-radius:50%;background:#c8923a;flex-shrink:0;display:inline-block;"></span>
-            <span style="font-size:10px; font-weight:600; color:#c8923a; white-space:nowrap;">No backup</span>
-          </div>
-          <span style="font-size:12px; color:var(--text-3); line-height:1.6;">Data is only in browser storage — it will be lost if the browser is cleared. Set up a backup in Menu → Save &amp; Backup.</span>
-        </div>
-
-        <div style="display:flex; gap:12px; align-items:flex-start; padding:12px 14px; background:rgba(200,146,58,0.06); border:1px solid rgba(200,146,58,0.15); border-radius:10px;">
-          <div style="display:inline-flex; align-items:center; gap:5px; padding:2px 8px 2px 6px; border-radius:20px; background:rgba(200,146,58,0.12); border:1px solid rgba(200,146,58,0.2); flex-shrink:0; margin-top:1px;">
-            <span style="width:6px;height:6px;border-radius:50%;background:#c8923a;flex-shrink:0;display:inline-block;"></span>
-            <span style="font-size:10px; font-weight:600; color:#c8923a; white-space:nowrap;">Permission needed</span>
-          </div>
-          <span style="font-size:12px; color:var(--text-3); line-height:1.6;">Your linked file lost write access after the browser restarted. Go to Save &amp; Backup → Local File to reconnect.</span>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- Red group -->
-    <div style="margin-bottom:18px;">
-      <div style="font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#e07a75; margin-bottom:6px; padding-left:2px;">Error</div>
-      <div style="display:flex; flex-direction:column; gap:6px;">
-
-        <div style="display:flex; gap:12px; align-items:flex-start; padding:12px 14px; background:rgba(192,80,74,0.06); border:1px solid rgba(192,80,74,0.15); border-radius:10px;">
-          <div style="display:inline-flex; align-items:center; gap:5px; padding:2px 8px 2px 6px; border-radius:20px; background:rgba(192,80,74,0.12); border:1px solid rgba(192,80,74,0.2); flex-shrink:0; margin-top:1px;">
-            <span style="width:6px;height:6px;border-radius:50%;background:#e07a75;flex-shrink:0;display:inline-block;"></span>
-            <span style="font-size:10px; font-weight:600; color:#e07a75; white-space:nowrap;">Sync failed</span>
-          </div>
-          <span style="font-size:12px; color:var(--text-3); line-height:1.6;">A backup write failed — network issue, lost permissions, or storage full. Check your backup in Menu → Save &amp; Backup.</span>
-        </div>
-
-      </div>
-    </div>
-
-    <button class="info-popup-close-btn" onclick="closeSaveStatusLegend()">Done</button>
+    <button class="info-popup-close-btn" style="margin-top:10px;" onclick="closeSaveStatusLegend()">Done</button>
   </div>
 </div>
 
@@ -3915,14 +3880,14 @@ async function clearLocalFileHandle() {
 // Silently clears the handle if the file has been moved or deleted.
 async function initLocalFileSync() {
   if (!window.showSaveFilePicker) {
-    // FSAPI not supported — browser storage only
-    setSaveStatus("warn", "No backup");
+    // FSAPI not supported — only set No backup if no other source is connected
+    if (!gdLinked && !nasLinked) setSaveStatus("warn", "No backup");
     return;
   }
   const handle = await loadLocalFileHandle();
   if (!handle) {
-    // No linked file — show browser-storage warning
-    setSaveStatus("warn", "No backup");
+    // No linked local file — only show No backup if no other source is connected
+    if (!gdLinked && !nasLinked) setSaveStatus("warn", "No backup");
     return;
   }
   // Verify we still have permission
@@ -5764,6 +5729,12 @@ function updateGoogleDriveUI() {
   if (cloudSub)   cloudSub.textContent     = linked
     ? "Auto-saving to Google Drive"
     : "Sync to Google Drive, OneDrive, or Dropbox";
+
+  // Also highlight the Google Drive option in the cloud picker
+  const pickerCard = document.getElementById("cloud-picker-gd-card");
+  const pickerSub  = document.getElementById("cloud-picker-gd-sub");
+  if (pickerCard) pickerCard.classList.toggle("active-card", linked);
+  if (pickerSub)  pickerSub.textContent = linked ? "Connected — auto-saving active" : "Save to your Google Drive";
 }
 
 // ── init ──────────────────────────────────────────────────────────────────────
@@ -5775,7 +5746,11 @@ async function initGoogleDrive() {
 
   // Restore tokens from localStorage
   const saved = gdLoadTokens();
-  if (!saved?.refreshToken) return;
+  if (!saved?.refreshToken) {
+    // No GD tokens — only set No backup if no other source will handle it
+    if (!localFileLinked && !nasLinked) setSaveStatus("warn", "No backup");
+    return;
+  }
 
   gdTokens = saved;
 
@@ -5785,7 +5760,7 @@ async function initGoogleDrive() {
     if (!ok) {
       dbg("GD: silent refresh failed on startup");
       gdLinked = false;
-      setSaveStatus("warn", "No backup");
+      if (!localFileLinked && !nasLinked) setSaveStatus("warn", "No backup");
       updateGoogleDriveUI();
       return;
     }
@@ -8783,6 +8758,6 @@ initApp();
     </div>
   </div>
 
-  <div id="version-footer">v4.4.2</div>
+  <div id="version-footer">v4.4.5</div>
 </body>
 </html>
