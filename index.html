@@ -10478,7 +10478,7 @@ function parseAIResponse(text) {
   } catch { return null; }
 }
 
-async function callAI(provider, fileContent, mimeType, isText = false, retryCount = 0) {
+async function callAI(provider, fileContent, mimeType, isText = false, retryCount = 0, isTest = false) {
   const key = getAIKey(provider.id);
   if (!key) throw new Error("No API key");
   const prompt = buildPrompt();
@@ -10540,14 +10540,15 @@ async function callAI(provider, fileContent, mimeType, isText = false, retryCoun
     return json.choices?.[0]?.message?.content || "";
 
   } catch(e) {
-    if (e.status === 429 && retryCount < 2) {
-      // Rate limit — wait and retry
+    if (e.status === 429 && retryCount < 2 && !isTest) {
+      // Rate limit — wait and retry (skipped during connection tests)
       const wait = 15;
       showRateLimitMsg(`Rate limit reached — retrying in ${wait}s...`);
       await new Promise(r => setTimeout(r, wait * 1000));
       hideRateLimitMsg();
-      return callAI(provider, fileContent, mimeType, isText, retryCount + 1);
+      return callAI(provider, fileContent, mimeType, isText, retryCount + 1, false);
     }
+    if (e.status === 429) throw new Error("Rate limit reached — wait a moment and try again");
     throw e;
   }
 }
@@ -11210,7 +11211,7 @@ async function testAIConnection(providerId) {
   const original = getAIKey(providerId);
   setAIKey(providerId, key);
   try {
-    const result = await callAI(testProvider, "Reply with only the word OK", "text/plain", true);
+    const result = await callAI(testProvider, "Reply with only the word OK", "text/plain", true, 0, true);
     if (result && result.trim().toLowerCase().includes("ok")) {
       toast(`✓ ${provider.name} connected successfully`, "#27ae60");
     } else {
@@ -13203,7 +13204,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.18</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.19</div>
         </div>
 
         <div class="pp-cards">
@@ -13312,7 +13313,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.18</div>
+  <div id="version-footer">v5.4.19</div>
 
 </body>
 </html>
