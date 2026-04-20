@@ -10569,10 +10569,19 @@ async function callAI(provider, fileContent, mimeType, isText = false, retryCoun
     return json.choices?.[0]?.message?.content || "";
 
   } catch(e) {
+    const isOverloaded = e.status === 503 || (e.message || "").toLowerCase().includes("high demand") || (e.message || "").toLowerCase().includes("overloaded");
     if (e.status === 429 && retryCount < 2 && !isTest) {
       // Rate limit — wait and retry (skipped during connection tests)
       const wait = 15;
       showRateLimitMsg(`Rate limit reached — retrying in ${wait}s...`);
+      await new Promise(r => setTimeout(r, wait * 1000));
+      hideRateLimitMsg();
+      return callAI(provider, fileContent, mimeType, isText, retryCount + 1, false);
+    }
+    if (isOverloaded && retryCount < 2 && !isTest) {
+      // Server overloaded — short wait and retry
+      const wait = 5;
+      showRateLimitMsg(`${provider.name} is busy — retrying in ${wait}s...`);
       await new Promise(r => setTimeout(r, wait * 1000));
       hideRateLimitMsg();
       return callAI(provider, fileContent, mimeType, isText, retryCount + 1, false);
@@ -10584,6 +10593,7 @@ async function callAI(provider, fileContent, mimeType, isText = false, retryCoun
         : msg;
       throw new Error(hint);
     }
+    if (isOverloaded) throw new Error(`${provider.name} is experiencing high demand — please try again in a moment`);
     throw e;
   }
 }
@@ -13259,7 +13269,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.25</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.26</div>
         </div>
 
         <div class="pp-cards">
@@ -13368,7 +13378,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.25</div>
+  <div id="version-footer">v5.4.26</div>
 
 </body>
 </html>
