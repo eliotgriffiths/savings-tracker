@@ -11228,7 +11228,12 @@ async function testAIConnection(providerId) {
       toast(`✓ ${provider.name} responding (key valid)`, "#27ae60");
     }
   } catch(e) {
-    toast(`✗ ${provider.name}: ${e.message}`, "#c0392b");
+    const raw = e.message || "Unknown error";
+    const billing = raw.toLowerCase().includes("billing") || raw.toLowerCase().includes("quota") || raw.toLowerCase().includes("limit: 0");
+    const msg = billing
+      ? `✗ ${provider.name}: Quota exceeded — add a payment method at aistudio.google.com`
+      : `✗ ${provider.name}: ${raw.length > 80 ? raw.slice(0, 80) + "…" : raw}`;
+    toast(msg, "#c0392b");
   }
   if (!original) setAIKey(providerId, ""); // restore if it wasn't saved
 }
@@ -11333,13 +11338,14 @@ function applyAISettingsPayload(remote) {
   updateAIMenuSubs();
 }
 
-function toast(msg, color = "#2E9EA8") {
+function toast(msg, color = "#2E9EA8", duration) {
   const el = document.getElementById("toast");
   el.textContent = msg;
   el.style.background = color;
   el.style.display = "block";
   clearTimeout(toastTimer2);
-  toastTimer2 = setTimeout(() => { el.style.display = "none"; }, 2500);
+  const ms = duration ?? (color === "#c0392b" ? 5000 : 2500);
+  toastTimer2 = setTimeout(() => { el.style.display = "none"; }, ms);
 }
 
 // ─── merge / conflict resolution ────────────────────────────────────────────────
@@ -13214,7 +13220,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.21</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.22</div>
         </div>
 
         <div class="pp-cards">
@@ -13323,7 +13329,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.21</div>
+  <div id="version-footer">v5.4.22</div>
 
 </body>
 </html>
