@@ -10460,8 +10460,10 @@ async function extractSpreadsheetText(file) {
       try {
         const data = new Uint8Array(e.target.result);
         const wb   = XLSX.read(data, { type: "array", cellDates: true });
-        const ws   = wb.Sheets[wb.SheetNames[0]];
-        const csv  = XLSX.utils.sheet_to_csv(ws);
+        // Concatenate all sheets so multi-sheet workbooks are fully parsed
+        const csv  = wb.SheetNames.map(name =>
+          `### Sheet: ${name}\n` + XLSX.utils.sheet_to_csv(wb.Sheets[name])
+        ).join("\n");
         resolve(csv);
       } catch(err) { reject(err); }
     };
@@ -13303,7 +13305,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.35</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.36</div>
         </div>
 
         <div class="pp-cards">
@@ -13412,7 +13414,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.35</div>
+  <div id="version-footer">v5.4.36</div>
 
 </body>
 </html>
