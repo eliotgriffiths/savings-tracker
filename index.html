@@ -10482,7 +10482,7 @@ Rules:
 - date: always YYYY-MM-DD format. User locale is LOCALE_HINT (use this to resolve ambiguous dates like 03/04/2025). 2-digit years = 20XX. Skip transactions with missing/unparseable dates.
 - amount: always a positive number with period as decimal separator. No symbols, commas or spaces. Parentheses or DR suffix = withdrawal. CR suffix = deposit (unless the interest rule below applies).
 - type: "deposit" (money in), "withdrawal" (money out), "interest" (earned interest credited to the account — only when ALL of these are true: (1) it is a credit/money-in, AND (2) the description clearly refers to interest earned e.g. INT CR, INT EARNED, INTEREST CREDIT, SAVINGS INTEREST, MONTHLY INTEREST, NETBANK SAVER — NOT fees or charges that merely contain the word interest e.g. "INTEREST SHORTFALL FEE", "INTEREST CHARGE", "INTEREST PENALTY" are withdrawals not interest).
-- Exclude: opening/closing/running balances, column headers, summary rows, pending/uncleared transactions. Never skip a row just because its description contains the word "interest" — only skip it if it is a balance/header/summary/pending row.
+- Exclude: opening/closing/running balances, column headers, summary rows, pending/uncleared transactions. A transaction is pending if its description starts with or contains PENDING, UNCLEARED, or MEMO, or if it is labelled as pending in any column — skip all such rows. Never skip a row just because its description contains the word "interest" — only skip it if it is a balance/header/summary/pending row.
 - Include transfers as deposit or withdrawal based on direction.
 - If amount > 1000000 or clearly a balance row, skip it.
 - CR/DR as direction indicators only when they appear immediately after the amount as a standalone suffix.
@@ -13305,7 +13305,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.36</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.37</div>
         </div>
 
         <div class="pp-cards">
@@ -13414,7 +13414,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.36</div>
+  <div id="version-footer">v5.4.37</div>
 
 </body>
 </html>
