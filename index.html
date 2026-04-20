@@ -1621,6 +1621,18 @@
     to   { transform: translateY(0);   opacity: 1; }
   }
 
+  @keyframes _barShimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+  }
+  #import-progress-bar.shimmer {
+    width: 100% !important;
+    background: linear-gradient(90deg, var(--gold) 25%, #f0d98a 50%, var(--gold) 75%);
+    background-size: 400px 100%;
+    animation: _barShimmer 1.4s infinite linear;
+    transition: none;
+  }
+
   .dmenu-header {
     padding: 14px 16px 10px;
     border-bottom: 1px solid var(--border);
@@ -10570,18 +10582,18 @@ async function callAI(provider, fileContent, mimeType, isText = false, retryCoun
 
   } catch(e) {
     const isOverloaded = e.status === 503 || (e.message || "").toLowerCase().includes("high demand") || (e.message || "").toLowerCase().includes("overloaded");
-    if (e.status === 429 && retryCount < 2 && !isTest) {
-      // Rate limit — wait and retry (skipped during connection tests)
-      const wait = 15;
-      showRateLimitMsg(`Rate limit reached — retrying in ${wait}s...`);
+    if (e.status === 429 && retryCount < 4 && !isTest) {
+      // Rate limit — exponential backoff
+      const wait = Math.min(15 * Math.pow(2, retryCount), 60);
+      showRateLimitMsg(`Rate limit reached — retrying in ${wait}s... (attempt ${retryCount + 1}/4)`);
       await new Promise(r => setTimeout(r, wait * 1000));
       hideRateLimitMsg();
       return callAI(provider, fileContent, mimeType, isText, retryCount + 1, false);
     }
-    if (isOverloaded && retryCount < 2 && !isTest) {
-      // Server overloaded — short wait and retry
-      const wait = 5;
-      showRateLimitMsg(`${provider.name} is busy — retrying in ${wait}s...`);
+    if (isOverloaded && retryCount < 4 && !isTest) {
+      // Server overloaded — exponential backoff
+      const wait = Math.min(5 * Math.pow(2, retryCount), 40);
+      showRateLimitMsg(`${provider.name} is busy — retrying in ${wait}s... (attempt ${retryCount + 1}/4)`);
       await new Promise(r => setTimeout(r, wait * 1000));
       hideRateLimitMsg();
       return callAI(provider, fileContent, mimeType, isText, retryCount + 1, false);
@@ -10717,7 +10729,9 @@ async function runImportPipeline(files) {
         if (tryProvider !== enabledProviders[0]) {
           updateProgressItem(pItem, "processing", `Trying ${tryProvider.name}...`);
         }
+        updateProgressBar(0, true); // shimmer while AI is working
         const { txs } = await processFileWithAI(file, tryProvider, pItem);
+        updateProgressBar((i + 1) / files.length * 100); // back to determinate
         if (!txs || txs.length === 0) {
           updateProgressItem(pItem, "error", "No transactions found");
           failures.push({ name: file.name, reason: "No transactions found" });
@@ -10730,6 +10744,7 @@ async function runImportPipeline(files) {
       } catch(e) {
         if (tryProvider === enabledProviders[enabledProviders.length - 1]) {
           // All providers failed
+          updateProgressBar((i + 1) / files.length * 100);
           const reason = e.message || "Unknown error";
           updateProgressItem(pItem, "error", reason);
           failures.push({ name: file.name, reason });
@@ -10799,8 +10814,14 @@ function updateProgressItem(item, state, statusText) {
   item.el.querySelector(".ipi-icon").textContent = icons[state] || "⟳";
   item.el.querySelector(".ipi-status").textContent = statusText;
 }
-function updateProgressBar(pct) {
-  document.getElementById("import-progress-bar").style.width = pct + "%";
+function updateProgressBar(pct, shimmer = false) {
+  const bar = document.getElementById("import-progress-bar");
+  if (shimmer) {
+    bar.classList.add("shimmer");
+  } else {
+    bar.classList.remove("shimmer");
+    bar.style.width = pct + "%";
+  }
 }
 
 // ── Import preview ────────────────────────────────────────────────────────
@@ -13289,7 +13310,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.29</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.31</div>
         </div>
 
         <div class="pp-cards">
@@ -13398,7 +13419,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.29</div>
+  <div id="version-footer">v5.4.31</div>
 
 </body>
 </html>
