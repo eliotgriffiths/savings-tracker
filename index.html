@@ -10908,6 +10908,22 @@ function bulkImportAction(action) {
   rerenderImportPreview();
 }
 
+function exportImportResultJSON() {
+  const rows = _importResults.filter(r => !r.skip).map(r => ({
+    date:   r.tx.date,
+    amount: r.tx.amount,
+    type:   r.tx.type,
+  }));
+  if (!rows.length) { alert("No transactions to export."); return; }
+  const blob = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href     = url;
+  a.download = "vault_ai_result.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // ── Import account picker ─────────────────────────────────────────────────
 function renderImportAccountPicker() {
   const acc = getAccountById(_importTargetAccountId) || accounts[0];
@@ -11629,6 +11645,10 @@ function toggleDebug() {
 // Keyboard shortcut to open the debug panel
 document.addEventListener("keydown", (e) => {
   if (e.ctrlKey && e.shiftKey && e.key === "D") { e.preventDefault(); toggleDebug(); }
+  if (e.ctrlKey && e.shiftKey && e.key === "X") {
+    const preview = document.getElementById("import-preview-popup");
+    if (preview && !preview.classList.contains("hidden")) { e.preventDefault(); exportImportResultJSON(); }
+  }
   // Intercept Ctrl+P / Cmd+P and route through Vault's print function
   if ((e.ctrlKey || e.metaKey) && e.key === "p") { e.preventDefault(); menuPrint(); }
 });
@@ -13269,7 +13289,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.28</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.29</div>
         </div>
 
         <div class="pp-cards">
@@ -13378,7 +13398,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.28</div>
+  <div id="version-footer">v5.4.29</div>
 
 </body>
 </html>
