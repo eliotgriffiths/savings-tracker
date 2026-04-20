@@ -10174,7 +10174,7 @@ const AI_PROVIDERS = [
     tier: "free",
     keyUrl: "https://aistudio.google.com/app/apikey", keyUrlLabel: "Get a free API key at aistudio.google.com",
     privacyUrl: "https://ai.google.dev/gemini-api/terms",
-    model: "gemini-2.5-flash", testModel: "gemini-2.5-flash",
+    model: "gemini-2.0-flash", testModel: "gemini-2.0-flash",
     logo: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="22" height="22" style="display:block;"><defs><linearGradient gradientUnits="userSpaceOnUse" id="gemA" x1="7" x2="11" y1="15.5" y2="12"><stop stop-color="#08B962"/><stop offset="1" stop-color="#08B962" stop-opacity="0"/></linearGradient><linearGradient gradientUnits="userSpaceOnUse" id="gemB" x1="8" x2="11.5" y1="5.5" y2="11"><stop stop-color="#F94543"/><stop offset="1" stop-color="#F94543" stop-opacity="0"/></linearGradient><linearGradient gradientUnits="userSpaceOnUse" id="gemC" x1="3.5" x2="17.5" y1="13.5" y2="12"><stop stop-color="#FABC12"/><stop offset=".46" stop-color="#FABC12" stop-opacity="0"/></linearGradient></defs><path d="M20.616 10.835a14.147 14.147 0 01-4.45-3.001 14.111 14.111 0 01-3.678-6.452.503.503 0 00-.975 0 14.134 14.134 0 01-3.679 6.452 14.155 14.155 0 01-4.45 3.001c-.65.28-1.318.505-2.002.678a.502.502 0 000 .975c.684.172 1.35.397 2.002.677a14.147 14.147 0 014.45 3.001 14.112 14.112 0 013.679 6.453.502.502 0 00.975 0c.172-.685.397-1.351.677-2.003a14.145 14.145 0 013.001-4.45 14.113 14.113 0 016.453-3.678.503.503 0 000-.975 13.245 13.245 0 01-2.003-.678z" fill="#3186FF"/><path d="M20.616 10.835a14.147 14.147 0 01-4.45-3.001 14.111 14.111 0 01-3.678-6.452.503.503 0 00-.975 0 14.134 14.134 0 01-3.679 6.452 14.155 14.155 0 01-4.45 3.001c-.65.28-1.318.505-2.002.678a.502.502 0 000 .975c.684.172 1.35.397 2.002.677a14.147 14.147 0 014.45 3.001 14.112 14.112 0 013.679 6.453.502.502 0 00.975 0c.172-.685.397-1.351.677-2.003a14.145 14.145 0 013.001-4.45 14.113 14.113 0 016.453-3.678.503.503 0 000-.975 13.245 13.245 0 01-2.003-.678z" fill="url(#gemA)"/><path d="M20.616 10.835a14.147 14.147 0 01-4.45-3.001 14.111 14.111 0 01-3.678-6.452.503.503 0 00-.975 0 14.134 14.134 0 01-3.679 6.452 14.155 14.155 0 01-4.45 3.001c-.65.28-1.318.505-2.002.678a.502.502 0 000 .975c.684.172 1.35.397 2.002.677a14.147 14.147 0 014.45 3.001 14.112 14.112 0 013.679 6.453.502.502 0 00.975 0c.172-.685.397-1.351.677-2.003a14.145 14.145 0 013.001-4.45 14.113 14.113 0 016.453-3.678.503.503 0 000-.975 13.245 13.245 0 01-2.003-.678z" fill="url(#gemB)"/><path d="M20.616 10.835a14.147 14.147 0 01-4.45-3.001 14.111 14.111 0 01-3.678-6.452.503.503 0 00-.975 0 14.134 14.134 0 01-3.679 6.452 14.155 14.155 0 01-4.45 3.001c-.65.28-1.318.505-2.002.678a.502.502 0 000 .975c.684.172 1.35.397 2.002.677a14.147 14.147 0 014.45 3.001 14.112 14.112 0 013.679 6.453.502.502 0 00.975 0c.172-.685.397-1.351.677-2.003a14.145 14.145 0 013.001-4.45 14.113 14.113 0 016.453-3.678.503.503 0 000-.975 13.245 13.245 0 01-2.003-.678z" fill="url(#gemC)"/></svg>`,
   },
   {
@@ -10581,31 +10581,24 @@ async function callAI(provider, fileContent, mimeType, isText = false, retryCoun
     return json.choices?.[0]?.message?.content || "";
 
   } catch(e) {
-    const isOverloaded = e.status === 503 || (e.message || "").toLowerCase().includes("high demand") || (e.message || "").toLowerCase().includes("overloaded");
-    if (e.status === 429 && retryCount < 4 && !isTest) {
-      // Rate limit — exponential backoff
-      const wait = Math.min(15 * Math.pow(2, retryCount), 60);
-      showRateLimitMsg(`Rate limit reached — retrying in ${wait}s... (attempt ${retryCount + 1}/4)`);
-      await new Promise(r => setTimeout(r, wait * 1000));
-      hideRateLimitMsg();
-      return callAI(provider, fileContent, mimeType, isText, retryCount + 1, false);
-    }
-    if (isOverloaded && retryCount < 4 && !isTest) {
-      // Server overloaded — exponential backoff
+    const errMsg = (e.message || "").toLowerCase();
+    const isOverloaded = e.status === 503 || e.status === 529
+      || errMsg.includes("high demand")
+      || errMsg.includes("overloaded")
+      || errMsg.includes("resource_exhausted")
+      || errMsg.includes("server_error")
+      || errMsg.includes("service unavailable")
+      || errMsg.includes("try again");
+    if ((e.status === 429 || isOverloaded) && retryCount < 4 && !isTest) {
       const wait = Math.min(5 * Math.pow(2, retryCount), 40);
-      showRateLimitMsg(`${provider.name} is busy — retrying in ${wait}s... (attempt ${retryCount + 1}/4)`);
+      showRateLimitMsg(`Gemini is busy — retrying in ${wait}s... (attempt ${retryCount + 1}/4)`);
       await new Promise(r => setTimeout(r, wait * 1000));
       hideRateLimitMsg();
       return callAI(provider, fileContent, mimeType, isText, retryCount + 1, false);
     }
-    if (e.status === 429) {
-      const msg = e.message || "Rate limit reached";
-      const hint = msg.toLowerCase().includes("billing") || msg.toLowerCase().includes("quota")
-        ? `${msg} — check your billing setup at aistudio.google.com`
-        : msg;
-      throw new Error(hint);
+    if (e.status === 429 || isOverloaded) {
+      throw new Error(`Gemini is busy — all ${retryCount} retries exhausted. Try again shortly.`);
     }
-    if (isOverloaded) throw new Error(`${provider.name} is experiencing high demand — please try again in a moment`);
     throw e;
   }
 }
@@ -13310,7 +13303,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.31</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.32</div>
         </div>
 
         <div class="pp-cards">
@@ -13419,7 +13412,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.31</div>
+  <div id="version-footer">v5.4.32</div>
 
 </body>
 </html>
