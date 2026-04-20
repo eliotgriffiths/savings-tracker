@@ -979,7 +979,9 @@
   .ai-provider-desc { font-size: 11px; color: var(--text-3); margin-bottom: 8px; line-height: 1.5; }
   .ai-provider-privacy { font-size: 10px; color: var(--text-3); margin-bottom: 8px; font-style: italic; }
   .ai-provider-key-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
-  .ai-provider-key-input { flex: 1; background: var(--bg2); border: 1px solid var(--border-hi); border-radius: var(--radius); padding: 8px 10px; color: var(--text-1); font-size: 16px; font-family: 'DM Sans', sans-serif; outline: none; }
+  .ai-provider-key-input { flex: 1; background: var(--bg2); border: 1px solid var(--border-hi); border-radius: var(--radius); padding: 8px 10px; color: var(--text-1); font-size: 16px; font-family: 'DM Sans', sans-serif; outline: none; transition: all 0.2s; }
+  .ai-provider-key-input.collapsed { padding: 5px 10px; font-size: 12px; color: var(--text-3); letter-spacing: 2px; cursor: pointer; }
+  .ai-provider-key-input.collapsed:hover { border-color: var(--gold); color: var(--text-2); }
   .ai-provider-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
   .ai-provider-btn { font-size: 11px; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border-hi); background: var(--bg2); color: var(--text-2); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: color 0.15s, border-color 0.15s; }
   .ai-provider-btn:hover { color: var(--gold); border-color: var(--gold-dim); }
@@ -10548,7 +10550,13 @@ async function callAI(provider, fileContent, mimeType, isText = false, retryCoun
       hideRateLimitMsg();
       return callAI(provider, fileContent, mimeType, isText, retryCount + 1, false);
     }
-    if (e.status === 429) throw new Error("Rate limit reached — wait a moment and try again");
+    if (e.status === 429) {
+      const msg = e.message || "Rate limit reached";
+      const hint = msg.toLowerCase().includes("billing") || msg.toLowerCase().includes("quota")
+        ? `${msg} — check your billing setup at aistudio.google.com`
+        : msg;
+      throw new Error(hint);
+    }
     throw e;
   }
 }
@@ -11114,10 +11122,12 @@ function renderAIProviderCards() {
 
         <!-- Key input -->
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
-          <input type="password" class="ai-provider-key-input" id="aikey-${provider.id}"
+          <input type="password" class="ai-provider-key-input${key ? ' collapsed' : ''}" id="aikey-${provider.id}"
             placeholder="Paste API key here..." value="${key}"
             autocomplete="off" autocorrect="off" spellcheck="false"
-            style="flex:1;">
+            style="flex:1;"
+            onfocus="this.classList.remove('collapsed')"
+            onblur="if(this.value) this.classList.add('collapsed')">
           <button class="ai-provider-btn" onclick="toggleAIKeyVisibility('${provider.id}')">Show</button>
         </div>
 
@@ -13204,7 +13214,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.19</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.21</div>
         </div>
 
         <div class="pp-cards">
@@ -13313,7 +13323,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.19</div>
+  <div id="version-footer">v5.4.21</div>
 
 </body>
 </html>
