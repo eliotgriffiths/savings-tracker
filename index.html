@@ -11309,6 +11309,8 @@ async function saveAIKey(providerId) {
 
 function clearAIKey(providerId) {
   setAIKey(providerId, "");
+  // Stamp a fresh timestamp so cloud sync won't restore the old key
+  try { localStorage.setItem(AI_KEY_PREFIX + providerId + "_ts", Date.now().toString()); } catch {}
   if (getAIProvider() === providerId) {
     // Pick next available provider as default
     const next = AI_PROVIDERS.find(p => p.id !== providerId && getAIKey(p.id));
@@ -13355,7 +13357,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.48</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.49</div>
         </div>
 
         <div class="pp-cards">
@@ -13464,7 +13466,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.48</div>
+  <div id="version-footer">v5.4.49</div>
 
 </body>
 </html>
