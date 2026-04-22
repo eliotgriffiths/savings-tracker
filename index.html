@@ -10228,7 +10228,7 @@ const AI_PRIVACY_KEY     = "vault_ai_privacy_agreed";
 const AI_ENABLED_PREFIX  = "vault_ai_enabled_"; // "0" = disabled, absent/other = enabled
 
 function getAIKey(providerId) {
-  try { return localStorage.getItem(AI_KEY_PREFIX + providerId) || ""; } catch { return ""; }
+  try { return (localStorage.getItem(AI_KEY_PREFIX + providerId) || "").trim(); } catch { return ""; }
 }
 function setAIKey(providerId, key) {
   try { localStorage.setItem(AI_KEY_PREFIX + providerId, key); } catch {}
@@ -13355,7 +13355,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.47</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.48</div>
         </div>
 
         <div class="pp-cards">
@@ -13464,7 +13464,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.42</div>
+  <div id="version-footer">v5.4.48</div>
 
 </body>
 </html>
