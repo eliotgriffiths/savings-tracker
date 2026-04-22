@@ -10580,7 +10580,7 @@ async function callAI(provider, fileContent, mimeType, isText = false, retryCoun
         messages: [{ role: "user", content: userContent }] })
     });
     const json = await response.json();
-    if (!response.ok) throw Object.assign(new Error(json.error?.message || "API error"), { status: response.status });
+    if (!response.ok) throw Object.assign(new Error(json.error?.message || json.message || json.detail || (typeof json === "object" ? JSON.stringify(json).slice(0, 150) : "API error")), { status: response.status });
     return json.choices?.[0]?.message?.content || "";
 
   } catch(e) {
@@ -13336,7 +13336,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.42</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.43</div>
         </div>
 
         <div class="pp-cards">
