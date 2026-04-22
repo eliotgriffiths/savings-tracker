@@ -10183,7 +10183,7 @@ const AI_PROVIDERS = [
     tier: "paid",
     keyUrl: "https://console.x.ai", keyUrlLabel: "Get an API key at console.x.ai",
     privacyUrl: "https://x.ai/privacy-policy",
-    model: "grok-4", testModel: "grok-4",
+    model: "grok-4.20-0309-reasoning", testModel: "grok-4-1-fast-non-reasoning",
     logo: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22"><path fill="white" d="M9.27 15.29l7.978-5.897c.391-.29.95-.177 1.137.272.98 2.369.542 5.215-1.41 7.169-1.951 1.954-4.667 2.382-7.149 1.406l-2.711 1.257c3.889 2.661 8.611 2.003 11.562-.953 2.341-2.344 3.066-5.539 2.388-8.42l.006.007c-.983-4.232.242-5.924 2.75-9.383.06-.082.12-.164.179-.248l-3.301 3.305v-.01L9.267 15.292M7.623 16.723c-2.792-2.67-2.31-6.801.071-9.184 1.761-1.763 4.647-2.483 7.166-1.425l2.705-1.25a7.808 7.808 0 00-1.829-1A8.975 8.975 0 005.984 5.83c-2.533 2.536-3.33 6.436-1.962 9.764 1.022 2.487-.653 4.246-2.34 6.022-.599.63-1.199 1.259-1.682 1.925l7.62-6.815"/></svg>`,
   },
   {
@@ -10562,11 +10562,30 @@ async function callAI(provider, fileContent, mimeType, isText = false, retryCoun
       return json.content?.[0]?.text || "";
     }
 
-    // OpenAI-compatible providers: openai, groq, xai, mistral
+    // xAI (Grok) — uses /v1/responses API (not OpenAI chat completions)
+    if (provider.id === "xai") {
+      const input = isText
+        ? [{ role: "user", content: prompt + "\n\nFile contents:\n" + fileContent }]
+        : [{ role: "user", content: [
+            { type: "image_url", image_url: { url: `data:${mimeType};base64,${fileContent}` } },
+            { type: "text", text: prompt }
+          ]}];
+      response = await fetch("https://api.x.ai/v1/responses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
+        body: JSON.stringify({ model: provider.model, input })
+      });
+      const json = await response.json();
+      if (!response.ok) throw Object.assign(new Error(json.error?.message || json.message || json.detail || (typeof json === "object" ? JSON.stringify(json).slice(0, 150) : "API error")), { status: response.status });
+      // Responses API returns output array of message objects
+      const outputText = json.output?.find(o => o.type === "message")?.content?.find(c => c.type === "output_text")?.text || "";
+      return outputText;
+    }
+
+    // OpenAI-compatible providers: openai, groq, mistral
     const endpoints = {
       openai:  "https://api.openai.com/v1/chat/completions",
       groq:    "https://api.groq.com/openai/v1/chat/completions",
-      xai:     "https://api.x.ai/v1/chat/completions",
       mistral: "https://api.mistral.ai/v1/chat/completions",
     };
     const userContent = isText
@@ -13336,7 +13355,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.44</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.47</div>
         </div>
 
         <div class="pp-cards">
