@@ -10782,11 +10782,17 @@ async function processFileWithAI(file, provider, progressItem, onProgress) {
     // Fall through to base64 path for unreadable spreadsheets (e.g. complex Numbers files)
   }
 
-  // SVG: send as text (XML-based, all providers handle it fine as text)
+  // SVG: strip XML tags and send inner text content only
   if (ext === "svg" || file.type === "image/svg+xml") {
     updateProgressItem(progressItem, "processing", "Reading...");
     prog(35);
-    const text = await fileToText(file);
+    const rawSvg = await fileToText(file);
+    // Strip all XML/SVG tags, decode entities, collapse whitespace
+    const text = rawSvg
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&nbsp;/g, " ")
+      .replace(/[ \t]+/g, " ")
+      .split("\n").map(l => l.trim()).filter(l => l.length > 0).join("\n");
     updateProgressItem(progressItem, "processing", "Sending to AI...");
     prog(45, true);
     const aiText = await callAI(provider, text, "text/plain", true);
@@ -13457,7 +13463,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.56</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.57</div>
         </div>
 
         <div class="pp-cards">
@@ -13566,7 +13572,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.56</div>
+  <div id="version-footer">v5.4.57</div>
 
 </body>
 </html>
