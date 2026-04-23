@@ -1624,16 +1624,22 @@
   }
 
   @keyframes _barShimmer {
-    0%   { background-position: -800px 0; }
-    100% { background-position: 800px 0; }
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(400%); }
   }
+  #import-progress-bar-wrap { position: relative; overflow: hidden; }
+  #import-progress-bar { transition: width 0.3s; }
   #import-progress-bar.shimmer {
     width: 100% !important;
-    background-image: linear-gradient(90deg, var(--gold) 25%, #f0d98a 50%, var(--gold) 75%);
-    background-size: 800px 100%;
-    background-repeat: no-repeat;
-    animation: _barShimmer 1.4s infinite linear;
-    transition: none;
+    transition: none !important;
+  }
+  #import-progress-bar.shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    width: 25%;
+    background: linear-gradient(90deg, transparent, rgba(255,235,150,0.7), transparent);
+    animation: _barShimmer 1.2s ease-in-out infinite;
   }
 
   .dmenu-header {
@@ -3511,7 +3517,6 @@
           <div class="import-card-sub">Any file type · Any bank · Any format</div>
         </div>
       </div>
-      <div class="import-card-formats">CSV · TXT · XLSX · PDF · PNG · JPG · OFX · QIF</div>
       <div id="import-ai-status" class="import-ai-status"></div>
       <div style="display:flex; gap:8px; margin-top:12px;">
         <button id="import-ai-btn" class="import-primary-btn" onclick="triggerAIImport()">Select Photos or Files</button>
@@ -3586,7 +3591,7 @@
   <div class="modal-box" style="max-width:420px; position:relative;">
     <div class="modal-header"><h2>Importing files...</h2></div>
     <div id="import-progress-bar-wrap" style="background:var(--bg3); border-radius:4px; height:4px; margin-bottom:16px; overflow:hidden;">
-      <div id="import-progress-bar" style="height:100%; background:var(--gold); border-radius:4px; width:0%; transition:width 0.3s;"></div>
+      <div id="import-progress-bar" style="height:100%; background:var(--gold); border-radius:4px; width:0%;"></div>
     </div>
     <div id="import-progress-list" style="display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto;"></div>
     <div id="import-rate-limit-msg" style="display:none; font-size:12px; color:var(--gold); margin-top:10px; text-align:center;"></div>
@@ -13397,7 +13402,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.52</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.53</div>
         </div>
 
         <div class="pp-cards">
@@ -13506,7 +13511,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.52</div>
+  <div id="version-footer">v5.4.53</div>
 
 </body>
 </html>
