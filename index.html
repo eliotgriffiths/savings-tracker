@@ -10632,13 +10632,15 @@ async function callAI(provider, fileContent, mimeType, isText = false, retryCoun
       return json.content?.[0]?.text || "";
     }
 
-    // xAI (Grok) — uses /v1/responses API (not OpenAI chat completions)
+    // xAI (Grok) — uses /v1/responses API with input_text / input_image content types
     if (provider.id === "xai") {
       const input = isText
-        ? [{ role: "user", content: prompt + "\n\nFile contents:\n" + fileContent }]
+        ? [{ role: "user", content: [
+            { type: "input_text", text: prompt + "\n\nFile contents:\n" + fileContent }
+          ]}]
         : [{ role: "user", content: [
-            { type: "image_url", image_url: { url: `data:${mimeType};base64,${fileContent}` } },
-            { type: "text", text: prompt }
+            { type: "input_image", image_url: `data:${mimeType};base64,${fileContent}` },
+            { type: "input_text", text: prompt }
           ]}];
       response = await fetch("https://api.x.ai/v1/responses", {
         method: "POST",
@@ -13455,7 +13457,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.54</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.55</div>
         </div>
 
         <div class="pp-cards">
@@ -13564,7 +13566,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.54</div>
+  <div id="version-footer">v5.4.55</div>
 
 </body>
 </html>
