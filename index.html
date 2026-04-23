@@ -10341,6 +10341,52 @@ async function handleImportFiles(fileList) {
   await runImportPipeline(_importAccumulatedFiles);
 }
 
+async function loadPdfJs() {
+  if (window.pdfjsLib) return window.pdfjsLib;
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    script.onload = () => {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      resolve(window.pdfjsLib);
+    };
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
+async function convertPdfToJpeg(file) {
+  // Render all PDF pages to a single tall JPEG for providers that don't support PDF
+  try {
+    const pdfjsLib = await loadPdfJs();
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const scale = 2; // retina quality
+    const canvases = [];
+    let totalHeight = 0, maxWidth = 0;
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const viewport = page.getViewport({ scale });
+      const canvas = document.createElement("canvas");
+      canvas.width = viewport.width; canvas.height = viewport.height;
+      await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+      canvases.push(canvas);
+      totalHeight += viewport.height;
+      maxWidth = Math.max(maxWidth, viewport.width);
+    }
+    // Stitch all pages into one tall canvas
+    const merged = document.createElement("canvas");
+    merged.width = maxWidth; merged.height = totalHeight;
+    const ctx = merged.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, maxWidth, totalHeight);
+    let y = 0;
+    for (const c of canvases) { ctx.drawImage(c, 0, y); y += c.height; }
+    return await new Promise(resolve => merged.toBlob(resolve, "image/jpeg", 0.90));
+  } catch(e) { return null; }
+}
+
 async function convertHeicToJpeg(file) {
   // Try canvas approach first (works natively on iOS Safari)
   try {
@@ -10382,6 +10428,13 @@ async function prepareFile(file, providerId) {
   if (file.type === "image/heic" || file.type === "image/heif" ||
       file.name.toLowerCase().endsWith(".heic")) {
     const converted = await convertHeicToJpeg(file);
+    if (converted) file = converted;
+  }
+  // xAI does not support PDF as inline base64 — render to JPEG via pdf.js
+  const ext = file.name.toLowerCase().split(".").pop();
+  if (providerId === "xai" && (file.type === "application/pdf" || ext === "pdf")) {
+    updateProgressItem && updateProgressItem._lastItem;
+    const converted = await convertPdfToJpeg(file);
     if (converted) file = converted;
   }
   // Providers that only support jpg/png: convert other image formats to JPEG
@@ -13402,7 +13455,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.53</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.54</div>
         </div>
 
         <div class="pp-cards">
@@ -13511,7 +13564,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.53</div>
+  <div id="version-footer">v5.4.54</div>
 
 </body>
 </html>
