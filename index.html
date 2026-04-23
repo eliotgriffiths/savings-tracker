@@ -10746,7 +10746,7 @@ async function processFileWithAI(file, provider, progressItem, onProgress) {
     const aiText = await callAI(provider, text, "text/plain", true);
     prog(85);
     txs = parseAIResponse(aiText);
-    if (!txs) {
+    if (!txs || txs.length === 0) {
       // Retry with stricter prompt
       updateProgressItem(progressItem, "processing", "Retrying...");
       prog(45, true);
@@ -10770,7 +10770,7 @@ async function processFileWithAI(file, provider, progressItem, onProgress) {
       const aiText = await callAI(provider, csvText, "text/plain", true);
       prog(85);
       txs = parseAIResponse(aiText);
-      if (!txs) {
+      if (!txs || txs.length === 0) {
         updateProgressItem(progressItem, "processing", "Retrying...");
         prog(45, true);
         const retry = await callAI(provider, "Return ONLY a JSON array. " + csvText, "text/plain", true, 1);
@@ -10798,7 +10798,7 @@ async function processFileWithAI(file, provider, progressItem, onProgress) {
     const aiText = await callAI(provider, text, "text/plain", true);
     prog(85);
     txs = parseAIResponse(aiText);
-    if (!txs) {
+    if (!txs || txs.length === 0) {
       updateProgressItem(progressItem, "processing", "Retrying...");
       prog(45, true);
       const retry = await callAI(provider, "Return ONLY a JSON array. " + text, "text/plain", true, 1);
@@ -10818,7 +10818,7 @@ async function processFileWithAI(file, provider, progressItem, onProgress) {
   const aiText = await callAI(provider, b64, mimeType, false);
   prog(85);
   txs = parseAIResponse(aiText);
-  if (!txs) {
+  if (!txs || txs.length === 0) {
     updateProgressItem(progressItem, "processing", "Retrying...");
     prog(45, true);
     const retry = await callAI(provider, b64, mimeType, false, 1);
@@ -13463,7 +13463,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.57</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.58</div>
         </div>
 
         <div class="pp-cards">
@@ -13572,7 +13572,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.57</div>
+  <div id="version-footer">v5.4.58</div>
 
 </body>
 </html>
