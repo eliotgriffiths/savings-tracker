@@ -10439,16 +10439,18 @@ async function prepareFile(file, providerId) {
   }
   // Providers that only support jpg/png: convert other image formats to JPEG
   // xAI supports only jpg/jpeg and png; OpenAI/Groq/Mistral also prefer jpg/png
+  // SVG is excluded — it's handled as text, not as an image
   const strictImageProviders = ["xai", "openai", "groq", "mistral"];
   const supportedTypes = ["image/jpeg", "image/png"];
-  if (providerId && strictImageProviders.includes(providerId) &&
+  const isSvg = file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg");
+  if (!isSvg && providerId && strictImageProviders.includes(providerId) &&
       file.type && file.type.startsWith("image/") &&
       !supportedTypes.includes(file.type)) {
     const converted = await convertHeicToJpeg(file); // canvas→JPEG works for any image format
     if (converted) file = converted;
   }
-  // Image compression (always, after any conversion)
-  if (file.type && file.type.startsWith("image/") && file.size > 500000) {
+  // Image compression (always, after any conversion) — skip SVG
+  if (!isSvg && file.type && file.type.startsWith("image/") && file.size > 500000) {
     file = await compressImage(file, 1920);
   }
   return file;
@@ -13463,7 +13465,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.58</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.59</div>
         </div>
 
         <div class="pp-cards">
@@ -13572,7 +13574,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.58</div>
+  <div id="version-footer">v5.4.59</div>
 
 </body>
 </html>
