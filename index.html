@@ -960,6 +960,8 @@
   .import-tx-flag { font-size: 14px; flex-shrink: 0; }
   .import-progress-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-2); padding: 4px 0; }
   .import-progress-item .ipi-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+  .import-progress-item.processing .ipi-icon { display: inline-block; animation: _spinIcon 1s linear infinite; }
+  @keyframes _spinIcon { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   .import-progress-item .ipi-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .import-progress-item .ipi-status { color: var(--text-3); font-size: 11px; flex-shrink: 0; }
   .import-progress-item.success .ipi-status { color: var(--green); }
@@ -3509,7 +3511,7 @@
           <div class="import-card-sub">Any file type · Any bank · Any format</div>
         </div>
       </div>
-      <div class="import-card-formats">CSV · XLSX · PDF · PNG · JPG · OFX · QIF</div>
+      <div class="import-card-formats">CSV · TXT · XLSX · PDF · PNG · JPG · OFX · QIF</div>
       <div id="import-ai-status" class="import-ai-status"></div>
       <div style="display:flex; gap:8px; margin-top:12px;">
         <button id="import-ai-btn" class="import-primary-btn" onclick="triggerAIImport()">Select Photos or Files</button>
@@ -3535,7 +3537,7 @@
     </div>
 
     <!-- Hidden file input -->
-    <input type="file" id="import-file-input" multiple accept="image/*,.pdf,.csv,.xlsx,.xls,.xlsm,.xlsb,.ods,.numbers,.tsv,.ofx,.qfx,.qif" style="display:none;" onchange="handleImportFiles(this.files)">
+    <input type="file" id="import-file-input" multiple accept="image/*,.pdf,.csv,.txt,.xlsx,.xls,.xlsm,.xlsb,.ods,.numbers,.tsv,.ofx,.qfx,.qif" style="display:none;" onchange="handleImportFiles(this.files)">
   </div>
 </div>
 
@@ -10370,14 +10372,24 @@ async function compressImage(file, maxWidth = 1920) {
   });
 }
 
-async function prepareFile(file) {
-  // HEIC conversion
+async function prepareFile(file, providerId) {
+  // HEIC conversion (always)
   if (file.type === "image/heic" || file.type === "image/heif" ||
       file.name.toLowerCase().endsWith(".heic")) {
     const converted = await convertHeicToJpeg(file);
     if (converted) file = converted;
   }
-  // Image compression
+  // Providers that only support jpg/png: convert other image formats to JPEG
+  // xAI supports only jpg/jpeg and png; OpenAI/Groq/Mistral also prefer jpg/png
+  const strictImageProviders = ["xai", "openai", "groq", "mistral"];
+  const supportedTypes = ["image/jpeg", "image/png"];
+  if (providerId && strictImageProviders.includes(providerId) &&
+      file.type && file.type.startsWith("image/") &&
+      !supportedTypes.includes(file.type)) {
+    const converted = await convertHeicToJpeg(file); // canvas→JPEG works for any image format
+    if (converted) file = converted;
+  }
+  // Image compression (always, after any conversion)
   if (file.type && file.type.startsWith("image/") && file.size > 500000) {
     file = await compressImage(file, 1920);
   }
@@ -10643,7 +10655,7 @@ async function processFileWithAI(file, provider, progressItem, onProgress) {
   prog(5);
 
   // Prepare file (HEIC conversion + compression)
-  file = await prepareFile(file);
+  file = await prepareFile(file, provider.id);
   prog(20);
 
   let txs = null;
@@ -10664,21 +10676,22 @@ async function processFileWithAI(file, provider, progressItem, onProgress) {
     }
   }
 
-  // CSV: send as text
-  if (["csv","tsv"].includes(ext) || file.type === "text/csv") {
+  // CSV/TXT: send as text
+  if (["csv","tsv","txt"].includes(ext) || file.type === "text/csv" || file.type === "text/plain") {
     updateProgressItem(progressItem, "processing", "Reading...");
     prog(35);
     const text = await fileToText(file);
     updateProgressItem(progressItem, "processing", "Sending to AI...");
-    prog(45);
+    prog(45); updateProgressBar(45, true);
     const aiText = await callAI(provider, text, "text/plain", true);
-    prog(85);
+    updateProgressBar(85); prog(85);
     txs = parseAIResponse(aiText);
     if (!txs) {
       // Retry with stricter prompt
       updateProgressItem(progressItem, "processing", "Retrying...");
+      updateProgressBar(45, true);
       const retry = await callAI(provider, "Return ONLY a JSON array. " + text, "text/plain", true, 1);
-      txs = parseAIResponse(retry) || [];
+      updateProgressBar(85); txs = parseAIResponse(retry) || [];
     }
     prog(100);
     return { txs, name };
@@ -10688,16 +10701,42 @@ async function processFileWithAI(file, provider, progressItem, onProgress) {
   if (["xlsx","xls","xlsm","xlsb","ods","numbers"].includes(ext)) {
     updateProgressItem(progressItem, "processing", "Reading spreadsheet...");
     prog(35);
-    const csvText = await extractSpreadsheetText(file);
+    let csvText = "";
+    try { csvText = await extractSpreadsheetText(file); } catch(e) { csvText = ""; }
+    // Numbers files can fail SheetJS — if result is empty fall through to base64 path
+    if (csvText && csvText.trim().length > 10) {
+      updateProgressItem(progressItem, "processing", "Sending to AI...");
+      prog(45); updateProgressBar(45, true);
+      const aiText = await callAI(provider, csvText, "text/plain", true);
+      updateProgressBar(85); prog(85);
+      txs = parseAIResponse(aiText);
+      if (!txs) {
+        updateProgressItem(progressItem, "processing", "Retrying...");
+        updateProgressBar(45, true);
+        const retry = await callAI(provider, "Return ONLY a JSON array. " + csvText, "text/plain", true, 1);
+        updateProgressBar(85); txs = parseAIResponse(retry) || [];
+      }
+      prog(100);
+      return { txs, name };
+    }
+    // Fall through to base64 path for unreadable spreadsheets (e.g. complex Numbers files)
+  }
+
+  // SVG: send as text (XML-based, all providers handle it fine as text)
+  if (ext === "svg" || file.type === "image/svg+xml") {
+    updateProgressItem(progressItem, "processing", "Reading...");
+    prog(35);
+    const text = await fileToText(file);
     updateProgressItem(progressItem, "processing", "Sending to AI...");
-    prog(45);
-    const aiText = await callAI(provider, csvText, "text/plain", true);
-    prog(85);
+    prog(45); updateProgressBar(45, true);
+    const aiText = await callAI(provider, text, "text/plain", true);
+    updateProgressBar(85); prog(85);
     txs = parseAIResponse(aiText);
     if (!txs) {
       updateProgressItem(progressItem, "processing", "Retrying...");
-      const retry = await callAI(provider, "Return ONLY a JSON array. " + csvText, "text/plain", true, 1);
-      txs = parseAIResponse(retry) || [];
+      updateProgressBar(45, true);
+      const retry = await callAI(provider, "Return ONLY a JSON array. " + text, "text/plain", true, 1);
+      updateProgressBar(85); txs = parseAIResponse(retry) || [];
     }
     prog(100);
     return { txs, name };
@@ -10709,14 +10748,15 @@ async function processFileWithAI(file, provider, progressItem, onProgress) {
   const mimeType = file.type || (ext === "pdf" ? "application/pdf" : "image/jpeg");
   const b64 = await fileToBase64(file);
   updateProgressItem(progressItem, "processing", "Sending to AI...");
-  prog(45);
+  prog(45); updateProgressBar(45, true);
   const aiText = await callAI(provider, b64, mimeType, false);
-  prog(85);
+  updateProgressBar(85); prog(85);
   txs = parseAIResponse(aiText);
   if (!txs) {
     updateProgressItem(progressItem, "processing", "Retrying...");
+    updateProgressBar(45, true);
     const retry = await callAI(provider, b64, mimeType, false, 1);
-    txs = parseAIResponse(retry) || [];
+    updateProgressBar(85); txs = parseAIResponse(retry) || [];
   }
   prog(100);
   return { txs, name };
@@ -13357,7 +13397,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.49</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.51</div>
         </div>
 
         <div class="pp-cards">
@@ -13466,7 +13506,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.49</div>
+  <div id="version-footer">v5.4.51</div>
 
 </body>
 </html>
