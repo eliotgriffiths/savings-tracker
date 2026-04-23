@@ -10649,7 +10649,7 @@ function hideRateLimitMsg() {
 async function processFileWithAI(file, provider, progressItem, onProgress) {
   const ext  = file.name.toLowerCase().split(".").pop();
   const name = file.name;
-  const prog = onProgress || (() => {});
+  const prog = onProgress || ((pct, shimmer) => { if (shimmer !== undefined) updateProgressBar(pct, shimmer); });
 
   updateProgressItem(progressItem, "processing", "Optimising...");
   prog(5);
@@ -10682,16 +10682,16 @@ async function processFileWithAI(file, provider, progressItem, onProgress) {
     prog(35);
     const text = await fileToText(file);
     updateProgressItem(progressItem, "processing", "Sending to AI...");
-    prog(45); updateProgressBar(45, true);
+    prog(45, true);
     const aiText = await callAI(provider, text, "text/plain", true);
-    updateProgressBar(85); prog(85);
+    prog(85);
     txs = parseAIResponse(aiText);
     if (!txs) {
       // Retry with stricter prompt
       updateProgressItem(progressItem, "processing", "Retrying...");
-      updateProgressBar(45, true);
+      prog(45, true);
       const retry = await callAI(provider, "Return ONLY a JSON array. " + text, "text/plain", true, 1);
-      updateProgressBar(85); txs = parseAIResponse(retry) || [];
+      prog(85); txs = parseAIResponse(retry) || [];
     }
     prog(100);
     return { txs, name };
@@ -10706,15 +10706,15 @@ async function processFileWithAI(file, provider, progressItem, onProgress) {
     // Numbers files can fail SheetJS — if result is empty fall through to base64 path
     if (csvText && csvText.trim().length > 10) {
       updateProgressItem(progressItem, "processing", "Sending to AI...");
-      prog(45); updateProgressBar(45, true);
+      prog(45, true);
       const aiText = await callAI(provider, csvText, "text/plain", true);
-      updateProgressBar(85); prog(85);
+      prog(85);
       txs = parseAIResponse(aiText);
       if (!txs) {
         updateProgressItem(progressItem, "processing", "Retrying...");
-        updateProgressBar(45, true);
+        prog(45, true);
         const retry = await callAI(provider, "Return ONLY a JSON array. " + csvText, "text/plain", true, 1);
-        updateProgressBar(85); txs = parseAIResponse(retry) || [];
+        prog(85); txs = parseAIResponse(retry) || [];
       }
       prog(100);
       return { txs, name };
@@ -10728,15 +10728,15 @@ async function processFileWithAI(file, provider, progressItem, onProgress) {
     prog(35);
     const text = await fileToText(file);
     updateProgressItem(progressItem, "processing", "Sending to AI...");
-    prog(45); updateProgressBar(45, true);
+    prog(45, true);
     const aiText = await callAI(provider, text, "text/plain", true);
-    updateProgressBar(85); prog(85);
+    prog(85);
     txs = parseAIResponse(aiText);
     if (!txs) {
       updateProgressItem(progressItem, "processing", "Retrying...");
-      updateProgressBar(45, true);
+      prog(45, true);
       const retry = await callAI(provider, "Return ONLY a JSON array. " + text, "text/plain", true, 1);
-      updateProgressBar(85); txs = parseAIResponse(retry) || [];
+      prog(85); txs = parseAIResponse(retry) || [];
     }
     prog(100);
     return { txs, name };
@@ -10748,15 +10748,15 @@ async function processFileWithAI(file, provider, progressItem, onProgress) {
   const mimeType = file.type || (ext === "pdf" ? "application/pdf" : "image/jpeg");
   const b64 = await fileToBase64(file);
   updateProgressItem(progressItem, "processing", "Sending to AI...");
-  prog(45); updateProgressBar(45, true);
+  prog(45, true);
   const aiText = await callAI(provider, b64, mimeType, false);
-  updateProgressBar(85); prog(85);
+  prog(85);
   txs = parseAIResponse(aiText);
   if (!txs) {
     updateProgressItem(progressItem, "processing", "Retrying...");
-    updateProgressBar(45, true);
+    prog(45, true);
     const retry = await callAI(provider, b64, mimeType, false, 1);
-    updateProgressBar(85); txs = parseAIResponse(retry) || [];
+    prog(85); txs = parseAIResponse(retry) || [];
   }
   prog(100);
   return { txs, name };
@@ -10811,8 +10811,8 @@ async function runImportPipeline(files) {
           updateProgressItem(pItem, "processing", `Trying ${tryProvider.name}...`);
         }
         // Map sub-step pct (0–100) into this file's slice of the overall bar
-        const onProgress = (subPct) => {
-          updateProgressBar(fileStart + (subPct / 100) * (fileEnd - fileStart));
+        const onProgress = (subPct, shimmer = false) => {
+          updateProgressBar(fileStart + (subPct / 100) * (fileEnd - fileStart), shimmer);
         };
         const { txs } = await processFileWithAI(file, tryProvider, pItem, onProgress);
         updateProgressBar(fileEnd); // ensure we reach the file's end
@@ -13397,7 +13397,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.51</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.52</div>
         </div>
 
         <div class="pp-cards">
@@ -13506,7 +13506,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.51</div>
+  <div id="version-footer">v5.4.52</div>
 
 </body>
 </html>
