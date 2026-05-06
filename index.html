@@ -476,6 +476,63 @@
   }
   .btn-popup-cancel:hover { border-color: var(--border-hi); color: var(--text-1); }
 
+  /* ── recurring pill + scoped actions inside edit popup ── */
+  .popup-recur-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(212,175,55,0.08); border: 1px solid rgba(212,175,55,0.22);
+    border-radius: 20px; padding: 4px 10px 4px 7px;
+    margin-bottom: 18px; cursor: pointer; transition: background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .popup-recur-pill:hover { background: rgba(212,175,55,0.14); }
+  .popup-recur-pill-icon { color: var(--gold); display: flex; align-items: center; }
+  .popup-recur-pill-text { font-size: 12px; color: var(--gold); font-weight: 500; }
+  .popup-recur-pill-arrow { font-size: 10px; color: var(--gold); opacity: 0.6; margin-left: 1px; }
+
+  /* Scope toggle — appears below Save when tx is from a rule */
+  .popup-scope-row {
+    display: flex; align-items: center; gap: 0;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden; margin-bottom: 8px;
+  }
+  .popup-scope-label {
+    font-size: 11px; color: var(--text-3); padding: 0 10px;
+    white-space: nowrap; flex-shrink: 0; border-right: 1px solid var(--border);
+    height: 36px; display: flex; align-items: center;
+  }
+  .popup-scope-btn {
+    flex: 1; background: none; border: none; border-right: 1px solid var(--border);
+    padding: 0 10px; height: 36px; font-size: 12px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif; color: var(--text-2); cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .popup-scope-btn:last-child { border-right: none; }
+  .popup-scope-btn:hover { background: var(--bg4); color: var(--text-1); }
+  .popup-scope-btn.active { background: var(--gold); color: #0f0f11; font-weight: 700; }
+  .popup-scope-btn.active:hover { opacity: 0.9; }
+
+  /* Delete menu — expands in-place */
+  .popup-delete-menu {
+    border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; margin-top: 6px;
+  }
+  .popup-delete-menu-item {
+    width: 100%; background: none; border: none; border-bottom: 1px solid var(--border);
+    padding: 11px 14px; text-align: left; font-size: 13px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif; color: var(--red); cursor: pointer;
+    transition: background 0.12s; display: flex; justify-content: space-between; align-items: center;
+  }
+  .popup-delete-menu-item:last-child { border-bottom: none; }
+  .popup-delete-menu-item:hover { background: var(--red-dim); }
+  .popup-delete-menu-item .popup-delete-sub {
+    font-size: 11px; color: var(--text-3); font-weight: 400;
+  }
+  .popup-recur-orphan {
+    font-size: 12px; color: var(--text-3); font-style: italic;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 10px 13px; margin-bottom: 16px;
+  }
+
   /* ── toast ── */
   #toast {
     position: fixed;
@@ -662,6 +719,8 @@
   #recur-edit-popup:not(.hidden) { display: flex; }
   #recur-delete-popup { display: none; }
   #recur-delete-popup:not(.hidden) { display: flex; }
+  #rep-account-confirm-popup { display: none; }
+  #rep-account-confirm-popup:not(.hidden) { display: flex; }
   #recurring-modal .modal-box { max-width: 520px; max-height: 85vh; display: flex; flex-direction: column; }
   #recurring-modal .modal-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-shrink: 0; }
   #recurring-modal .modal-header h2 { flex: 1; margin: 0; }
@@ -671,7 +730,7 @@
     background: var(--bg3); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 14px 16px;
     margin-bottom: 8px; display: flex; flex-direction: column; align-items: stretch;
-  }
+    flex-wrap: wrap;
   }
   .recur-item-info { flex: 1; min-width: 0; }
   .recur-item-title { font-weight: 500; font-size: 13px; color: var(--text-1); margin-bottom: 3px; }
@@ -680,18 +739,84 @@
   .recur-item-amt.wit { color: var(--red);   font-weight: 600; font-size: 13px; }
   .recur-delete-btn {
     background: transparent; border: none; color: var(--red); font-size: 13px;
-    cursor: pointer; padding: 2px 7px; border-radius: 5px; line-height: 1; flex-shrink: 0;
+    cursor: pointer; padding: 7px 11px; border-radius: 5px; line-height: 1; flex-shrink: 0;
     transition: color 0.15s, background 0.15s; font-family: 'DM Sans', sans-serif; font-weight: 500;
   }
   .recur-delete-btn:hover { background: var(--red-dim); }
   .recur-edit-btn {
     background: transparent; border: none; color: var(--text-3); font-size: 13px;
-    cursor: pointer; padding: 2px 7px; border-radius: 5px; line-height: 1; flex-shrink: 0;
+    cursor: pointer; padding: 7px 11px; border-radius: 5px; line-height: 1; flex-shrink: 0;
     transition: color 0.15s, background 0.15s; font-family: 'DM Sans', sans-serif;
   }
   .recur-edit-btn:hover { color: var(--gold); background: rgba(201,168,76,0.1); }
-  .recur-item { flex-wrap: wrap; }
   #recur-empty { text-align: center; padding: 32px 0; color: var(--text-3); font-size: 13px; font-weight: 300; }
+  .recur-history-btn {
+    background: transparent; border: none; color: var(--text-3); font-size: 13px;
+    cursor: pointer; padding: 7px 11px; border-radius: 5px; line-height: 1; flex-shrink: 0;
+    transition: color 0.15s, background 0.15s; font-family: 'DM Sans', sans-serif;
+  }
+  .recur-history-btn:hover { color: var(--gold); background: rgba(201,168,76,0.1); }
+
+  /* Rule history slide-in panel */
+  #recur-history-panel {
+    position: absolute; inset: 0; background: var(--bg2);
+    border-radius: inherit; display: flex; flex-direction: column;
+    transform: translateX(100%); transition: transform 0.22s ease;
+    z-index: 2;
+    clip-path: inset(0 round var(--radius-lg));
+  }
+  #recur-history-panel.open { transform: translateX(0); }
+  .recur-history-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 22px 24px 14px; flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .recur-history-back {
+    background: none; border: none; color: var(--text-2); cursor: pointer;
+    font-size: 18px; line-height: 1; padding: 2px 6px 2px 0;
+    font-family: 'DM Sans', sans-serif; flex-shrink: 0;
+    transition: color 0.15s;
+  }
+  .recur-history-back:hover { color: var(--text-1); }
+  .recur-history-title { flex: 1; min-width: 0; }
+  .recur-history-title h3 {
+    font-family: 'DM Serif Display', serif; font-size: 17px;
+    font-weight: 400; color: var(--text-1); margin: 0 0 1px;
+  }
+  .recur-history-title p {
+    font-size: 11px; color: var(--text-3); margin: 0;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .recur-history-body { flex: 1; overflow-y: auto; padding: 12px 24px 20px; }
+  .recur-history-empty {
+    text-align: center; padding: 40px 0;
+    font-size: 13px; color: var(--text-3); font-weight: 300;
+  }
+  .recur-history-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .recur-history-row:last-child { border-bottom: none; }
+  .recur-history-date { font-size: 13px; color: var(--text-2); flex: 1; }
+  .recur-history-amt { font-size: 13px; font-weight: 600; flex-shrink: 0; }
+  .recur-history-amt.dep { color: var(--green); }
+  .recur-history-amt.wit { color: var(--red); }
+  .recur-history-skipped { font-size: 11px; color: var(--text-3); font-style: italic; flex-shrink: 0; }
+  .recur-history-readd {
+    font-size: 11px; font-weight: 600; color: var(--gold); flex-shrink: 0;
+    background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 10px; padding: 2px 8px; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: background 0.12s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .recur-history-readd:hover { background: rgba(212,175,55,0.2); }
+  .recur-history-row-tap { transition: background 0.12s; border-radius: 6px; margin: 0 -8px; padding-left: 8px; padding-right: 8px; }
+  .recur-history-row-tap:hover { background: var(--bg3); }
+  .recur-history-row-tap:active { background: var(--bg4); }
+  .recur-history-row-skip { transition: background 0.12s; border-radius: 6px; margin: 0 -8px; padding-left: 8px; padding-right: 8px; }
+  .recur-history-row-skip:hover { background: var(--bg3); }
+  .recur-history-chevron { font-size: 15px; color: var(--text-3); flex-shrink: 0; margin-left: 4px; }
+  .recur-history-original { font-size: 10px; color: var(--text-3); margin-top: 2px; font-style: italic; }
   #recur-add-form { flex-shrink: 0; }
   .recur-form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
   .recur-form-row .field { flex: 1; min-width: 120px; }
@@ -921,6 +1046,121 @@
     letter-spacing: 0.04em; margin-left: 2px;
   }
 
+  /* ── Pagination (transaction table) ──────────────────────────────────── */
+  /* v2: smaller and right-aligned — the pager is a tool, not a header.
+     The top bar is split into [info on left][controls on right] in one row;
+     the bottom bar is controls-only, right-aligned. Buttons are dim at idle
+     (text-3) so the table content stays the visual focus. */
+  .tx-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 16px;
+    gap: 14px;
+    background: transparent;
+  }
+  .tx-pagination-top    { border-bottom: 1px solid var(--border); }
+  .tx-pagination-bottom { border-top:    1px solid var(--border); justify-content: flex-end; }
+
+  .tx-pagination-info {
+    flex: 1;
+    min-width: 0;
+    font-size: 11.5px;
+    color: var(--text-3);
+    font-weight: 300;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tx-pagination-info .pn-accent { color: var(--gold); font-weight: 500; }
+  .tx-pagination-info .pn-sep    { color: var(--text-3); opacity: 0.5; margin: 0 8px; }
+  .tx-pagination-info .pn-muted  { color: var(--text-3); opacity: 0.65; font-style: italic; font-weight: 300; }
+
+  .tx-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    flex-shrink: 0;
+  }
+  .tx-page-btn {
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-3);
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tx-page-btn:hover:not(:disabled) {
+    color: var(--gold);
+    background: rgba(201,168,76, 0.06);
+  }
+  .tx-page-btn.active {
+    color: var(--gold);
+    background: rgba(201,168,76, 0.08);
+    border-color: var(--gold-dim);
+    font-weight: 600;
+  }
+  .tx-page-btn.active:hover { color: var(--gold); }
+  .tx-page-btn:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+  }
+  .tx-page-arrow {
+    font-size: 14px;
+    color: var(--text-3);
+    margin: 0 2px;
+  }
+  .tx-page-ellipsis {
+    color: var(--text-3);
+    padding: 0 5px;
+    user-select: none;
+    align-self: center;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+  }
+  .tx-page-compact {
+    color: var(--text-2);
+    font-size: 12px;
+    padding: 0 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    align-self: center;
+  }
+  .tx-page-compact .pn-accent { color: var(--gold); font-weight: 600; }
+  .tx-page-compact .pn-of     { color: var(--text-3); font-weight: 300; margin: 0 4px; }
+
+  /* Mobile: stack info above controls, right-align controls */
+  @media (max-width: 640px) {
+    .tx-pagination {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+      padding: 10px 12px;
+    }
+    .tx-pagination-bottom { padding-top: 8px; }
+    .tx-pagination-info { font-size: 11px; text-align: left; white-space: normal; }
+    .tx-pagination-controls { justify-content: flex-end; gap: 4px; }
+    .tx-page-btn { min-width: 32px; height: 32px; padding: 0 9px; font-size: 12px; }
+    .tx-page-arrow { min-width: 32px; }
+  }
+  /* Hide pagination when printing — printCurrentView builds its own document */
+  @media print {
+    .tx-pagination { display: none !important; }
+  }
+
   /* ── Import system ────────────────────────────────────────────────────── */
   #import-popup, #import-preview-popup, #import-progress-popup,
   #import-tx-review-popup, #ai-provider-popup, #ai-privacy-popup {
@@ -992,6 +1232,7 @@
   .ai-privacy-provider-item { background: var(--bg3); border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.6; }
   .ai-privacy-provider-name { font-weight: 600; color: var(--text-1); margin-bottom: 2px; }
   .ai-privacy-provider-detail { color: var(--text-3); }
+  .report-filter-pill {
     background: var(--bg3); border: 1px solid var(--border-hi);
     border-radius: 20px; padding: 6px 14px;
     font-size: 12px; font-weight: 500; color: var(--text-2);
@@ -1042,6 +1283,17 @@
   /* ════════════════════════════════════════════
      MOBILE (≤ 640px)
   ════════════════════════════════════════════ */
+
+  /* iOS: prevent auto-zoom on input focus by enforcing 16px on touch devices.
+     !important is needed to override inline font-size on the many inline-styled
+     inputs/selects in popups. Excludes radio/checkbox (no font-size effect there). */
+  @media (hover: none) {
+    input:not([type="checkbox"]):not([type="radio"]),
+    select, textarea {
+      font-size: 16px !important;
+    }
+  }
+
   @media (max-width: 640px) {
     #sidebar { display: none; }
     .header-btns .btn-ghost { display: none; }
@@ -1618,6 +1870,16 @@
   }
   /* force reflow so transition fires on display:block */
   #desktop-menu.open { animation: _menuOpen 0.18s cubic-bezier(0.4,0,0.2,1) forwards; }
+  @keyframes _recurHighlight {
+    0%   { border-color: var(--border); }
+    15%  { border-color: rgba(212,175,55,0.8); }
+    100% { border-color: var(--border); }
+  }
+  .recur-item-highlight {
+    animation: _recurHighlight 1.8s ease-out forwards;
+    transition: none;
+  }
+
   @keyframes _menuOpen {
     from { transform: translateY(-6px); opacity: 0; }
     to   { transform: translateY(0);   opacity: 1; }
@@ -1854,7 +2116,7 @@
     #menu-sheet, #year-sheet, #add-sheet, #desktop-add-popup,
     #setup-modal, #enc-menu-popup, #enc-set-popup, #enc-decrypt-popup,
     #enc-choice-popup, #drive-merge-popup, #welcome-modal, #year-format-popup,
-    #toast, #debug-panel, #mob-fabs, .tabs,
+    #toast, #debug-panel, #mob-fabs, #tabs,
     #report-controls, .btn-ghost, .btn-gold, .btn-local, .btn-primary { display: none !important; }
 
     /* Show only the active content panel */
@@ -1891,7 +2153,8 @@
     overflow: hidden;
   }
   #privacy-overlay.open, #about-overlay.open { display: flex; }
-  #privacy-header {
+  #privacy-header,
+  #about-header {
     background: var(--bg1);
     border-bottom: 1px solid var(--border);
     padding: 0 24px;
@@ -1901,80 +2164,102 @@
     justify-content: space-between;
     flex-shrink: 0;
   }
-  #privacy-header h2 {
+  #privacy-header h2,
+  #about-header h2 {
     font-family: 'DM Serif Display', serif;
     font-size: 18px;
     font-weight: 400;
     color: var(--text-1);
   }
-  #privacy-body {
+  #privacy-body,
+  #about-body {
     flex: 1;
     overflow-y: auto;
     padding: 48px 24px 80px;
   }
-  #privacy-body .pp-inner {
+  #privacy-body .pp-inner,
+  #about-body .pp-inner {
     max-width: 680px;
     margin: 0 auto;
   }
-  #privacy-body .pp-hero {
+  #privacy-body .pp-hero,
+  #about-body .pp-hero {
     margin-bottom: 40px;
     padding-bottom: 40px;
     border-bottom: 1px solid var(--border);
   }
-  #privacy-body .pp-eyebrow {
+  #privacy-body .pp-eyebrow,
+  #about-body .pp-eyebrow {
     font-size: 10px; font-weight: 700;
     letter-spacing: 0.1em; text-transform: uppercase;
     color: var(--gold); margin-bottom: 12px;
   }
-  #privacy-body .pp-title {
+  #privacy-body .pp-title,
+  #about-body .pp-title {
     font-family: 'DM Serif Display', serif;
     font-size: clamp(28px, 5vw, 40px);
     font-weight: 400; color: var(--text-1);
     margin-bottom: 14px; line-height: 1.2;
   }
-  #privacy-body .pp-subtitle {
+  #privacy-body .pp-subtitle,
+  #about-body .pp-subtitle {
     font-size: 14px; font-weight: 300;
     color: var(--text-2); line-height: 1.75;
   }
-  #privacy-body .pp-meta {
+  #privacy-body .pp-meta,
+  #about-body .pp-meta {
     margin-top: 16px; font-size: 11px; color: var(--text-3);
   }
-  #privacy-body .pp-cards {
+  #privacy-body .pp-cards,
+  #about-body .pp-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 10px; margin-bottom: 40px;
   }
-  #privacy-body .pp-card {
+  #privacy-body .pp-card,
+  #about-body .pp-card {
     background: var(--bg2); border: 1px solid var(--border);
     border-radius: 10px; padding: 14px 16px;
   }
-  #privacy-body .pp-card-icon { width: 32px; height: 32px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; background: rgba(201,168,76,0.08); border-radius: 8px; color: var(--gold); flex-shrink: 0; }
-  #privacy-body .pp-card-title { font-size: 12px; font-weight: 600; color: var(--text-1); margin-bottom: 3px; }
-  #privacy-body .pp-card-body { font-size: 11px; color: var(--text-3); line-height: 1.6; font-weight: 300; }
-  #privacy-body .pp-section { margin-bottom: 40px; }
-  #privacy-body .pp-section-num {
+  #privacy-body .pp-card-icon,
+  #about-body .pp-card-icon { width: 32px; height: 32px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; background: rgba(201,168,76,0.08); border-radius: 8px; color: var(--gold); flex-shrink: 0; }
+  #privacy-body .pp-card-title,
+  #about-body .pp-card-title { font-size: 12px; font-weight: 600; color: var(--text-1); margin-bottom: 3px; }
+  #privacy-body .pp-card-body,
+  #about-body .pp-card-body { font-size: 11px; color: var(--text-3); line-height: 1.6; font-weight: 300; }
+  #privacy-body .pp-section,
+  #about-body .pp-section { margin-bottom: 40px; }
+  #privacy-body .pp-section-num,
+  #about-body .pp-section-num {
     font-size: 10px; font-weight: 700;
     letter-spacing: 0.08em; text-transform: uppercase;
     color: var(--gold); margin-bottom: 8px;
   }
-  #privacy-body .pp-section-title {
+  #privacy-body .pp-section-title,
+  #about-body .pp-section-title {
     font-family: 'DM Serif Display', serif;
     font-size: 20px; font-weight: 400;
     color: var(--text-1); margin-bottom: 12px;
   }
-  #privacy-body .pp-section-body {
+  #privacy-body .pp-section-body,
+  #about-body .pp-section-body {
     font-size: 13px; font-weight: 300;
     color: var(--text-2); line-height: 1.8;
   }
-  #privacy-body .pp-section-body p { margin-bottom: 12px; }
-  #privacy-body .pp-section-body p:last-child { margin-bottom: 0; }
-  #privacy-body .pp-section-body strong { color: var(--text-1); font-weight: 500; }
-  #privacy-body .pp-section-body code {
+  #privacy-body .pp-section-body p,
+  #about-body .pp-section-body p { margin-bottom: 12px; }
+  #privacy-body .pp-section-body p:last-child,
+  #about-body .pp-section-body p:last-child { margin-bottom: 0; }
+  #privacy-body .pp-section-body strong,
+  #about-body .pp-section-body strong { color: var(--text-1); font-weight: 500; }
+  #privacy-body .pp-section-body code,
+  #about-body .pp-section-body code {
     font-family: monospace; font-size: 11px;
     background: var(--bg3); padding: 1px 5px;
     border-radius: 4px; color: var(--text-2);
   }
-  #privacy-body .pp-highlight {
+  #privacy-body .pp-highlight,
+  #about-body .pp-highlight {
     background: rgba(201,168,76,0.05);
     border: 1px solid rgba(201,168,76,0.2);
     border-radius: 8px; padding: 14px 18px;
@@ -1982,24 +2267,94 @@
     color: var(--text-2); line-height: 1.7;
     font-weight: 300;
   }
-  #privacy-body .pp-highlight strong { color: var(--gold); }
-  #privacy-body .pp-contact {
+  #privacy-body .pp-highlight strong,
+  #about-body .pp-highlight strong { color: var(--gold); }
+  #privacy-body .pp-contact,
+  #about-body .pp-contact {
     background: var(--bg2); border: 1px solid var(--border);
     border-radius: 12px; padding: 24px 28px; margin-top: 40px;
   }
-  #privacy-body .pp-contact-title {
+  #privacy-body .pp-contact-title,
+  #about-body .pp-contact-title {
     font-family: 'DM Serif Display', serif;
     font-size: 18px; font-weight: 400;
     color: var(--text-1); margin-bottom: 8px;
   }
-  #privacy-body .pp-contact-body {
+  #privacy-body .pp-contact-body,
+  #about-body .pp-contact-body {
     font-size: 13px; font-weight: 300;
     color: var(--text-2); line-height: 1.7;
   }
-  #privacy-body .pp-contact-body a { color: var(--gold); text-decoration: none; }
-  #privacy-body .pp-contact-body a:hover { text-decoration: underline; }
-  #privacy-body .pp-divider {
+  #privacy-body .pp-contact-body a,
+  #about-body .pp-contact-body a { color: var(--gold); text-decoration: none; }
+  #privacy-body .pp-contact-body a:hover,
+  #about-body .pp-contact-body a:hover { text-decoration: underline; }
+  #privacy-body .pp-divider,
+  #about-body .pp-divider {
     border: none; border-top: 1px solid var(--border); margin: 36px 0;
+  }
+
+  /* ════════════════════════════════════════════
+     TOUCH-DEVICE HOVER RESETS
+     Many :hover rules above lack a (hover: hover) media guard, so on iOS the
+     hover state sticks after a tap until the user taps elsewhere. This block
+     resets the visible hover effects back to their resting state on touch
+     devices. When adding new :hover rules elsewhere, either wrap them in
+     @media (hover: hover) OR add a matching reset entry here.
+  ════════════════════════════════════════════ */
+  @media (hover: none) {
+    /* Gold primary buttons — opacity was being lowered on tap */
+    .btn-save:hover, .btn-primary:hover, .btn-gold:hover,
+    #recur-add-btn:hover, #recur-submit-btn:hover, #account-add-btn:hover,
+    #sidebar-addnew-btn:hover, #mob-add-btn:hover { opacity: 1; }
+
+    /* Secondary / cancel buttons */
+    .btn-delete:hover { background: transparent; border-color: var(--border-hi); }
+    .btn-popup-cancel:hover { border-color: var(--border); color: var(--text-2); }
+    .info-popup-close-btn:hover { border-color: var(--border-hi); color: var(--text-2); }
+
+    /* Recurring rule popup elements */
+    .popup-recur-pill:hover { background: rgba(212,175,55,0.08); }
+    .popup-scope-btn:hover { background: none; color: var(--text-2); }
+    .popup-scope-btn.active:hover { opacity: 1; }
+    .popup-delete-menu-item:hover { background: none; }
+
+    /* Recurring rule list row buttons */
+    .recur-delete-btn:hover { background: transparent; }
+    .recur-edit-btn:hover, .recur-history-btn:hover { color: var(--text-3); background: transparent; }
+    .recur-history-readd:hover { background: rgba(212,175,55,0.1); }
+    .recur-history-row-tap:hover, .recur-history-row-skip:hover { background: transparent; }
+    .recur-history-back:hover { color: var(--text-2); }
+
+    /* Account pills + manager rows */
+    .acc-pill:hover { color: var(--text-2); border-color: var(--border); }
+    .acc-manager-rename-btn:hover { color: var(--text-3); border-color: var(--border-hi); }
+    .acc-manager-delete-btn:hover { color: var(--text-3); border-color: var(--border-hi); }
+    .acc-manager-currency-btn:hover { color: var(--text-3); border-color: var(--border-hi); }
+
+    /* Setup modal cards */
+    .smod-card:hover { border-color: var(--border); background: var(--bg3); }
+    .smod-card.smod-card-warn:hover { border-color: rgba(192,80,74,0.2); }
+    .smod-card:hover .smod-card-icon { color: var(--text-3); }
+    .smod-back:hover { color: var(--gold); }
+
+    /* Modal/sheet chrome */
+    .modal-close:hover { color: var(--text-3); background: transparent; }
+    .sheet-close-btn:hover { color: var(--text-2); background: transparent; }
+    .sheet-back-btn:hover { color: var(--text-2); }
+
+    /* AI provider settings */
+    .ai-provider-card:hover { border-color: var(--border); }
+    .ai-provider-btn:hover { color: var(--text-2); border-color: var(--border-hi); }
+    .ai-provider-key-input.collapsed:hover { border-color: var(--border-hi); color: var(--text-3); }
+
+    /* Sidebar / year list */
+    #btn-new-year:hover { border-color: var(--border-hi); color: var(--text-3); }
+    #sidebar-collapse-btn:hover { color: var(--text-3); }
+    .year-btn .fy-chevron:hover { color: var(--text-2); background: transparent; }
+
+    /* Report panel */
+    .report-filter-pill:hover { border-color: var(--border-hi); color: var(--text-2); background: var(--bg3); }
   }
 </style>
 </head>
@@ -2012,7 +2367,7 @@
     <!-- Main view — three storage option cards -->
     <div id="smod-main" style="width:100%;">
       <div style="display:flex; align-items:center; padding:24px 24px 0;">
-        <h2 style="flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400; color:var(--text-1); margin:0;">Save &amp; Backup</h2>
+        <h2 style="flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400; color:var(--text-1); margin:0;">Save & backup</h2>
         <button class="modal-close" onclick="closeSetup()" title="Close">✕</button>
       </div>
       <p style="font-size:12px; color:var(--text-3); padding:6px 24px 20px; margin:0; line-height:1.6;">Choose how your data is stored and backed up.</p>
@@ -2029,7 +2384,7 @@
             </svg>
           </div>
           <div class="smod-card-body">
-            <div class="smod-card-title">Cloud Service</div>
+            <div class="smod-card-title">Cloud service</div>
             <div class="smod-card-sub" id="smod-cloud-sub">Sync to Google Drive, OneDrive, or Dropbox</div>
           </div>
           <div class="smod-card-chevron">›</div>
@@ -2046,7 +2401,7 @@
             </svg>
           </div>
           <div class="smod-card-body">
-            <div class="smod-card-title">Network Location / NAS</div>
+            <div class="smod-card-title">Network location / NAS</div>
             <div class="smod-card-sub" id="smod-nas-sub">Sync to Nextcloud, a NAS, or any home server</div>
           </div>
           <div class="smod-card-chevron">›</div>
@@ -2062,7 +2417,7 @@
             </svg>
           </div>
           <div class="smod-card-body">
-            <div class="smod-card-title">Local File</div>
+            <div class="smod-card-title">Local file</div>
             <div class="smod-card-sub" id="smod-local-sub">Save or load a backup file on this device</div>
           </div>
           <div class="smod-card-chevron">›</div>
@@ -2080,7 +2435,7 @@
             </svg>
           </div>
           <div class="smod-card-body">
-            <div class="smod-card-title">Browser Storage Only</div>
+            <div class="smod-card-title">Browser storage only</div>
             <div class="smod-card-sub">No backup — data lost if browser is cleared</div>
           </div>
           <div class="smod-card-chevron">›</div>
@@ -2212,7 +2567,7 @@
         <div id="local-permission-info" style="display:none; background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.25); border-radius:var(--radius); padding:12px 14px; margin-bottom:14px;">
           <div style="font-size:11px; font-weight:700; color:var(--gold); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;">Permission needed</div>
           <div id="local-permission-info-body" style="font-size:12px; color:var(--text-3); line-height:1.6; margin-bottom:10px;">Your linked backup file lost write access — this usually happens after the browser restarts. Reconnect to resume auto-saving.</div>
-          <button class="btn-gold" style="font-size:12px; padding:6px 14px;" onclick="reauthoriseLocalFile()">Reconnect to file</button>
+          <button class="btn-gold" style="font-size:12px; padding:6px 14px;" onclick="reauthoriseLocalFile()">Reconnect file</button>
         </div>
 
         <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
@@ -2296,7 +2651,7 @@
 
       <div style="border-top:1px solid var(--border); padding-top:14px;">
         <div style="font-size:11px; color:var(--text-3); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.06em; font-weight:600;">Forgot your password?</div>
-        <p style="font-size:12px; color:var(--text-2); margin-bottom:10px; line-height:1.6;">Use your <code>vault-recovery.json</code> file to unlock. Encryption will be disabled so you can set a new password.</p>
+        <p style="font-size:12px; color:var(--text-2); margin-bottom:10px; line-height:1.6;">Use your <code>vault-recovery.json</code> file to unlock. This will disable encryption — you can re-enable it with a new password afterwards.</p>
         <input type="file" id="lock-recovery-file" accept=".json" style="display:none" onchange="unlockWithRecoveryFile(this)">
         <button class="btn-local" style="width:100%;" onclick="document.getElementById('lock-recovery-file').click()">Use recovery key file</button>
       </div>
@@ -2309,7 +2664,7 @@
   <div class="info-popup-box" style="max-width:400px; width:100%;">
     <div style="display:flex; align-items:center; margin-bottom:6px;">
       <button class="smod-back" onclick="closeCloudPicker()" style="font-size:15px; padding:0 10px 0 0;">‹ Back</button>
-      <h3 style="flex:1; margin:0;">Cloud Service</h3>
+      <h3 style="flex:1; margin:0;">Cloud service</h3>
     </div>
     <p style="font-size:12px; color:var(--text-3); margin:0 0 20px; line-height:1.6;">Choose a cloud service to sync your Vault data. Auto-saves every change and works on all browsers and devices.</p>
 
@@ -2427,7 +2782,7 @@
 <div id="year-format-popup" class="hidden">
   <div class="info-popup-box" style="max-width:400px;">
     <div style="display:flex; align-items:center; margin-bottom:20px;">
-      <h3 style="margin-bottom:0; flex:1;">Year Format</h3>
+      <h3 style="margin-bottom:0; flex:1;">Year format</h3>
       <button class="modal-close" onclick="closeYearFormatPopup()" title="Close">✕</button>
     </div>
     <div class="info-mode" id="yfmt-cal" style="cursor:pointer;" onclick="switchYearMode('calendar');">
@@ -2521,7 +2876,7 @@
 <div id="desktop-add-popup" class="hidden" onclick="if(event.target===this)closeDesktopAddSheet()">
   <div class="tx-popup-box" style="max-width:420px; padding:32px;">
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
-      <h3 style="flex:1; margin:0;">Add Transaction</h3>
+      <h3 style="flex:1; margin:0;">Add transaction</h3>
       <button class="modal-close" onclick="closeDesktopAddSheet()" title="Close">✕</button>
     </div>
 
@@ -2584,11 +2939,11 @@
           <input type="date" id="desk-recur-end" style="color-scheme:dark; background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%; max-width:100%; box-sizing:border-box; flex:1; min-height:0;">
         </div>
       </div>
-      <div style="font-size:11px; color:var(--text-3); line-height:1.6;">The transaction date above will be used as the start date for this recurring transaction. Future occurrences are added automatically as each date is reached.</div>
+      <div style="font-size:11px; color:var(--text-3); line-height:1.6;">The date above is the start date. Future occurrences are added automatically when each date arrives.</div>
     </div>
 
     <div class="tx-popup-actions">
-      <button class="btn-save" id="desk-add-btn" onclick="desktopAddTransaction()" style="background:var(--green);">Add Deposit</button>
+      <button class="btn-save" id="desk-add-btn" onclick="desktopAddTransaction()" style="background:var(--green);">Add deposit</button>
       <button class="btn-popup-cancel" onclick="closeDesktopAddSheet()">Cancel</button>
     </div>
   </div>
@@ -2647,7 +3002,7 @@
       <div><div class="dmenu-btn-label">Charts</div><div class="dmenu-btn-sub">Visual breakdown of your savings</div></div>
     </button>
 
-    <button class="dmenu-btn" onclick="alert('Holdings tracking — coming soon!');" style="opacity:0.6; cursor:not-allowed;" title="Coming soon">
+    <button class="dmenu-btn" onclick="toast('Holdings tracking is coming soon','var(--gold-dim)')" style="opacity:0.6; cursor:not-allowed;" title="Coming soon">
       <span class="dmenu-btn-icon">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <line x1="3.5" y1="2" x2="3.5" y2="14" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.35"/>
@@ -2667,6 +3022,18 @@
 
     <!-- Section: Data -->
     <div class="dmenu-section-label">Data</div>
+
+    <button class="dmenu-btn" onclick="closeDesktopMenu(); openRecurringModal();">
+      <span class="dmenu-btn-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.25" fill="none"/>
+          <path d="M8 4.5v3.5l2 2" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M11.5 2.5 C13.2 3.7 14.5 5.7 14.5 8" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.45"/>
+          <polyline points="11,1.5 11.5,2.5 12.5,2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" opacity="0.45"/>
+        </svg>
+      </span>
+      <div><div class="dmenu-btn-label">Recurring</div><div class="dmenu-btn-sub" id="dmenu-recur-sub">None active</div></div>
+    </button>
 
     <button class="dmenu-btn" onclick="closeDesktopMenu(); menuExportXLSX();">
       <span class="dmenu-btn-icon">
@@ -2867,7 +3234,7 @@
     </div>
     <div id="year-list">
       <div id="add-year-area" style="display:none;">
-        <button id="btn-new-year" onclick="showAddYear()">+ New Year</button>
+        <button id="btn-new-year" onclick="showAddYear()">+ New year</button>
         <div id="add-year-form">
           <input id="new-year-input" type="text" maxlength="5" placeholder="e.g. 26-27"
                  onkeydown="if(event.key==='Enter')confirmAddYear()">
@@ -2907,7 +3274,8 @@
     </div>
 
     <div id="table-wrap">
-      <div id="empty-msg" style="display:none">No transactions yet — add one above.</div>
+      <div id="empty-msg" style="display:none">No transactions yet — add your first one above.</div>
+      <div id="tx-pagination-top" class="tx-pagination tx-pagination-top" style="display:none;"></div>
       <table id="tx-table" style="display:none">
         <thead><tr>
           <th id="sort-date"    onclick="setSort('date')"    class="sort-col" style="white-space:nowrap;">Date <span style="font-size:13px; letter-spacing:0;">↑</span></th>
@@ -2922,6 +3290,7 @@
         <tbody id="tx-body"></tbody>
 
       </table>
+      <div id="tx-pagination-bottom" class="tx-pagination tx-pagination-bottom" style="display:none;"></div>
     </div>
 
     <!-- Report panel -->
@@ -2946,9 +3315,9 @@
             <input type="date" id="report-to" style="color-scheme:dark" oninput="renderReport()">
           </div>
           <button id="report-preset-fy" class="btn-ghost" onclick="setReportPreset('fy')">This FY</button>
-          <button class="btn-ghost" onclick="setReportPreset('year')">This Year</button>
-          <button class="btn-ghost" onclick="setReportPreset('month')">This Month</button>
-          <button class="btn-ghost" onclick="setReportPreset('all')">All Time</button>
+          <button class="btn-ghost" onclick="setReportPreset('year')">This year</button>
+          <button class="btn-ghost" onclick="setReportPreset('month')">This month</button>
+          <button class="btn-ghost" onclick="setReportPreset('all')">All time</button>
         </div>
 
         <!-- Type filter -->
@@ -3139,7 +3508,7 @@
     </span>
   </button>
 
-  <button class="menu-item-btn" onclick="alert('Holdings tracking — coming soon!');" style="opacity:0.6; cursor:not-allowed;" title="Coming soon">
+  <button class="menu-item-btn" onclick="toast('Holdings tracking is coming soon','var(--gold-dim)')" style="opacity:0.6; cursor:not-allowed;" title="Coming soon">
     <span class="menu-item-icon">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         <line x1="3.5" y1="2" x2="3.5" y2="14" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.35"/>
@@ -3159,6 +3528,21 @@
 
   <!-- Section: Data -->
   <div class="menu-section-label">Data</div>
+
+  <button class="menu-item-btn" onclick="closeSheets(); openRecurringModal();">
+    <span class="menu-item-icon">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.25" fill="none"/>
+        <path d="M8 4.5v3.5l2 2" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M11.5 2.5 C13.2 3.7 14.5 5.7 14.5 8" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.45"/>
+        <polyline points="11,1.5 11.5,2.5 12.5,2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" opacity="0.45"/>
+      </svg>
+    </span>
+    <span class="menu-item-body">
+      <span class="menu-item-label">Recurring</span>
+      <span class="menu-item-sub" id="mob-recur-manage-sub">None active</span>
+    </span>
+  </button>
 
   <button class="menu-item-btn" onclick="closeSheets(); menuExportXLSX();">
     <span class="menu-item-icon">
@@ -3389,7 +3773,7 @@
   </button>
   <div id="ysheet-year-list">
   </div>
-  <button id="ysheet-new-btn" onclick="showYsheetNewForm()">+ New Year</button>
+  <button id="ysheet-new-btn" onclick="showYsheetNewForm()">+ New year</button>
   <div id="ysheet-new-form">
     <input id="ysheet-new-input" type="text" maxlength="5" placeholder="e.g. 26-27"
            onkeydown="if(event.key==='Enter')confirmYsheetYear()">
@@ -3404,7 +3788,7 @@
 <div id="add-sheet">
   <div class="sheet-handle"></div>
   <div class="sheet-header">
-    <div class="sheet-title">Add Transaction</div>
+    <div class="sheet-title">Add transaction</div>
     <button class="sheet-close-btn" onclick="closeSheets();">✕</button>
   </div>
   <div class="add-type-toggle">
@@ -3450,17 +3834,40 @@
       <label>End Date <span style="color:var(--text-3); font-weight:300;">(optional)</span></label>
       <input type="date" id="mob-recur-end" style="color-scheme:dark; background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:11px 12px; color:var(--text-1); font-size:14px; font-family:'DM Sans',sans-serif; outline:none;">
     </div>
-    <div style="font-size:12px; color:var(--text-3); line-height:1.6;">The transaction date above will be used as the start date for this recurring transaction. Future occurrences are added automatically as each date is reached.</div>
+    <div style="font-size:12px; color:var(--text-3); line-height:1.6;">The date above is the start date. Future occurrences are added automatically when each date arrives.</div>
   </div>
 
-  <button id="mob-add-btn" onclick="mobileAddTransaction()">Add Deposit</button>
+  <button id="mob-add-btn" onclick="mobileAddTransaction()">Add deposit</button>
 </div>
 
 <!-- Transaction edit/delete popup -->
 <div id="tx-popup" class="hidden">
   <div class="tx-popup-box">
-    <h3 id="popup-title">Edit Transaction</h3>
+    <h3 id="popup-title">Edit transaction</h3>
     <div class="tx-popup-meta" id="popup-meta"></div>
+
+    <!-- Recurring pill — tappable, opens the rule manager -->
+    <div id="popup-recur-section" style="display:none;">
+      <div id="popup-rule-section" style="display:none;">
+        <button class="popup-recur-pill" onclick="openRuleFromPopup()">
+          <span class="popup-recur-pill-icon">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.1" fill="none"/>
+              <path d="M6 3.5v2.5l1.5 1.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M8.5 1.5 C9.8 2.4 10.8 3.9 10.8 6" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+              <polyline points="8.2,0.8 8.5,1.5 9.2,1.1" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+            </svg>
+          </span>
+          <span class="popup-recur-pill-text" id="popup-recur-band-detail">Recurring</span>
+          <span class="popup-recur-pill-arrow">›</span>
+        </button>
+      </div>
+      <div id="popup-rule-note" class="popup-recur-orphan" style="display:none;">
+        Created by a recurring rule that has since been deleted.
+      </div>
+    </div>
+
+    <!-- Fields -->
     <div class="tx-popup-field" id="popup-account-field">
       <label>Account</label>
       <div id="popup-account-picker" style="position:relative;">
@@ -3472,7 +3879,6 @@
         </button>
         <div id="popup-account-dropdown" style="display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); z-index:10; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,0.4);"></div>
       </div>
-      <!-- Hidden select kept for value reading by savePopup -->
       <select id="popup-account" style="display:none;"></select>
     </div>
     <div class="tx-popup-field">
@@ -3485,10 +3891,39 @@
              oninput="updatePopupCurrencyInfo(document.getElementById('popup-account')?.value || '', parseFloat(this.value)||0)">
     </div>
     <div id="popup-currency-info" style="font-size:11px; color:var(--text-3); margin-bottom:14px; line-height:1.6; display:none;"></div>
-    <div class="tx-popup-actions">
-      <button class="btn-save"          onclick="savePopup()">Save Changes</button>
-      <button class="btn-delete"        onclick="deletePopup()">Delete</button>
-      <button class="btn-popup-cancel"  onclick="closePopup()">Cancel</button>
+
+    <!-- Save scope toggle — only shown for recurring transactions -->
+    <div id="popup-scope-row" class="popup-scope-row" style="display:none;">
+      <span class="popup-scope-label">Save</span>
+      <button class="popup-scope-btn active" id="popup-scope-this" onclick="popupSetScope('this')">This only</button>
+      <button class="popup-scope-btn" id="popup-scope-all" onclick="popupSetScope('all')">All in series</button>
+    </div>
+
+    <!-- Primary actions -->
+    <div class="tx-popup-actions" id="popup-standard-actions" style="margin-top:16px;">
+      <button class="btn-save" id="popup-save-btn" onclick="popupSaveScoped()">Save changes</button>
+      <button class="btn-delete" id="popup-delete-toggle" onclick="togglePopupDeleteMenu()">Delete</button>
+      <button class="btn-popup-cancel" onclick="closePopup()">Cancel</button>
+    </div>
+
+    <!-- Delete options menu — expands below the action row -->
+    <div id="popup-delete-menu" class="popup-delete-menu" style="display:none;">
+      <!-- Non-recurring: just one option -->
+      <button id="popup-del-single" class="popup-delete-menu-item" onclick="deletePopup()">
+        Delete this transaction
+      </button>
+      <!-- Recurring-specific options (hidden for non-recurring) -->
+      <button id="popup-del-all" class="popup-delete-menu-item" onclick="deletePopupAll()" style="display:none;">
+        Delete all in this series
+        <span class="popup-delete-sub">Keeps the rule active</span>
+      </button>
+      <button id="popup-del-rule" class="popup-delete-menu-item" onclick="deleteRuleFromPopup()" style="display:none;">
+        Stop recurring rule
+        <span class="popup-delete-sub">Keeps existing transactions</span>
+      </button>
+      <button id="popup-del-rule-all" class="popup-delete-menu-item" onclick="deleteRuleAndAllFromPopup()" style="display:none;">
+        Delete rule + all transactions
+      </button>
     </div>
   </div>
 </div>
@@ -3497,7 +3932,7 @@
 <div id="import-popup" class="hidden" onclick="if(event.target===this)closeImportPopup()">
   <div class="modal-box" style="max-width:480px; position:relative;">
     <button class="modal-close" onclick="closeImportPopup()" style="position:absolute;top:14px;right:14px;">✕</button>
-    <div class="modal-header" style="padding-right:32px;"><h2>Import Transactions</h2></div>
+    <div class="modal-header" style="padding-right:32px;"><h2>Import transactions</h2></div>
 
     <!-- AI Import card -->
     <div class="import-card" id="import-ai-card">
@@ -3519,7 +3954,7 @@
       </div>
       <div id="import-ai-status" class="import-ai-status"></div>
       <div style="display:flex; gap:8px; margin-top:12px;">
-        <button id="import-ai-btn" class="import-primary-btn" onclick="triggerAIImport()">Select Photos or Files</button>
+        <button id="import-ai-btn" class="import-primary-btn" onclick="triggerAIImport()">Select photos or files</button>
         <button id="import-ai-setup-btn" class="import-secondary-btn" onclick="closeImportPopup(); openAIProviderSettings();" style="display:none;">Set up AI →</button>
       </div>
     </div>
@@ -3533,12 +3968,12 @@
           </svg>
         </span>
         <div>
-          <div class="import-card-title">Local Import</div>
+          <div class="import-card-title">Local import</div>
           <div class="import-card-sub">Processed entirely on-device · No API key needed</div>
         </div>
       </div>
       <div class="import-coming-soon-note">⚠ May be less accurate than AI import</div>
-      <button class="import-primary-btn" style="opacity:0.4; cursor:not-allowed; margin-top:12px;" onclick="toast('Local import is coming soon.','var(--gold-dim)')">Coming Soon</button>
+      <button class="import-primary-btn" style="opacity:0.4; cursor:not-allowed; margin-top:12px;" onclick="toast('Local import is coming soon.','var(--gold-dim)')">Coming soon</button>
     </div>
 
     <!-- Hidden file input -->
@@ -3550,7 +3985,7 @@
 <div id="import-preview-popup" class="hidden" onclick="if(event.target===this)closeImportPreview()">
   <div class="modal-box" style="max-width:520px; position:relative; max-height:90vh; display:flex; flex-direction:column;">
     <button class="modal-close" onclick="closeImportPreview()" style="position:absolute;top:14px;right:14px;">✕</button>
-    <div class="modal-header" style="padding-right:32px; flex-shrink:0;"><h2>Import Preview</h2></div>
+    <div class="modal-header" style="padding-right:32px; flex-shrink:0;"><h2>Import preview</h2></div>
 
     <!-- Summary bar -->
     <div id="import-preview-summary" style="font-size:13px; color:var(--text-2); margin-bottom:12px; flex-shrink:0;"></div>
@@ -3589,7 +4024,7 @@
 <!-- ── Import progress popup ─────────────────────────────────────────────── -->
 <div id="import-progress-popup" class="hidden">
   <div class="modal-box" style="max-width:420px; position:relative;">
-    <div class="modal-header"><h2>Importing files...</h2></div>
+    <div class="modal-header"><h2>Importing files…</h2></div>
     <div id="import-progress-bar-wrap" style="background:var(--bg3); border-radius:4px; height:4px; margin-bottom:16px; overflow:hidden;">
       <div id="import-progress-bar" style="height:100%; background:var(--gold); border-radius:4px; width:0%;"></div>
     </div>
@@ -3602,7 +4037,7 @@
 <div id="import-tx-review-popup" class="hidden" onclick="if(event.target===this)closeImportTxReview()">
   <div class="modal-box" style="max-width:380px; position:relative;">
     <button class="modal-close" onclick="closeImportTxReview()" style="position:absolute;top:14px;right:14px;">✕</button>
-    <div class="modal-header" style="padding-right:32px;"><h2 id="import-review-title">Review Transaction</h2></div>
+    <div class="modal-header" style="padding-right:32px;"><h2 id="import-review-title">Review transaction</h2></div>
     <p id="import-review-problem" style="font-size:12px; color:var(--gold); background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.2); border-radius:8px; padding:10px 12px; margin-bottom:16px; line-height:1.6;"></p>
     <div class="tx-popup-field">
       <label>Date</label>
@@ -3631,7 +4066,7 @@
 <div id="ai-provider-popup" class="hidden" onclick="if(event.target===this)closeAIProviderSettings()">
   <div class="modal-box" style="max-width:500px; position:relative; max-height:90vh; display:flex; flex-direction:column;">
     <button class="modal-close" onclick="closeAIProviderSettings()" style="position:absolute;top:14px;right:14px;">✕</button>
-    <div class="modal-header" style="padding-right:32px; flex-shrink:0;"><h2>AI Provider Settings</h2></div>
+    <div class="modal-header" style="padding-right:32px; flex-shrink:0;"><h2>AI provider settings</h2></div>
     <div id="ai-enc-warning" style="display:none; font-size:12px; color:var(--gold); background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.2); border-radius:8px; padding:10px 12px; margin-bottom:14px; line-height:1.6; flex-shrink:0;">
       ⚠ API keys are stored unencrypted in your backup file. <span style="text-decoration:underline; cursor:pointer;" onclick="closeAIProviderSettings(); setTimeout(openSetup,50);">Enable encryption →</span>
     </div>
@@ -3652,7 +4087,7 @@
     <div class="modal-header" style="padding-right:32px; flex-shrink:0;"><h2>AI Import — Privacy</h2></div>
     <div style="flex:1; overflow-y:auto; font-size:13px; color:var(--text-2); line-height:1.7;">
       <p style="margin-bottom:14px; font-weight:600; color:var(--text-1);">⚠ Before using AI import, please be aware:</p>
-      <p style="margin-bottom:12px;">When you import a file, its contents — including transaction amounts, dates, and merchant names — are sent to the AI provider you have selected. This data leaves your device and is processed on that provider's servers.</p>
+      <p style="margin-bottom:12px;">When you import a file, its contents — including transaction amounts, dates, and merchant names — are sent to the AI provider you've selected. This data leaves your device and is processed on that provider's servers.</p>
       <p style="margin-bottom:12px;">If you have Google Drive backup connected without encryption enabled, your API key is also stored in your backup file. Anyone with access to that file could read your key.</p>
       <p style="margin-bottom:16px;">Vault does not store or transmit your files or API keys to its own servers. Your original files are never modified or deleted.</p>
       <p style="margin-bottom:10px; font-weight:600; color:var(--text-1);">Provider privacy policies:</p>
@@ -3668,9 +4103,23 @@
 
 <!-- Recurring transactions modal -->
 <div id="recurring-modal" class="hidden">
-  <div class="modal-box">
+  <div class="modal-box" style="position:relative;">
+
+    <!-- Rule history slide-in panel -->
+    <div id="recur-history-panel">
+      <div class="recur-history-header">
+        <button class="recur-history-back" onclick="closeRecurHistory()">‹</button>
+        <div class="recur-history-title">
+          <h3 id="recur-history-rule-title">Transaction history</h3>
+          <p id="recur-history-rule-meta"></p>
+        </div>
+      </div>
+      <div class="recur-history-body" id="recur-history-body"></div>
+    </div>
+
+    <!-- Main modal content -->
     <div class="modal-header">
-      <h2>Recurring Transactions</h2>
+      <h2>Recurring transactions</h2>
       <button class="modal-close" onclick="closeRecurringModal()">✕</button>
     </div>
     <p class="modal-desc">Transactions are added automatically on the day they fall due. Future occurrences are only added once that date is reached.</p>
@@ -3679,7 +4128,7 @@
     <div id="recur-empty" style="display:none">No recurring transactions yet.</div>
 
     <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:8px; flex-shrink:0;">
-      <button id="recur-add-btn" onclick="openAddRecurringPopup()">+ Add New Recurring Transaction</button>
+      <button id="recur-add-btn" onclick="openAddRecurringPopup()">+ Add new recurring transaction</button>
     </div>
   </div>
 </div>
@@ -3689,7 +4138,7 @@
   <div class="modal-box" style="max-width:480px; position:relative;">
     <button class="modal-close" onclick="closeAddRecurringPopup()" style="position:absolute; top:14px; right:14px;">✕</button>
     <div class="modal-header" style="padding-right:32px;">
-      <h2>Add Recurring Transaction</h2>
+      <h2>Add recurring transaction</h2>
     </div>
     <div id="recur-add-form">
       <div class="recur-form-row">
@@ -3733,7 +4182,7 @@
           <select id="recur-account" style="background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%;"></select>
         </div>
       </div>
-      <div style="font-size:11px; color:var(--text-3); line-height:1.6; margin-bottom:12px;">The start date sets the first occurrence. For weekly and fortnightly rules, the same day of the week as the start date will be used for all future occurrences.</div>
+      <div style="font-size:11px; color:var(--text-3); line-height:1.6; margin-bottom:12px;">The start date sets the first occurrence. For weekly and fortnightly rules, future occurrences fall on the same weekday as the start date.</div>
       <div style="display:flex; gap:8px;">
         <button id="recur-submit-btn" onclick="addRecurringRule()" style="flex:1;">+ Add Recurring Transaction</button>
         <button onclick="closeAddRecurringPopup()" style="background:var(--bg3); border:1px solid var(--border-hi); color:var(--text-2); border-radius:var(--radius); padding:10px 18px; font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer;">Cancel</button>
@@ -3747,7 +4196,7 @@
   <div class="modal-box" style="max-width:420px; position:relative;">
     <button class="modal-close" onclick="closeRecurEditPopup()" style="position:absolute; top:14px; right:14px;">✕</button>
     <div class="modal-header" style="padding-right:32px;">
-      <h2>Edit Recurring Transaction</h2>
+      <h2>Edit recurring transaction</h2>
     </div>
     <div class="recur-form-row">
       <div class="field">
@@ -3769,17 +4218,36 @@
     </div>
     <div class="recur-form-row">
       <div class="field">
-        <label>Next Date</label>
-        <input type="date" id="rep-next" style="color-scheme:dark; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
-      </div>
-      <div class="field">
         <label>End Date <span style="color:var(--text-3); font-weight:300;">(optional)</span></label>
         <input type="date" id="rep-end" style="color-scheme:dark; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
       </div>
     </div>
+    <div class="recur-form-row" id="rep-account-row">
+      <div class="field" style="flex:1;">
+        <label>Account</label>
+        <select id="rep-account" style="background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%;"></select>
+      </div>
+    </div>
     <div style="display:flex; gap:8px; margin-top:4px;">
-      <button onclick="saveRecurEditPopup()" style="flex:1; background:var(--gold); border:none; border-radius:var(--radius); padding:11px 0; color:#0f0f11; font-weight:700; font-size:14px; font-family:'DM Sans',sans-serif; cursor:pointer;">Save Changes</button>
+      <button onclick="saveRecurEditPopup()" style="flex:1; background:var(--gold); border:none; border-radius:var(--radius); padding:11px 0; color:#0f0f11; font-weight:700; font-size:14px; font-family:'DM Sans',sans-serif; cursor:pointer;">Save changes</button>
       <button onclick="closeRecurEditPopup()" style="background:var(--bg3); border:1px solid var(--border-hi); color:var(--text-2); border-radius:var(--radius); padding:11px 18px; font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm: apply account change to past transactions? -->
+<div id="rep-account-confirm-popup" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:310; align-items:center; justify-content:center; padding:20px;" onclick="if(event.target===this){document.getElementById('rep-acct-cancel-btn').click();}">
+  <div class="modal-box" style="max-width:400px; position:relative;">
+    <h3 style="font-family:'DM Serif Display',serif; font-size:18px; font-weight:400; color:var(--text-1); margin-bottom:8px;">Apply account change?</h3>
+    <p style="font-size:13px; color:var(--text-2); margin-bottom:18px; line-height:1.6; font-weight:300;" id="rep-account-confirm-msg">You changed this rule's account. Should past transactions in this series be moved too, or just future occurrences?</p>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <button id="rep-acct-future-btn" style="background:var(--bg3); border:1px solid var(--border-hi); color:var(--text-1); border-radius:var(--radius); padding:11px 14px; font-size:13px; font-weight:500; font-family:'DM Sans',sans-serif; cursor:pointer; text-align:left;">
+        Future occurrences only<br><span style="font-size:11px; color:var(--text-3); font-weight:300;">Past transactions stay on the original account</span>
+      </button>
+      <button id="rep-acct-all-btn" style="background:var(--gold); border:none; color:#0f0f11; border-radius:var(--radius); padding:11px 14px; font-size:13px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; text-align:left;">
+        Move all transactions in this series<br><span style="font-size:11px; opacity:0.7; font-weight:400;">Past and future use the new account</span>
+      </button>
+      <button id="rep-acct-cancel-btn" style="background:transparent; border:1px solid var(--border); color:var(--text-3); border-radius:var(--radius); padding:9px 14px; font-size:12px; font-family:'DM Sans',sans-serif; cursor:pointer; margin-top:4px;">Cancel</button>
     </div>
   </div>
 </div>
@@ -3789,7 +4257,7 @@
   <div class="modal-box" style="max-width:400px; position:relative;">
     <button class="modal-close" onclick="closeRecurDeletePopup()" style="position:absolute; top:14px; right:14px;">✕</button>
     <div class="modal-header" style="padding-right:32px;">
-      <h2>Remove Recurring Rule?</h2>
+      <h2>Remove recurring rule?</h2>
     </div>
     <p style="font-size:13px; color:var(--text-2); margin-bottom:16px; line-height:1.6;" id="rdel-title"></p>
     <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;">
@@ -3809,7 +4277,7 @@
       </label>
     </div>
     <div style="display:flex; gap:8px;">
-      <button onclick="confirmDeleteRecurRule()" style="flex:1; background:var(--red); border:none; border-radius:var(--radius); padding:11px 0; color:#fff; font-size:14px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer;">Confirm Delete</button>
+      <button onclick="confirmDeleteRecurRule()" style="flex:1; background:var(--red); border:none; border-radius:var(--radius); padding:11px 0; color:#fff; font-size:14px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer;">Confirm delete</button>
       <button onclick="closeRecurDeletePopup()" style="background:var(--bg3); border:1px solid var(--border-hi); color:var(--text-2); border-radius:var(--radius); padding:11px 18px; font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer;">Cancel</button>
     </div>
   </div>
@@ -3825,9 +4293,9 @@
     <p class="modal-desc">Organise your transactions into separate savings accounts. Each transaction can be assigned to one account.</p>
     <div id="accounts-list" style="margin-bottom:16px;"></div>
     <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:4px; flex-shrink:0;">
-      <button id="account-add-btn" onclick="openAddAccountForm()">+ Add Account</button>
+      <button id="account-add-btn" onclick="openAddAccountForm()">+ Add account</button>
       <div id="account-add-form" style="display:none; margin-top:12px; padding:14px; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius);">
-        <div style="font-size:12px; color:var(--text-3); margin-bottom:10px; font-weight:500;">New Account</div>
+        <div style="font-size:12px; color:var(--text-3); margin-bottom:10px; font-weight:500;">New account</div>
         <input type="text" id="account-new-name" maxlength="32" placeholder="Account name"
           style="width:100%; background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:13px 14px; color:var(--text-1); font-size:16px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box; margin-bottom:12px;"
           onkeydown="if(event.key==='Enter')confirmAddAccount()">
@@ -3845,7 +4313,7 @@
 <div id="tx-currency-change-popup" class="hidden" onclick="if(event.target===this)cancelTxCurrencyChange()">
   <div class="modal-box" style="max-width:420px; position:relative;">
     <button class="modal-close" onclick="cancelTxCurrencyChange()" style="position:absolute; top:14px; right:14px;">✕</button>
-    <div class="modal-header" style="padding-right:32px;"><h2>Account Currency Changed</h2></div>
+    <div class="modal-header" style="padding-right:32px;"><h2>Account currency changed</h2></div>
     <p id="tx-cc-desc" style="font-size:13px; color:var(--text-2); margin-bottom:6px; line-height:1.6;"></p>
     <p style="font-size:11px; color:var(--text-3); margin-bottom:16px; line-height:1.6;">Today's exchange rate is used. If this transaction occurred at a different rate, delete it and re-add it to the new account.</p>
     <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;">
@@ -3859,7 +4327,7 @@
       </label>
     </div>
     <div style="display:flex; gap:8px;">
-      <button onclick="confirmTxCurrencyChange()" style="flex:1; background:var(--gold); border:none; border-radius:var(--radius); padding:11px 0; color:#0f0f11; font-weight:700; font-size:14px; font-family:'DM Sans',sans-serif; cursor:pointer;">Apply & Save</button>
+      <button onclick="confirmTxCurrencyChange()" style="flex:1; background:var(--gold); border:none; border-radius:var(--radius); padding:11px 0; color:#0f0f11; font-weight:700; font-size:14px; font-family:'DM Sans',sans-serif; cursor:pointer;">Apply & save</button>
       <button onclick="cancelTxCurrencyChange()" style="background:var(--bg3); border:1px solid var(--border-hi); color:var(--text-2); border-radius:var(--radius); padding:11px 18px; font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer;">Cancel</button>
     </div>
   </div>
@@ -3869,7 +4337,7 @@
 <div id="account-delete-popup" class="hidden" onclick="if(event.target===this)closeAccountDeletePopup()">
   <div class="modal-box" style="max-width:400px; position:relative;">
     <button class="modal-close" onclick="closeAccountDeletePopup()" style="position:absolute; top:14px; right:14px;">✕</button>
-    <div class="modal-header" style="padding-right:32px;"><h2>Delete Account?</h2></div>
+    <div class="modal-header" style="padding-right:32px;"><h2>Delete account?</h2></div>
     <p id="account-delete-desc" style="font-size:13px; color:var(--text-2); margin-bottom:16px; line-height:1.6;"></p>
     <div id="account-delete-reassign-wrap" style="display:none; margin-bottom:16px;">
       <label style="font-size:12px; color:var(--text-3); display:block; margin-bottom:6px;">Move transactions to</label>
@@ -4141,7 +4609,7 @@
       <button class="smod-card" id="enc-choice-no" onclick="encChoiceResolve('skip')">
         <div class="smod-card-icon"></div>
         <div class="smod-card-body">
-          <div class="smod-card-title">No — save as plain JSON</div>
+          <div class="smod-card-title">No — save unencrypted</div>
           <div class="smod-card-sub">No password needed. The file is readable by anyone with access to it.</div>
         </div>
       </button>
@@ -4166,7 +4634,7 @@
       Your data stays safe in the app — only the backup connection changes. You can reconnect the previous location at any time.
     </div>
     <div style="display:flex; gap:8px;">
-      <button onclick="resolveBackupSwitch(true)" style="flex:1; background:var(--gold); border:none; border-radius:var(--radius); padding:11px 0; color:#0f0f11; font-weight:700; font-size:14px; font-family:'DM Sans',sans-serif; cursor:pointer;">Switch Location</button>
+      <button onclick="resolveBackupSwitch(true)" style="flex:1; background:var(--gold); border:none; border-radius:var(--radius); padding:11px 0; color:#0f0f11; font-weight:700; font-size:14px; font-family:'DM Sans',sans-serif; cursor:pointer;">Switch location</button>
       <button onclick="resolveBackupSwitch(false)" style="background:var(--bg3); border:1px solid var(--border-hi); color:var(--text-2); border-radius:var(--radius); padding:11px 18px; font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer;">Cancel</button>
     </div>
   </div>
@@ -4232,7 +4700,7 @@
   <div class="modal-box" style="max-width:440px; text-align:center;">
     <div style="font-size:48px; margin-bottom:12px;">V</div>
     <h2 style="font-family:'DM Serif Display',serif; font-size:26px; font-weight:400; margin-bottom:6px; color:var(--text-1);">Welcome to Vault</h2>
-    <p style="font-size:13px; color:var(--text-3); margin-bottom:28px; font-weight:300; line-height:1.7;">Your personal savings tracker. Choose how you'd like to save your data to get started.</p>
+    <p style="font-size:13px; color:var(--text-3); margin-bottom:28px; font-weight:300; line-height:1.7;">Your personal savings tracker. Choose how you'd like to save your data.</p>
 
     <div style="display:flex; flex-direction:column; gap:10px; text-align:left; margin-bottom:20px;">
 
@@ -4694,6 +5162,19 @@ let pendingDelete = null;
 
 
 // ─── utility helpers ───────────────────────────────────────────────────────────
+
+// Escape HTML-significant characters so user-provided text (like account names)
+// can be safely interpolated into innerHTML/template-literal HTML strings without
+// breaking the layout or executing markup.
+function escapeHTML(s) {
+  if (s == null) return "";
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
 // Format a number as currency using the user's selected currency.
 function aud(n) {
@@ -5217,7 +5698,7 @@ function confirmCurrencyChange() {
   localStorage.removeItem(EXCHANGE_RATES_KEY);
   ensureExchangeRates().then(() => {
     updateCurrencyUI();
-    render();
+    saveAndRender(null);
     triggerCloudSync();
   });
   // Rebuild list to reflect new selection
@@ -5463,11 +5944,10 @@ function switchYearMode(mode) {
   expandedYears.clear();
   activeYear = Object.keys(data).sort()[0] || null;
   activeMonth = null;
-  saveLocal();
   updateYearModeUI();
   closeDesktopMenu();
   closeSheets();
-  render();
+  saveAndRender(null);
   toast(`Switched to ${mode === "financial" ? "Financial Year" : "Calendar Year"} view`);
 }
 
@@ -5500,9 +5980,8 @@ function setFyStartSelects() {
     expandedYears.clear();
     activeYear = Object.keys(data).sort()[0] || null;
     activeMonth = null;
-    saveLocal();
     updateYearModeUI();
-    render();
+    saveAndRender(null);
   }
   updateYearFormatPopup();
 }
@@ -5599,7 +6078,7 @@ function updateYearFormatPopup() {
   const sub = document.getElementById("dmenu-yearmode-sub");
   if (sub) sub.textContent = isFY ? `Financial year (${startName}–${endName})` : "Calendar year";
   const mobSub = document.getElementById("mob-yearmode-sub");
-  if (mobSub) mobSub.textContent = isFY ? `Financial (${startName}–${endName})` : "Calendar Year";
+  if (mobSub) mobSub.textContent = isFY ? `Financial (${startName}–${endName})` : "Calendar year";
 }
 
 function updateYearModeUI() {
@@ -5832,7 +6311,7 @@ function populateCustomAccountPicker(selectedId) {
     const cur = acc.currency || currencyCode;
     const item = document.createElement("button");
     item.style.cssText = "width:100%; background:none; border:none; border-bottom:1px solid var(--border); padding:10px 12px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer; display:flex; align-items:center; gap:10px; text-align:left;";
-    item.innerHTML = `<span style="width:10px;height:10px;border-radius:50%;background:${acc.color};flex-shrink:0;"></span><span style="flex:1;">${acc.name}</span><span style="font-size:11px;color:var(--text-3);font-weight:600;">${cur}</span>`;
+    item.innerHTML = `<span style="width:10px;height:10px;border-radius:50%;background:${acc.color};flex-shrink:0;"></span><span style="flex:1;">${escapeHTML(acc.name)}</span><span style="font-size:11px;color:var(--text-3);font-weight:600;">${cur}</span>`;
     if (acc.id === selectedId) {
       item.style.background = "rgba(201,168,76,0.08)";
     }
@@ -5889,7 +6368,7 @@ function renderAccountPills() {
   accounts.forEach(acc => {
     const pill = document.createElement("button");
     pill.className = "acc-pill" + (activeAccountFilter === acc.id ? " active" : "");
-    pill.innerHTML = `<span class="acc-pill-dot" style="background:${acc.color}"></span>${acc.name}`;
+    pill.innerHTML = `<span class="acc-pill-dot" style="background:${acc.color}"></span>${escapeHTML(acc.name)}`;
     pill.onclick = () => setActiveAccount(acc.id);
     wrap.appendChild(pill);
   });
@@ -5899,6 +6378,7 @@ function renderAccountPills() {
 
 function setActiveAccount(id) {
   activeAccountFilter = id;
+  _currentPage = 1;
   renderAccountPills();
   renderMain();
 }
@@ -5966,7 +6446,7 @@ function renderAccountManagerList() {
     div.className = "acc-manager-item";
     div.innerHTML = `
       <span class="acc-manager-dot" style="background:${acc.color}"></span>
-      <span class="acc-manager-name" id="accname-${acc.id}">${acc.name}</span>
+      <span class="acc-manager-name" id="accname-${acc.id}">${escapeHTML(acc.name)}</span>
       <button class="acc-manager-currency-btn" onclick="openAccountCurrencyPicker('${acc.id}')" title="Change currency">${accCur}</button>
       <div class="acc-manager-actions">
         <button class="acc-manager-rename-btn" onclick="startRenameAccount('${acc.id}')" title="Rename">✎</button>
@@ -6039,18 +6519,19 @@ function _applyAccountCurrencyChange(code) {
             });
           });
         });
-        saveLocal();
       }
       renderAccountManagerList();
       updateAccountsMenuSub();
-      render();
+      saveAndRender(null);
       triggerCloudSync();
       toast(`${acc.name} currency set to ${code}`);
     });
   } else {
     renderAccountManagerList();
     updateAccountsMenuSub();
-    render();
+    // Currency mapping for this account changed — invalidate all year-totals
+    // even though `data` itself isn't mutated, since converted display amounts shift.
+    saveAndRender(null);
     toast(`${acc.name} currency set to ${code}`);
   }
   return true;
@@ -6077,7 +6558,17 @@ function startRenameAccount(id) {
     const newName = input.value.trim();
     if (!newName) { cancelRename(); return; }
     const acc = getAccountById(id);
-    if (acc) { acc.name = newName; saveAccounts(); updateAccountsMenuSub(); renderAccountPills(); render(); }
+    if (acc) {
+      acc.name = newName;
+      saveAccounts();
+      updateAccountsMenuSub();
+      renderAccountPills();
+      // Account name appears as row tooltip and is the sort key for "by account",
+      // so invalidate the rows cache. `data` itself didn't change, so saveLocal
+      // isn't needed here; saveAccounts() already persisted the rename.
+      _dataVersion++;
+      render();
+    }
     renderAccountManagerList();
   };
   const cancelRename = () => renderAccountManagerList();
@@ -6172,14 +6663,28 @@ function confirmDeleteAccount() {
   const id  = _accountDeleteTarget;
   if (!id) return;
   const count = countTxForAccount(id);
+  let reassignTarget = null;
   if (count > 0) {
     const toId = document.getElementById("account-delete-reassign").value;
     if (!toId) { toast("Select an account to move transactions to.", "#c0392b"); return; }
     reassignTransactions(id, toId);
-    saveLocal();
+    reassignTarget = toId;
   }
-  accounts = accounts.filter(a => a.id !== id);
-  ensureDefaultAccount();
+
+  // Reassign any recurring rules pointing at the deleted account so the audit
+  // doesn't post future occurrences to a non-existent account.
+  const rulesUsingDeleted = recurRules.filter(r => r.account === id);
+  if (rulesUsingDeleted.length) {
+    accounts = accounts.filter(a => a.id !== id); // remove first so default falls through to a remaining account
+    ensureDefaultAccount();
+    const fallback = reassignTarget || getDefaultAccountId();
+    rulesUsingDeleted.forEach(r => { r.account = fallback; });
+    saveRecurring();
+    dbg(`confirmDeleteAccount: reassigned ${rulesUsingDeleted.length} recurring rule(s) to ${fallback}`);
+  } else {
+    accounts = accounts.filter(a => a.id !== id);
+    ensureDefaultAccount();
+  }
   saveAccounts();
   if (activeAccountFilter === id) activeAccountFilter = "all";
   closeAccountDeletePopup();
@@ -6187,7 +6692,7 @@ function confirmDeleteAccount() {
   updateAccountsMenuSub();
   renderAccountPills();
   populateAccountSelects();
-  render();
+  saveAndRender(null);
   triggerCloudSync();
   toast("Account deleted");
 }
@@ -6198,12 +6703,16 @@ function populateAccountSelects() {
   const deskSel = document.getElementById("desk-inp-account");
   const mobSel  = document.getElementById("mob-inp-account");
   const popSel  = document.getElementById("popup-account");
+  const recSel  = document.getElementById("recur-account");
+  const repSel  = document.getElementById("rep-account");
   if (deskSel) { populateAccountSelect(deskSel, deskSel.value || defaultId); updateAddFormCurrencyLabel("desk"); }
   if (mobSel)  { populateAccountSelect(mobSel,  mobSel.value  || defaultId); updateAddFormCurrencyLabel("mob"); }
   if (popSel)  populateAccountSelect(popSel,  popSel.value  || defaultId);
+  if (recSel)  populateAccountSelect(recSel,  recSel.value  || defaultId);
+  if (repSel)  populateAccountSelect(repSel,  repSel.value  || defaultId);
   // Hide account selectors entirely when only one account (no choice to make)
   const hide = accounts.length <= 1;
-  ["desk-account-field","mob-account-field","popup-account-field"].forEach(id => {
+  ["desk-account-field","mob-account-field","popup-account-field","recur-account-row","rep-account-row"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = hide ? "none" : "";
   });
@@ -6247,6 +6756,8 @@ const LOCAL_FILE_KEY   = "save-handle";       // key for the stored FSAPI handle
 
 let localFileHandle    = null;  // Tier 1: FileSystemFileHandle — null if not linked
 let localSyncTimer     = null;  // debounce timer used by both Tier 1 and Tier 2
+let _syncInProgress    = false; // true while triggerCloudSync is awaiting Drive/NAS/file I/O
+let _syncPending       = false; // true if a sync was requested while one was already running
 let localFileLinked    = false; // true when Tier 1 or Tier 2 auto-save is active
 
 // ── NAS / WebDAV state ─────────────────────────────────────────────────────────
@@ -6525,7 +7036,7 @@ function promptAndDecrypt(encryptedText) {
         disablePasswordEncryption();
         popup.classList.add("hidden");
         cleanup();
-        toast("Recovery successful — encryption disabled. Re-enable with a new password in Save & Backup.", "var(--gold-dim)");
+        toast("Recovery successful — encryption disabled. Re-enable with a new password from Menu → Encryption.", "var(--gold-dim)");
         resolve(result);
       } catch (e) {
         errEl.textContent = "Recovery failed: " + e.message;
@@ -6587,7 +7098,7 @@ function setSaveStatus(state, msg) {
 }
 
 // Schedule a debounced auto-save to the linked file.
-// Called from render() after every data mutation — debounced 1.5s to batch rapid changes.
+// Called from saveLocal() after every data mutation — debounced 1.5s to batch rapid changes.
 // ─── triggerCloudSync ─────────────────────────────────────────────────────────
 // Called after every data mutation (add, edit, delete, recurring post).
 // For each connected destination, performs a read-merge-write cycle:
@@ -6599,6 +7110,21 @@ function setSaveStatus(state, msg) {
 
 async function triggerCloudSync() {
   if (!localFileHandle && !nasLinked && !gdLinked) return;
+
+  // ── Concurrency guard ────────────────────────────────────────────────────
+  // If a sync is already in-flight, don't start a second one — the read-merge-write
+  // cycle is not re-entrant. Instead, set a flag so we re-run immediately after
+  // the current sync finishes. This prevents race conditions where two overlapping
+  // syncs each read a stale Drive file and then clobber each other's writes.
+  if (_syncInProgress) {
+    _syncPending = true;
+    dbg("triggerCloudSync: sync already in-flight, queued");
+    return;
+  }
+  _syncInProgress = true;
+  _syncPending = false;
+  // ── end concurrency guard ────────────────────────────────────────────────
+
   setSaveStatus("busy", "Syncing…");
 
   let ok = true;
@@ -6625,6 +7151,7 @@ async function triggerCloudSync() {
               // Do NOT applyPayloadSettings here — it would overwrite the local
               // currency the user just changed to, causing an infinite mismatch loop.
               await showCurrencyMismatchDialog(remoteData, remoteTombstones, _mismatchLocal);
+              _syncInProgress = false; // release lock before returning
               return; // don't write back until resolved
             } else {
               autoMerge(sanitiseData(remoteData), remoteTombstones);
@@ -6661,6 +7188,7 @@ async function triggerCloudSync() {
             // Do NOT applyPayloadSettings here — it would overwrite the local
             // currency the user just changed to, causing an infinite mismatch loop.
             await showCurrencyMismatchDialog(remoteData, remoteTombstones, _mismatchNAS);
+            _syncInProgress = false; // release lock before returning
             return;
           } else {
             autoMerge(sanitiseData(remoteData), remoteTombstones);
@@ -6694,6 +7222,7 @@ async function triggerCloudSync() {
             // Do NOT applyPayloadSettings here — it would overwrite the local
             // currency the user just changed to, causing an infinite mismatch loop.
             await showCurrencyMismatchDialog(remoteData, remoteTombstones, _mismatchGD);
+            _syncInProgress = false; // release lock before returning
             return;
           } else {
             autoMerge(sanitiseData(remoteData), remoteTombstones);
@@ -6717,6 +7246,16 @@ async function triggerCloudSync() {
     setSaveStatus("err", "Sync failed");
     scheduleRetry();
   }
+
+  // ── Concurrency guard teardown ───────────────────────────────────────────
+  // Release the lock. If another sync was requested while we were running,
+  // fire it now so the latest local state gets written to Drive.
+  _syncInProgress = false;
+  if (_syncPending) {
+    dbg("triggerCloudSync: running queued sync");
+    triggerCloudSync();
+  }
+  // ── end concurrency guard teardown ───────────────────────────────────────
 }
 
 // ─── end triggerCloudSync ─────────────────────────────────────────────────────
@@ -6824,15 +7363,70 @@ function applyPayloadSettings({ recurring, accounts: remoteAccounts, yearMode: y
   }
   // ── Recurring rules ───────────────────────────────────────────────────────
   if (recurring && Array.isArray(recurring)) {
-    const existingIds = new Set(recurRules.map(r => r.id));
-    // Add remote rules not in local, skipping any that have been deliberately deleted
+    const localById = new Map(recurRules.map(r => [String(r.id), r]));
+    let mergedSkipCount = 0, mergedMoveCount = 0;
+
     recurring.forEach(r => {
-      if (!existingIds.has(r.id) && !recurDeletedIds.has(String(r.id))) {
-        recurRules.push(r);
+      if (!r || r.id === undefined || r.id === null) return;
+      const ridKey = String(r.id);
+
+      if (!localById.has(ridKey)) {
+        // New remote rule — add unless deliberately deleted locally
+        if (!recurDeletedIds.has(ridKey)) recurRules.push(r);
+        return;
+      }
+
+      // Rule exists on both sides — UNION-merge skippedDates and movedDates so
+      // skip/move actions made on other devices propagate here.
+      const local = localById.get(ridKey);
+
+      // skippedDates: simple set union of ISO date strings
+      if (Array.isArray(r.skippedDates) && r.skippedDates.length) {
+        if (!Array.isArray(local.skippedDates)) local.skippedDates = [];
+        const have = new Set(local.skippedDates);
+        r.skippedDates.forEach(d => {
+          if (typeof d === "string" && !have.has(d)) {
+            local.skippedDates.push(d);
+            have.add(d);
+            mergedSkipCount++;
+          }
+        });
+      }
+
+      // movedDates: match by txId for object entries; dedupe legacy bare strings
+      if (Array.isArray(r.movedDates) && r.movedDates.length) {
+        if (!Array.isArray(local.movedDates)) local.movedDates = [];
+        const haveTxIds  = new Set(
+          local.movedDates.filter(m => m && typeof m === "object" && m.txId).map(m => m.txId)
+        );
+        const haveLegacy = new Set(
+          local.movedDates.filter(m => typeof m === "string")
+        );
+        r.movedDates.forEach(m => {
+          if (m && typeof m === "object" && m.txId) {
+            if (!haveTxIds.has(m.txId)) {
+              local.movedDates.push(m);
+              haveTxIds.add(m.txId);
+              mergedMoveCount++;
+            }
+            // If both sides have a record for this txId, keep local (no overwrite)
+          } else if (typeof m === "string") {
+            // Legacy bare-string entry — preserve via dedupe
+            if (!haveLegacy.has(m)) {
+              local.movedDates.push(m);
+              haveLegacy.add(m);
+              mergedMoveCount++;
+            }
+          }
+        });
       }
     });
+
     saveRecurring();
-    dbg("applyPayloadSettings: merged recurring rules, total=" + recurRules.length);
+    dbg(`applyPayloadSettings: merged recurring rules, total=${recurRules.length}, skips merged=${mergedSkipCount}, moves merged=${mergedMoveCount}`);
+    // Run check immediately so any overdue rules post right away after sync
+    const _rPosted = processRecurring();
+    if (_rPosted > 0) { saveAndRender(null); toast(`${_rPosted} recurring transaction${_rPosted > 1 ? "s" : ""} added`, "var(--gold-dim)"); }
   }
 
   // ── Currency ──────────────────────────────────────────────────────────────
@@ -6951,7 +7545,7 @@ async function loadFromLocalFile() {
     if (choice === "merge") {
       autoMerge(safe, remoteTombstones);
       applyPayloadSettings(settings, false);
-      render();
+      saveAndRender(null);
       setLocalFileStatus("✓ Merged", "var(--green)");
     } else if (choice === "overwrite-drive") {
       setLocalFileStatus("✓ File will be overwritten", "var(--green)");
@@ -6961,8 +7555,7 @@ async function loadFromLocalFile() {
       applyPayloadSettings(settings, true);
       data = safe;
       reconcileYears();
-      saveLocal();
-      render();
+      saveAndRender(null);
       setLocalFileStatus("✓ Loaded", "var(--green)");
     }
 
@@ -7194,7 +7787,13 @@ function hideLockScreen() {
     loadRecurring();
     runRecurringCheck();
     updateRecurMenuSub();
-    setInterval(runRecurringCheck, 60 * 60 * 1000);
+    setInterval(() => {
+      if (_anyOverlayOpen()) {
+        dbg("recurring: hourly check deferred (overlay open)");
+        return;
+      }
+      runRecurringCheck();
+    }, 60 * 60 * 1000);
   }
 }
 
@@ -7230,7 +7829,7 @@ async function unlockVault() {
     }
 
     hideLockScreen();
-    render();
+    saveAndRender(null);
     dbg("Lock: unlocked successfully");
 
   } catch (e) {
@@ -7260,9 +7859,8 @@ async function unlockWithRecoveryFile(input) {
     }
     // Disable encryption — let user set a new password
     disablePasswordEncryption();
-    saveLocal();
     hideLockScreen();
-    render();
+    saveAndRender(null);
     toast("Unlocked with recovery key — encryption disabled. Set a new password from Menu → Encryption.");
     dbg("Lock: unlocked with recovery key");
   } catch (e) {
@@ -7311,7 +7909,7 @@ function initActivityTracking() {
         syncPendingAfterIdle = false;
         dbg("Inactivity: interaction detected — pulling latest data");
         await triggerCloudSync();
-        render();
+        saveAndRender(null);
       }
       resetLockTimer();
     }, { passive: true });
@@ -7409,7 +8007,7 @@ function updateEncUI() {
     if (menuSub)  menuSub.textContent = "On — AES-256 encrypted";
     if (mobSub)   mobSub.textContent  = "On";
   } else {
-    if (statusEl) statusEl.innerHTML = '<span style="color:var(--text-3);">Encryption is <strong>off</strong></span> — backups are saved as plain JSON.';
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--text-3);">Encryption is <strong>off</strong></span> — backups are unencrypted.';
     if (setBtnEl) setBtnEl.textContent = "Set password";
     if (disBtnEl) disBtnEl.style.display = "none";
     if (menuSub)  menuSub.textContent = "Off — backups unencrypted";
@@ -7445,7 +8043,7 @@ async function encSetSubmit() {
 
 // Prompt for confirmation before disabling encryption
 function confirmDisableEnc() {
-  if (!confirm("Remove encryption? Your backup files will be saved as plain JSON.\n\nYour recovery key will no longer work after this.")) return;
+  if (!confirm("Remove encryption? Your backup files will be unencrypted.\n\nYour recovery key will no longer work after this.")) return;
   disablePasswordEncryption();
   triggerCloudSync();
   updateEncUI();
@@ -7609,7 +8207,7 @@ async function loadFromNAS() {
     if (choice === "merge") {
       autoMerge(safe, remoteTombstones);
       applyPayloadSettings(settings, false);
-      render();
+      saveAndRender(null);
       toast("Merged data from server");
     } else if (choice === "overwrite-drive") {
       toast("Server file will be overwritten with your current data");
@@ -7619,8 +8217,7 @@ async function loadFromNAS() {
       applyPayloadSettings(settings, true);
       data = safe;
       reconcileYears();
-      saveLocal();
-      render();
+      saveAndRender(null);
       toast("App data replaced with server data");
     }
     setNASStatus("Connected.", "var(--green)");
@@ -7703,7 +8300,7 @@ function connectCloudService(service) {
     document.getElementById("setup-modal").classList.remove("hidden");
     openSmodPanel("googledrive");
   } else {
-    toast("Coming soon — " + ({ onedrive: "OneDrive", dropbox: "Dropbox" }[service] || service) + " integration is not yet implemented.");
+    toast(({ onedrive: "OneDrive", dropbox: "Dropbox" }[service] || service) + " integration is coming soon.");
   }
 }
 
@@ -7891,7 +8488,7 @@ async function gdHandleRedirect() {
             if (choice === "merge") {
               autoMerge(safe, remoteTombstones);
               applyPayloadSettings(settings, false);
-              render();
+              saveAndRender(null);
               toast("Merged existing Drive data");
             } else if (choice === "overwrite-drive") {
               // Keep local data, write over Drive — do nothing to local data
@@ -7903,8 +8500,7 @@ async function gdHandleRedirect() {
               data = safe;
               reconcileYears();
               applyPayloadSettings(settings, true);
-              saveLocal();
-              render();
+              saveAndRender(null);
               toast("App data replaced with Drive data");
             }
           }
@@ -8159,7 +8755,7 @@ async function applyOldBackupMergeChoice(snapshot) {
   if (choice === "merge") {
     autoMerge(snapshot.data, snapshot.tombstones || []);
     applyPayloadSettings(snapshot.settings, false);
-    render();
+    saveAndRender(null);
     toast("Previous backup data merged");
   } else if (choice === "overwrite-drive") {
     toast("New backup location will be overwritten with your current data");
@@ -8169,8 +8765,7 @@ async function applyOldBackupMergeChoice(snapshot) {
     data = snapshot.data;
     reconcileYears();
     applyPayloadSettings(snapshot.settings, true);
-    saveLocal();
-    render();
+    saveAndRender(null);
     toast("App data replaced with previous backup data");
   }
 }
@@ -8374,7 +8969,7 @@ function scheduleRetry() {
     if (!pendingRetry) return;
     dbg("Retry: attempting failed writes");
     await triggerCloudSync();
-    if (!pendingRetry) toast("Auto-save reconnected ✓");
+    if (!pendingRetry) toast("✓ Auto-save reconnected");
   }, RETRY_INTERVAL_MS);
 }
 
@@ -8393,7 +8988,7 @@ function saveLocal() {
       // Only toast once per session to avoid spam
       if (!sessionStorage.getItem(LOCAL_QUOTA_WARN_KEY)) {
         sessionStorage.setItem(LOCAL_QUOTA_WARN_KEY, "1");
-        toast("Warning: Browser storage is full — your latest changes may not be saved. Use Save & Backup to export your data.", "var(--red)");
+        toast("Warning: Browser storage is full — your latest changes may not be saved. Use Menu → Save & Backup to export your data.", "var(--red)");
         dbg("saveLocal: QuotaExceededError — data may not be saved");
       }
     }
@@ -8448,10 +9043,54 @@ function initTabConflictDetection() {
 // ─── end edge case fixes ──────────────────────────────────────────────────────
 
 
-// Top-level render: saves to localStorage, schedules a debounced local file auto-save,
-// and redraws both the sidebar and main panel. Called after every data mutation.
+// ─── perf: per-year totals memoization ────────────────────────────────────────
+// Cache `{savedTotal, removedTotal}` (in global currency) per year so that
+// renderSidebar / renderMain don't re-reduce the entire dataset on every render.
+// Invalidate per-year on a single-year mutation, or `null` to clear all.
+let _yearTotalsCache = {};
+
+function _yearTotals(year) {
+  if (!data[year]) return { savedTotal: 0, removedTotal: 0 };
+  if (!_yearTotalsCache[year]) {
+    const fy = data[year];
+    const defAcc = getDefaultAccountId();
+    const sumG = arr => arr.reduce((s, tx) =>
+      s + convertToGlobal(tx[1], getAccountCurrency(tx[6] || defAcc)), 0);
+    _yearTotalsCache[year] = { savedTotal: sumG(fy.saved), removedTotal: sumG(fy.removed) };
+  }
+  return _yearTotalsCache[year];
+}
+
+function _invalidateYearCache(year) {
+  if (year == null) _yearTotalsCache = {};
+  else delete _yearTotalsCache[year];
+}
+
+// ─── perf: rows + pagination state ────────────────────────────────────────────
+// `_currentRows` caches the full filtered+sorted rows array so that page-change
+// renders skip filter+sort. `_dataVersion` is bumped at every data mutation so
+// the rows cache key changes whenever the underlying data does.
+const PAGE_SIZE = 500;
+let _currentPage      = 1;
+let _currentRows      = null;
+let _currentRowsKey   = "";
+let _dataVersion      = 0;
+let _pendingFocusTxId = null; // when set, renderMain jumps to the page containing this tx
+
+// Centralised post-mutation entry point: persist data, invalidate caches, and re-render.
+// `year` may be a specific year key, or `null` for multi-year / cross-cutting mutations
+// (sync, import, currency change, etc.) where every year's totals must be recomputed.
+function saveAndRender(year) {
+  saveLocal();
+  _invalidateYearCache(year);
+  _dataVersion++;
+  render();
+}
+
+// Top-level render: redraws sidebar and main panel. Called from saveAndRender after
+// data mutations, and directly for pure-UI navigation (year/month/tab/sort/filter).
+// Note: does NOT call saveLocal() — mutation sites must route through saveAndRender.
 function render() {
-  saveLocal(); // always persist to localStorage immediately
   tickCompatExportCount();
   try {
     renderSidebar();
@@ -8465,7 +9104,7 @@ function render() {
     dbg("renderMain error: " + e.message + "\n" + e.stack);
     console.error("renderMain:", e);
     // Show error toast so user sees something went wrong
-    toast("Display error — please report via Menu > About. (" + e.message + ")", "#c0392b");
+    toast("Display error — please report via Menu → About. (" + e.message + ")", "#c0392b");
   }
 }
 
@@ -8475,22 +9114,22 @@ function setActiveYear(y) {
   activeYear = y;
   activeMonth = null;
   activeAccountFilter = "all";
+  _currentPage = 1;
   if (activeTab === "report" || activeTab === "charts") switchTab("all");
   else render();
 }
 
 function renderSidebar() {
   const years = Object.keys(data).sort();
-  const defaultAccId = getDefaultAccountId();
 
-  // Helper: sum transactions converting each to global currency
-  const sumGlobal = (txArr) => txArr.reduce((s, tx) => {
-    const accCur = getAccountCurrency(tx[6] || defaultAccId);
-    return s + convertToGlobal(tx[1], accCur);
-  }, 0);
-
-  const gi = years.reduce((a,y) => a + sumGlobal(data[y].saved), 0);
-  const go = years.reduce((a,y) => a + sumGlobal(data[y].removed), 0);
+  // Use the per-year totals cache (Change 4) so we don't reduce the entire
+  // dataset on every render. The cache is invalidated via saveAndRender().
+  let gi = 0, go = 0;
+  years.forEach(y => {
+    const t = _yearTotals(y);
+    gi += t.savedTotal;
+    go += t.removedTotal;
+  });
   const gn = gi - go;
   const gEl = document.getElementById("grand-net");
   gEl.textContent = aud(gn);
@@ -8511,8 +9150,9 @@ function renderSidebar() {
   });
 
   years.forEach(y => {
-    const si = sumGlobal(data[y].saved);
-    const so = sumGlobal(data[y].removed);
+    const yt = _yearTotals(y);
+    const si = yt.savedTotal;
+    const so = yt.removedTotal;
     const n  = si - so;
     const isExpanded = expandedYears.has(y);
     const isActiveYear = activeYear === y && !activeMonth;
@@ -8538,6 +9178,7 @@ function renderSidebar() {
     btn.querySelector(".year-btn-label").onclick = () => {
       activeYear = y;
       activeMonth = null;
+      _currentPage = 1;
       if (activeTab === "report" || activeTab === "charts") switchTab("all");
       else render();
     };
@@ -8552,6 +9193,7 @@ function renderSidebar() {
       if (activeYear !== y) {
         activeYear = y;
         activeMonth = null;
+        _currentPage = 1;
       }
       render();
     };
@@ -8583,6 +9225,7 @@ function renderSidebar() {
         e.stopPropagation();
         activeYear = y;
         activeMonth = m;
+        _currentPage = 1;
         if (activeTab === "report" || activeTab === "charts") switchTab("all");
         else render();
       };
@@ -8603,11 +9246,20 @@ function renderMain() {
   // Helper: sum array converting each tx to global currency
   const sumG = (arr) => arr.reduce((s, tx) => s + convertToGlobal(tx[1], getAccountCurrency(tx[6] || defaultAccId)), 0);
 
-  // Compute totals in global currency
+  // Compute totals in global currency.
+  // When no account filter is active and we're not in month view, use the per-year
+  // totals cache (Change 4); otherwise compute on the fly (filtered/month sums
+  // can't easily be cached).
+  const _accFilterAll = activeAccountFilter === "all";
   let ti, to, tn;
   if (isAllYears) {
-    ti = years.reduce((s,y) => s + sumG(data[y].saved),   0);
-    to = years.reduce((s,y) => s + sumG(data[y].removed), 0);
+    if (_accFilterAll) {
+      ti = 0; to = 0;
+      years.forEach(y => { const t = _yearTotals(y); ti += t.savedTotal; to += t.removedTotal; });
+    } else {
+      ti = years.reduce((s,y) => s + sumG(data[y].saved),   0);
+      to = years.reduce((s,y) => s + sumG(data[y].removed), 0);
+    }
     tn = ti - to;
   } else {
     const fy = data[activeYear] || {saved:[],removed:[]};
@@ -8615,6 +9267,9 @@ function renderMain() {
       const ms = activeMonth;
       ti = sumG(fy.saved.filter(r=>r[0].startsWith(ms)));
       to = sumG(fy.removed.filter(r=>r[0].startsWith(ms)));
+    } else if (_accFilterAll) {
+      const t = _yearTotals(activeYear);
+      ti = t.savedTotal; to = t.removedTotal;
     } else {
       ti = sumG(fy.saved); to = sumG(fy.removed);
     }
@@ -8681,60 +9336,74 @@ function renderMain() {
 
   if (isReport || isCharts) return;
 
-  // Build rows — each row: [date, amt, type, yearKey, subtype, recurId, accountId, txId]
+  // ── Build rows ─────────────────────────────────────────────────────────────
+  // Cache the full filtered+sorted rows array across renders. The cache key
+  // includes _dataVersion so any data mutation invalidates it automatically.
+  // Each row: [date, amt, type, yearKey, subtype, recurId, accountId, txId]
+  const rowsKey = [activeYear, activeMonth || "", activeTab, accFilter, sortKey, sortDir, _dataVersion].join("|");
   let rows;
-  const filterFn = tx => accFilter === "all" || (tx[6] || defaultAccId) === accFilter;
+  if (_currentRowsKey === rowsKey && _currentRows) {
+    rows = _currentRows;
+  } else {
+    const filterFn = tx => accFilter === "all" || (tx[6] || defaultAccId) === accFilter;
 
-  if (isAllYears) {
-    rows = [];
-    years.forEach(y => {
+    if (isAllYears) {
+      rows = [];
+      years.forEach(y => {
+        if (activeTab === "saved" || activeTab === "all") {
+          data[y].saved.filter(filterFn).forEach(r => rows.push([r[0], r[1], "saved", y, r[4] || null, r[5] || null, r[6] || defaultAccId, r[2] || null]));
+        }
+        if (activeTab === "removed" || activeTab === "all") {
+          data[y].removed.filter(filterFn).forEach(r => rows.push([r[0], r[1], "removed", y, null, r[5] || null, r[6] || defaultAccId, r[2] || null]));
+        }
+      });
+    } else if (isMonthView) {
+      const fy = data[activeYear] || {saved:[],removed:[]};
+      const ms = activeMonth;
+      rows = [];
       if (activeTab === "saved" || activeTab === "all") {
-        data[y].saved.filter(filterFn).forEach(r => rows.push([r[0], r[1], "saved", y, r[4] || null, r[5] || null, r[6] || defaultAccId, r[2] || null]));
+        fy.saved.filter(r=>r[0].startsWith(ms)).filter(filterFn).forEach(r => rows.push([r[0], r[1], "saved", activeYear, r[4] || null, r[5] || null, r[6] || defaultAccId, r[2] || null]));
       }
       if (activeTab === "removed" || activeTab === "all") {
-        data[y].removed.filter(filterFn).forEach(r => rows.push([r[0], r[1], "removed", y, null, r[5] || null, r[6] || defaultAccId, r[2] || null]));
+        fy.removed.filter(r=>r[0].startsWith(ms)).filter(filterFn).forEach(r => rows.push([r[0], r[1], "removed", activeYear, null, r[5] || null, r[6] || defaultAccId, r[2] || null]));
       }
+    } else if (isAll) {
+      const fy = data[activeYear] || {saved:[],removed:[]};
+      rows = [
+        ...fy.saved.filter(filterFn).map(r => [r[0], r[1], "saved", activeYear, r[4] || null, r[5] || null, r[6] || defaultAccId, r[2] || null]),
+        ...fy.removed.filter(filterFn).map(r => [r[0], r[1], "removed", activeYear, null, r[5] || null, r[6] || defaultAccId, r[2] || null])
+      ];
+    } else {
+      const fy = data[activeYear] || {saved:[],removed:[]};
+      const src = activeTab === "saved" ? fy.saved : fy.removed;
+      rows = src.filter(filterFn).map(r => [r[0], r[1], activeTab, activeYear, r[4] || null, r[5] || null, r[6] || defaultAccId, r[2] || null]);
+    }
+
+    // Sort — type key groups deposit < interest < withdrawal for clean grouping
+    const txTypeSortKey = r => r[2] === "removed" ? "c_withdrawal" : r[4] === "interest" ? "b_interest" : "a_deposit";
+    rows.sort((a, b) => {
+      let av, bv;
+      if (sortKey === "date")           { av = a[0]; bv = b[0]; }
+      else if (sortKey === "amount")    { av = a[1]; bv = b[1]; }
+      else if (sortKey === "account")   { av = getAccountName(a[6]); bv = getAccountName(b[6]); }
+      else /* type */                   { av = txTypeSortKey(a); bv = txTypeSortKey(b); }
+      if (av < bv) return sortDir === "asc" ? -1 :  1;
+      if (av > bv) return sortDir === "asc" ?  1 : -1;
+      if (sortKey !== "date") return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0;
+      return 0;
     });
-  } else if (isMonthView) {
-    const fy = data[activeYear] || {saved:[],removed:[]};
-    const ms = activeMonth;
-    rows = [];
-    if (activeTab === "saved" || activeTab === "all") {
-      fy.saved.filter(r=>r[0].startsWith(ms)).filter(filterFn).forEach(r => rows.push([r[0], r[1], "saved", activeYear, r[4] || null, r[5] || null, r[6] || defaultAccId, r[2] || null]));
-    }
-    if (activeTab === "removed" || activeTab === "all") {
-      fy.removed.filter(r=>r[0].startsWith(ms)).filter(filterFn).forEach(r => rows.push([r[0], r[1], "removed", activeYear, null, r[5] || null, r[6] || defaultAccId, r[2] || null]));
-    }
-  } else if (isAll) {
-    const fy = data[activeYear] || {saved:[],removed:[]};
-    rows = [
-      ...fy.saved.filter(filterFn).map(r => [r[0], r[1], "saved", activeYear, r[4] || null, r[5] || null, r[6] || defaultAccId]),
-      ...fy.removed.filter(filterFn).map(r => [r[0], r[1], "removed", activeYear, null, r[5] || null, r[6] || defaultAccId])
-    ];
-  } else {
-    const fy = data[activeYear] || {saved:[],removed:[]};
-    const src = activeTab === "saved" ? fy.saved : fy.removed;
-    rows = src.filter(filterFn).map(r => [r[0], r[1], activeTab, activeYear, r[4] || null, r[5] || null, r[6] || defaultAccId]);
+
+    _currentRows    = rows;
+    _currentRowsKey = rowsKey;
   }
 
-  // Sort
-  // Type sort key: groups deposit < interest < withdrawal for clean grouping
-  const txTypeSortKey = r => r[2] === "removed" ? "c_withdrawal" : r[4] === "interest" ? "b_interest" : "a_deposit";
-  rows.sort((a, b) => {
-    let av, bv;
-    if (sortKey === "date")           { av = a[0]; bv = b[0]; }
-    else if (sortKey === "amount")    { av = a[1]; bv = b[1]; }
-    else if (sortKey === "account")   { av = getAccountName(a[6]); bv = getAccountName(b[6]); }
-    else /* type */                   { av = txTypeSortKey(a); bv = txTypeSortKey(b); }
-    if (av < bv) return sortDir === "asc" ? -1 :  1;
-    if (av > bv) return sortDir === "asc" ?  1 : -1;
-    if (sortKey !== "date") return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0;
-    return 0;
-  });
-
-  if (!rows.length) { table.style.display="none"; empty.style.display="block"; return; }
+  // ── Empty-state ────────────────────────────────────────────────────────────
+  if (!rows.length) {
+    table.style.display="none"; empty.style.display="block";
+    _renderPagination(0, 1);
+    return;
+  }
   table.style.display="table"; empty.style.display="none";
-  tbody.innerHTML="";
 
   const showTypeCol = isAll || isAllYears || isMonthView;
   document.body.classList.toggle("tab-all", showTypeCol);
@@ -8746,27 +9415,44 @@ function renderMain() {
   // Always show currency code when multiple currencies exist in view
   const showCurrencyCodes = accountCurrenciesInView.size > 1;
 
-  rows.forEach(([date, amt, type, yearKey, subtype, recurId, accountId, txId], i) => {
+  // ── Pagination: focus pending tx, then clamp page, then slice ──────────────
+  if (_pendingFocusTxId) {
+    const idx = rows.findIndex(r => r[7] === _pendingFocusTxId);
+    if (idx >= 0) _currentPage = Math.floor(idx / PAGE_SIZE) + 1;
+    _pendingFocusTxId = null;
+  }
+  const totalRows  = rows.length;
+  const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
+  if (_currentPage > totalPages) _currentPage = totalPages;
+  if (_currentPage < 1)          _currentPage = 1;
+  const pageStart = (_currentPage - 1) * PAGE_SIZE;
+  const pageRows  = totalRows > PAGE_SIZE ? rows.slice(pageStart, pageStart + PAGE_SIZE) : rows;
+
+  // ── Render rows in one innerHTML pass (Change 3) ───────────────────────────
+  const rowsHtml = pageRows.map(([date, amt, type, yearKey, subtype, recurId, accountId, txId]) => {
     const isDeposit = type === "saved";
-    const isInterest = isDeposit && subtype === "interest";
     const resolvedAccId = accountId || defaultAccId;
     const accColor = showAccDot ? getAccountColor(resolvedAccId) : null;
-    const accName  = showAccDot ? getAccountName(resolvedAccId) : null;
+    const accName  = showAccDot ? getAccountName(resolvedAccId)  : null;
     const accCurrency = getAccountCurrency(resolvedAccId);
     let nativeFmt;
     try { nativeFmt = fmtCurrency(amt, accCurrency); } catch { nativeFmt = aud(amt); }
     const displayAmt = showCurrencyCodes
       ? `${nativeFmt} <span class="tx-currency-code">${accCurrency}</span>`
       : nativeFmt;
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${fmtDate(date)}</td>
-      <td class="tx-account-cell"><span class="tx-acc-dot-cell" style="background:${accColor}" title="${accName}"></span></td>
-      <td class="tx-type-cell"><span class="type-pill ${type === "removed" ? "wit" : (subtype === "interest" ? "int" : "dep")}">${type === "removed" ? "Withdrawal" : (subtype === "interest" ? "Interest" : "Deposit")}</span></td>
-      <td class="num" style="color:${isDeposit ? 'var(--green)' : 'var(--red)'}">${displayAmt}</td>`;
-    tr.onclick = () => openPopup(date, amt, type, yearKey, txId);
-    tbody.appendChild(tr);
-  });
+    const typeLabel = type === "removed" ? "Withdrawal" : (subtype === "interest" ? "Interest" : "Deposit");
+    const typeClass = type === "removed" ? "wit"        : (subtype === "interest" ? "int"      : "dep");
+    const amtColor  = isDeposit ? "var(--green)" : "var(--red)";
+    return `<tr data-date="${date}" data-amt="${amt}" data-type="${type}" data-year="${escapeHTML(yearKey || "")}" data-tx-id="${escapeHTML(txId || "")}">`
+      + `<td>${fmtDate(date)}</td>`
+      + `<td class="tx-account-cell"><span class="tx-acc-dot-cell" style="background:${accColor}" title="${escapeHTML(accName || "")}"></span></td>`
+      + `<td class="tx-type-cell"><span class="type-pill ${typeClass}">${typeLabel}</span></td>`
+      + `<td class="num" style="color:${amtColor}">${displayAmt}</td>`
+      + `</tr>`;
+  }).join("");
+  tbody.innerHTML = rowsHtml;
+
+  _renderPagination(totalRows, totalPages);
 
   // Totals: always convert to global currency for stat cards
   const filteredInGlobal  = rows.filter(r => r[2] === "saved")
@@ -8831,6 +9517,89 @@ function renderMain() {
   updateSortButtons();
 }
 
+// ─── pagination (Change 5) ────────────────────────────────────────────────────
+// Render the top + bottom pagination bars. Hidden entirely when
+// totalRows ≤ PAGE_SIZE (totalPages === 1).
+//
+// Layout (v2):
+//   Top bar:    [ info text | spacer | controls ]   (justify-content: space-between)
+//   Bottom bar: [                      controls ]   (justify-content: flex-end)
+// Mobile collapses each bar to flex-direction:column, info above, controls right.
+function _renderPagination(totalRows, totalPages) {
+  const top = document.getElementById("tx-pagination-top");
+  const bot = document.getElementById("tx-pagination-bottom");
+  if (!top || !bot) return;
+  if (totalPages <= 1 || totalRows === 0) {
+    top.style.display = bot.style.display = "none";
+    return;
+  }
+  top.style.display = bot.style.display = "flex";
+
+  const pageStart = (_currentPage - 1) * PAGE_SIZE + 1;
+  const pageEnd   = Math.min(_currentPage * PAGE_SIZE, totalRows);
+  const infoHtml =
+    `<div class="tx-pagination-info">` +
+      `Showing <span class="pn-accent">${pageStart.toLocaleString()}–${pageEnd.toLocaleString()}</span> ` +
+      `of ${totalRows.toLocaleString()} entries` +
+      `<span class="pn-sep">·</span>` +
+      `<span class="pn-muted">Print/export uses full set</span>` +
+    `</div>`;
+  const controlsHtml = `<div class="tx-pagination-controls">${_buildPaginationHTML(totalPages)}</div>`;
+
+  // Top bar: info + controls. Bottom bar: controls only (right-aligned via CSS).
+  top.innerHTML = infoHtml + controlsHtml;
+  bot.innerHTML = controlsHtml;
+
+  // Wire buttons in both bars
+  [top, bot].forEach(bar => {
+    bar.querySelectorAll("[data-page]").forEach(btn => {
+      btn.onclick = () => _gotoPage(parseInt(btn.dataset.page, 10));
+    });
+  });
+}
+
+function _buildPaginationHTML(totalPages) {
+  const isMobile = window.matchMedia("(max-width: 640px)").matches;
+  const p = _currentPage;
+  if (isMobile) {
+    // Mobile shows only the compact form because the full button list won't
+    // fit. The "Page X of Y" text is required here since the compact form
+    // doesn't expose the total page count via individual buttons.
+    return `
+      <button class="tx-page-btn tx-page-arrow" data-page="${p-1}" ${p<=1?"disabled":""} aria-label="Previous page">‹</button>
+      <span class="tx-page-compact">Page <span class="pn-accent">${p}</span> <span class="pn-of">of</span> ${totalPages}</span>
+      <button class="tx-page-btn tx-page-arrow" data-page="${p+1}" ${p>=totalPages?"disabled":""} aria-label="Next page">›</button>
+    `;
+  }
+  // Desktop: chevron arrows only (no "Prev"/"Next" labels), plus first, last,
+  // and current ±1 with ellipses where gaps exist. Total page count is
+  // visible from the last button, so a "Page X of Y" indicator is redundant.
+  const want = new Set([1, totalPages, p - 1, p, p + 1]);
+  const list = [...want].filter(n => n >= 1 && n <= totalPages).sort((a,b) => a-b);
+  let html = `<button class="tx-page-btn tx-page-arrow" data-page="${p-1}" ${p<=1?"disabled":""} aria-label="Previous page">‹</button>`;
+  let prev = 0;
+  for (const n of list) {
+    if (n - prev > 1) html += `<span class="tx-page-ellipsis">…</span>`;
+    html += `<button class="tx-page-btn ${n===p?"active":""}" data-page="${n}">${n}</button>`;
+    prev = n;
+  }
+  html += `<button class="tx-page-btn tx-page-arrow" data-page="${p+1}" ${p>=totalPages?"disabled":""} aria-label="Next page">›</button>`;
+  return html;
+}
+
+function _gotoPage(n) {
+  const total = (_currentRows || []).length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  _currentPage = Math.max(1, Math.min(n, totalPages));
+  renderMain();
+  // Scroll the table back to the top so the user sees the start of the new page
+  const tbl = document.getElementById("tx-table");
+  if (tbl) {
+    try { tbl.scrollIntoView({ block: "start", behavior: "smooth" }); }
+    catch { tbl.scrollIntoView(); }
+  }
+}
+
 // ─── actions ───────────────────────────────────────────────────────────────────
 // ─── tab switching ─────────────────────────────────────────────────────────────
 
@@ -8838,6 +9607,7 @@ function renderMain() {
 // Shows/hides the table vs report panel and triggers the appropriate render.
 function switchTab(t) {
   activeTab = t;
+  _currentPage = 1;
   const isReport = t === "report";
   const isCharts = t === "charts";
   const isAll    = t === "all";
@@ -9014,7 +9784,7 @@ function renderCharts() {
   if (!months.length) {
     ["chart-net-monthly", "chart-dvw-monthly", "chart-cumulative", "chart-yoy"].forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.innerHTML = '<div class="chart-empty">No data yet.</div>';
+      if (el) el.innerHTML = '<div class="chart-empty">No transactions to chart yet.</div>';
     });
     return;
   }
@@ -9208,7 +9978,7 @@ function buildYearChart(years, byYear) {
   const W = chartW(), H = 160, PL = 52, PR = 12, PT = 14, PB = 28;
   const iW = W - PL - PR, iH = H - PT - PB;
   const n = years.length;
-  if (!n) return '<div class="chart-empty">No data yet.</div>';
+  if (!n) return '<div class="chart-empty">No transactions to chart yet.</div>';
 
   const allVals = years.flatMap(y => [byYear[y].dep, byYear[y].wit]);
   const max = Math.max(...allVals, 1);
@@ -9269,6 +10039,7 @@ function setSort(key) {
     sortKey = key;
     sortDir = key === "amount" ? "desc" : "asc"; // amount defaults desc, others default asc
   }
+  _currentPage = 1;
   render();
 }
 
@@ -9305,7 +10076,7 @@ let ensureFYSilent = false;
 function ensureFY(key) {
   if (!data[key]) {
     data[key] = { saved: [], removed: [] };
-    if (!ensureFYSilent) toast(`Year group ${yearLabel(key)} added`, "var(--gold-dim)");
+    if (!ensureFYSilent) toast(`Year ${yearLabel(key)} added`, "var(--gold-dim)");
   }
   return key;
 }
@@ -9321,6 +10092,12 @@ let editSubtype = null;  // subtype of tx being edited ("interest" | null)
 // Open the edit popup for a transaction row.
 // Uses tx ID for lookup when available to avoid collisions on duplicate date+amount.
 function openPopup(date, amt, type, yearKey, txId) {
+  // _popupFromHistoryIdx is set just before this call by the history row handler.
+  // For all other callers, reset it so closing the popup doesn't accidentally
+  // navigate back to a stale history panel.
+  // We use a flag on the call itself by checking a one-shot latch instead.
+  if (!_openPopupFromHistory) _popupFromHistoryIdx = null;
+  _openPopupFromHistory = false;
   popupType = type || activeTab;
   popupYear = yearKey || (activeYear === "all-years" ? null : activeYear);
   if (!popupYear) return;
@@ -9337,7 +10114,7 @@ function openPopup(date, amt, type, yearKey, txId) {
   const recurId    = existingTx && existingTx[5] ? String(existingTx[5]) : null;
   const rule       = recurId ? recurRules.find(r => String(r.id) === recurId) : null;
 
-  document.getElementById("popup-title").textContent = "Edit " + typeLabel;
+  document.getElementById("popup-title").textContent = "Edit " + typeLabel.toLowerCase();
   document.getElementById("popup-meta").textContent  = yearLabel(popupYear) + "  ·  " + typeLabel;
   document.getElementById("popup-date").value   = date;
   document.getElementById("popup-amount").value = amt;
@@ -9356,13 +10133,40 @@ function openPopup(date, amt, type, yearKey, txId) {
   // Update amount label and currency info
   updatePopupCurrencyInfo(currentAccId, parseFloat(existingTx[1]) || 0);
 
-  // Show/hide recurring action buttons based on whether this tx came from a rule
+  // Show/hide recurring UI elements
   const recurSection  = document.getElementById("popup-recur-section");
   const ruleSection   = document.getElementById("popup-rule-section");
   const ruleNote      = document.getElementById("popup-rule-note");
+  const scopeRow      = document.getElementById("popup-scope-row");
+  const delAll        = document.getElementById("popup-del-all");
+  const delRule       = document.getElementById("popup-del-rule");
+  const delRuleAll    = document.getElementById("popup-del-rule-all");
+  const hasActiveRule = !!(recurId && rule);
+
   if (recurSection) recurSection.style.display = recurId ? "" : "none";
-  if (ruleSection)  ruleSection.style.display  = (recurId && rule) ? "" : "none";
+  if (ruleSection)  ruleSection.style.display  = hasActiveRule ? "" : "none";
   if (ruleNote)     ruleNote.style.display     = (recurId && !rule) ? "" : "none";
+  if (scopeRow)     scopeRow.style.display     = hasActiveRule ? "" : "none";
+  if (delAll)       delAll.style.display       = hasActiveRule ? "" : "none";
+  if (delRule)      delRule.style.display      = hasActiveRule ? "" : "none";
+  if (delRuleAll)   delRuleAll.style.display   = hasActiveRule ? "" : "none";
+
+  // Reset scope to "this" and close delete menu
+  popupSetScope('this');
+  const delMenu = document.getElementById("popup-delete-menu");
+  if (delMenu) delMenu.style.display = "none";
+
+  // Populate the recurring pill label
+  if (hasActiveRule) {
+    const pillText = document.getElementById("popup-recur-band-detail");
+    if (pillText) {
+      const freqLabel  = FREQ_LABELS[rule.freq] || rule.freq;
+      const typeLabel2 = rule.type === "withdrawal" ? "withdrawal" : "deposit";
+      const cur = getAccountCurrency(rule.account || getDefaultAccountId());
+      const sym = getCurrencySymbol(cur);
+      pillText.textContent = `${freqLabel} ${typeLabel2} · ${sym}${rule.amount.toFixed(2)}`;
+    }
+  }
 
   // Store recurId for use in save/delete actions
   document.getElementById("tx-popup").dataset.recurId = recurId || "";
@@ -9371,13 +10175,31 @@ function openPopup(date, amt, type, yearKey, txId) {
 }
 
 // Close the popup and clear its state
+// When set, closePopup will return the user to the recurring history panel
+let _popupFromHistoryIdx  = null;
+let _openPopupFromHistory = false; // one-shot latch consumed by openPopup
+
 function closePopup() {
   document.getElementById("tx-popup").classList.add("hidden");
   const dd = document.getElementById("popup-account-dropdown");
   if (dd) dd.style.display = "none";
+  // Reset delete menu
+  const delMenu = document.getElementById("popup-delete-menu");
+  if (delMenu) delMenu.style.display = "none";
+  const delBtn = document.getElementById("popup-delete-toggle");
+  if (delBtn) delBtn.style.borderColor = "";
   popupIdx  = null;
   popupType = null;
   popupYear = null;
+
+  // If opened from a history panel, slide back into it
+  if (_popupFromHistoryIdx !== null) {
+    const histIdx = _popupFromHistoryIdx;
+    _popupFromHistoryIdx = null;
+    openRecurringModal();
+    // Small delay to let the modal appear before sliding the panel in
+    setTimeout(() => openRecurHistory(histIdx), 50);
+  }
 }
 
 // Remove any year bucket that has zero transactions in both saved and removed.
@@ -9599,46 +10421,115 @@ function _doSavePopup(dateVal, amtVal, accountId) {
   const list  = popupType === "saved" ? data[popupYear].saved : data[popupYear].removed;
   const existingTx = list[popupIdx];
   const existingId = existingTx && existingTx[2] ? existingTx[2] : newTxId();
+  const origDate   = existingTx ? existingTx[0] : null;
+  const recurId    = document.getElementById("tx-popup").dataset.recurId || null;
 
+  // If date or amount changed on a recurring transaction, record what changed in
+  // movedDates so: (a) the audit doesn't re-post the original slot, and
+  // (b) history can show "Originally..." notes on the affected transaction.
+  // We MERGE into any existing record for this txId so that editing date then amount
+  // (or vice versa) preserves both original values, not just the most recent change.
+  const origAmt = existingTx ? existingTx[1] : null;
+  const dateChanged = recurId && origDate && dateVal !== origDate;
+  const amtChanged  = recurId && origAmt  !== null && parseFloat(amtVal.toFixed(2)) !== parseFloat(origAmt.toFixed(2));
+  if (dateChanged || amtChanged) {
+    const rule = recurRules.find(r => String(r.id) === String(recurId));
+    if (rule) {
+      if (!rule.movedDates) rule.movedDates = [];
+      let rec = rule.movedDates.find(m => m && m.txId === existingId);
+      if (!rec) {
+        rec = { txId: existingId, from: null, origAmt: null };
+        rule.movedDates.push(rec);
+      }
+      // Only record the FIRST original value — don't overwrite if already set
+      if (dateChanged && !rec.from)    rec.from    = origDate;
+      if (amtChanged  && rec.origAmt === null) rec.origAmt = origAmt;
+      saveRecurring();
+    }
+  }
+
+  let invalidateYear;
   if (newFY !== popupYear) {
     list.splice(popupIdx, 1);
     ensureFY(newFY);
     const targetList = popupType === "saved" ? data[newFY].saved : data[newFY].removed;
     const eTx = [dateVal, parseFloat(amtVal.toFixed(2)), existingId, Date.now()];
     eTx.push(editSubtype || null);
-    const savedRecurId = document.getElementById("tx-popup").dataset.recurId;
-    if (savedRecurId) eTx.push(savedRecurId); else eTx.push(null);
+    if (recurId) eTx.push(recurId); else eTx.push(null);
     eTx.push(accountId);
     targetList.push(eTx);
     targetList.sort((a, b) => a[0].localeCompare(b[0]));
     activeYear = newFY; activeMonth = null;
+    invalidateYear = null; // both years touched
     toast(`Transaction moved to ${yearLabel(newFY)}`);
   } else {
     const uTx = [dateVal, parseFloat(amtVal.toFixed(2)), existingId, Date.now()];
     uTx.push(editSubtype || null);
-    const uRecurId = document.getElementById("tx-popup").dataset.recurId;
-    if (uRecurId) uTx.push(uRecurId); else uTx.push(null);
+    if (recurId) uTx.push(recurId); else uTx.push(null);
     uTx.push(accountId);
     list[popupIdx] = uTx;
     list.sort((a, b) => a[0].localeCompare(b[0]));
+    invalidateYear = popupYear;
     toast("Transaction updated");
   }
   pruneEmptyYears();
   closePopup();
-  render();
+  // Jump to the page containing the edited tx after render
+  _pendingFocusTxId = existingId;
+  saveAndRender(invalidateYear);
   triggerCloudSync();
 }
 
 // Delete the transaction currently open in the popup
+// Track current save scope for recurring transactions
+let _popupScope = 'this'; // 'this' | 'all'
+
+function popupSetScope(scope) {
+  _popupScope = scope;
+  const btnThis = document.getElementById("popup-scope-this");
+  const btnAll  = document.getElementById("popup-scope-all");
+  if (btnThis) btnThis.classList.toggle("active", scope === 'this');
+  if (btnAll)  btnAll.classList.toggle("active",  scope === 'all');
+}
+
+function popupSaveScoped() {
+  const recurId = document.getElementById("tx-popup").dataset.recurId;
+  if (recurId && _popupScope === 'all') savePopupAll();
+  else savePopup();
+}
+
+function togglePopupDeleteMenu() {
+  const menu = document.getElementById("popup-delete-menu");
+  if (!menu) return;
+  const isOpen = menu.style.display !== "none";
+  menu.style.display = isOpen ? "none" : "";
+  const btn = document.getElementById("popup-delete-toggle");
+  if (btn) btn.style.borderColor = isOpen ? "" : "var(--red)";
+}
+
 function deletePopup() {
   if (popupIdx === null || !popupYear) return;
   const list = popupType === "saved" ? data[popupYear].saved : data[popupYear].removed;
   const tx = list[popupIdx];
   if (tx && tx[2]) addTombstone(tx[2]);
+
+  // If this transaction came from a recurring rule, record the date as intentionally
+  // skipped so the audit loop never re-posts it.
+  const delRecurId = tx && tx[5] ? String(tx[5]) : null;
+  if (delRecurId) {
+    const delRule = recurRules.find(r => String(r.id) === delRecurId);
+    if (delRule && tx[0]) {
+      if (!delRule.skippedDates) delRule.skippedDates = [];
+      if (!delRule.skippedDates.includes(tx[0])) delRule.skippedDates.push(tx[0]);
+      saveRecurring();
+    }
+  }
+
   list.splice(popupIdx, 1);
   pruneEmptyYears();
+  const _delYear = popupYear;
   closePopup();
-  render();
+  saveAndRender(_delYear);
   triggerCloudSync();
   toast("Transaction deleted", "var(--red)");
 }
@@ -9690,7 +10581,7 @@ function savePopupAll() {
     const rule = recurRules.find(r => String(r.id) === String(recurId));
     if (rule) { rule.amount = amt; if (accountChanged) rule.account = newAccountId; }
     closePopup();
-    render();
+    saveAndRender(null);
     triggerCloudSync();
     toast(`Updated ${matches.length} transaction${matches.length !== 1 ? "s" : ""} from this rule`);
   };
@@ -9721,7 +10612,7 @@ function deletePopupAll() {
   });
   pruneEmptyYears();
   closePopup();
-  render();
+  saveAndRender(null);
   triggerCloudSync();
   toast(`Deleted ${matches.length} transaction${matches.length !== 1 ? "s" : ""} from this rule`, "var(--red)");
 }
@@ -9731,11 +10622,18 @@ function openRuleFromPopup() {
   const recurId = document.getElementById("tx-popup").dataset.recurId;
   closePopup();
   openRecurringModal();
-  // Highlight the rule after modal opens
+  // Scroll to and pulse-highlight the rule after modal opens
   if (recurId) {
     setTimeout(() => {
-      const el = document.querySelector(`[data-rule-id="${recurId}"]`) || Array.from(document.querySelectorAll(".recur-item")).find(el => el.dataset.ruleId === String(recurId));
-      if (el) { el.scrollIntoView({ block: "center", behavior: "smooth" }); el.style.outline = "2px solid var(--gold)"; setTimeout(() => el.style.outline = "", 1500); }
+      const el = document.querySelector(`[data-rule-id="${recurId}"]`)
+               || Array.from(document.querySelectorAll(".recur-item")).find(e => e.dataset.ruleId === String(recurId));
+      if (el) {
+        el.scrollIntoView({ block: "center", behavior: "smooth" });
+        el.classList.remove("recur-item-highlight");
+        void el.offsetWidth; // force reflow so re-adding restarts animation
+        el.classList.add("recur-item-highlight");
+        el.addEventListener("animationend", () => el.classList.remove("recur-item-highlight"), { once: true });
+      }
     }, 150);
   }
 }
@@ -9746,6 +10644,7 @@ function deleteRuleFromPopup() {
   if (!recurId) return;
   recurRules = recurRules.filter(r => String(r.id) !== String(recurId));
   saveRecurring();
+  _popupFromHistoryIdx = null; // rule is gone — don't return to history
   closePopup();
   render();
   triggerCloudSync();
@@ -9766,8 +10665,9 @@ function deleteRuleAndAllFromPopup() {
   recurRules = recurRules.filter(r => String(r.id) !== String(recurId));
   saveRecurring();
   pruneEmptyYears();
+  _popupFromHistoryIdx = null; // rule is gone — don't return to history
   closePopup();
-  render();
+  saveAndRender(null);
   triggerCloudSync();
   toast(`Rule and ${matches.length} transaction${matches.length !== 1 ? "s" : ""} deleted`, "var(--red)");
 }
@@ -9798,7 +10698,10 @@ function confirmAddYear() {
   if (!isValidYearKey(label)) { toast(`Format: ${yearKeyPlaceholder()}`, "#c0392b"); return; }
   if (data[label]) { toast("Year already exists.", "#c0392b"); return; }
   data[label]={saved:[],removed:[]};
-  activeYear=label; hideAddYear(); render();
+  activeYear=label;
+  _currentPage = 1;
+  hideAddYear();
+  saveAndRender(label);
   toast(`Created ${yearLabel(label)}`);
 }
 
@@ -10094,7 +10997,7 @@ function exportReportXLSX() {
   const from = document.getElementById("report-from").value;
   const to   = document.getElementById("report-to").value;
   if (!from || !to) { toast("Set a date range first.", "#c0392b"); return; }
-  if (typeof XLSX === "undefined") { toast("Spreadsheet library not loaded yet — try again in a moment.", "#c0392b"); return; }
+  if (typeof XLSX === "undefined") { toast("Spreadsheet library is still loading — try again in a few seconds.", "#c0392b"); return; }
 
   const defaultAccId = getDefaultAccountId();
   const all = [];
@@ -10713,7 +11616,7 @@ async function processFileWithAI(file, provider, progressItem, onProgress) {
   const name = file.name;
   const prog = onProgress || ((pct, shimmer) => { if (shimmer !== undefined) updateProgressBar(pct, shimmer); });
 
-  updateProgressItem(progressItem, "processing", "Optimising...");
+  updateProgressItem(progressItem, "processing", "Optimising…");
   prog(5);
 
   // Prepare file (HEIC conversion + compression)
@@ -10724,7 +11627,7 @@ async function processFileWithAI(file, provider, progressItem, onProgress) {
 
   // OFX/QIF: parse directly
   if (["ofx","qfx","qif"].includes(ext)) {
-    updateProgressItem(progressItem, "processing", "Reading...");
+    updateProgressItem(progressItem, "processing", "Reading…");
     prog(40);
     const text = await fileToText(file);
     txs = ext === "qif" ? parseQIF(text) : parseOFX(text);
@@ -10740,17 +11643,17 @@ async function processFileWithAI(file, provider, progressItem, onProgress) {
 
   // CSV/TXT: send as text
   if (["csv","tsv","txt"].includes(ext) || file.type === "text/csv" || file.type === "text/plain") {
-    updateProgressItem(progressItem, "processing", "Reading...");
+    updateProgressItem(progressItem, "processing", "Reading…");
     prog(35);
     const text = await fileToText(file);
-    updateProgressItem(progressItem, "processing", "Sending to AI...");
+    updateProgressItem(progressItem, "processing", "Sending to AI…");
     prog(45, true);
     const aiText = await callAI(provider, text, "text/plain", true);
     prog(85);
     txs = parseAIResponse(aiText);
     if (!txs || txs.length === 0) {
       // Retry with stricter prompt
-      updateProgressItem(progressItem, "processing", "Retrying...");
+      updateProgressItem(progressItem, "processing", "Retrying…");
       prog(45, true);
       const retry = await callAI(provider, "Return ONLY a JSON array. " + text, "text/plain", true, 1);
       prog(85); txs = parseAIResponse(retry) || [];
@@ -10761,19 +11664,19 @@ async function processFileWithAI(file, provider, progressItem, onProgress) {
 
   // XLSX/XLS/ODS/NUMBERS: extract to CSV text via SheetJS
   if (["xlsx","xls","xlsm","xlsb","ods","numbers"].includes(ext)) {
-    updateProgressItem(progressItem, "processing", "Reading spreadsheet...");
+    updateProgressItem(progressItem, "processing", "Reading spreadsheet…");
     prog(35);
     let csvText = "";
     try { csvText = await extractSpreadsheetText(file); } catch(e) { csvText = ""; }
     // Numbers files can fail SheetJS — if result is empty fall through to base64 path
     if (csvText && csvText.trim().length > 10) {
-      updateProgressItem(progressItem, "processing", "Sending to AI...");
+      updateProgressItem(progressItem, "processing", "Sending to AI…");
       prog(45, true);
       const aiText = await callAI(provider, csvText, "text/plain", true);
       prog(85);
       txs = parseAIResponse(aiText);
       if (!txs || txs.length === 0) {
-        updateProgressItem(progressItem, "processing", "Retrying...");
+        updateProgressItem(progressItem, "processing", "Retrying…");
         prog(45, true);
         const retry = await callAI(provider, "Return ONLY a JSON array. " + csvText, "text/plain", true, 1);
         prog(85); txs = parseAIResponse(retry) || [];
@@ -10786,7 +11689,7 @@ async function processFileWithAI(file, provider, progressItem, onProgress) {
 
   // SVG: strip XML tags and send inner text content only
   if (ext === "svg" || file.type === "image/svg+xml") {
-    updateProgressItem(progressItem, "processing", "Reading...");
+    updateProgressItem(progressItem, "processing", "Reading…");
     prog(35);
     const rawSvg = await fileToText(file);
     // Strip all XML/SVG tags, decode entities, collapse whitespace
@@ -10795,13 +11698,13 @@ async function processFileWithAI(file, provider, progressItem, onProgress) {
       .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&nbsp;/g, " ")
       .replace(/[ \t]+/g, " ")
       .split("\n").map(l => l.trim()).filter(l => l.length > 0).join("\n");
-    updateProgressItem(progressItem, "processing", "Sending to AI...");
+    updateProgressItem(progressItem, "processing", "Sending to AI…");
     prog(45, true);
     const aiText = await callAI(provider, text, "text/plain", true);
     prog(85);
     txs = parseAIResponse(aiText);
     if (!txs || txs.length === 0) {
-      updateProgressItem(progressItem, "processing", "Retrying...");
+      updateProgressItem(progressItem, "processing", "Retrying…");
       prog(45, true);
       const retry = await callAI(provider, "Return ONLY a JSON array. " + text, "text/plain", true, 1);
       prog(85); txs = parseAIResponse(retry) || [];
@@ -10811,17 +11714,17 @@ async function processFileWithAI(file, provider, progressItem, onProgress) {
   }
 
   // PDF and images: send as base64
-  updateProgressItem(progressItem, "processing", "Reading file...");
+  updateProgressItem(progressItem, "processing", "Reading file…");
   prog(35);
   const mimeType = file.type || (ext === "pdf" ? "application/pdf" : "image/jpeg");
   const b64 = await fileToBase64(file);
-  updateProgressItem(progressItem, "processing", "Sending to AI...");
+  updateProgressItem(progressItem, "processing", "Sending to AI…");
   prog(45, true);
   const aiText = await callAI(provider, b64, mimeType, false);
   prog(85);
   txs = parseAIResponse(aiText);
   if (!txs || txs.length === 0) {
-    updateProgressItem(progressItem, "processing", "Retrying...");
+    updateProgressItem(progressItem, "processing", "Retrying…");
     prog(45, true);
     const retry = await callAI(provider, b64, mimeType, false, 1);
     prog(85); txs = parseAIResponse(retry) || [];
@@ -10957,7 +11860,7 @@ function checkImportDuplicate(tx) {
 function createProgressItem(name) {
   const el = document.createElement("div");
   el.className = "import-progress-item processing";
-  el.innerHTML = `<span class="ipi-icon">⟳</span><span class="ipi-name">${name}</span><span class="ipi-status">Waiting...</span>`;
+  el.innerHTML = `<span class="ipi-icon">⟳</span><span class="ipi-name">${escapeHTML(name)}</span><span class="ipi-status">Waiting…</span>`;
   return { el, name };
 }
 function updateProgressItem(item, state, statusText) {
@@ -11024,7 +11927,7 @@ function renderImportFailures() {
   el.style.display = "";
   el.innerHTML = `<div style="font-size:12px;color:var(--red);background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.2);border-radius:8px;padding:10px 12px;">
     <strong>${_importFailures.length} file${_importFailures.length>1?"s":""} could not be processed:</strong>
-    ${_importFailures.map(f=>`<div style="margin-top:4px;color:var(--text-3);">✗ ${f.name} — ${f.reason}</div>`).join("")}
+    ${_importFailures.map(f=>`<div style="margin-top:4px;color:var(--text-3);">✗ ${escapeHTML(f.name)} — ${escapeHTML(f.reason)}</div>`).join("")}
   </div>`;
 }
 
@@ -11125,7 +12028,7 @@ function toggleImportAccountPicker() {
       const item = document.createElement("button");
       item.style.cssText = "width:100%;background:none;border:none;border-bottom:1px solid var(--border);padding:10px 12px;color:var(--text-1);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;gap:10px;text-align:left;";
       if (acc.id === _importTargetAccountId) item.style.background = "rgba(201,168,76,0.08)";
-      item.innerHTML = `<span style="width:10px;height:10px;border-radius:50%;background:${acc.color};flex-shrink:0;"></span><span style="flex:1;">${acc.name}</span><span style="font-size:11px;color:var(--text-3);font-weight:600;">${cur}</span>`;
+      item.innerHTML = `<span style="width:10px;height:10px;border-radius:50%;background:${acc.color};flex-shrink:0;"></span><span style="flex:1;">${escapeHTML(acc.name)}</span><span style="font-size:11px;color:var(--text-3);font-weight:600;">${cur}</span>`;
       item.onclick = () => { _importTargetAccountId = acc.id; dd.style.display = "none"; renderImportAccountPicker(); };
       dd.appendChild(item);
     });
@@ -11221,7 +12124,7 @@ function confirmImport() {
   _importLastIds = importedIds;
   pruneEmptyYears();
   closeImportPreview();
-  render();
+  saveAndRender(null);
   triggerCloudSync();
 
   // Extended toast with undo (30 seconds)
@@ -11238,7 +12141,7 @@ function undoLastImport() {
   });
   _importLastIds = [];
   pruneEmptyYears();
-  render();
+  saveAndRender(null);
   triggerCloudSync();
   toast("Import undone");
 }
@@ -11306,8 +12209,8 @@ function renderAIProviderCards() {
     const tierClass  = isDefault ? "active" : (hasKey && isEnabled ? "saved" : "");
     const statusLabel = isDefault        ? "✓ Default"
                       : !hasKey          ? "Not set up"
-                      : !isEnabled       ? "Disabled — key saved but not in use"
-                      :                    "Key saved — tap to set as default";
+                      : !isEnabled       ? "Saved · disabled"
+                      :                    "Set as default";
     const statusColor = isDefault  ? "var(--gold)"
                       : !isEnabled ? "var(--text-3)"
                       :              "var(--text-3)";
@@ -11349,7 +12252,7 @@ function renderAIProviderCards() {
         <!-- Key input -->
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
           <input type="password" class="ai-provider-key-input${key ? ' collapsed' : ''}" id="aikey-${provider.id}"
-            placeholder="Paste API key here..." value="${key}"
+            placeholder="Paste API key here…" value="${escapeHTML(key)}"
             autocomplete="off" autocorrect="off" spellcheck="false"
             style="flex:1;"
             onfocus="this.classList.remove('collapsed')"
@@ -11441,7 +12344,7 @@ async function testAIConnection(providerId) {
   if (!key) { toast("Enter an API key first", "#c0392b"); return; }
   const provider = AI_PROVIDERS.find(p => p.id === providerId);
   if (!provider) return;
-  toast(`Testing ${provider.name}...`);
+  toast(`Testing ${provider.name}…`);
 
   // Use cheapest text-only model for test
   const testProvider = { ...provider, model: provider.testModel };
@@ -11626,9 +12529,9 @@ async function showCurrencyMismatchDialog(remoteData, remoteTombstones, remoteCu
     `Your local data uses ${local} but the backup file uses ${remote}. Choose how to handle the difference.`;
 
   document.getElementById("cm-desc-keep-local").textContent =
-    `Keep ${local} as your currency. All numbers stay as-is — incoming ${remote} amounts are treated as ${local}.`;
+    `Keep ${local} as your currency. The ${remote} amounts in the backup will be relabelled as ${local} without converting — only choose this if those amounts are actually already in ${local}.`;
   document.getElementById("cm-desc-keep-remote").textContent =
-    `Switch to ${remote}. All numbers stay as-is — your ${local} amounts are treated as ${remote}.`;
+    `Switch to ${remote}. Your ${local} amounts will be relabelled as ${remote} without converting — only choose this if your amounts are actually already in ${remote}.`;
   document.getElementById("cm-desc-convert-local").textContent =
     `Switch to ${remote}. Your ${local} amounts are converted using today's exchange rate before merging.`;
   document.getElementById("cm-desc-convert-remote").textContent =
@@ -11794,8 +12697,7 @@ function autoMerge(remoteData, remoteTombstones) {
 
   reconcileYears();
   ensureFYSilent = false;
-  saveLocal();
-  render();
+  saveAndRender(null);
   dbg("autoMerge: complete");
 }
 
@@ -11852,13 +12754,13 @@ function toggleDeskRecur() {
     btn.style.color       = "var(--gold)";
     btn.style.borderColor = "var(--gold-dim)";
     btn.innerHTML = 'Recurring — tap to cancel';
-    addBtn.textContent = deskTxType === "deposit" ? "Schedule Recurring Deposit" : "Schedule Recurring Withdrawal";
+    addBtn.textContent = deskTxType === "deposit" ? "Schedule recurring deposit" : "Schedule recurring withdrawal";
   } else {
     btn.style.background  = "var(--bg3)";
     btn.style.color       = "var(--text-2)";
     btn.style.borderColor = "var(--border-hi)";
     btn.innerHTML = 'Make this a recurring transaction';
-    addBtn.textContent = deskTxType === "deposit" ? "Add Deposit" : "Add Withdrawal";
+    addBtn.textContent = deskTxType === "deposit" ? "Add deposit" : "Add withdrawal";
   }
 }
 
@@ -11876,13 +12778,13 @@ function toggleMobRecur() {
     btn.style.color       = "var(--gold)";
     btn.style.borderColor = "var(--gold-dim)";
     btn.innerHTML = 'Recurring — tap to cancel';
-    addBtn.textContent = mobTxType === "deposit" ? "Schedule Recurring Deposit" : "Schedule Recurring Withdrawal";
+    addBtn.textContent = mobTxType === "deposit" ? "Schedule recurring deposit" : "Schedule recurring withdrawal";
   } else {
     btn.style.background  = "var(--bg3)";
     btn.style.color       = "var(--text-2)";
     btn.style.borderColor = "var(--border-hi)";
     btn.innerHTML = 'Make this a recurring transaction';
-    addBtn.textContent = mobTxType === "deposit" ? "Add Deposit" : "Add Withdrawal";
+    addBtn.textContent = mobTxType === "deposit" ? "Add deposit" : "Add withdrawal";
   }
 }
 
@@ -11920,13 +12822,13 @@ function setDeskType(type) {
 
   if (type === "deposit") {
     depBtn.style.background = "var(--green)"; depBtn.style.color = "#fff"; depBtn.style.borderColor = "var(--green)";
-    saveBtn.textContent     = deskRecurOn ? "Schedule Recurring Deposit"  : "Add Deposit";
+    saveBtn.textContent     = deskRecurOn ? "Schedule recurring deposit"  : "Add deposit";
     saveBtn.style.background = "var(--green)";
     const recurToggleD = document.getElementById("desk-recur-toggle");
     if (recurToggleD) recurToggleD.style.display = "";
   } else if (type === "interest") {
     intBtn.style.background = "#5ba6d3"; intBtn.style.color = "#fff"; intBtn.style.borderColor = "#4a95c2";
-    saveBtn.textContent      = "Add Interest";
+    saveBtn.textContent      = "Add interest";
     saveBtn.style.background = "#5ba6d3";
     // Interest can't be recurring — hide the toggle and reset if it was on
     const recurToggle = document.getElementById("desk-recur-toggle");
@@ -11938,7 +12840,7 @@ function setDeskType(type) {
     }
   } else {
     witBtn.style.background = "var(--red)"; witBtn.style.color = "#fff"; witBtn.style.borderColor = "var(--red)";
-    saveBtn.textContent     = deskRecurOn ? "Schedule Recurring Withdrawal" : "Add Withdrawal";
+    saveBtn.textContent     = deskRecurOn ? "Schedule recurring withdrawal" : "Add withdrawal";
     saveBtn.style.background = "var(--red)";
     const recurToggleW = document.getElementById("desk-recur-toggle");
     if (recurToggleW) recurToggleW.style.display = "";
@@ -11999,7 +12901,7 @@ function desktopAddTransaction() {
     recurRules.push(rule);
     saveRecurring();
     const posted = processRecurring();
-    if (posted > 0) render();
+    if (posted > 0) saveAndRender(null);
     updateRecurMenuSub();
     closeDesktopAddSheet();
     triggerCloudSync();
@@ -12007,14 +12909,16 @@ function desktopAddTransaction() {
   } else {
     const fyKey = ensureFY(yearKeyForDate(dv));
     if (fyKey !== activeYear) activeYear = fyKey;
-    const dTx = [dv, amt, newTxId(), Date.now()];
+    const newId = newTxId();
+    const dTx = [dv, amt, newId, Date.now()];
     if (subtype) dTx.push(subtype); else dTx.push(null);
     dTx.push(null); // recurId placeholder
     dTx.push(accountId);
     data[fyKey][tab].push(dTx);
     data[fyKey][tab].sort((a,b) => a[0].localeCompare(b[0]));
     closeDesktopAddSheet();
-    render();
+    _pendingFocusTxId = newId; // jump to the page containing the new tx
+    saveAndRender(fyKey);
     triggerCloudSync();
     toast(deskTxType === "deposit" ? "Deposit recorded" : deskTxType === "interest" ? "Interest recorded" : "Withdrawal recorded");
   }
@@ -12041,10 +12945,10 @@ function setMobType(type) {
   if (intBtn) intBtn.className = "add-type-btn" + (type === "interest" ? " active-interest" : "");
   witBtn.className = "add-type-btn" + (type === "withdraw" ? " active-withdraw" : "");
   addBtn.textContent = type === "deposit"
-    ? (mobRecurOn ? "Schedule Recurring Deposit"    : "Add Deposit")
+    ? (mobRecurOn ? "Schedule recurring deposit"    : "Add deposit")
     : type === "interest"
-    ? "Add Interest"
-    : (mobRecurOn ? "Schedule Recurring Withdrawal" : "Add Withdrawal");
+    ? "Add interest"
+    : (mobRecurOn ? "Schedule recurring withdrawal" : "Add withdrawal");
   addBtn.style.background = type === "deposit" ? "var(--green)" : type === "interest" ? "#5ba6d3" : "var(--red)";
 
   // Interest can't be recurring — hide the toggle when interest is selected
@@ -12112,7 +13016,7 @@ function mobileAddTransaction() {
     recurRules.push(rule);
     saveRecurring();
     const posted = processRecurring();
-    if (posted > 0) render();
+    if (posted > 0) saveAndRender(null);
     closeSheets();
     triggerCloudSync();
     toast(posted > 0
@@ -12125,14 +13029,16 @@ function mobileAddTransaction() {
     const subtype = mobTxType === "interest" ? "interest" : null;
     const fyKey = ensureFY(fyKeyForDate(dv));
     if (fyKey !== activeYear) { activeYear = fyKey; }
-    const tx = [dv, amt, newTxId(), Date.now()];
+    const newId = newTxId();
+    const tx = [dv, amt, newId, Date.now()];
     if (subtype) tx.push(subtype); else tx.push(null);
     tx.push(null); // recurId placeholder
     tx.push(accountId);
     data[fyKey][tab].push(tx);
     data[fyKey][tab].sort((a, b) => a[0].localeCompare(b[0]));
     closeSheets();
-    render();
+    _pendingFocusTxId = newId; // jump to the page containing the new tx
+    saveAndRender(fyKey);
     triggerCloudSync();
     toast(mobTxType === "deposit" ? "Deposit recorded" : mobTxType === "interest" ? "Interest recorded" : "Withdrawal recorded");
   }
@@ -12193,7 +13099,7 @@ function renderMenuTxDropdown() {
       expandedYears.clear();
       if (!wasExpanded) {
         expandedYears.add(y);
-        if (activeYear !== y) { activeYear = y; activeMonth = null; if (activeTab === "report" || activeTab === "charts") switchTab("all"); }
+        if (activeYear !== y) { activeYear = y; activeMonth = null; _currentPage = 1; if (activeTab === "report" || activeTab === "charts") switchTab("all"); }
         render();
       }
       renderMenuTxDropdown();
@@ -12219,6 +13125,7 @@ function renderMenuTxDropdown() {
         mbtn.innerHTML = `<span style="flex:1">${label}</span><span style="font-size:12px; font-weight:300; margin-left:8px; color:${mNet2>=0?"var(--green)":"var(--red)"}">${aud(mNet2)}</span><span class="menu-tx-all-spacer"></span>`;
         mbtn.onclick = () => {
           activeYear = y; activeMonth = m;
+          _currentPage = 1;
           if (activeTab === "report" || activeTab === "charts") switchTab("all");
           closeSheets(); menuTxDropdownOpen = false; render();
         };
@@ -12396,6 +13303,7 @@ function renderYearSheet() {
         if (activeYear !== y) {
         activeYear = y;
         activeMonth = null;
+        _currentPage = 1;
         if (activeTab === "report" || activeTab === "charts") switchTab("all");
       }
       renderYearSheet(); // re-render sheet in place
@@ -12421,6 +13329,7 @@ function renderYearSheet() {
         mbtn.onclick = () => {
           activeYear = y;
           activeMonth = m;
+          _currentPage = 1;
           if (activeTab === "report" || activeTab === "charts") switchTab("all");
           closeSheets();
           render();
@@ -12458,9 +13367,10 @@ function confirmYsheetYear() {
   if (data[label]) { toast("Year already exists.", "#c0392b"); return; }
   data[label] = { saved: [], removed: [] };
   activeYear = label;
+  _currentPage = 1;
   hideYsheetNewForm();
   closeSheets();
-  render();
+  saveAndRender(label);
   toast("Created " + yearLabel(label));
 }
 
@@ -12553,14 +13463,14 @@ function compatMessages() {
   const reason = fsapiCompatReason();
   if (reason === "unsupported-device") {
     return {
-      banner: "Local file auto-save is unavailable on this device — iOS and iPadOS do not support this feature in any browser.",
+      banner: "Local file auto-save isn't supported on iOS or iPadOS. Use Google Drive or NAS instead.",
       panelTitle: "Not available on this device",
       panelBody: "iOS and iPadOS require all browsers to use Safari's engine, which doesn't support local file auto-save. This applies to Chrome, Edge, and every other browser on this device.",
       deviceBanner: { text: "You are on iOS or iPadOS — local file auto-save cannot be enabled on this device regardless of which browser you use.", color: "rgba(192,80,74,0.08)", border: "rgba(192,80,74,0.25)", textColor: "var(--red)" },
     };
   }
   return {
-    banner: "Local file auto-save requires Chrome or Edge — switch browsers on this device to enable it.",
+    banner: "Local file auto-save needs Chrome or Edge — switch browsers to enable it.",
     panelTitle: "Switch browser to enable auto-save",
     panelBody: "Your current browser doesn't support the File System Access API needed for local file auto-save. On this device, switching to Chrome or Edge will enable it.",
     deviceBanner: { text: "You are on a supported device — switching to Chrome or Edge will enable local file auto-save.", color: "rgba(201,168,76,0.06)", border: "rgba(201,168,76,0.25)", textColor: "var(--gold)" },
@@ -12623,7 +13533,7 @@ function showTabConflictBanner() {
   const learn  = document.getElementById("compat-banner-learn");
   if (!banner || !text) return;
   banner.classList.add("tab-conflict");
-  text.textContent = "Vault is open in another tab — saving from both may cause data conflicts. Close the other tab to avoid this.";
+  text.textContent = "Vault is open in another tab — editing in both may cause data conflicts. Close the other tab to avoid this.";
   if (learn) learn.style.display = "none";
   banner.style.display = "";
 }
@@ -12669,7 +13579,7 @@ function tickCompatExportCount() {
     const count = parseInt(localStorage.getItem(COMPAT_REMINDER_KEY) || "0", 10) + 1;
     localStorage.setItem(COMPAT_REMINDER_KEY, count.toString());
     if (count > 0 && count % COMPAT_REMINDER_EVERY === 0) {
-      toast("" + count + " changes since last export — consider saving a backup via Menu → Save & Backup", "var(--red)");
+      toast(`${count} change${count !== 1 ? "s" : ""} since last export — consider saving a backup via Menu → Save & Backup`, "var(--red)");
       dbg("Compat reminder: " + count + " tx since last export");
     }
   } catch {}
@@ -12727,6 +13637,27 @@ function initApp() {
   ensureExchangeRates(); // fetch/load exchange rates for the current currency
   initNAS();
   updateAIMenuSubs(); // initialise AI provider menu labels
+
+  // Delegated click handler for transaction rows (Change 2). Attached once;
+  // each <tr> carries data-* attributes set by renderMain so we don't pay for
+  // a per-row closure on large tables.
+  if (!window._txBodyDelegated) {
+    const _txBody = document.getElementById("tx-body");
+    if (_txBody) {
+      _txBody.addEventListener("click", (e) => {
+        const tr = e.target.closest("tr");
+        if (!tr || !tr.dataset || !tr.dataset.date) return;
+        openPopup(
+          tr.dataset.date,
+          parseFloat(tr.dataset.amt),
+          tr.dataset.type,
+          tr.dataset.year || null,
+          tr.dataset.txId || null
+        );
+      });
+      window._txBodyDelegated = true;
+    }
+  }
   // Set an appropriate initial status before async inits resolve.
   // If GD tokens, a local file handle, or NAS config exist, show "Reconnecting…"
   // instead of "No backup" to avoid a misleading flash on startup.
@@ -12773,19 +13704,29 @@ function initApp() {
   loadRecurring();
   runRecurringCheck();
   updateRecurMenuSub();
-  setInterval(runRecurringCheck, 60 * 60 * 1000);
+  setInterval(() => {
+    if (_anyOverlayOpen()) {
+      dbg("recurring: hourly check deferred (overlay open)");
+      return;
+    }
+    runRecurringCheck();
+  }, 60 * 60 * 1000);
 }
 
 // ─── recurring transactions ────────────────────────────────────────────────────
-// Rule schema: { id, type, amount, freq, dow, startDate, nextDate, endDate }
-//   id        — unique identifier (Date.now() or "sandbox-recur-N" for seed data)
-//   type      — "deposit" | "withdrawal"
-//   amount    — positive number, stored to 2 decimal places
-//   freq      — "weekly" | "fortnightly" | "monthly" | "quarterly" | "yearly"
-//   dow       — 0–6 (Sun–Sat), only used for weekly/fortnightly; null otherwise
-//   startDate — ISO date when the rule was created / the series starts
-//   nextDate  — ISO date of the next occurrence to post (advances after each posting)
-//   endDate   — ISO date after which no more occurrences are posted; null = no end
+// Rule schema: { id, type, amount, freq, dow, startDate, nextDate, endDate, skippedDates }
+//   id           — unique identifier (Date.now() or "sandbox-recur-N" for seed data)
+//   type         — "deposit" | "withdrawal"
+//   amount       — positive number, stored to 2 decimal places
+//   freq         — "weekly" | "fortnightly" | "monthly" | "quarterly" | "yearly"
+//   dow          — 0–6 (Sun–Sat), only used for weekly/fortnightly; null otherwise
+//   startDate    — ISO date when the rule was created / the series starts
+//   nextDate     — ISO date of the next occurrence to post (advances after each posting)
+//   endDate      — ISO date after which no more occurrences are posted; null = no end
+//   skippedDates — array of ISO dates deliberately deleted by the user; audit will never re-post these
+//   movedDates   — array of {txId, from, origAmt} for edited transactions; audit skips re-posting the original slot
+//   completed     — true when the rule's endDate has passed; audit skips processing but the rule stays in the list for history access
+//   freqChangedAt — ISO date when freq was last changed; audit generates new cadence forward from here, preserving pre-change history
 
 // localStorage keys for persisting recurring rules and deletion history
 const RECUR_KEY         = "vault_recurring_v1";
@@ -12818,7 +13759,7 @@ function loadRecurring() {
     recurRules = [
       {
         id:        "sandbox-recur-1",
-        type:      "saved",
+        type:      "deposit",
         amount:    250.00,
         freq:      "fortnightly",
         dow:       3, // Wednesday
@@ -12828,7 +13769,7 @@ function loadRecurring() {
       },
       {
         id:        "sandbox-recur-2",
-        type:      "saved",
+        type:      "deposit",
         amount:    50.00,
         freq:      "weekly",
         dow:       1, // Monday
@@ -12838,7 +13779,7 @@ function loadRecurring() {
       },
       {
         id:        "sandbox-recur-3",
-        type:      "removed",
+        type:      "withdrawal",
         amount:    18.99,
         freq:      "monthly",
         dow:       null,
@@ -12848,7 +13789,7 @@ function loadRecurring() {
       },
       {
         id:        "sandbox-recur-4",
-        type:      "removed",
+        type:      "withdrawal",
         amount:    649.00,
         freq:      "quarterly",
         dow:       null,
@@ -12858,7 +13799,7 @@ function loadRecurring() {
       },
       {
         id:        "sandbox-recur-5",
-        type:      "saved",
+        type:      "deposit",
         amount:    100.00,
         freq:      "weekly",
         dow:       5, // Friday
@@ -12911,64 +13852,134 @@ function todayISO() {
   return isoDate(new Date());
 }
 
-// Scan all rules and post any occurrences where nextDate <= today.
-// Uses a while loop to catch rules that are multiple periods overdue (e.g. after a long absence).
+// Scan all rules and ensure every occurrence from startDate to today has been posted.
+// Uses an audit approach: generates all expected dates, finds which are missing from data,
+// and posts only the gaps. This handles nextDate drift, sync delays, and missed occurrences.
 // Returns the count of transactions posted so callers can notify the user.
 function processRecurring() {
   const today = todayISO();
   let posted = 0;
 
   recurRules.forEach(rule => {
-    if (!rule.nextDate) return;
-    while (rule.nextDate <= today) {
-      // Stop if end date has been passed
-      if (rule.endDate && rule.nextDate > rule.endDate) {
-        rule.nextDate = null;
-        break;
+    if (!rule.startDate) return;
+
+    // Skip processing for rules already marked completed. They stay in the list
+    // for history/edit access but generate no new transactions.
+    if (rule.completed) return;
+
+    // ── Build the full set of expected occurrence dates up to today ──────────
+    // If the rule's frequency was changed mid-life, generate from freqChangedAt
+    // forward using the new frequency. Pre-change transactions remain tagged to
+    // the rule and live in history, but the audit treats them as already-handled
+    // (their dates are added to postedDates below) and won't try to re-post.
+    const expected = [];
+    const cursorBase = rule.freqChangedAt || rule.startDate;
+    let cursor = cursorBase;
+    while (cursor <= today) {
+      if (!rule.endDate || cursor <= rule.endDate) {
+        expected.push(cursor);
       }
-      const tab     = rule.type === "withdrawal" ? "removed" : "saved";
-      const rSubtype = rule.type === "interest" ? "interest" : null;
-      const fyKey = ensureFY(yearKeyForDate(rule.nextDate));
-      const amt   = parseFloat(rule.amount.toFixed(2));
-      const rTx = [rule.nextDate, amt, newTxId(), Date.now()];
-      rTx.push(rSubtype);             // tx[4] = subtype
-      rTx.push(String(rule.id));      // tx[5] = recurId
-      rTx.push(rule.account || getDefaultAccountId()); // tx[6] = accountId
+      const prev = cursor;
+      cursor = nextOccurrence(cursor, rule.freq);
+      // Safety: if freq is broken and cursor doesn't advance, bail
+      if (cursor === prev) break;
+    }
+
+    // ── Collect dates already posted or deliberately skipped for this rule ─
+    const postedDates = new Set();
+    Object.keys(data).forEach(y => {
+      ["saved", "removed"].forEach(bucket => {
+        data[y][bucket].forEach(tx => {
+          if (tx[5] && String(tx[5]) === String(rule.id)) {
+            postedDates.add(tx[0]); // tx[0] = date
+          }
+        });
+      });
+    });
+    // Treat deliberately skipped dates and moved-away dates as already handled — never re-post them
+    if (rule.skippedDates && rule.skippedDates.length) {
+      rule.skippedDates.forEach(d => postedDates.add(d));
+    }
+    if (rule.movedDates && rule.movedDates.length) {
+      rule.movedDates.forEach(m => { if (m && m.from) postedDates.add(m.from); });
+    }
+
+    // ── Post any missing occurrences ──────────────────────────────────────
+    const tab      = rule.type === "withdrawal" ? "removed" : "saved";
+    const rSubtype = rule.type === "interest"   ? "interest" : null;
+    const amt      = parseFloat(rule.amount.toFixed(2));
+    const acctId   = rule.account || getDefaultAccountId();
+
+    expected.forEach(date => {
+      if (postedDates.has(date)) return; // already exists
+      const fyKey = ensureFY(yearKeyForDate(date));
+      const rTx = [date, amt, newTxId(), Date.now()];
+      rTx.push(rSubtype);       // tx[4] = subtype
+      rTx.push(String(rule.id)); // tx[5] = recurId
+      rTx.push(acctId);          // tx[6] = accountId
       data[fyKey][tab].push(rTx);
       data[fyKey][tab].sort((a, b) => a[0].localeCompare(b[0]));
       posted++;
-      rule.nextDate = nextOccurrence(rule.nextDate, rule.freq);
-      // Check end date after advancing
-      if (rule.endDate && rule.nextDate > rule.endDate) {
-        rule.nextDate = null;
-        break;
-      }
-    }
+    });
+
+    // ── Advance nextDate to the next future occurrence ────────────────────
+    // Walk forward from the cadence anchor (freqChangedAt or startDate) until past today
+    let next = cursorBase;
+    while (next <= today) next = nextOccurrence(next, rule.freq);
+    // Respect end date
+    if (rule.endDate && next > rule.endDate) next = null;
+    rule.nextDate = next;
   });
 
-  // Remove rules whose end date was yesterday or earlier (day after end date)
-  // This ensures any transaction on the end date itself was already posted
+  // Mark rules whose end date has passed as completed (don't delete them — keep
+  // them around so history, skippedDates, and movedDates remain accessible).
+  // Rules whose endDate is extended/cleared via the edit popup will get un-marked
+  // automatically since saveRecurEditPopup recomputes this state.
   const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-  const before = recurRules.length;
-  recurRules = recurRules.filter(rule =>
-    !rule.endDate || rule.endDate > yesterday
-  );
-  if (recurRules.length < before) {
-    dbg(`processRecurring: removed ${before - recurRules.length} completed rule(s)`);
-  }
+  let newlyCompleted = 0;
+  recurRules.forEach(rule => {
+    const shouldBeCompleted = !!(rule.endDate && rule.endDate <= yesterday);
+    if (shouldBeCompleted && !rule.completed) {
+      rule.completed = true;
+      rule.nextDate  = null;
+      newlyCompleted++;
+    } else if (!shouldBeCompleted && rule.completed) {
+      // Edge case: an existing rule is in completed state but its endDate has been
+      // extended or cleared (e.g. via cloud sync from another device). Re-activate it.
+      rule.completed = false;
+    }
+  });
+  if (newlyCompleted) dbg(`processRecurring: marked ${newlyCompleted} rule(s) completed`);
 
-  if (posted > 0 || recurRules.length < before) {
+  if (posted > 0 || newlyCompleted > 0) {
     saveRecurring();
     saveLocal();
   }
   return posted;
 }
 
+// Returns true if any popup/modal/sheet is currently visible. Used to defer
+// the hourly recurring check so it doesn't post transactions (and re-render)
+// while the user has an edit popup or sheet open.
+function _anyOverlayOpen() {
+  const popups = document.querySelectorAll('[id$="-popup"]');
+  for (const el of popups) {
+    if (!el.classList.contains('hidden')) return true;
+  }
+  // Sheets use .open instead of .hidden
+  const sheetIds = ['add-sheet', 'menu-sheet', 'year-sheet'];
+  for (const id of sheetIds) {
+    const el = document.getElementById(id);
+    if (el && el.classList.contains('open')) return true;
+  }
+  return false;
+}
+
 // Run the recurring check and toast the user if any transactions were auto-posted
 function runRecurringCheck() {
   const posted = processRecurring();
   if (posted > 0) {
-    render();
+    saveAndRender(null);
     updateRecurMenuSub();
     triggerCloudSync();
     toast(`${posted} recurring transaction${posted > 1 ? "s" : ""} added`, "var(--gold-dim)");
@@ -12999,6 +14010,9 @@ function openRecurringModal() {
 function closeRecurringModal() {
   document.getElementById("recurring-modal").classList.add("hidden");
   document.body.style.overflow = "";
+  // Always reset history panel when modal closes
+  const panel = document.getElementById("recur-history-panel");
+  if (panel) panel.classList.remove("open");
 }
 
 // Close modal when clicking the backdrop
@@ -13069,6 +14083,7 @@ function rdel_select(val) {
 
 
 // Render the list of existing recurring rules inside the modal
+// Active rules render first; completed rules are listed below them, slightly muted.
 function renderRecurList() {
   const list  = document.getElementById("recur-list");
   const empty = document.getElementById("recur-empty");
@@ -13078,28 +14093,232 @@ function renderRecurList() {
     return;
   }
   empty.style.display = "none";
-  recurRules.forEach((rule, idx) => {
-    const isDeposit = rule.type === "deposit";
-    const freqLabel = FREQ_LABELS[rule.freq] || rule.freq;
-    const nextLabel = rule.nextDate ? `Next: ${fmtDate(rule.nextDate)}` : "Complete";
-    const endMeta   = rule.endDate ? ` · Ends: ${fmtDate(rule.endDate)}` : "";
-    const div = document.createElement("div");
-    div.className = "recur-item";
-    div.dataset.ruleId = String(rule.id);
-    div.innerHTML = `
+
+  // Build [{ rule, idx }] preserving original index, then split active vs completed
+  const indexed = recurRules.map((rule, idx) => ({ rule, idx }));
+  const active    = indexed.filter(r => !r.rule.completed);
+  const completed = indexed.filter(r =>  r.rule.completed);
+
+  // Render active first, then a small divider, then completed
+  active.forEach(({ rule, idx }) => list.appendChild(_buildRecurItem(rule, idx, false)));
+  if (completed.length) {
+    if (active.length) {
+      const divider = document.createElement("div");
+      divider.style.cssText = "font-size:10px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin:14px 4px 6px;";
+      divider.textContent = `Completed (${completed.length})`;
+      list.appendChild(divider);
+    }
+    completed.forEach(({ rule, idx }) => list.appendChild(_buildRecurItem(rule, idx, true)));
+  }
+}
+
+// Build a single recur-item DOM node. Reduced opacity and a "Completed" badge when isCompleted=true.
+function _buildRecurItem(rule, idx, isCompleted) {
+  const isDeposit = rule.type === "deposit";
+  const freqLabel = FREQ_LABELS[rule.freq] || rule.freq;
+  const nextLabel = isCompleted
+    ? `Ended ${fmtDate(rule.endDate)}`
+    : (rule.nextDate ? `Next: ${fmtDate(rule.nextDate)}` : "Complete");
+  const endMeta   = (!isCompleted && rule.endDate) ? ` · Ends: ${fmtDate(rule.endDate)}` : "";
+  const div = document.createElement("div");
+  div.className = "recur-item";
+  div.dataset.ruleId = String(rule.id);
+  if (isCompleted) div.style.opacity = "0.55";
+  div.innerHTML = `
       <div style="display:flex; align-items:center; gap:8px; width:100%;">
-        <div class="recur-item-title" style="flex:1; min-width:0;">${isDeposit ? "Deposit" : "Withdrawal"} · ${freqLabel}</div>
+        <div class="recur-item-title" style="flex:1; min-width:0;">${isDeposit ? "Deposit" : "Withdrawal"} · ${freqLabel}${isCompleted ? ' <span style="font-size:10px; color:var(--text-3); font-weight:600; text-transform:uppercase; letter-spacing:0.06em; margin-left:4px;">· Completed</span>' : ""}</div>
         <span class="recur-item-amt ${isDeposit ? "dep" : "wit"}" style="flex-shrink:0;">${aud(rule.amount)}</span>
+        <button class="recur-history-btn" onclick="openRecurHistory(${idx})">History</button>
         <button class="recur-edit-btn" onclick="openRecurEditPopup(${idx})">Edit</button>
         <button class="recur-delete-btn" onclick="openRecurDeletePopup(${idx})">Delete</button>
       </div>
       <div class="recur-item-meta" style="width:100%; margin-top:3px;">Started ${fmtDate(rule.startDate)} · ${nextLabel}${endMeta}</div>`;
-    list.appendChild(div);
-  });
+  return div;
 }
 
 // Track which rule index the edit/delete popups are operating on
 let _recurPopupIdx = null;
+
+// Open the transaction history panel for a specific rule
+function openRecurHistory(idx) {
+  const rule = recurRules[idx];
+  if (!rule) return;
+
+  const isDeposit  = rule.type === "deposit";
+  const freqLabel  = FREQ_LABELS[rule.freq] || rule.freq;
+  const cur        = getAccountCurrency(rule.account || getDefaultAccountId());
+  const sym        = getCurrencySymbol(cur);
+
+  // Header
+  document.getElementById("recur-history-rule-title").textContent =
+    `${isDeposit ? "Deposit" : "Withdrawal"} · ${freqLabel}`;
+  document.getElementById("recur-history-rule-meta").textContent =
+    `${sym}${rule.amount.toFixed(2)} · Started ${fmtDate(rule.startDate)}`;
+
+  // Collect all transactions from this rule with full metadata needed for openPopup
+  const txs = [];
+  Object.keys(data).forEach(y => {
+    ["saved", "removed"].forEach(bucket => {
+      data[y][bucket].forEach(tx => {
+        if (tx[5] && String(tx[5]) === String(rule.id)) {
+          txs.push({ date: tx[0], amt: tx[1], txId: tx[2], yearKey: y, bucket });
+        }
+      });
+    });
+  });
+  txs.sort((a, b) => b.date.localeCompare(a.date)); // newest first
+
+  // Build the skipped set (deliberately deleted — shown as "Deleted" with Re-add)
+  const skipped = new Set(rule.skippedDates || []);
+  // Build move record lookup: txId → {from, origAmt}
+  // Also build a set of original "from" dates to exclude from the expected-slot list
+  const moveByTxId  = {};
+  const movedFromDates = new Set();
+  (rule.movedDates || []).forEach(m => {
+    if (!m || typeof m !== "object") return; // skip legacy bare-string entries
+    if (m.txId) moveByTxId[m.txId] = m;
+    if (m.from) movedFromDates.add(m.from);
+  });
+
+  // Generate all expected dates up to today so we can show skipped slots.
+  // If the rule's frequency was changed mid-life, only generate from freqChangedAt
+  // forward (using the current freq). Pre-change skips on the old cadence are still
+  // shown if they exist in rule.skippedDates regardless.
+  const today = todayISO();
+  const expectedPast = [];
+  let cursor = rule.freqChangedAt || rule.startDate;
+  while (cursor <= today) {
+    if (!rule.endDate || cursor <= rule.endDate) expectedPast.push(cursor);
+    const next = nextOccurrence(cursor, rule.freq);
+    if (next === cursor) break;
+    cursor = next;
+  }
+
+  // Render
+  const body = document.getElementById("recur-history-body");
+  body.innerHTML = "";
+
+  const postedDates = new Set(txs.map(t => t.date));
+  // Include: actual posted tx dates + explicitly deleted (skipped) slots
+  // Exclude: moved-away "from" dates (the tx lives on its new date instead)
+  const allDates = [...new Set([
+    ...txs.map(t => t.date),
+    ...expectedPast.filter(d => skipped.has(d) && !movedFromDates.has(d))
+  ])].sort((a, b) => b.localeCompare(a));
+
+  if (!allDates.length) {
+    body.innerHTML = '<div class="recur-history-empty">No transactions posted yet.</div>';
+  } else {
+    // Track whether we've crossed the freqChangedAt boundary (going newest → oldest)
+    // so we can insert a single divider line between post-change and pre-change rows.
+    let _freqMarkerShown = false;
+    const fcAt = rule.freqChangedAt || null;
+
+    allDates.forEach(date => {
+      // Insert the frequency-change marker the moment we render the first row
+      // whose date is BEFORE freqChangedAt.
+      if (fcAt && !_freqMarkerShown && date < fcAt) {
+        const marker = document.createElement("div");
+        marker.style.cssText = "font-size:10px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.07em; font-weight:600; margin:14px 0 4px; padding:6px 0; border-top:1px dashed var(--border); border-bottom:1px dashed var(--border); text-align:center;";
+        marker.textContent = `Frequency changed to ${(FREQ_LABELS[rule.freq] || rule.freq).toLowerCase()} on ${fmtDate(fcAt)}`;
+        body.appendChild(marker);
+        _freqMarkerShown = true;
+      }
+
+      const txEntry  = txs.find(t => t.date === date);
+      const isSkip   = skipped.has(date) && !postedDates.has(date);
+      const row      = document.createElement("div");
+      row.className  = "recur-history-row" + (txEntry ? " recur-history-row-tap" : (isSkip ? " recur-history-row-skip" : ""));
+
+      if (isSkip) {
+        // Skipped row — show "Deleted" label and a "+ Re-add" button
+        const dateSpan  = document.createElement("span");
+        dateSpan.className = "recur-history-date";
+        dateSpan.style.color = "var(--text-3)";
+        dateSpan.textContent = fmtDate(date);
+
+        const skipLabel = document.createElement("span");
+        skipLabel.className = "recur-history-skipped";
+        skipLabel.textContent = "Deleted";
+
+        const readdBtn  = document.createElement("button");
+        readdBtn.className   = "recur-history-readd";
+        readdBtn.textContent = "+ Re-add";
+        readdBtn.addEventListener("click", e => {
+          e.stopPropagation();
+          readdSkippedOccurrence(rule, date, idx);
+        });
+
+        row.appendChild(dateSpan);
+        row.appendChild(skipLabel);
+        row.appendChild(readdBtn);
+      } else {
+        // Check if this tx was moved/edited and needs an "Originally..." note
+        const moveRec   = txEntry ? moveByTxId[txEntry.txId] : null;
+        const origNotes = [];
+        if (moveRec) {
+          if (moveRec.from    && moveRec.from !== txEntry.date)   origNotes.push(`date was ${fmtDate(moveRec.from)}`);
+          if (moveRec.origAmt !== null && moveRec.origAmt !== undefined &&
+              parseFloat(moveRec.origAmt.toFixed(2)) !== parseFloat(txEntry.amt.toFixed(2)))
+            origNotes.push(`amount was ${sym}${moveRec.origAmt.toFixed(2)}`);
+        }
+
+        row.innerHTML = `
+          <div style="flex:1; min-width:0;">
+            <span class="recur-history-date">${fmtDate(date)}</span>
+            ${origNotes.length ? `<div class="recur-history-original">Originally: ${origNotes.join(" · ")}</div>` : ""}
+          </div>
+          <span class="recur-history-amt ${isDeposit ? "dep" : "wit"}">${sym}${txEntry.amt.toFixed(2)}</span>
+          <span class="recur-history-chevron">›</span>`;
+
+        row.style.cursor = "pointer";
+        row.addEventListener("click", () => {
+          // Mark that this popup was opened from history so closePopup returns here
+          _popupFromHistoryIdx  = idx;
+          _openPopupFromHistory = true; // latch: tells openPopup not to clear the origin
+          closeRecurHistory();
+          // Delay so panel slides out before edit popup appears
+          setTimeout(() => {
+            openPopup(txEntry.date, txEntry.amt, txEntry.bucket, txEntry.yearKey, txEntry.txId);
+          }, 200);
+        });
+      }
+
+      body.appendChild(row);
+    });
+  }
+
+  // Slide in
+  document.getElementById("recur-history-panel").classList.add("open");
+}
+
+function closeRecurHistory() {
+  document.getElementById("recur-history-panel").classList.remove("open");
+}
+
+// Remove a date from a rule's skippedDates, re-post the transaction, and refresh history
+function readdSkippedOccurrence(rule, date, histIdx) {
+  if (!rule.skippedDates) return;
+  rule.skippedDates = rule.skippedDates.filter(d => d !== date);
+
+  // Post the transaction
+  const tab      = rule.type === "withdrawal" ? "removed" : "saved";
+  const rSubtype = rule.type === "interest"   ? "interest" : null;
+  const amt      = parseFloat(rule.amount.toFixed(2));
+  const acctId   = rule.account || getDefaultAccountId();
+  const fyKey    = ensureFY(yearKeyForDate(date));
+  const rTx      = [date, amt, newTxId(), Date.now(), rSubtype, String(rule.id), acctId];
+  data[fyKey][tab].push(rTx);
+  data[fyKey][tab].sort((a, b) => a[0].localeCompare(b[0]));
+
+  saveRecurring();
+  saveAndRender(fyKey);
+  triggerCloudSync();
+  toast(`Transaction re-added for ${fmtDate(date)}`, "var(--gold-dim)");
+
+  // Refresh the history panel in place
+  openRecurHistory(histIdx);
+}
 
 // Open the recurring rule edit popup for the rule at the given list index.
 function openRecurEditPopup(idx) {
@@ -13108,8 +14327,14 @@ function openRecurEditPopup(idx) {
   _recurPopupIdx = idx;
   document.getElementById("rep-amt").value  = rule.amount;
   document.getElementById("rep-freq").value = rule.freq;
-  document.getElementById("rep-next").value = rule.nextDate || "";
   document.getElementById("rep-end").value  = rule.endDate  || "";
+  // Populate account dropdown — hide the row entirely if there's only one account
+  const repAccSel = document.getElementById("rep-account");
+  const repAccRow = document.getElementById("rep-account-row");
+  if (repAccSel) {
+    populateAccountSelect(repAccSel, rule.account || getDefaultAccountId());
+    if (repAccRow) repAccRow.style.display = accounts.length > 1 ? "" : "none";
+  }
   document.getElementById("recur-edit-popup").classList.remove("hidden");
   document.body.style.overflow = "hidden";
 }
@@ -13147,24 +14372,104 @@ function saveRecurEditPopup() {
   if (!rule) return;
   const amt  = parseFloat(document.getElementById("rep-amt").value);
   const freq = document.getElementById("rep-freq").value;
-  const next = document.getElementById("rep-next").value;
   const end  = document.getElementById("rep-end").value || null;
+  const newAcct = document.getElementById("rep-account")?.value || rule.account || getDefaultAccountId();
+  const oldAcct = rule.account || getDefaultAccountId();
   if (isNaN(amt) || amt <= 0) { toast("Enter a valid amount.", "#c0392b"); return; }
+
+  // If frequency changed, stamp freqChangedAt so the audit generates the new
+  // cadence going forward without trying to re-post or alter past transactions.
+  const freqChanged = (freq !== rule.freq);
+
+  // Stage non-account changes — these always apply
   rule.amount   = parseFloat(amt.toFixed(2));
   rule.freq     = freq;
-  rule.nextDate = next || rule.nextDate;
   rule.endDate  = end;
+  if (freqChanged) {
+    rule.freqChangedAt = todayISO();
+  }
   if (freq === "weekly" || freq === "fortnightly") {
-    const base = next || rule.startDate;
+    const base = rule.freqChangedAt || rule.startDate;
     rule.dow = new Date(base + "T00:00:00").getDay();
   }
+  // If endDate has been extended or cleared past today, un-mark the rule completed
+  // so the audit will resume processing it (and backfill any missed occurrences).
+  const today = todayISO();
+  if (rule.completed && (!rule.endDate || rule.endDate >= today)) {
+    rule.completed = false;
+  }
+
+  // If account changed, ask the user how to apply it; otherwise commit immediately
+  if (newAcct !== oldAcct) {
+    _pendingAcctChange = { idx, newAcct, oldAcct };
+    document.getElementById("rep-account-confirm-popup").classList.remove("hidden");
+  } else {
+    _commitRecurEdit(false);
+  }
+}
+
+// Holds the pending account change while waiting for user choice
+let _pendingAcctChange = null;
+
+// Commit the rule edit. If applyToPast=true, also reassign account on every linked tx.
+function _commitRecurEdit(applyToPast) {
+  const pending = _pendingAcctChange;
+  if (pending) {
+    const rule = recurRules[pending.idx];
+    if (rule) {
+      rule.account = pending.newAcct;
+      if (applyToPast) {
+        // Update tx[6] (accountId) on every transaction tagged with this rule
+        let updated = 0;
+        Object.keys(data).forEach(y => {
+          ["saved", "removed"].forEach(bucket => {
+            data[y][bucket].forEach(tx => {
+              if (tx[5] && String(tx[5]) === String(rule.id)) {
+                tx[6] = pending.newAcct;
+                updated++;
+              }
+            });
+          });
+        });
+        dbg(`_commitRecurEdit: reassigned ${updated} transaction(s) to ${pending.newAcct}`);
+      }
+    }
+    _pendingAcctChange = null;
+    // Hide the confirm popup
+    const cp = document.getElementById("rep-account-confirm-popup");
+    if (cp) cp.classList.add("hidden");
+  }
+
   saveRecurring();
+  // Re-run the audit so that any rule edits affecting the schedule (un-completing,
+  // extending endDate, changing freq, etc.) post any newly-due occurrences immediately.
+  const _posted = processRecurring();
+  if (_posted > 0) toast(`${_posted} transaction${_posted > 1 ? "s" : ""} added`, "var(--gold-dim)");
   triggerCloudSync();
   updateRecurMenuSub();
   closeRecurEditPopup();
   renderRecurList();
-  toast("Recurring transaction updated");
+  saveAndRender(null);
+  if (_posted === 0) toast("Recurring transaction updated");
 }
+
+// Wire up the confirm popup's three buttons
+document.addEventListener("DOMContentLoaded", () => {
+  const futureBtn = document.getElementById("rep-acct-future-btn");
+  const allBtn    = document.getElementById("rep-acct-all-btn");
+  const cancelBtn = document.getElementById("rep-acct-cancel-btn");
+  if (futureBtn) futureBtn.addEventListener("click", () => _commitRecurEdit(false));
+  if (allBtn)    allBtn.addEventListener("click",    () => _commitRecurEdit(true));
+  if (cancelBtn) cancelBtn.addEventListener("click", () => {
+    // Revert the rule's other staged changes too — easiest way: just reload from storage
+    _pendingAcctChange = null;
+    const cp = document.getElementById("rep-account-confirm-popup");
+    if (cp) cp.classList.add("hidden");
+    loadRecurring();
+    renderRecurList();
+    closeRecurEditPopup();
+  });
+});
 
 // Confirm deletion of the recurring rule currently shown in the delete popup.
 // Records the rule's ID in recurDeletedIds to prevent it being re-added during sync,
@@ -13183,7 +14488,7 @@ function confirmDeleteRecurRule() {
         !(d >= start && Math.abs(a - ruleAmt) < 0.001)
       );
     });
-    render();
+    saveAndRender(null);
   }
   recurDeletedIds.add(String(rule.id));
   recurRules.splice(idx, 1);
@@ -13212,22 +14517,27 @@ function addRecurringRule() {
   const startDow = new Date(start + "T00:00:00").getDay();
 
   const rule = {
-    id:        Date.now(),
+    id:           Date.now(),
     type,
-    amount:    parseFloat(amount.toFixed(2)),
+    amount:       parseFloat(amount.toFixed(2)),
     freq,
-    dow:       (freq === "weekly" || freq === "fortnightly") ? startDow : null,
-    startDate: start,
-    endDate:   end || null,
-    nextDate:  null,
-    account:   accountId,
+    dow:          (freq === "weekly" || freq === "fortnightly") ? startDow : null,
+    startDate:    start,
+    endDate:      end || null,
+    nextDate:     null,
+    account:      accountId,
+    skippedDates: [],
   };
   rule.nextDate = firstOccurrence(rule);
   recurRules.push(rule);
   saveRecurring();
 
   const posted = processRecurring();
-  if (posted > 0) { render(); triggerCloudSync(); toast(`${posted} transaction${posted > 1 ? "s" : ""} added`, "var(--gold-dim)"); }
+  if (posted > 0) { saveAndRender(null); toast(`${posted} transaction${posted > 1 ? "s" : ""} added`, "var(--gold-dim)"); }
+
+  // Always sync the new rule to cloud, even when no transactions were posted (e.g. future start date).
+  // Without this, a rule with a future start date lives only in localStorage until something else triggers a sync.
+  triggerCloudSync();
 
   document.getElementById("recur-amount").value = "";
   document.getElementById("recur-start").value  = todayISO();
@@ -13296,7 +14606,7 @@ initApp();
   <!-- ── Privacy Policy overlay ── -->
   <div id="privacy-overlay" class="hidden">
     <div id="privacy-header">
-      <h2>Privacy Policy</h2>
+      <h2>Privacy policy</h2>
       <button class="modal-close" onclick="closePrivacy()" title="Close">✕</button>
     </div>
     <div id="privacy-body">
@@ -13371,7 +14681,7 @@ initApp();
             <p><strong>Vault collects no personal data.</strong> The app has no backend server, no database, and no analytics infrastructure. There is no mechanism by which your data reaches us.</p>
             <p>Everything you enter — transactions, amounts, dates, and settings — is stored exclusively in your browser's local storage on your own device. It never leaves your device unless you explicitly choose to connect a backup.</p>
             <div class="pp-highlight">
-              <strong>In plain terms:</strong> We cannot see your data. We do not have it and we never receive it. If you cleared your browser storage right now, your Vault data would be permanently gone — there is no copy we could restore from.
+              <strong>In plain terms:</strong> We cannot see your data. We do not have it and we never receive it. If you cleared your browser storage right now, your Vault data would be permanently gone — there is no copy we could restore.
             </div>
           </div>
         </div>
@@ -13454,18 +14764,18 @@ initApp();
 
     <!-- ── About overlay ── -->
   <div id="about-overlay" class="hidden">
-    <div id="privacy-header">
+    <div id="about-header">
       <h2>About Vault</h2>
       <button class="modal-close" onclick="closeAbout()" title="Close">✕</button>
     </div>
-    <div id="privacy-body">
+    <div id="about-body">
       <div class="pp-inner">
 
         <div class="pp-hero">
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.59</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.92</div>
         </div>
 
         <div class="pp-cards">
@@ -13520,7 +14830,7 @@ initApp();
           <div class="pp-section-title">What is Vault?</div>
           <div class="pp-section-body">
             <p>Vault is an independent, single-file web application for tracking personal savings. It runs entirely in your browser with no server, no account, and no subscription. It is available at <strong>vaultsavings.app</strong>.</p>
-            <p>Vault is built for people who want a clear picture of their savings without handing their financial data to a third party. Everything you enter stays on your device unless you explicitly connect a backup of your choosing.</p>
+            <p>Vault is built for people who want a clear picture of their savings without handing their data over to anyone else. Everything you enter stays on your device unless you explicitly connect a backup of your choosing.</p>
           </div>
         </div>
 
@@ -13569,12 +14879,12 @@ initApp();
           </div>
         </div>
 
-      </div><!-- /privacy-body -->
-    </div><!-- /privacy-overlay -->
+      </div><!-- /about-body -->
+    </div><!-- /about-overlay -->
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.59</div>
+  <div id="version-footer">v5.4.92</div>
 
 </body>
 </html>
