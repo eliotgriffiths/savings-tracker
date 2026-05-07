@@ -5856,10 +5856,41 @@ const DEVICE_ID = (() => {
 
 // Counter for generating unique transaction IDs within this session
 let _txCounter = 0;
+// Session tag — stays constant for this page load but differs across page loads.
+// Combined with _txCounter, this guarantees IDs from one session never collide with
+// IDs from a previous session (which may have been tombstoned by deletions).
+const _txSessionTag = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
 // Generate a unique transaction ID
 function newTxId() {
-  return "tx_" + DEVICE_ID + "_" + (++_txCounter);
+  return "tx_" + DEVICE_ID + "_" + _txSessionTag + "_" + (++_txCounter);
+}
+
+// Self-heal: scan active data for any tx whose ID is also in the tombstone list
+// and reissue it with a fresh collision-free ID. This breaks the regeneration loop
+// that occurs when ID collisions cause sync to delete then processRecurring to
+// re-post the same data on every cycle. Safe to run on every startup.
+function selfHealTombstoneCollisions() {
+  if (!tombstones || !tombstones.size || !data) return 0;
+  let healed = 0;
+  Object.keys(data).forEach(y => {
+    if (!data[y]) return;
+    ["saved", "removed"].forEach(bucket => {
+      const list = data[y][bucket];
+      if (!Array.isArray(list)) return;
+      list.forEach(tx => {
+        if (tx[2] && tombstones.has(tx[2])) {
+          tx[2] = newTxId();
+          healed++;
+        }
+      });
+    });
+  });
+  if (healed > 0) {
+    try { saveLocal(); } catch {}
+    dbg("selfHealTombstoneCollisions: reissued " + healed + " tx ID(s) to break tombstone collision");
+  }
+  return healed;
 }
 
 // Tombstone list — Set of deleted transaction IDs, persisted to localStorage
@@ -5917,6 +5948,7 @@ function loadLocal() {
   }
   loadYearMode();
   reconcileYears();
+  selfHealTombstoneCollisions();
 }
 
 // Switch between "calendar" and "financial" year modes.
@@ -14775,7 +14807,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.92</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.4.93</div>
         </div>
 
         <div class="pp-cards">
@@ -14884,7 +14916,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.92</div>
+  <div id="version-footer">v5.4.93</div>
 
 </body>
 </html>
