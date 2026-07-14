@@ -407,8 +407,18 @@
     border-bottom: 1px solid var(--border);
     transition: background 0.1s;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   }
   @media (hover: hover) { tbody tr:hover { background: var(--bg3); } }
+  /* Tx row hold-to-edit: gold-tinted background fades in over HOLD_MS, same
+     spirit as the .acc-pill.holding animation but table-safe (no transform,
+     no outer box-shadow that would conflict with cell borders). */
+  #tx-body tr.holding {
+    background: rgba(201,168,76,0.12);
+    transition: background 0.5s ease-out;
+  }
+  #tx-body tr.holding td { color: var(--gold); }
   td { padding: 11px 14px; font-size: 13px; color: var(--text-1); }
   td:first-child { white-space: nowrap; }
   td.num    { text-align: right; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -649,6 +659,11 @@
     width: 100%;
   }
   .smod-panel.open { display: flex; width: 100%; }
+  /* Applied via JS in openSmodPanel/closeSmodPanel when a sub-panel or the
+     main card view is freshly shown. Reuses the same _popBoxIn keyframe (with
+     the overshoot cubic-bezier) as the popup box animation so the feel is
+     consistent across the app. */
+  .smod-fade-in { animation: _popBoxIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1); }
   .smod-panel-header {
     display: flex; align-items: center; gap: 8px;
     padding: 16px 20px;
@@ -706,6 +721,17 @@
     display: flex; align-items: center; justify-content: center; padding: 20px;
   }
   #tx-currency-change-popup.hidden { display: none; }
+  .acc-del-choice {
+    display: flex; align-items: center; gap: 8px;
+    padding: 4px 0; cursor: pointer;
+    font-size: 13px; color: var(--text-1); line-height: 1.5;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .acc-del-choice input[type="radio"] {
+    accent-color: var(--gold);
+    width: 16px; height: 16px; margin: 0; flex-shrink: 0; cursor: pointer;
+  }
+  .acc-del-choice-label { flex: 1; }
   #account-delete-popup {
     position: fixed; inset: 0;
     background: rgba(0,0,0,0.6);
@@ -945,8 +971,84 @@
   .type-pill.int { background: rgba(91,166,211,0.12); color: #5ba6d3; }
 
   /* ── Account pills (filter strip) ── */
+  /* Global button press feedback. Triggered via a JS-added .btn-press class
+     on pointerdown rather than :active — that pseudo-class is unreliable on
+     mobile (can be too brief to visibly animate, sometimes doesn't fire on
+     iOS). The "bolden" effect uses text-shadow rather than font-weight so
+     there's no layout shift. Exclusions are handled in the JS listener. */
+  @keyframes _btnPress {
+    0%   { transform: scale(1);    text-shadow: none; }
+    50%  { transform: scale(1.04); text-shadow: 0 0 1px currentColor; }
+    100% { transform: scale(1);    text-shadow: none; }
+  }
+  button.btn-press { animation: _btnPress 0.32s ease-in-out; }
+  /* Desktop settings sub-dropdown — same slide+fade animation as the mobile
+     dropdown. JS toggles the .open class instead of style.display so the
+     transitions can fire. */
+  #dmenu-settings-dropdown {
+    display: block;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.28s ease-out, opacity 0.22s ease-out;
+  }
+  #dmenu-settings-dropdown.open {
+    max-height: 800px;
+    opacity: 1;
+  }
+  /* iOS: keep tap highlight from double-flashing over the animation */
+  button { -webkit-tap-highlight-color: transparent; }
+
+  /* Popup open/close animation. Opt-in via the .pop-anim class on the outer
+     overlay. Uses CSS animations for open (fire reliably regardless of the
+     browser's transition-tracking quirks) and transitions for close (needs the
+     final display:flex state to persist for the fade-out to be visible before
+     visibility:hidden completes). Covers all three inner-box variants in use:
+     .modal-box, .info-popup-box, .tx-popup-box. */
+  .pop-anim {
+    opacity: 1; visibility: visible;
+    transition: opacity 0.22s ease-out, visibility 0s 0s;
+  }
+  .pop-anim.hidden {
+    display: flex !important;
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity 0.22s ease-out, visibility 0s 0.22s;
+  }
+  .pop-anim .modal-box,
+  .pop-anim .info-popup-box,
+  .pop-anim .tx-popup-box,
+  .pop-anim #pdf-preview-modal {
+    transform: scale(1); opacity: 1;
+    transition: transform 0.22s ease-out, opacity 0.2s ease-out;
+    transform-origin: center;
+  }
+  .pop-anim.hidden .modal-box,
+  .pop-anim.hidden .info-popup-box,
+  .pop-anim.hidden .tx-popup-box,
+  .pop-anim.hidden #pdf-preview-modal {
+    transform: scale(0.94); opacity: 0;
+  }
+  /* Open animations: apply when .hidden is absent. Animations fire reliably
+     when the selector-match state is entered, unlike transitions which can
+     miss the initial state change on some browsers. */
+  .pop-anim:not(.hidden) { animation: _popOverlayIn 0.22s ease-out; }
+  .pop-anim:not(.hidden) .modal-box,
+  .pop-anim:not(.hidden) .info-popup-box,
+  .pop-anim:not(.hidden) .tx-popup-box,
+  .pop-anim:not(.hidden) #pdf-preview-modal {
+    animation: _popBoxIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes _popOverlayIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes _popBoxIn {
+    from { opacity: 0; transform: scale(0.94); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
   #account-pills-wrap {
-    margin-top: 12px;
+    margin-top: 6px;
     margin-bottom: 8px;
     position: relative;
   }
@@ -956,7 +1058,11 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     gap: 7px;
-    padding: 2px 4px 10px 4px;
+    /* Top padding accommodates the .acc-pill.holding scale + gold ring, which
+       would otherwise be clipped by overflow-y: hidden (forced by the horizontal
+       scroll). Wrapper margin-top compensates so the row's baseline position
+       is unchanged. */
+    padding: 8px 4px 10px 4px;
   }
   #account-pills::-webkit-scrollbar { display: none; }
   /* Custom persistent scrollbar track + thumb */
@@ -978,16 +1084,31 @@
     border-radius: 10px; padding: 7px 14px;
     font-size: 13px; font-weight: 500; color: var(--text-2);
     font-family: 'DM Sans', sans-serif; cursor: pointer;
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
+    transition: border-color 0.15s, color 0.15s, background 0.15s,
+                transform 0.14s ease-out, box-shadow 0.14s ease-out;
     white-space: nowrap; flex-shrink: 0;
     -webkit-tap-highlight-color: transparent;
+    /* Prevent iOS long-press context menu / text selection while charging */
+    -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
+    transform-origin: center;
   }
-  .acc-pill:hover { color: var(--text-1); border-color: var(--border-hi); }
+  @media (hover: hover) {
+    .acc-pill:hover { color: var(--text-1); border-color: var(--border-hi); }
+  }
   .acc-pill.active {
     background: rgba(201,168,76,0.08);
     border-color: var(--gold);
     color: var(--gold);
     font-weight: 600;
+  }
+  /* Hold-to-charge: while the finger is down, the pill smoothly grows and
+     gains a gold ring. Transition duration matches the hold threshold so
+     the animation completes exactly when the long-press fires. */
+  .acc-pill.holding {
+    transform: scale(1.06);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.35);
+    border-color: var(--gold);
+    transition: transform 0.5s ease-out, box-shadow 0.5s ease-out, border-color 0.3s ease-out;
   }
   .acc-pill-dot {
     width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
@@ -1003,14 +1124,46 @@
 
   /* ── Accounts manager modal list ── */
   .acc-manager-item {
-    display: flex; align-items: center; gap: 10px;
+    display: flex; flex-direction: column; align-items: stretch; gap: 8px;
     padding: 11px 14px; background: var(--bg3);
     border: 1px solid var(--border); border-radius: var(--radius);
     margin-bottom: 8px;
   }
-  .acc-manager-dot {
-    width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+  .acc-manager-item-row {
+    display: flex; align-items: center; gap: 10px;
   }
+  .acc-manager-dot {
+    width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+    cursor: pointer; border: 1px solid transparent;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  @media (hover: hover) {
+    .acc-manager-dot:hover { transform: scale(1.15); box-shadow: 0 0 0 2px var(--gold-dim); }
+  }
+  /* Inline colour-picker strip — appears below the row when the dot is tapped */
+  .acc-manager-color-strip {
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 2px 2px;
+    border-top: 1px dashed var(--border);
+    animation: _stripFade 0.14s ease-out;
+  }
+  @keyframes _stripFade { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
+  .color-strip-label {
+    font-size: 11px; color: var(--text-3); font-weight: 500;
+    letter-spacing: 0.04em; flex-shrink: 0;
+  }
+  .color-strip-swatches {
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .color-strip-swatch {
+    width: 22px; height: 22px; border-radius: 6px;
+    border: 2px solid transparent; padding: 0; cursor: pointer;
+    transition: transform 0.12s, border-color 0.12s;
+  }
+  @media (hover: hover) {
+    .color-strip-swatch:hover { transform: scale(1.12); }
+  }
+  .color-strip-swatch.current { border-color: var(--gold); }
   .acc-manager-name {
     flex: 1; font-size: 14px; color: var(--text-1); min-width: 0;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -1032,14 +1185,39 @@
     transition: color 0.15s, border-color 0.15s;
   }
   .acc-manager-currency-btn:hover { color: var(--gold); border-color: var(--gold-dim); }
-  .acc-manager-rename-btn, .acc-manager-delete-btn {
+  .acc-manager-rename-btn, .acc-manager-delete-btn, .acc-manager-color-btn {
     background: none; border: 1px solid var(--border-hi); border-radius: 6px;
     color: var(--text-3); font-size: 13px; padding: 4px 9px;
     cursor: pointer; font-family: 'DM Sans', sans-serif;
     transition: color 0.15s, border-color 0.15s;
   }
-  .acc-manager-rename-btn:hover { color: var(--gold); border-color: var(--gold-dim); }
-  .acc-manager-delete-btn:hover { color: var(--red);  border-color: rgba(192,80,74,0.4); }
+  @media (hover: hover) {
+    .acc-manager-rename-btn:hover { color: var(--gold); border-color: var(--gold-dim); }
+    .acc-manager-delete-btn:hover { color: var(--red);  border-color: rgba(192,80,74,0.4); }
+    .acc-manager-color-btn:hover  { border-color: var(--gold-dim); }
+  }
+  /* Colour button — the "icon" is a filled circle in the account's current colour */
+  .acc-manager-color-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 4px 8px;
+  }
+  /* Gold pulse applied briefly when the manager is opened by long-pressing a
+     pill — draws the user's eye to the account they targeted. */
+  .acc-manager-item.pulse {
+    animation: _accItemPulse 1.4s ease-out;
+  }
+  @keyframes _accItemPulse {
+    /* Fades from strong gold through mid gold to fully transparent. Theme-
+       agnostic — no hardcoded --bg3 / --border at the end state, so the row's
+       actual background and border show through as the pulse resolves. */
+    0%   { background: rgba(201,168,76,0.28); box-shadow: inset 0 0 0 1px var(--gold); }
+    60%  { background: rgba(201,168,76,0.12); box-shadow: inset 0 0 0 1px var(--gold-dim); }
+    100% { background: rgba(201,168,76,0);    box-shadow: inset 0 0 0 1px rgba(201,168,76,0); }
+  }
+  .acc-manager-color-btn-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.35);
+  }
 
   .tx-currency-code {
     font-size: 10px; color: var(--text-3); font-weight: 500;
@@ -1142,17 +1320,19 @@
   .tx-page-compact .pn-accent { color: var(--gold); font-weight: 600; }
   .tx-page-compact .pn-of     { color: var(--text-3); font-weight: 300; margin: 0 4px; }
 
-  /* Mobile: stack info above controls, right-align controls */
+  /* Mobile: stay on one row — hide the verbose label words and the
+     "Print/export uses full set" hint so the page-range and controls fit
+     side-by-side. The accented "1–500 of 580" core stays visible. */
   @media (max-width: 640px) {
     .tx-pagination {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 8px;
       padding: 10px 12px;
+      gap: 10px;
     }
-    .tx-pagination-bottom { padding-top: 8px; }
-    .tx-pagination-info { font-size: 11px; text-align: left; white-space: normal; }
-    .tx-pagination-controls { justify-content: flex-end; gap: 4px; }
+    .tx-pagination-info { font-size: 11px; }
+    .tx-pagination-info .pn-verbose,
+    .tx-pagination-info .pn-sep,
+    .tx-pagination-info .pn-muted { display: none; }
+    .tx-pagination-controls { gap: 4px; }
     .tx-page-btn { min-width: 32px; height: 32px; padding: 0 9px; font-size: 12px; }
     .tx-page-arrow { min-width: 32px; }
   }
@@ -1443,11 +1623,24 @@
     .sheet-back-btn:hover { color: var(--text-1); }
     /* ── menu inline transactions dropdown ── */
     .menu-tx-dropdown {
-      display: none;
+      /* Slide-down / slide-up animation. max-height is capped at 800px which
+         easily covers the current dropdown content; if the menu ever grows
+         beyond that, bump the cap. overflow:hidden + opacity give a clean
+         combined fade+slide effect. */
+      display: block;
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
       background: var(--bg1);
-      border-bottom: 1px solid var(--border);
+      border-bottom: 0 solid var(--border);
+      transition: max-height 0.28s ease-out, opacity 0.22s ease-out, border-bottom-width 0s 0.28s;
     }
-    .menu-tx-dropdown.open { display: block; }
+    .menu-tx-dropdown.open {
+      max-height: 800px;
+      opacity: 1;
+      border-bottom-width: 1px;
+      transition: max-height 0.28s ease-out, opacity 0.22s ease-out, border-bottom-width 0s 0s;
+    }
     .menu-tx-dropdown-item {
       width: 100%; background: transparent; border: none;
       border-bottom: 1px solid var(--border);
@@ -1471,8 +1664,35 @@
     }
     .menu-tx-dropdown-item.year-row.expanded .menu-tx-year-chevron { transform: rotate(90deg); }
     .menu-tx-dropdown-item.year-row:hover .menu-tx-year-chevron { color: var(--text-1); }
-    .menu-tx-month-list { display: none; background: var(--bg0); }
-    .menu-tx-month-list.open { display: block; }
+    .menu-tx-month-list {
+      display: none;
+      background: var(--bg0);
+      overflow: hidden;
+    }
+    /* When the year row is expanded, the month sub-list slides down.
+       Uses animation (not transition) because the list is created fresh in
+       the DOM each render — an animation fires reliably on element creation
+       when a matching selector state is present. */
+    .menu-tx-month-list.open {
+      display: block;
+      animation: _monthListSlideIn 0.28s ease-out;
+    }
+    /* Applied by the chevron click handler when a currently-open list needs
+     to be dismissed. The re-render (which would destroy the element) is
+     deferred until after the slide-out completes so the animation can play. */
+    .menu-tx-month-list.closing {
+      display: block;
+      overflow: hidden;
+      animation: _monthListSlideOut 0.22s ease-out forwards;
+    }
+    @keyframes _monthListSlideIn {
+      from { max-height: 0; opacity: 0; }
+      to   { max-height: 800px; opacity: 1; }
+    }
+    @keyframes _monthListSlideOut {
+      from { max-height: 800px; opacity: 1; }
+      to   { max-height: 0; opacity: 0; }
+    }
     .menu-tx-month-btn {
       width: 100%; background: transparent; border: none;
       border-top: 1px solid var(--border);
@@ -2109,37 +2329,33 @@
   }
   #desktop-add-popup.hidden { display: none; }
 
-  /* ── print styles ── */
+  /* ── print styles ────────────────────────────────────────────────────
+     Vault's print flow uses a separate iframe with its own document, so
+     the main app UI should never actually be printed. If a user hits
+     native browser print (via browser menu / share sheet / etc), the
+     rules below hide the app entirely and show only #native-print-notice
+     redirecting them to Menu → Print. Ctrl+P / Cmd+P is intercepted in
+     JS and routed to menuPrint() so it will normally never reach this. */
+  #native-print-notice { display: none; }
   @media print {
-    /* Hide all UI chrome */
-    #header, #compat-banner, #sidebar, #desktop-menu, #desktop-menu-overlay,
-    #menu-sheet, #year-sheet, #add-sheet, #desktop-add-popup,
-    #setup-modal, #enc-menu-popup, #enc-set-popup, #enc-decrypt-popup,
-    #enc-choice-popup, #drive-merge-popup, #welcome-modal, #year-format-popup,
-    #toast, #debug-panel, #mob-fabs, #tabs,
-    #report-controls, .btn-ghost, .btn-gold, .btn-local, .btn-primary { display: none !important; }
-
-    /* Show only the active content panel */
-    body { background: #fff; color: #000; }
-    #layout, #layout-inner, #main { display: block !important; width: 100%; }
-    #main { padding: 0 !important; }
-
-    /* Make all panels visible for print — the active one will have content */
-    #all-panel, #saved-panel, #removed-panel, #report-panel {
-      display: block !important; padding: 0 !important;
+    body > *:not(#native-print-notice) { display: none !important; }
+    #native-print-notice {
+      display: flex !important; flex-direction: column; align-items: center; justify-content: center;
+      position: fixed; inset: 0; background: #fff; color: #111;
+      padding: 40px; text-align: center;
+      font-family: 'DM Sans', sans-serif;
     }
-
-    /* Clean up table styles for print */
-    table { border-collapse: collapse; width: 100%; font-size: 11px; }
-    th, td { border: 1px solid #ccc; padding: 6px 8px; color: #000; }
-    th { background: #f5f5f5; }
-    .tx-row-removed { color: #c00; }
-
-    /* Report summary cards */
-    #report-summary { display: flex !important; gap: 8px; margin-bottom: 12px; }
-    .report-card { border: 1px solid #ccc; padding: 8px 12px; border-radius: 4px; }
-    .rc-label { font-size: 10px; color: #666; }
-    .rc-value { font-size: 16px; font-weight: 600; color: #000; }
+    #native-print-notice h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 32px; font-weight: 400; margin: 0 0 12px; color: #111;
+    }
+    #native-print-notice p {
+      font-size: 14px; color: #444; margin: 0 0 8px; max-width: 480px; line-height: 1.55;
+    }
+    #native-print-notice .npn-hint {
+      font-size: 12px; color: #888; margin-top: 20px; letter-spacing: 0.02em;
+    }
+    @page { margin: 1.5cm; }
   }
 
 
@@ -2357,11 +2573,198 @@
     .report-filter-pill:hover { border-color: var(--border-hi); color: var(--text-2); background: var(--bg3); }
   }
 </style>
+<style id="vh-home-styles">
+#home-panel { --vh-blue:#5ba6d3; -webkit-font-smoothing:antialiased; }
+#home-panel .vh-section { margin-bottom:24px; }
+#home-panel .vh-section:last-child { margin-bottom:0; }
+#home-panel .vh-section-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:6px 4px 10px; cursor:pointer; -webkit-tap-highlight-color:transparent; user-select:none; }
+#home-panel .vh-section-title { font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-3); font-weight:600; flex:1; }
+#home-panel .vh-see-all { font-size:11px; color:var(--gold); text-transform:none; letter-spacing:0.02em; font-weight:500; cursor:pointer; }
+#home-panel .vh-chevron { color:var(--text-3); font-size:16px; line-height:1; transition:transform 0.22s ease-out; padding:2px 4px; margin-left:2px; }
+#home-panel .vh-section.collapsed .vh-chevron { transform:rotate(-90deg); }
+#home-panel .vh-section-body { max-height:4000px; opacity:1; overflow:hidden; transition:max-height 0.35s ease-out, opacity 0.22s ease-out; }
+#home-panel .vh-section.collapsed .vh-section-body { max-height:0; opacity:0; }
+#home-panel .vh-rate-note { font-size:10.5px; color:var(--text-3); margin-top:6px; font-style:italic; line-height:1.5; }
+#home-panel .vh-rate-note strong { color:var(--text-2); font-style:normal; font-weight:600; text-transform:uppercase; font-size:9.5px; letter-spacing:0.06em; margin-right:6px; }
+#home-panel .vh-code { color:var(--text-3); font-size:10px; margin-left:3px; letter-spacing:0.06em; font-weight:500; }
+#home-panel .vh-overview-card { background:var(--bg1); border:1px solid var(--border); border-radius:var(--radius-lg); padding:16px 18px 14px; }
+#home-panel .vh-overview-label { font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-3); font-weight:600; margin-bottom:2px; }
+#home-panel .vh-overview-total { font-family:'DM Serif Display',serif; font-size:35px; color:var(--gold); line-height:1.05; font-variant-numeric:tabular-nums; }
+#home-panel .vh-overview-delta { margin-top:4px; font-size:12.5px; color:var(--green); font-weight:500; }
+#home-panel .vh-overview-delta.neg { color:var(--red); }
+#home-panel .vh-donut-block { margin-top:13px; padding-top:12px; border-top:1px dashed var(--border); }
+#home-panel .vh-donut-toggle { display:flex; align-items:center; justify-content:space-between; cursor:pointer; -webkit-tap-highlight-color:transparent; user-select:none; }
+#home-panel .vh-donut-toggle-label { font-size:10px; letter-spacing:0.09em; text-transform:uppercase; color:var(--text-3); font-weight:600; }
+#home-panel .vh-donut-body { max-height:320px; overflow:hidden; opacity:1; transition:max-height 0.3s ease-out, opacity 0.2s ease-out; }
+#home-panel .vh-donut-block.collapsed .vh-donut-body { max-height:0; opacity:0; }
+#home-panel .vh-donut-block.collapsed .vh-chevron { transform:rotate(-90deg); }
+#home-panel .vh-donut-wrap { position:relative; width:126px; height:126px; margin:8px auto 0; }
+#home-panel .vh-donut { width:126px; height:126px; display:block; }
+#home-panel .vh-donut-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; }
+#home-panel .vh-donut-pct { font-family:'DM Serif Display',serif; font-size:21px; color:var(--text-1); line-height:1; }
+#home-panel .vh-donut-cap { font-size:9.5px; color:var(--text-3); margin-top:2px; max-width:82px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center; }
+#home-panel .vh-donut-amt { font-size:10.5px; color:var(--text-2); font-variant-numeric:tabular-nums; margin-top:2px; max-width:82px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center; }
+#home-panel .vh-donut-hint { font-size:11px; color:var(--text-3); text-align:center; letter-spacing:0.02em; }
+#home-panel .vh-donut-seg { transition:stroke-width 0.15s ease-out; }
+#home-panel .vh-donut-seg.sel { stroke-width:21; filter:drop-shadow(0 0 5px var(--gold)); }
+#home-panel .vh-overview-breakdown { margin-top:14px; padding-top:13px; border-top:1px dashed var(--border); display:flex; flex-direction:column; gap:9px; }
+#home-panel .vh-acct-row { display:flex; align-items:center; gap:12px; cursor:pointer; padding:3px 0; -webkit-tap-highlight-color:transparent; transition:transform 0.14s ease-out; }
+#home-panel .vh-acct-row:active { transform:scale(0.99); }
+#home-panel .vh-acct-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+#home-panel .vh-acct-name { flex:1; font-size:14px; color:var(--text-1); font-weight:500; }
+#home-panel .vh-acct-vals { text-align:right; }
+#home-panel .vh-acct-native { font-size:14px; font-weight:500; color:var(--text-1); font-variant-numeric:tabular-nums; }
+#home-panel .vh-acct-conv { font-size:11px; color:var(--text-3); margin-top:1px; font-variant-numeric:tabular-nums; }
+#home-panel .vh-month-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+#home-panel .vh-interest-card { background:var(--bg1); border:1px solid var(--border); border-radius:var(--radius-lg); padding:16px 18px 14px; }
+#home-panel .vh-int-figs { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+#home-panel .vh-int-fig { display:flex; flex-direction:column; min-width:0; }
+#home-panel .vh-int-fig-label { font-size:10px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-3); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#home-panel .vh-int-fig-val { font-family:'DM Serif Display',serif; font-size:21px; color:var(--gold); margin-top:3px; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+@media (max-width:480px){ #home-panel .vh-int-fig-val { font-size:16px; } #home-panel .vh-int-fig-label { font-size:9px; } }
+#home-panel .vh-yield { margin-top:14px; padding-top:14px; border-top:1px dashed var(--border); }
+#home-panel .vh-yield-top { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:10px; }
+#home-panel .vh-yield-label { font-size:9.5px; text-transform:uppercase; letter-spacing:0.07em; font-weight:600; color:var(--text-3); }
+#home-panel .vh-yield-blended { font-size:12px; color:var(--gold); font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
+#home-panel .vh-yield-list { display:flex; flex-direction:column; gap:9px; }
+#home-panel .vh-yield-row { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:10px; }
+#home-panel .vh-yield-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+#home-panel .vh-yield-name { font-size:13px; color:var(--text-1); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#home-panel .vh-yield-ratewrap { text-align:right; }
+#home-panel .vh-yield-rate { font-size:13px; color:var(--text-1); font-weight:600; font-variant-numeric:tabular-nums; }
+#home-panel .vh-yield-row.best .vh-yield-rate { color:var(--gold); }
+#home-panel .vh-yield-mark { color:var(--text-3); font-weight:400; margin-left:1px; }
+#home-panel .vh-yield-range { display:block; font-size:10px; color:var(--text-3); font-variant-numeric:tabular-nums; margin-top:1px; }
+#home-panel .vh-yield-foot { margin-top:11px; display:flex; flex-direction:column; gap:5px; }
+#home-panel .vh-yield-foot span { font-size:10px; color:var(--text-3); line-height:1.45; }
+#home-panel .vh-month-card { background:var(--bg1); border:1px solid var(--border); border-radius:var(--radius); padding:14px 14px 12px; min-width:0; overflow:hidden; }
+#home-panel .vh-month-card-label { font-size:10px; letter-spacing:0.09em; text-transform:uppercase; color:var(--text-3); font-weight:600; }
+#home-panel .vh-month-card-val { font-family:'DM Serif Display',serif; font-size:22px; margin-top:4px; font-variant-numeric:tabular-nums; color:var(--text-1); white-space:nowrap; }
+#home-panel .vh-month-card.saved .vh-month-card-val { color:var(--green); }
+#home-panel .vh-month-card.wit .vh-month-card-val { color:var(--red); }
+#home-panel .vh-month-card.net .vh-month-card-val { color:var(--gold); }
+#home-panel .vh-month-delta { font-size:11px; margin-top:4px; font-variant-numeric:tabular-nums; }
+#home-panel .vh-month-delta.good { color:var(--green); }
+#home-panel .vh-month-delta.bad { color:var(--red); }
+#home-panel .vh-month-delta.muted { color:var(--text-3); }
+@media (max-width:480px){
+  #home-panel .vh-month-cards { gap:6px; }
+  #home-panel .vh-month-card { padding:11px 9px 10px; }
+  #home-panel .vh-month-card-label { font-size:9px; letter-spacing:0.05em; }
+  #home-panel .vh-month-card-val { font-size:15px; margin-top:3px; }
+  #home-panel .vh-month-delta { font-size:9.5px; margin-top:3px; }
+}
+#home-panel .vh-yoy-block { background:var(--bg1); border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px 18px 16px; margin-bottom:16px; }
+#home-panel .vh-yoy-label { font-size:11px; letter-spacing:0.09em; text-transform:uppercase; color:var(--text-3); font-weight:600; margin-bottom:12px; }
+#home-panel .vh-yoy-row { display:grid; grid-template-columns:70px 1fr auto; align-items:center; gap:12px; margin-bottom:10px; }
+#home-panel .vh-yoy-row-label { font-size:12px; color:var(--text-2); font-weight:500; }
+#home-panel .vh-yoy-row-label.current { color:var(--text-1); font-weight:600; }
+#home-panel .vh-yoy-bar-wrap { height:10px; background:var(--bg3); border-radius:5px; overflow:hidden; }
+#home-panel .vh-yoy-bar { height:100%; border-radius:5px; background:var(--gold-dim); transition:width 0.4s ease-out; }
+#home-panel .vh-yoy-bar.current { background:var(--gold); }
+#home-panel .vh-yoy-val { font-size:13px; font-variant-numeric:tabular-nums; color:var(--text-1); font-weight:500; }
+#home-panel .vh-yoy-summary { font-size:12px; padding-top:12px; margin-top:4px; border-top:1px dashed var(--border); color:var(--green); font-weight:500; display:flex; align-items:center; gap:6px; }
+#home-panel .vh-yoy-summary.behind { color:var(--red); }
+#home-panel .vh-compare-seg { display:flex; padding:4px; background:var(--bg2); border-radius:var(--radius); margin-bottom:10px; gap:2px; }
+#home-panel .vh-compare-seg .vh-opt { flex:1; text-align:center; padding:8px 4px; font-size:12px; font-weight:500; color:var(--text-3); border-radius:6px; cursor:pointer; transition:color 0.15s; -webkit-tap-highlight-color:transparent; }
+#home-panel .vh-compare-seg .vh-opt.active { background:var(--bg4); color:var(--gold); font-weight:600; }
+#home-panel .vh-compare-filter { display:flex; gap:6px; overflow-x:auto; padding:4px 2px 14px; margin:0 -2px; scrollbar-width:none; }
+#home-panel .vh-compare-filter::-webkit-scrollbar { display:none; }
+#home-panel .vh-filter-pill { display:inline-flex; align-items:center; gap:6px; background:var(--bg3); border:1.5px solid var(--border); border-radius:10px; padding:6px 12px; font-size:12px; font-weight:500; color:var(--text-2); white-space:nowrap; cursor:pointer; -webkit-tap-highlight-color:transparent; flex-shrink:0; }
+#home-panel .vh-filter-pill .vh-fp-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+#home-panel .vh-filter-pill.active { background:rgba(201,168,76,0.08); border-color:var(--gold); color:var(--gold); font-weight:600; }
+#home-panel .vh-compare-pager { display:none; align-items:center; justify-content:space-between; gap:12px; padding:0 2px 12px; }
+#home-panel .vh-pager-btn { background:var(--bg3); border:1px solid var(--border); color:var(--text-2); width:32px; height:30px; border-radius:8px; font-size:17px; line-height:1; display:flex; align-items:center; justify-content:center; cursor:pointer; -webkit-tap-highlight-color:transparent; flex-shrink:0; padding:0; }
+#home-panel .vh-pager-btn:active { background:var(--bg4); }
+#home-panel .vh-pager-btn.disabled { opacity:0.25; pointer-events:none; }
+#home-panel .vh-pager-label { flex:1; text-align:center; font-size:11.5px; color:var(--text-3); font-weight:500; letter-spacing:0.03em; font-variant-numeric:tabular-nums; white-space:nowrap; }
+#home-panel .vh-compare-list { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:12px 10px; }
+#home-panel .vh-compare-row { display:contents; }
+#home-panel .vh-compare-row-label { font-size:12.5px; color:var(--text-2); font-weight:500; }
+#home-panel .vh-compare-row-label.current { color:var(--text-1); font-weight:600; }
+#home-panel .vh-compare-bar-wrap { height:8px; background:var(--bg3); border-radius:4px; overflow:hidden; }
+#home-panel .vh-compare-bar { height:100%; background:#2c6b4a; border-radius:4px; transition:width 0.4s ease-out; }
+#home-panel .vh-compare-bar.current { background:var(--green); }
+#home-panel .vh-compare-bar.neg { background:var(--red); margin-left:auto; }
+#home-panel .vh-compare-val { font-size:12.5px; font-variant-numeric:tabular-nums; color:var(--text-1); font-weight:500; text-align:right; white-space:nowrap; }
+#home-panel .vh-compare-val.neg { color:var(--red); }
+#home-panel .vh-upcoming-list { display:flex; flex-direction:column; background:var(--bg1); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
+#home-panel .vh-upcoming-row { display:grid; grid-template-columns:90px auto 1fr auto; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid var(--border); }
+#home-panel .vh-upcoming-row:last-child { border-bottom:none; }
+#home-panel .vh-up-mid { display:flex; align-items:center; gap:10px; min-width:0; }
+#home-panel .vh-up-when { font-size:10.5px; color:var(--text-3); white-space:nowrap; }
+#home-panel .vh-recent-list { display:flex; flex-direction:column; background:var(--bg1); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
+#home-panel .vh-recent-row { display:grid; grid-template-columns:90px auto 1fr auto; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid var(--border); cursor:pointer; -webkit-tap-highlight-color:transparent; }
+#home-panel .vh-recent-row:last-child { border-bottom:none; }
+#home-panel .vh-recent-row:active { background:var(--bg2); }
+#home-panel .vh-recent-date { font-size:12px; color:var(--text-3); white-space:nowrap; font-variant-numeric:tabular-nums; }
+#home-panel .vh-recent-acct-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+#home-panel .vh-recent-type { font-size:11px; padding:2px 8px; border-radius:10px; font-weight:500; justify-self:start; }
+#home-panel .vh-recent-type.dep { background:rgba(61,158,110,0.12); color:var(--green); }
+#home-panel .vh-recent-type.wit { background:rgba(192,80,74,0.12); color:var(--red); }
+#home-panel .vh-recent-type.int { background:rgba(91,166,211,0.12); color:var(--vh-blue); }
+#home-panel .vh-recent-amt { text-align:right; font-size:13.5px; font-weight:500; font-variant-numeric:tabular-nums; color:var(--text-1); }
+#home-panel .vh-recent-amt-conv { font-size:10.5px; color:var(--text-3); margin-top:1px; font-variant-numeric:tabular-nums; }
+#home-panel .vh-chart-card { background:var(--bg1); border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; }
+#home-panel .vh-chart-title { font-family:'DM Serif Display',serif; font-size:16px; color:var(--text-1); margin-bottom:2px; }
+#home-panel .vh-chart-sub { font-size:11px; color:var(--text-3); margin-bottom:14px; letter-spacing:0.02em; }
+#home-panel .vh-chart-area { width:100%; overflow:hidden; position:relative; min-height:60px; }
+#home-panel .vh-chart-area svg { width:100%; display:block; height:auto; }
+#home-panel .vh-chart-controls { display:flex; align-items:stretch; gap:8px; margin:2px 0 12px; }
+#home-panel .vh-chart-range { margin:0; flex:1; padding:3px; }
+#home-panel .vh-chart-range .vh-opt { padding:5px 4px; font-size:11px; }
+#home-panel .vh-proj-toggle { display:inline-flex; align-items:center; justify-content:center; gap:5px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); color:var(--text-3); font-size:10.5px; font-weight:500; padding:0 11px; cursor:pointer; -webkit-tap-highlight-color:transparent; white-space:nowrap; }
+#home-panel .vh-proj-toggle .vh-proj-dash { width:12px; height:0; border-top:2px dashed currentColor; opacity:0.85; }
+#home-panel .vh-proj-toggle.on { color:var(--gold); border-color:var(--gold-dim); background:rgba(201,168,76,0.08); }
+#home-panel .vh-modal { position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; padding:24px; background:rgba(0,0,0,0.62); -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px); }
+#home-panel .vh-modal-card { background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius-lg); padding:22px 20px 18px; max-width:340px; width:100%; box-shadow:0 12px 44px rgba(0,0,0,0.55); animation:vhModalIn 0.22s ease-out; }
+@keyframes vhModalIn { from { opacity:0; transform:translateY(10px) scale(0.98); } to { opacity:1; transform:none; } }
+#home-panel .vh-modal-title { font-family:'DM Serif Display',serif; font-size:18px; color:var(--text-1); margin-bottom:12px; }
+#home-panel .vh-modal-body { font-size:12.5px; color:var(--text-2); line-height:1.5; }
+#home-panel .vh-modal-body p { margin:0 0 10px; }
+#home-panel .vh-modal-body ul { margin:0 0 10px; padding-left:16px; display:flex; flex-direction:column; gap:7px; }
+#home-panel .vh-modal-body strong { color:var(--text-1); font-weight:600; }
+#home-panel .vh-modal-note { color:var(--text-3); font-style:italic; }
+#home-panel .vh-modal-close { margin-top:6px; width:100%; background:var(--gold); color:var(--bg1); border:none; border-radius:var(--radius); padding:11px; font-size:13px; font-weight:600; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+#home-panel .vh-modal-close:active { filter:brightness(0.94); }
+#home-panel .vh-streak-card { background:var(--bg1); border:1px solid var(--border); border-radius:var(--radius-lg); padding:16px 18px 14px; }
+#home-panel .vh-streak-top { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; }
+#home-panel .vh-streak-cur { display:flex; flex-direction:column; }
+#home-panel .vh-streak-n { font-family:'DM Serif Display',serif; font-size:38px; line-height:1; color:var(--green); }
+#home-panel .vh-streak-cur-lbl { font-size:11px; color:var(--text-3); margin-top:4px; }
+#home-panel .vh-streak-best { text-align:right; }
+#home-panel .vh-streak-best-n { font-family:'DM Serif Display',serif; font-size:20px; color:var(--text-2); line-height:1; }
+#home-panel .vh-streak-best-lbl { display:block; font-size:9.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-3); font-weight:600; margin-top:3px; }
+#home-panel .vh-streak-bar { height:8px; background:var(--bg3); border-radius:4px; overflow:hidden; margin:14px 0 8px; }
+#home-panel .vh-streak-bar-fill { height:100%; background:var(--green); border-radius:4px; transition:width 0.4s ease-out; }
+#home-panel .vh-streak-cap { font-size:11.5px; color:var(--text-3); }
+#home-panel .vh-streak-card.none .vh-streak-n { color:var(--text-3); }
+#home-panel .vh-streak-card.record .vh-streak-n { color:var(--gold); }
+#home-panel .vh-streak-card.record .vh-streak-cap { color:var(--gold); font-weight:500; }
+#home-panel .vh-streak-card.record .vh-streak-bar-fill { background:var(--gold); }
+#home-panel .vh-streak-stats { display:grid; gap:10px; margin-top:14px; padding-top:14px; border-top:1px dashed var(--border); }
+#home-panel .vh-streak-stat { display:flex; flex-direction:column; min-width:0; }
+#home-panel .vh-streak-stat-label { font-size:9px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-3); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#home-panel .vh-streak-stat-val { font-size:13.5px; color:var(--text-1); font-weight:600; font-variant-numeric:tabular-nums; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#home-panel .vh-streak-stat-sub { font-size:10px; color:var(--text-3); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#home-panel .vh-trend-stats { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+#home-panel .vh-trend-stats:empty { display:none; }
+#home-panel .vh-trend-stat { display:inline-flex; align-items:center; gap:6px; background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:6px 11px; font-size:11.5px; color:var(--text-2); }
+#home-panel .vh-trend-stat strong { color:var(--text-1); font-weight:600; font-variant-numeric:tabular-nums; }
+#home-panel .vh-trend-stat.streak, #home-panel .vh-trend-stat.streak strong { color:var(--green); }
+#home-panel .vh-chart-view-all { text-align:right; margin-top:12px; font-size:11.5px; color:var(--gold); font-weight:500; cursor:pointer; }
+#home-panel .vh-chart-empty, #home-panel .vh-recent-empty, #home-panel .vh-empty { color:var(--text-3); font-size:12.5px; padding:18px; text-align:center; }
+#home-panel .vh-compare-list .vh-empty { grid-column:1 / -1; }
+#vh-chart-tooltip { position:fixed; z-index:100; padding:8px 12px; background:var(--bg3); border:1px solid var(--border-hi); border-radius:6px; font-size:11.5px; color:var(--text-1); box-shadow:0 4px 20px rgba(0,0,0,0.4); pointer-events:none; opacity:0; transition:opacity 0.12s ease-out; font-variant-numeric:tabular-nums; }
+#vh-chart-tooltip.on { opacity:1; }
+#vh-chart-tooltip strong { display:block; color:var(--gold); font-size:13px; font-family:'DM Serif Display',serif; font-weight:400; }
+#vh-chart-tooltip .vh-tt-date { color:var(--text-3); margin-top:2px; }
+</style>
 </head>
 <body>
 
 <!-- Setup modal -->
-<div id="setup-modal">
+<div id="setup-modal" class="pop-anim">
   <div class="modal-box" style="padding:0; overflow-y:auto; max-width:420px; width:100%;">
 
     <!-- Main view — three storage option cards -->
@@ -2660,7 +3063,7 @@
 </div>
 
 <!-- Cloud service picker popup -->
-<div id="cloud-picker-popup" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:400; align-items:center; justify-content:center; padding:20px;">
+<div id="cloud-picker-popup" class="hidden pop-anim" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:400; align-items:center; justify-content:center; padding:20px;">
   <div class="info-popup-box" style="max-width:400px; width:100%;">
     <div style="display:flex; align-items:center; margin-bottom:6px;">
       <button class="smod-back" onclick="closeCloudPicker()" style="font-size:15px; padding:0 10px 0 0;">‹ Back</button>
@@ -2711,7 +3114,7 @@
 </div>
 
 <!-- Browser compatibility info popup -->
-<div id="compat-info-popup" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:400; align-items:center; justify-content:center; padding:16px;">
+<div id="compat-info-popup" class="hidden pop-anim" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:400; align-items:center; justify-content:center; padding:16px;">
   <div class="info-popup-box" style="max-width:420px; width:100%; max-height:90vh; overflow-y:auto;">
 
     <div style="display:flex; align-items:flex-start; gap:8px; margin-bottom:14px;">
@@ -2779,7 +3182,7 @@
 </div>
 
 <!-- Year format popup -->
-<div id="year-format-popup" class="hidden">
+<div id="year-format-popup" class="hidden pop-anim">
   <div class="info-popup-box" style="max-width:400px;">
     <div style="display:flex; align-items:center; margin-bottom:20px;">
       <h3 style="margin-bottom:0; flex:1;">Year format</h3>
@@ -2827,7 +3230,7 @@
 </div>
 
 <!-- Currency popup -->
-<div id="currency-popup" class="hidden">
+<div id="currency-popup" class="hidden pop-anim">
   <div class="info-popup-box" style="max-width:400px; display:flex; flex-direction:column; max-height:88vh; padding:0; overflow:hidden;">
 
     <!-- Header -->
@@ -2873,7 +3276,7 @@
 
 
 <!-- Desktop: add transaction popup -->
-<div id="desktop-add-popup" class="hidden" onclick="if(event.target===this)closeDesktopAddSheet()">
+<div id="desktop-add-popup" class="hidden pop-anim" onclick="if(event.target===this)closeDesktopAddSheet()">
   <div class="tx-popup-box" style="max-width:420px; padding:32px;">
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
       <h3 style="flex:1; margin:0;">Add transaction</h3>
@@ -2980,6 +3383,17 @@
 
     <!-- Section: View -->
     <div class="dmenu-section-label">View</div>
+
+    <button class="dmenu-btn" onclick="closeDesktopMenu(); switchTab('home');">
+      <span class="dmenu-btn-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2.5 7.5 L8 2.5 L13.5 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M4 6.8 V13 H12 V6.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="6.6" y="9.2" width="2.8" height="3.8" stroke="currentColor" stroke-width="1.2" fill="none"/>
+        </svg>
+      </span>
+      <div><div class="dmenu-btn-label">Home</div><div class="dmenu-btn-sub">Overview, trends &amp; recent activity</div></div>
+    </button>
 
     <button class="dmenu-btn" onclick="closeDesktopMenu(); switchTab('report');">
       <span class="dmenu-btn-icon">
@@ -3095,7 +3509,7 @@
       <div style="flex:1"><div class="dmenu-btn-label">Settings</div><div class="dmenu-btn-sub">Accounts, backup, AI &amp; more</div></div>
       <span class="menu-item-arrow" id="dmenu-settings-arrow" style="font-size:16px; color:var(--text-3); flex-shrink:0; transition:transform 0.2s;">›</span>
     </button>
-    <div id="dmenu-settings-dropdown" style="display:none;">
+    <div id="dmenu-settings-dropdown">
       <button class="dmenu-btn" onclick="closeDesktopMenu(); openAccountsModal();">
         <span class="dmenu-btn-icon">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -3294,6 +3708,88 @@
     </div>
 
     <!-- Report panel -->
+    <div id="home-panel" style="display:none; flex:1; overflow-y:auto; padding:16px 16px 40px; flex-direction:column;">
+      <div class="vh-section" data-vh-section="overview">
+        <div class="vh-section-header"><span class="vh-section-title">Vault Overview</span><span class="vh-chevron">&#9662;</span></div>
+        <div class="vh-section-body" id="vh-overview-body"></div>
+      </div>
+      <div class="vh-section" data-vh-section="month">
+        <div class="vh-section-header"><span class="vh-section-title" id="vh-month-title">This Month</span><span class="vh-chevron">&#9662;</span></div>
+        <div class="vh-section-body" id="vh-month-body"></div>
+      </div>
+      <div class="vh-section" data-vh-section="interest" id="vh-interest-section" style="display:none;">
+        <div class="vh-section-header"><span class="vh-section-title">Interest Earned</span><span class="vh-chevron">&#9662;</span></div>
+        <div class="vh-section-body" id="vh-interest-body"></div>
+      </div>
+      <div class="vh-section" data-vh-section="compare">
+        <div class="vh-section-header"><span class="vh-section-title">Compare</span><span class="vh-chevron">&#9662;</span></div>
+        <div class="vh-section-body">
+          <div class="vh-yoy-block" id="vh-yoy-block"></div>
+          <div class="vh-compare-filter" id="vh-compare-filter"></div>
+          <div class="vh-compare-seg" id="vh-compare-seg">
+            <div class="vh-opt active" data-vh-mode="month">Month</div>
+            <div class="vh-opt" data-vh-mode="year">Year</div>
+          </div>
+          <div class="vh-compare-pager" id="vh-compare-pager" style="display:none;">
+            <button class="vh-pager-btn" id="vh-pager-prev" aria-label="Older periods">&lsaquo;</button>
+            <span class="vh-pager-label" id="vh-pager-label"></span>
+            <button class="vh-pager-btn" id="vh-pager-next" aria-label="Newer periods">&rsaquo;</button>
+          </div>
+          <div class="vh-compare-list" id="vh-compare-list"></div>
+          <div class="vh-rate-note" id="vh-compare-rate-note" style="margin-top:12px; display:none;"></div>
+        </div>
+      </div>
+      <div class="vh-section" data-vh-section="chart">
+        <div class="vh-section-header"><span class="vh-section-title">Trend</span><span class="vh-chevron">&#9662;</span></div>
+        <div class="vh-section-body">
+          <div class="vh-chart-card">
+            <div class="vh-chart-title">Cumulative Net Savings</div>
+            <div class="vh-chart-sub" id="vh-chart-sub"></div>
+            <div class="vh-chart-controls">
+              <div class="vh-compare-seg vh-chart-range" id="vh-chart-range">
+                <div class="vh-opt" data-vh-range="6m">6M</div>
+                <div class="vh-opt" data-vh-range="1y">1Y</div>
+                <div class="vh-opt active" data-vh-range="all">All</div>
+              </div>
+              <button class="vh-proj-toggle on" id="vh-proj-toggle" type="button" title="Tap to toggle · hold for how it’s calculated"><span class="vh-proj-dash"></span>Projection</button>
+            </div>
+            <div class="vh-chart-area" id="vh-chart-area"></div>
+            <div class="vh-chart-view-all" id="vh-chart-viewall">View all charts &rarr;</div>
+          </div>
+        </div>
+      </div>
+      <div class="vh-section" data-vh-section="streak" id="vh-streak-section" style="display:none;">
+        <div class="vh-section-header"><span class="vh-section-title">Savings Streak</span><span class="vh-chevron">&#9662;</span></div>
+        <div class="vh-section-body" id="vh-streak-body"></div>
+      </div>
+      <div class="vh-section" data-vh-section="recent">
+        <div class="vh-section-header"><span class="vh-section-title">Recent Transactions</span><span class="vh-see-all" id="vh-recent-seeall">See all &rarr;</span><span class="vh-chevron">&#9662;</span></div>
+        <div class="vh-section-body"><div class="vh-recent-list" id="vh-recent-list"></div></div>
+      </div>
+      <div class="vh-section" data-vh-section="upcoming" id="vh-upcoming-section" style="display:none;">
+        <div class="vh-section-header"><span class="vh-section-title">Upcoming</span><span class="vh-chevron">&#9662;</span></div>
+        <div class="vh-section-body"><div class="vh-upcoming-list" id="vh-upcoming-list"></div></div>
+      </div>
+      <div id="vh-chart-tooltip"></div>
+      <div id="vh-proj-info" class="vh-modal" style="display:none;">
+        <div class="vh-modal-card">
+          <div class="vh-modal-title">How the projection works</div>
+          <div class="vh-modal-body">
+            <p>The dashed line estimates your next 3 months from your recent saving pattern.</p>
+            <ul>
+              <li>It uses your <strong>net saved per month</strong> over the last 12 completed months (the current, part-way month is ignored).</li>
+              <li><strong>One-off months are trimmed</strong>, so a single unusually large deposit or withdrawal won&rsquo;t skew the forecast.</li>
+              <li>A trend line is fitted with <strong>more weight on recent months</strong>, so it follows your latest momentum.</li>
+              <li>The slope is <strong>dampened</strong> to avoid over-confident predictions.</li>
+              <li>The shaded band is the <strong>uncertainty range</strong>, widening the further ahead it looks.</li>
+            </ul>
+            <p class="vh-modal-note">It&rsquo;s an estimate, not a guarantee &mdash; real results will vary.</p>
+          </div>
+          <button class="vh-modal-close" id="vh-proj-info-close" type="button">Got it</button>
+        </div>
+      </div>
+    </div>
+
     <div id="report-panel" style="display:none; flex:1; overflow-y:auto; padding:20px 24px 24px; flex-direction:column;">
 
       <div style="margin-bottom:20px;">
@@ -3416,7 +3912,7 @@
 </div>
 </div>
 
-<div id="pdf-preview-overlay" style="display:none; position:fixed; inset:0; z-index:600; background:rgba(0,0,0,0.7); align-items:center; justify-content:center; padding:20px;">
+<div id="pdf-preview-overlay" class="hidden pop-anim" style="position:fixed; inset:0; z-index:600; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; padding:20px;">
   <div id="pdf-preview-modal" style="display:flex; flex-direction:column; background:var(--bg2); border-radius:var(--radius-lg); border:1px solid var(--border-hi); box-shadow:0 24px 64px rgba(0,0,0,0.6); overflow:hidden; flex-shrink:0;">
     <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--border); flex-shrink:0; gap:12px;">
       <span style="font-size:14px; font-weight:600; color:var(--text-1); font-family:'DM Sans',sans-serif; letter-spacing:0.01em;">Print Preview</span>
@@ -3440,6 +3936,15 @@
 
 <div id="chart-tooltip"></div>
 
+<!-- Shown only during native browser print — hidden on screen. Directs the
+     user to Menu → Print, which routes through the proper preview flow. -->
+<div id="native-print-notice">
+  <h1>Vault</h1>
+  <p>Native browser print isn't supported for the main app view.</p>
+  <p>To get a properly formatted printout, close this dialog and use <strong>Menu&nbsp;→&nbsp;Print</strong> inside Vault.</p>
+  <div class="npn-hint">Ctrl&nbsp;+&nbsp;P works too — it's routed through Vault's own print flow.</div>
+</div>
+
 <!-- Mobile: floating action buttons -->
 <div id="mob-fabs" style="display:none">
   <button id="fab-menu" onclick="openMenuSheet()"><span>☰</span> Menu</button>
@@ -3459,6 +3964,20 @@
 
   <!-- Section: View -->
   <div class="menu-section-label">View</div>
+
+  <button class="menu-item-btn" onclick="closeSheets(); mobileTab('home');">
+    <span class="menu-item-icon">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2.5 7.5 L8 2.5 L13.5 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M4 6.8 V13 H12 V6.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="6.6" y="9.2" width="2.8" height="3.8" stroke="currentColor" stroke-width="1.2" fill="none"/>
+      </svg>
+    </span>
+    <span class="menu-item-body">
+      <span class="menu-item-label">Home</span>
+      <span class="menu-item-sub">Overview, trends &amp; recent activity</span>
+    </span>
+  </button>
 
   <button class="menu-item-btn" id="menu-tx-toggle-btn" onclick="toggleMenuTxDropdown()">
     <span class="menu-item-icon">
@@ -3841,7 +4360,7 @@
 </div>
 
 <!-- Transaction edit/delete popup -->
-<div id="tx-popup" class="hidden">
+<div id="tx-popup" class="hidden pop-anim">
   <div class="tx-popup-box">
     <h3 id="popup-title">Edit transaction</h3>
     <div class="tx-popup-meta" id="popup-meta"></div>
@@ -3929,7 +4448,7 @@
 </div>
 
 <!-- ── Import popup ─────────────────────────────────────────────────────── -->
-<div id="import-popup" class="hidden" onclick="if(event.target===this)closeImportPopup()">
+<div id="import-popup" class="hidden pop-anim" onclick="if(event.target===this)closeImportPopup()">
   <div class="modal-box" style="max-width:480px; position:relative;">
     <button class="modal-close" onclick="closeImportPopup()" style="position:absolute;top:14px;right:14px;">✕</button>
     <div class="modal-header" style="padding-right:32px;"><h2>Import transactions</h2></div>
@@ -3982,7 +4501,7 @@
 </div>
 
 <!-- ── Import Preview popup ──────────────────────────────────────────────── -->
-<div id="import-preview-popup" class="hidden" onclick="if(event.target===this)closeImportPreview()">
+<div id="import-preview-popup" class="hidden pop-anim" onclick="if(event.target===this)closeImportPreview()">
   <div class="modal-box" style="max-width:520px; position:relative; max-height:90vh; display:flex; flex-direction:column;">
     <button class="modal-close" onclick="closeImportPreview()" style="position:absolute;top:14px;right:14px;">✕</button>
     <div class="modal-header" style="padding-right:32px; flex-shrink:0;"><h2>Import preview</h2></div>
@@ -4022,7 +4541,7 @@
 </div>
 
 <!-- ── Import progress popup ─────────────────────────────────────────────── -->
-<div id="import-progress-popup" class="hidden">
+<div id="import-progress-popup" class="hidden pop-anim">
   <div class="modal-box" style="max-width:420px; position:relative;">
     <div class="modal-header"><h2>Importing files…</h2></div>
     <div id="import-progress-bar-wrap" style="background:var(--bg3); border-radius:4px; height:4px; margin-bottom:16px; overflow:hidden;">
@@ -4034,7 +4553,7 @@
 </div>
 
 <!-- ── Per-transaction review popup ──────────────────────────────────────── -->
-<div id="import-tx-review-popup" class="hidden" onclick="if(event.target===this)closeImportTxReview()">
+<div id="import-tx-review-popup" class="hidden pop-anim" onclick="if(event.target===this)closeImportTxReview()">
   <div class="modal-box" style="max-width:380px; position:relative;">
     <button class="modal-close" onclick="closeImportTxReview()" style="position:absolute;top:14px;right:14px;">✕</button>
     <div class="modal-header" style="padding-right:32px;"><h2 id="import-review-title">Review transaction</h2></div>
@@ -4063,7 +4582,7 @@
 </div>
 
 <!-- ── AI Provider Settings popup ────────────────────────────────────────── -->
-<div id="ai-provider-popup" class="hidden" onclick="if(event.target===this)closeAIProviderSettings()">
+<div id="ai-provider-popup" class="hidden pop-anim" onclick="if(event.target===this)closeAIProviderSettings()">
   <div class="modal-box" style="max-width:500px; position:relative; max-height:90vh; display:flex; flex-direction:column;">
     <button class="modal-close" onclick="closeAIProviderSettings()" style="position:absolute;top:14px;right:14px;">✕</button>
     <div class="modal-header" style="padding-right:32px; flex-shrink:0;"><h2>AI provider settings</h2></div>
@@ -4081,7 +4600,7 @@
 </div>
 
 <!-- ── AI Privacy Notice popup ───────────────────────────────────────────── -->
-<div id="ai-privacy-popup" class="hidden" onclick="if(event.target===this)closeAIPrivacyNotice()">
+<div id="ai-privacy-popup" class="hidden pop-anim" onclick="if(event.target===this)closeAIPrivacyNotice()">
   <div class="modal-box" style="max-width:460px; position:relative; max-height:90vh; display:flex; flex-direction:column;">
     <button class="modal-close" onclick="closeAIPrivacyNotice()" style="position:absolute;top:14px;right:14px;">✕</button>
     <div class="modal-header" style="padding-right:32px; flex-shrink:0;"><h2>AI Import — Privacy</h2></div>
@@ -4102,7 +4621,7 @@
 </div>
 
 <!-- Recurring transactions modal -->
-<div id="recurring-modal" class="hidden">
+<div id="recurring-modal" class="hidden pop-anim">
   <div class="modal-box" style="position:relative;">
 
     <!-- Rule history slide-in panel -->
@@ -4134,7 +4653,7 @@
 </div>
 
 <!-- Add Recurring Transaction popup -->
-<div id="add-recurring-popup" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center; padding:20px;">
+<div id="add-recurring-popup" class="hidden pop-anim" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center; padding:20px;">
   <div class="modal-box" style="max-width:480px; position:relative;">
     <button class="modal-close" onclick="closeAddRecurringPopup()" style="position:absolute; top:14px; right:14px;">✕</button>
     <div class="modal-header" style="padding-right:32px;">
@@ -4192,7 +4711,7 @@
 </div>
 
 <!-- Recurring: Edit popup -->
-<div id="recur-edit-popup" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:300; align-items:center; justify-content:center; padding:20px;">
+<div id="recur-edit-popup" class="hidden pop-anim" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:300; align-items:center; justify-content:center; padding:20px;">
   <div class="modal-box" style="max-width:420px; position:relative;">
     <button class="modal-close" onclick="closeRecurEditPopup()" style="position:absolute; top:14px; right:14px;">✕</button>
     <div class="modal-header" style="padding-right:32px;">
@@ -4236,7 +4755,7 @@
 </div>
 
 <!-- Confirm: apply account change to past transactions? -->
-<div id="rep-account-confirm-popup" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:310; align-items:center; justify-content:center; padding:20px;" onclick="if(event.target===this){document.getElementById('rep-acct-cancel-btn').click();}">
+<div id="rep-account-confirm-popup" class="hidden pop-anim" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:310; align-items:center; justify-content:center; padding:20px;" onclick="if(event.target===this){document.getElementById('rep-acct-cancel-btn').click();}">
   <div class="modal-box" style="max-width:400px; position:relative;">
     <h3 style="font-family:'DM Serif Display',serif; font-size:18px; font-weight:400; color:var(--text-1); margin-bottom:8px;">Apply account change?</h3>
     <p style="font-size:13px; color:var(--text-2); margin-bottom:18px; line-height:1.6; font-weight:300;" id="rep-account-confirm-msg">You changed this rule's account. Should past transactions in this series be moved too, or just future occurrences?</p>
@@ -4253,7 +4772,7 @@
 </div>
 
 <!-- Recurring: Delete confirm popup -->
-<div id="recur-delete-popup" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:300; align-items:center; justify-content:center; padding:20px;">
+<div id="recur-delete-popup" class="hidden pop-anim" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:300; align-items:center; justify-content:center; padding:20px;">
   <div class="modal-box" style="max-width:400px; position:relative;">
     <button class="modal-close" onclick="closeRecurDeletePopup()" style="position:absolute; top:14px; right:14px;">✕</button>
     <div class="modal-header" style="padding-right:32px;">
@@ -4284,7 +4803,7 @@
 </div>
 
 <!-- Accounts manager modal -->
-<div id="accounts-modal" class="hidden" onclick="if(event.target===this)closeAccountsModal()">
+<div id="accounts-modal" class="hidden pop-anim" onclick="if(event.target===this)closeAccountsModal()">
   <div class="modal-box" style="max-width:480px; position:relative;">
     <button class="modal-close" onclick="closeAccountsModal()" style="position:absolute; top:14px; right:14px;">✕</button>
     <div class="modal-header" style="padding-right:40px;">
@@ -4310,7 +4829,7 @@
 </div>
 
 <!-- Account currency change dialog — shown when reassigning tx to different-currency account -->
-<div id="tx-currency-change-popup" class="hidden" onclick="if(event.target===this)cancelTxCurrencyChange()">
+<div id="tx-currency-change-popup" class="hidden pop-anim" onclick="if(event.target===this)cancelTxCurrencyChange()">
   <div class="modal-box" style="max-width:420px; position:relative;">
     <button class="modal-close" onclick="cancelTxCurrencyChange()" style="position:absolute; top:14px; right:14px;">✕</button>
     <div class="modal-header" style="padding-right:32px;"><h2>Account currency changed</h2></div>
@@ -4334,18 +4853,34 @@
 </div>
 
 <!-- Account delete confirm popup -->
-<div id="account-delete-popup" class="hidden" onclick="if(event.target===this)closeAccountDeletePopup()">
+<div id="account-delete-popup" class="hidden pop-anim" onclick="if(event.target===this)closeAccountDeletePopup()">
   <div class="modal-box" style="max-width:400px; position:relative;">
     <button class="modal-close" onclick="closeAccountDeletePopup()" style="position:absolute; top:14px; right:14px;">✕</button>
     <div class="modal-header" style="padding-right:32px;"><h2>Delete account?</h2></div>
     <p id="account-delete-desc" style="font-size:13px; color:var(--text-2); margin-bottom:16px; line-height:1.6;"></p>
-    <div id="account-delete-reassign-wrap" style="display:none; margin-bottom:16px;">
-      <label style="font-size:12px; color:var(--text-3); display:block; margin-bottom:6px;">Move transactions to</label>
-      <select id="account-delete-reassign"
-        style="width:100%; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none;"></select>
+
+    <!-- Only shown when the account has transactions. Picks between moving them
+         or wiping everything account-related. -->
+    <div id="account-delete-choice-wrap" style="display:none; margin-bottom:16px;">
+      <label class="acc-del-choice">
+        <input type="radio" name="acc-del-mode" value="move" checked onchange="updateAccountDeleteMode()">
+        <span class="acc-del-choice-label">Move transactions to another account</span>
+      </label>
+      <div id="account-delete-reassign-wrap" style="margin:8px 0 16px 26px;">
+        <select id="account-delete-reassign"
+          style="width:100%; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none;"></select>
+      </div>
+      <label class="acc-del-choice">
+        <input type="radio" name="acc-del-mode" value="wipe" onchange="updateAccountDeleteMode()">
+        <span class="acc-del-choice-label">Delete transactions with the account</span>
+      </label>
+      <div id="account-delete-wipe-warning" style="display:none; margin:8px 0 0 26px; padding:10px 12px; background:rgba(192,80,74,0.08); border:1px solid rgba(192,80,74,0.28); border-radius:var(--radius); font-size:12px; color:var(--red); line-height:1.5;">
+        <span id="account-delete-wipe-warning-text"></span>
+      </div>
     </div>
+
     <div style="display:flex; gap:8px;">
-      <button onclick="confirmDeleteAccount()" style="flex:1; background:var(--red); border:none; border-radius:var(--radius); padding:11px 0; color:#fff; font-size:14px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer;">Delete</button>
+      <button id="account-delete-confirm-btn" onclick="confirmDeleteAccount()" style="flex:1; background:var(--red); border:none; border-radius:var(--radius); padding:11px 0; color:#fff; font-size:14px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer;">Delete</button>
       <button onclick="closeAccountDeletePopup()" style="background:var(--bg3); border:1px solid var(--border-hi); color:var(--text-2); border-radius:var(--radius); padding:11px 14px; font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer;">Cancel</button>
     </div>
   </div>
@@ -4353,7 +4888,7 @@
 
 <!-- Encryption menu popup — opened from the main menu -->
 <!-- Save status legend popup — explains what each pill state means -->
-<div id="save-status-legend-popup" class="hidden">
+<div id="save-status-legend-popup" class="hidden pop-anim">
   <div class="modal-box" style="max-width:380px;">
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
       <h2 style="margin:0; flex:1; font-family:'DM Serif Display',serif; font-size:18px; font-weight:400;">Backup status</h2>
@@ -4421,13 +4956,13 @@
 </div>
 
 <!-- Currency change dialog — shown when user changes default currency -->
-<div id="currency-change-popup" class="hidden">
+<div id="currency-change-popup" class="hidden pop-anim">
   <div class="modal-box" style="max-width:400px;">
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
       <h2 style="margin:0; flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400;">Change currency</h2>
       <button class="modal-close" onclick="cancelCurrencyChange()" title="Close">✕</button>
     </div>
-    <p style="font-size:13px; color:var(--text-2); margin-bottom:16px; line-height:1.6; font-weight:300;">
+    <p id="cc-intro" style="font-size:13px; color:var(--text-2); margin-bottom:16px; line-height:1.6; font-weight:300;">
       Changing from <strong id="cc-from-label" style="color:var(--text-1);"></strong> to <strong id="cc-to-label" style="color:var(--text-1);"></strong>. How would you like to handle your existing transactions?
     </p>
 
@@ -4471,7 +5006,7 @@
 </div>
 
 <!-- Currency mismatch dialog — shown when backup has different currency -->
-<div id="currency-mismatch-popup" class="hidden">
+<div id="currency-mismatch-popup" class="hidden pop-anim">
   <div class="modal-box" style="max-width:420px;">
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
       <h2 style="margin:0; flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400;">Currency mismatch</h2>
@@ -4513,7 +5048,7 @@
 </div>
 
 
-<div id="enc-menu-popup" class="hidden">
+<div id="enc-menu-popup" class="hidden pop-anim">
   <div class="modal-box" style="max-width:400px;">
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
       <h2 style="margin:0; flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400;">Encryption</h2>
@@ -4532,7 +5067,7 @@
 </div>
 
 <!-- Set / change encryption password popup -->
-<div id="enc-set-popup" class="hidden">
+<div id="enc-set-popup" class="hidden pop-anim">
   <div class="modal-box" style="max-width:440px;">
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
       <h2 style="margin:0; flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400;">Set backup password</h2>
@@ -4564,7 +5099,7 @@
 </div>
 
 <!-- Decrypt Drive file popup — shown when an encrypted file is loaded -->
-<div id="enc-decrypt-popup" class="hidden">
+<div id="enc-decrypt-popup" class="hidden pop-anim">
   <div class="modal-box" style="max-width:420px;">
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
       <h2 style="margin:0; flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400;">Encrypted backup</h2>
@@ -4589,7 +5124,7 @@
 </div>
 
 <!-- Encryption choice popup — shown when a new file location is first linked -->
-<div id="enc-choice-popup" class="hidden">
+<div id="enc-choice-popup" class="hidden pop-anim">
   <div class="modal-box" style="max-width:440px;">
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
       <h2 style="margin:0; flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400;">Encrypt your backup?</h2>
@@ -4621,7 +5156,7 @@
 </div>
 
 <!-- Backup switch confirmation popup -->
-<div id="backup-switch-popup" class="hidden">
+<div id="backup-switch-popup" class="hidden pop-anim">
   <div class="modal-box" style="max-width:420px;">
     <div style="margin-bottom:16px;">
       <h2 style="margin:0 0 8px; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400;">Switch backup location?</h2>
@@ -4641,7 +5176,7 @@
 </div>
 
 <!-- Drive merge dialog — shown when an existing Vault file is found in Drive on sign-in -->
-<div id="drive-merge-popup" class="hidden">
+<div id="drive-merge-popup" class="hidden pop-anim">
   <div class="modal-box" style="max-width:460px;">
     <div style="margin-bottom:16px;">
       <h2 style="margin:0 0 8px; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400;" id="merge-dialog-title">Existing Vault file found</h2>
@@ -4696,7 +5231,7 @@
 </div>
 
 <!-- Welcome / first-run modal — shown when no data and no linked file found -->
-<div id="welcome-modal" class="hidden">
+<div id="welcome-modal" class="hidden pop-anim">
   <div class="modal-box" style="max-width:440px; text-align:center;">
     <div style="font-size:48px; margin-bottom:12px;">V</div>
     <h2 style="font-family:'DM Serif Display',serif; font-size:26px; font-weight:400; margin-bottom:6px; color:var(--text-1);">Welcome to Vault</h2>
@@ -5582,15 +6117,24 @@ function updateCurrencyUI() {
 // Pending currency change — stored while dialog is open
 let _pendingCurrencyChange = null;
 let _selectedCurrencyOption = "reformat"; // "reformat" | "convert"
+// Per-account currency change pending state. Only one of _pendingCurrencyChange
+// or _pendingAccountCurrencyChange is set at a time — confirmCurrencyChange
+// routes based on which is set. Cleared by confirm/cancel.
+let _pendingAccountCurrencyChange = null; // { accountId, oldCur, newCode } or null
+// Default intro HTML for the reformat/convert popup, cached on first render so
+// the per-account variant can restore it on cancel/close.
+let _ccIntroDefault = null;
 
 // Called when user picks a new currency from the select — opens the dialog
 function onCurrencyChange(code) {
   if (!CURRENCIES.find(c => c[0] === code)) return;
-  // If currency picker was opened for an account, route to account handler
-  if (_accountCurrencyPickerId) {
+  // Capture the account context up-front. closeCurrencyPopup() below internally
+  // calls _restoreCurrencyPopupDefaults() which nulls _accountCurrencyPickerId,
+  // so we can't rely on it surviving that call — pass the id explicitly instead.
+  const acctId = _accountCurrencyPickerId;
+  if (acctId) {
     closeCurrencyPopup();
-    _restoreCurrencyPopupDefaults();
-    _applyAccountCurrencyChange(code);
+    _applyAccountCurrencyChange(code, acctId);
     return;
   }
   if (code === currencyCode) return;
@@ -5667,10 +6211,106 @@ function cancelCurrencyChange() {
   // Rebuild list so any highlighted pending selection is cleared
   buildCurrencyList(document.getElementById("currency-search")?.value || "");
   _pendingCurrencyChange = null;
+  // If the popup was in per-account context, restore intro/warning defaults and
+  // clear pending state. Nothing on the account is changed — atomic cancel.
+  if (_pendingAccountCurrencyChange) {
+    _pendingAccountCurrencyChange = null;
+    _restoreCurrencyChangePopupDefaults();
+  }
+}
+
+// Show the reformat/convert dialog for changing a single account's currency.
+// Parallels askAndChangeCurrency (global) but scoped to one account: from is the
+// account's current currency, to is the new one, and the confirm path only
+// touches transactions and recurring rules linked to that account.
+function askAndChangeAccountCurrency(accountId, newCode) {
+  const acc = getAccountById(accountId);
+  if (!acc) return;
+  const oldCur = acc.currency || currencyCode;
+  if (newCode === oldCur) return;
+
+  _pendingCurrencyChange = null;
+  _pendingAccountCurrencyChange = { accountId, oldCur, newCode };
+  _selectedCurrencyOption = "reformat";
+
+  // Populate the same labels as the global path but oriented old→new for account.
+  const fromEntry = CURRENCIES.find(c => c[0] === oldCur)  || [oldCur,  oldCur];
+  const toEntry   = CURRENCIES.find(c => c[0] === newCode) || [newCode, newCode];
+  const fromLabel = fromEntry[0] + " — " + fromEntry[1];
+  const toLabel   = toEntry[0]   + " — " + toEntry[1];
+
+  document.getElementById("cc-from-label").textContent   = fromLabel;
+  document.getElementById("cc-to-label").textContent     = toLabel;
+  document.getElementById("cc-from-label-2").textContent = fromEntry[0];
+  document.getElementById("cc-to-label-2").textContent   = toEntry[0];
+  document.getElementById("cc-to-label-3").textContent   = toEntry[0];
+
+  // Cache the default intro on first use and swap in the account-specific one.
+  const intro = document.getElementById("cc-intro");
+  if (intro) {
+    if (_ccIntroDefault === null) _ccIntroDefault = intro.innerHTML;
+    intro.innerHTML =
+      `Changing <strong style="color:var(--text-1);">${escapeHTML(acc.name)}</strong> from ` +
+      `<strong id="cc-from-label" style="color:var(--text-1);">${fromLabel}</strong> to ` +
+      `<strong id="cc-to-label" style="color:var(--text-1);">${toLabel}</strong>. ` +
+      `How would you like to handle this account's transactions?`;
+  }
+
+  // Rate: 1 oldCur = X newCode (relative to global base)
+  const rateF = getRate(oldCur);
+  const rateT = getRate(newCode);
+  const rateLabel   = document.getElementById("cc-rate-label");
+  const noRatesWarn = document.getElementById("cc-no-rates-warn");
+  const convertOpt  = document.getElementById("cc-opt-convert");
+  if (rateF !== null && rateT !== null && rateF !== 0) {
+    const perOne = (rateT / rateF).toFixed(4);
+    rateLabel.textContent = "1 " + oldCur + " = " + perOne + " " + newCode;
+    noRatesWarn.style.display = "none";
+    convertOpt.style.opacity = "1"; convertOpt.style.pointerEvents = "";
+  } else {
+    rateLabel.textContent = "rate unavailable";
+    noRatesWarn.style.display = "";
+    convertOpt.style.opacity = "0.4"; convertOpt.style.pointerEvents = "none";
+  }
+
+  // If any recurring rules are linked to this account, extend the convert warning
+  // so the user knows those rules will also be converted at today's rate.
+  const affectedRules = recurRules.filter(r => (r.account || getDefaultAccountId()) === accountId).length;
+  const convertWarn = document.getElementById("cc-convert-warn");
+  if (convertWarn) {
+    convertWarn.dataset.defaultText = convertWarn.dataset.defaultText || convertWarn.innerHTML;
+    const rulesSentence = affectedRules > 0
+      ? ` This will also convert <strong>${affectedRules}</strong> recurring rule${affectedRules !== 1 ? "s" : ""} linked to this account.`
+      : "";
+    convertWarn.innerHTML =
+      "This permanently changes all transaction amounts for this account and cannot be undone. Make sure you have a backup before proceeding." +
+      rulesSentence;
+  }
+
+  selectCurrencyOption("reformat");
+
+  document.getElementById("currency-change-popup").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
+
+// Restore the reformat/convert popup to its default (global-context) content.
+// Called by cancel/confirm on the per-account path.
+function _restoreCurrencyChangePopupDefaults() {
+  const intro = document.getElementById("cc-intro");
+  if (intro && _ccIntroDefault !== null) intro.innerHTML = _ccIntroDefault;
+  const convertWarn = document.getElementById("cc-convert-warn");
+  if (convertWarn && convertWarn.dataset.defaultText) {
+    convertWarn.innerHTML = convertWarn.dataset.defaultText;
+  }
 }
 
 // User confirmed — apply the change
 function confirmCurrencyChange() {
+  // Route per-account first — its state is only set via askAndChangeAccountCurrency.
+  if (_pendingAccountCurrencyChange) {
+    _confirmAccountCurrencyChange();
+    return;
+  }
   const newCode = _pendingCurrencyChange;
   if (!newCode) return;
 
@@ -5707,6 +6347,72 @@ function confirmCurrencyChange() {
   document.getElementById("currency-change-popup").classList.add("hidden");
   document.body.style.overflow = "";
   _pendingCurrencyChange = null;
+}
+
+// Per-account confirm — applies reformat or convert to transactions AND recurring
+// rules linked to the account, then sets acc.currency. All in one atomic pass so
+// a cancel path (handled in cancelCurrencyChange) leaves the account untouched.
+function _confirmAccountCurrencyChange() {
+  const pend = _pendingAccountCurrencyChange;
+  if (!pend) return;
+  const { accountId, oldCur, newCode } = pend;
+  const acc = getAccountById(accountId);
+  if (!acc) {
+    _pendingAccountCurrencyChange = null;
+    _restoreCurrencyChangePopupDefaults();
+    document.getElementById("currency-change-popup").classList.add("hidden");
+    document.body.style.overflow = "";
+    return;
+  }
+
+  const defaultAccId = getDefaultAccountId();
+
+  if (_selectedCurrencyOption === "convert") {
+    const rateF = getRate(oldCur);
+    const rateT = getRate(newCode);
+    if (rateF === null || rateT === null || rateF === 0) {
+      toast("Exchange rate unavailable — cannot convert.", "var(--red)");
+      return;
+    }
+    // Multiply every transaction belonging to this account by rateT / rateF
+    Object.keys(data).forEach(fy => {
+      ["saved","removed"].forEach(bucket => {
+        data[fy][bucket].forEach((tx, i) => {
+          if ((tx[6] || defaultAccId) === accountId) {
+            data[fy][bucket][i][1] = parseFloat(applyTxCurrencyOption(tx[1], oldCur, newCode, "convert").toFixed(2));
+          }
+        });
+      });
+    });
+    // Also convert recurring rule amounts pinned to this account
+    let ruleConvertCount = 0;
+    recurRules.forEach(r => {
+      if ((r.account || defaultAccId) === accountId) {
+        r.amount = parseFloat(applyTxCurrencyOption(r.amount, oldCur, newCode, "convert").toFixed(2));
+        ruleConvertCount++;
+      }
+    });
+    if (ruleConvertCount > 0) saveRecurring();
+  }
+  // Reformat mode: no numeric changes to tx or rules — just the currency label.
+
+  acc.currency = newCode;
+  touchAccount(acc);
+  saveAccounts();
+
+  // UI refresh — mirrors the manager path
+  renderAccountManagerList();
+  renderAccountPills();
+  populateAccountSelects();
+  updateAccountsMenuSub();
+  saveAndRender(null);
+  triggerCloudSync();
+  toast(`${acc.name} currency set to ${newCode}`);
+
+  _restoreCurrencyChangePopupDefaults();
+  _pendingAccountCurrencyChange = null;
+  document.getElementById("currency-change-popup").classList.add("hidden");
+  document.body.style.overflow = "";
 }
 
 // ── year mode ─────────────────────────────────────────────────────────────────
@@ -5841,6 +6547,7 @@ const DATA_KEY       = "savings_data_v4";   // main transaction data store
 const SIDEBAR_KEY    = "sidebar_collapsed"; // persists sidebar collapsed state
 const DEVICE_ID_KEY  = "vault_device_id";   // unique ID for this browser/device
 const TOMBSTONE_KEY  = "vault_tombstones";  // deleted transaction IDs
+const ACCOUNT_TOMBSTONE_KEY = "vault_account_tombstones"; // deleted account IDs
 
 // Generate or restore the device ID — used to namespace transaction IDs
 const DEVICE_ID = (() => {
@@ -5907,6 +6614,44 @@ function saveTombstones() {
   try { localStorage.setItem(TOMBSTONE_KEY, JSON.stringify([...tombstones])); } catch {}
 }
 
+// Account tombstones — Set of deleted account IDs. Mirrors the transaction
+// tombstone system so account deletions survive a Drive sync round-trip.
+// Without this, sync's applyPayloadSettings would resurrect any locally-deleted
+// account whose ID still exists in the remote payload.
+let accountTombstones = new Set();
+
+function loadAccountTombstones() {
+  try {
+    const raw = localStorage.getItem(ACCOUNT_TOMBSTONE_KEY);
+    accountTombstones = new Set(raw ? JSON.parse(raw) : []);
+  } catch { accountTombstones = new Set(); }
+}
+
+function saveAccountTombstones() {
+  try { localStorage.setItem(ACCOUNT_TOMBSTONE_KEY, JSON.stringify([...accountTombstones])); } catch {}
+}
+
+function addAccountTombstone(id) {
+  if (!id) return;
+  accountTombstones.add(id);
+  saveAccountTombstones();
+}
+
+// Enforce account tombstones against the current accounts list. Called on
+// startup and after any remote merge so an older-version device that pushed
+// a tombstoned account back to Drive can't leave a lingering ghost here.
+function enforceAccountTombstones() {
+  if (!accountTombstones || !accountTombstones.size) return 0;
+  const before = accounts.length;
+  accounts = accounts.filter(a => !accountTombstones.has(a.id));
+  const removed = before - accounts.length;
+  if (removed > 0) {
+    saveAccounts();
+    dbg("enforceAccountTombstones: removed " + removed + " tombstoned account(s)");
+  }
+  return removed;
+}
+
 function addTombstone(id) {
   if (!id) return;
   tombstones.add(id);
@@ -5921,6 +6666,7 @@ function addTombstone(id) {
 // are reconciled.
 function loadLocal() {
   loadTombstones();
+  loadAccountTombstones();
   applyPendingYearMode(); // apply any deferred year mode change from previous session
   try {
     const stored = localStorage.getItem(DATA_KEY);
@@ -6203,6 +6949,15 @@ function getDefaultAccountId() {
   return accounts[0]?.id || "acc_general";
 }
 
+// Stamp an account's ts to "now" whenever its user-visible metadata (name,
+// color, currency) changes. Merge logic uses this to pick a winner when the
+// same account exists on both sides of a sync. Any new editing entry point
+// (e.g. the upcoming color editor) MUST call this or the change won't survive
+// a Drive round-trip.
+function touchAccount(acc) {
+  if (acc) acc.ts = Date.now();
+}
+
 // ── per-account currency helpers ──────────────────────────────────────────────
 
 // Returns the ISO currency code for an account, falling back to global.
@@ -6381,6 +7136,79 @@ function toggleAccountPicker(prefix) {
 }
 
 // Render the account filter pill strip above the transaction table
+// Long-press threshold — matches the .holding CSS transition durations so the
+// "charging" animation completes exactly when the hold fires. Used for both
+// pill hold-to-manage and tx-row hold-to-edit.
+const HOLD_MS = 500;
+// Distance (in CSS px) the pointer can drift before we treat it as intent to
+// scroll and cancel the hold. Classic tap-vs-drag threshold.
+const HOLD_MOVE_CANCEL_PX = 8;
+// Back-compat alias (used only within this file)
+const PILL_HOLD_MS = HOLD_MS;
+
+// Attach hold-to-open-account-manager to an account pill. Uses pointer events
+// so the same handler covers mouse, touch, and stylus. The pill still fires
+// its click (which sets the account filter) unless a hold completed — in that
+// case we suppress the follow-up click.
+function attachPillHold(pill, accountId) {
+  let holdTimer = null;
+  let didHold   = false;
+  let startX = 0, startY = 0;
+  const clear = () => {
+    if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+    pill.classList.remove("holding");
+  };
+  pill.addEventListener("pointerdown", e => {
+    // Ignore secondary (right-click) so the context menu still works on desktop
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    didHold = false;
+    startX = e.clientX; startY = e.clientY;
+    pill.classList.add("holding");
+    holdTimer = setTimeout(() => {
+      holdTimer = null;
+      didHold = true;
+      pill.classList.remove("holding");
+      // Small haptic buzz where supported (mobile Chrome / some Android)
+      try { if (navigator.vibrate) navigator.vibrate(15); } catch {}
+      openAccountsModalForPill(accountId);
+    }, HOLD_MS);
+  });
+  // Movement threshold — if the pointer drifts beyond HOLD_MOVE_CANCEL_PX,
+  // treat it as intent to scroll/drag and cancel the hold. Prevents accidental
+  // manager-opens when the user is trying to scroll the pill row horizontally.
+  pill.addEventListener("pointermove", e => {
+    if (!holdTimer) return;
+    if (Math.hypot(e.clientX - startX, e.clientY - startY) > HOLD_MOVE_CANCEL_PX) clear();
+  });
+  pill.addEventListener("pointerup",     clear);
+  pill.addEventListener("pointerleave",  clear);
+  pill.addEventListener("pointercancel", clear);
+  // Suppress the click that follows a successful hold, so the pill doesn't
+  // also change the active account filter as a side effect.
+  pill.addEventListener("click", e => {
+    if (didHold) { e.preventDefault(); e.stopImmediatePropagation(); didHold = false; }
+  }, true);
+  // Suppress iOS long-press context menu on the pill itself
+  pill.addEventListener("contextmenu", e => e.preventDefault());
+}
+
+// Open the Account Manager and — if a specific account was long-pressed —
+// scroll it into view and pulse it briefly to confirm the target.
+function openAccountsModalForPill(accountId) {
+  openAccountsModal();
+  if (accountId && accountId !== "all") {
+    // Wait a tick for the modal + list to be in the DOM
+    setTimeout(() => {
+      const rows = document.querySelectorAll("#accounts-list .acc-manager-item");
+      const idx  = accounts.findIndex(a => a.id === accountId);
+      if (idx < 0 || !rows[idx]) return;
+      rows[idx].scrollIntoView({ behavior: "smooth", block: "center" });
+      rows[idx].classList.add("pulse");
+      setTimeout(() => rows[idx].classList.remove("pulse"), 1500);
+    }, 30);
+  }
+}
+
 function renderAccountPills() {
   const outer = document.getElementById("account-pills-wrap");
   const wrap  = document.getElementById("account-pills");
@@ -6396,12 +7224,14 @@ function renderAccountPills() {
   allPill.className = "acc-pill" + (activeAccountFilter === "all" ? " active" : "");
   allPill.textContent = "All";
   allPill.onclick = () => setActiveAccount("all");
+  attachPillHold(allPill, "all");
   wrap.appendChild(allPill);
   accounts.forEach(acc => {
     const pill = document.createElement("button");
     pill.className = "acc-pill" + (activeAccountFilter === acc.id ? " active" : "");
     pill.innerHTML = `<span class="acc-pill-dot" style="background:${acc.color}"></span>${escapeHTML(acc.name)}`;
     pill.onclick = () => setActiveAccount(acc.id);
+    attachPillHold(pill, acc.id);
     wrap.appendChild(pill);
   });
   // Sync custom scrollbar after DOM update
@@ -6467,9 +7297,57 @@ function closeAccountsModal() {
   cancelAddAccount();
 }
 
+// Tracks which account's inline colour-picker strip is currently open.
+// Only one strip at a time so the account manager stays compact.
+let _colorStripOpenId = null;
+
+// Toggle the inline colour-picker strip for an account. Clicking the dot on
+// the same row again closes it. Clicking a different dot swaps.
+function toggleColorStrip(id) {
+  if (_colorStripOpenId === id) { closeColorStrip(); return; }
+  if (_colorStripOpenId) {
+    const prev = document.getElementById("color-strip-" + _colorStripOpenId);
+    if (prev) prev.style.display = "none";
+  }
+  const strip = document.getElementById("color-strip-" + id);
+  if (strip) { strip.style.display = ""; _colorStripOpenId = id; }
+}
+
+function closeColorStrip() {
+  if (!_colorStripOpenId) return;
+  const strip = document.getElementById("color-strip-" + _colorStripOpenId);
+  if (strip) strip.style.display = "none";
+  _colorStripOpenId = null;
+}
+
+// Apply a new colour to an account. Uses touchAccount() so the change carries
+// a fresh ts and survives Drive sync round-trips (see v5.5.5 for the merge
+// logic). Also re-renders everywhere the colour is displayed on-screen.
+function applyAccountColor(id, color) {
+  const acc = getAccountById(id);
+  if (!acc || acc.color === color) { closeColorStrip(); return; }
+  acc.color = color;
+  touchAccount(acc);
+  saveAccounts();
+  // Close the strip *before* re-rendering the manager list so the render's
+  // prevOpenId preservation doesn't briefly re-open it. Cleaner single-frame
+  // update than the previous "re-open then explicitly close" flow.
+  _colorStripOpenId = null;
+  renderAccountManagerList();
+  renderAccountPills();
+  populateAccountSelects();
+  updateAccountsMenuSub();
+  // Rows may show the account dot in their tx list, so force a re-render.
+  _dataVersion++;
+  render();
+  triggerCloudSync();
+  toast(`${acc.name} colour updated`);
+}
+
 function renderAccountManagerList() {
   const list = document.getElementById("accounts-list");
   if (!list) return;
+  const prevOpenId = _colorStripOpenId; // preserve open strip across re-renders
   list.innerHTML = "";
   accounts.forEach(acc => {
     const isDefault = acc.id === accounts[0].id;
@@ -6477,15 +7355,31 @@ function renderAccountManagerList() {
     const div = document.createElement("div");
     div.className = "acc-manager-item";
     div.innerHTML = `
-      <span class="acc-manager-dot" style="background:${acc.color}"></span>
-      <span class="acc-manager-name" id="accname-${acc.id}">${escapeHTML(acc.name)}</span>
-      <button class="acc-manager-currency-btn" onclick="openAccountCurrencyPicker('${acc.id}')" title="Change currency">${accCur}</button>
-      <div class="acc-manager-actions">
-        <button class="acc-manager-rename-btn" onclick="startRenameAccount('${acc.id}')" title="Rename">✎</button>
-        <button class="acc-manager-delete-btn" onclick="openAccountDeletePopup('${acc.id}')" title="Delete"${isDefault && accounts.length === 1 ? " disabled style='opacity:0.3;cursor:not-allowed;'" : ""}>✕</button>
+      <div class="acc-manager-item-row">
+        <span class="acc-manager-dot" style="background:${acc.color}" onclick="toggleColorStrip('${acc.id}')" title="Change colour"></span>
+        <span class="acc-manager-name" id="accname-${acc.id}">${escapeHTML(acc.name)}</span>
+        <button class="acc-manager-currency-btn" onclick="openAccountCurrencyPicker('${acc.id}')" title="Change currency">${accCur}</button>
+        <div class="acc-manager-actions">
+          <button class="acc-manager-color-btn" onclick="toggleColorStrip('${acc.id}')" title="Change colour"><span class="acc-manager-color-btn-dot" style="background:${acc.color}"></span></button>
+          <button class="acc-manager-rename-btn" onclick="startRenameAccount('${acc.id}')" title="Rename">✎</button>
+          <button class="acc-manager-delete-btn" onclick="openAccountDeletePopup('${acc.id}')" title="Delete"${isDefault && accounts.length === 1 ? " disabled style='opacity:0.3;cursor:not-allowed;'" : ""}>✕</button>
+        </div>
+      </div>
+      <div class="acc-manager-color-strip" id="color-strip-${acc.id}" style="display:none;">
+        <span class="color-strip-label">Choose a colour</span>
+        <div class="color-strip-swatches">
+          ${ACCOUNT_COLORS.map(c => `<button class="color-strip-swatch${c === acc.color ? " current" : ""}" style="background:${c}" onclick="applyAccountColor('${acc.id}','${c}')" title="${c}"></button>`).join("")}
+        </div>
       </div>`;
     list.appendChild(div);
   });
+  // Re-open the same strip that was open before this re-render (e.g. after a
+  // colour was applied and the row was rebuilt).
+  if (prevOpenId) {
+    const strip = document.getElementById("color-strip-" + prevOpenId);
+    if (strip) strip.style.display = "";
+    _colorStripOpenId = prevOpenId;
+  }
 }
 
 // Open the global currency picker to change a specific account's currency
@@ -6525,45 +7419,34 @@ function _restoreCurrencyPopupDefaults() {
 }
 
 // Called by currency popup when user selects a currency — check if it's for an account
-function _applyAccountCurrencyChange(code) {
-  if (!_accountCurrencyPickerId) return false;
-  const id  = _accountCurrencyPickerId;
+function _applyAccountCurrencyChange(code, explicitId) {
+  // Prefer an explicitly-passed id (from onCurrencyChange after it captured
+  // the state up-front); fall back to the state variable for any other caller.
+  const id = explicitId || _accountCurrencyPickerId;
+  if (!id) return false;
   _accountCurrencyPickerId = null;
   const acc = getAccountById(id);
   if (!acc) return true;
   const oldCur = acc.currency || currencyCode;
   if (code === oldCur) { renderAccountManagerList(); return true; }
-  // Count transactions in this account
+
   const txCount = countTxForAccount(id);
-  acc.currency = code;
-  saveAccounts();
   if (txCount > 0) {
-    // Show reformat/convert dialog for existing transactions
-    promptTxCurrencyChange(oldCur, code, 0).then(option => {
-      if (option && option !== "reformat") {
-        // Convert all transactions in this account
-        Object.values(data).forEach(yr => {
-          ["saved","removed"].forEach(tab => {
-            yr[tab].forEach((tx, i) => {
-              if ((tx[6] || getDefaultAccountId()) === id) {
-                yr[tab][i][1] = parseFloat(applyTxCurrencyOption(tx[1], oldCur, code, option).toFixed(2));
-              }
-            });
-          });
-        });
-      }
-      renderAccountManagerList();
-      updateAccountsMenuSub();
-      saveAndRender(null);
-      triggerCloudSync();
-      toast(`${acc.name} currency set to ${code}`);
-    });
+    // Route through the reformat/convert dialog. acc.currency is NOT changed
+    // here — that happens in _confirmAccountCurrencyChange only if the user
+    // confirms. Cancelling leaves the account untouched (atomic).
+    askAndChangeAccountCurrency(id, code);
   } else {
+    // No transactions to reformat/convert — apply immediately.
+    acc.currency = code;
+    touchAccount(acc);
+    saveAccounts();
     renderAccountManagerList();
+    renderAccountPills();
+    populateAccountSelects();
     updateAccountsMenuSub();
-    // Currency mapping for this account changed — invalidate all year-totals
-    // even though `data` itself isn't mutated, since converted display amounts shift.
     saveAndRender(null);
+    triggerCloudSync();
     toast(`${acc.name} currency set to ${code}`);
   }
   return true;
@@ -6592,6 +7475,7 @@ function startRenameAccount(id) {
     const acc = getAccountById(id);
     if (acc) {
       acc.name = newName;
+      touchAccount(acc);
       saveAccounts();
       updateAccountsMenuSub();
       renderAccountPills();
@@ -6645,7 +7529,7 @@ function confirmAddAccount() {
   const name = document.getElementById("account-new-name")?.value.trim();
   if (!name) { toast("Enter an account name.", "#c0392b"); return; }
   const id = "acc_" + Date.now().toString(36);
-  accounts.push({ id, name, color: _accountNewColor });
+  accounts.push({ id, name, color: _accountNewColor, ts: Date.now() });
   saveAccounts();
   cancelAddAccount();
   renderAccountManagerList();
@@ -6662,13 +7546,19 @@ function openAccountDeletePopup(id) {
   const acc = getAccountById(id);
   if (!acc) return;
   _accountDeleteTarget = id;
-  const count = countTxForAccount(id);
-  const descEl = document.getElementById("account-delete-desc");
-  const reassignWrap = document.getElementById("account-delete-reassign-wrap");
-  const reassignSel  = document.getElementById("account-delete-reassign");
+  const count       = countTxForAccount(id);
+  const descEl      = document.getElementById("account-delete-desc");
+  const choiceWrap  = document.getElementById("account-delete-choice-wrap");
+  const reassignSel = document.getElementById("account-delete-reassign");
+  const warnText    = document.getElementById("account-delete-wipe-warning-text");
+  const confirmBtn  = document.getElementById("account-delete-confirm-btn");
+
   if (count > 0) {
-    descEl.textContent = `"${acc.name}" has ${count} transaction${count !== 1 ? "s" : ""}. Choose an account to move them to before deleting.`;
-    reassignWrap.style.display = "";
+    descEl.textContent = `"${acc.name}" has ${count} transaction${count !== 1 ? "s" : ""}. Choose what to do with them:`;
+    choiceWrap.style.display = "";
+    // Reset radios to the default (safer) move mode on every open
+    const moveRadio = document.querySelector('input[name="acc-del-mode"][value="move"]');
+    if (moveRadio) moveRadio.checked = true;
     // Populate reassign options — all accounts except this one
     reassignSel.innerHTML = "";
     accounts.filter(a => a.id !== id).forEach(a => {
@@ -6676,12 +7566,37 @@ function openAccountDeletePopup(id) {
       opt.value = a.id; opt.textContent = a.name;
       reassignSel.appendChild(opt);
     });
+    // Stash the count for the button label + warning text
+    if (warnText) warnText.textContent = `⚠ This will permanently delete ${count} transaction${count !== 1 ? "s" : ""}. This cannot be undone.`;
+    _accountDeleteTxCount = count;
+    updateAccountDeleteMode();
   } else {
     descEl.textContent = `Delete account "${acc.name}"? This cannot be undone.`;
-    reassignWrap.style.display = "none";
+    choiceWrap.style.display = "none";
+    _accountDeleteTxCount = 0;
+    if (confirmBtn) confirmBtn.textContent = "Delete";
   }
   document.getElementById("account-delete-popup").classList.remove("hidden");
   document.body.style.overflow = "hidden";
+}
+
+// Update the popup based on the current radio selection: swap between the
+// reassign dropdown and the wipe warning, and update the confirm button label.
+let _accountDeleteTxCount = 0;
+function updateAccountDeleteMode() {
+  const mode = document.querySelector('input[name="acc-del-mode"]:checked')?.value || "move";
+  const reassignWrap = document.getElementById("account-delete-reassign-wrap");
+  const warningWrap  = document.getElementById("account-delete-wipe-warning");
+  const confirmBtn   = document.getElementById("account-delete-confirm-btn");
+  if (mode === "wipe") {
+    reassignWrap.style.display = "none";
+    warningWrap.style.display  = "";
+    if (confirmBtn) confirmBtn.textContent = `Delete account + ${_accountDeleteTxCount} transaction${_accountDeleteTxCount !== 1 ? "s" : ""}`;
+  } else {
+    reassignWrap.style.display = "";
+    warningWrap.style.display  = "none";
+    if (confirmBtn) confirmBtn.textContent = "Delete account";
+  }
 }
 
 function closeAccountDeletePopup() {
@@ -6695,28 +7610,64 @@ function confirmDeleteAccount() {
   const id  = _accountDeleteTarget;
   if (!id) return;
   const count = countTxForAccount(id);
+  const mode  = document.querySelector('input[name="acc-del-mode"]:checked')?.value || "move";
   let reassignTarget = null;
+  let wipedTxCount   = 0;
+
   if (count > 0) {
-    const toId = document.getElementById("account-delete-reassign").value;
-    if (!toId) { toast("Select an account to move transactions to.", "#c0392b"); return; }
-    reassignTransactions(id, toId);
-    reassignTarget = toId;
+    if (mode === "wipe") {
+      // Delete every transaction belonging to this account, tombstoning each ID
+      // so a Drive sync round-trip can't resurrect them.
+      Object.values(data).forEach(yr => {
+        ["saved","removed"].forEach(tab => {
+          const kept = [];
+          yr[tab].forEach(tx => {
+            const txAcc = tx[6] || getDefaultAccountId();
+            if (txAcc === id) {
+              if (tx[2]) addTombstone(tx[2]);
+              wipedTxCount++;
+            } else {
+              kept.push(tx);
+            }
+          });
+          yr[tab] = kept;
+        });
+      });
+      dbg(`confirmDeleteAccount: wiped ${wipedTxCount} transaction(s) for account ${id}`);
+    } else {
+      const toId = document.getElementById("account-delete-reassign").value;
+      if (!toId) { toast("Select an account to move transactions to.", "#c0392b"); return; }
+      reassignTransactions(id, toId);
+      reassignTarget = toId;
+    }
   }
 
-  // Reassign any recurring rules pointing at the deleted account so the audit
-  // doesn't post future occurrences to a non-existent account.
+  // Recurring rules: in move mode they're reassigned to the target (or default);
+  // in wipe mode they're deleted outright since the user asked for a full wipe.
   const rulesUsingDeleted = recurRules.filter(r => r.account === id);
   if (rulesUsingDeleted.length) {
     accounts = accounts.filter(a => a.id !== id); // remove first so default falls through to a remaining account
     ensureDefaultAccount();
-    const fallback = reassignTarget || getDefaultAccountId();
-    rulesUsingDeleted.forEach(r => { r.account = fallback; });
-    saveRecurring();
-    dbg(`confirmDeleteAccount: reassigned ${rulesUsingDeleted.length} recurring rule(s) to ${fallback}`);
+    if (mode === "wipe") {
+      const deletedIds = new Set(rulesUsingDeleted.map(r => String(r.id)));
+      recurRules = recurRules.filter(r => !deletedIds.has(String(r.id)));
+      // Track the deletion so a stale copy on Drive can't resurrect the rule
+      rulesUsingDeleted.forEach(r => recurDeletedIds.add(String(r.id)));
+      saveRecurring();
+      dbg(`confirmDeleteAccount: deleted ${rulesUsingDeleted.length} recurring rule(s) alongside wipe`);
+    } else {
+      const fallback = reassignTarget || getDefaultAccountId();
+      rulesUsingDeleted.forEach(r => { r.account = fallback; });
+      saveRecurring();
+      dbg(`confirmDeleteAccount: reassigned ${rulesUsingDeleted.length} recurring rule(s) to ${fallback}`);
+    }
   } else {
     accounts = accounts.filter(a => a.id !== id);
     ensureDefaultAccount();
   }
+  // Tombstone the ID so a remote sync round-trip can't resurrect this account
+  // and other devices pick up the deletion on next read.
+  addAccountTombstone(id);
   saveAccounts();
   if (activeAccountFilter === id) activeAccountFilter = "all";
   closeAccountDeletePopup();
@@ -6754,6 +7705,8 @@ async function buildVaultPayload() {
   const wrapped = {
     _data:         data,
     _tombstones:   [...tombstones],
+    _accountTombstones: [...accountTombstones],
+    _recurDeleted: [...recurDeletedIds],
     _recurring:    recurRules,
     _accounts:     accounts,
     _yearMode:     yearMode,
@@ -7353,6 +8306,8 @@ function unwrapPayload(obj) {
     return {
       data:         obj._data,
       tombstones:   obj._tombstones   || [],
+      accountTombstones: obj._accountTombstones || [],
+      recurDeleted: obj._recurDeleted || [],
       recurring:    obj._recurring    || null,
       accounts:     obj._accounts     || null,
       yearMode:     obj._yearMode     || null,
@@ -7364,7 +8319,7 @@ function unwrapPayload(obj) {
       aiSettings:    obj._aiSettings    || null,
     };
   }
-  return { data: obj, tombstones: [], recurring: null, accounts: null, yearMode: null, fyStartMonth: null, fyStartDay: null, currency: null, exchangeRates: null, settingsTs: 0, aiSettings: null };
+  return { data: obj, tombstones: [], accountTombstones: [], recurDeleted: [], recurring: null, accounts: null, yearMode: null, fyStartMonth: null, fyStartDay: null, currency: null, exchangeRates: null, settingsTs: 0, aiSettings: null };
 }
 
 // Pending year mode change from a remote sync — applied on next startup, not mid-session
@@ -7374,25 +8329,76 @@ let _pendingYearModeChange = null;
 // Recurring rules: always apply if present (rules are additive, not conflicting).
 // Year mode: only apply if remote timestamp is newer than local. If app is already
 // running (not startup), defer the change to next startup to avoid disrupting the session.
-function applyPayloadSettings({ recurring, accounts: remoteAccounts, yearMode: ym, fyStartMonth: fym, fyStartDay: fyd, currency: cur, exchangeRates: exRates, settingsTs, aiSettings }, isStartup) {
+function applyPayloadSettings({ recurring, recurDeleted: remoteRecurDeleted, accounts: remoteAccounts, accountTombstones: remoteAccTombs, yearMode: ym, fyStartMonth: fym, fyStartDay: fyd, currency: cur, exchangeRates: exRates, settingsTs, aiSettings }, isStartup) {
   // ── AI Settings ───────────────────────────────────────────────────────────
   if (aiSettings) applyAISettingsPayload(aiSettings);
+  // ── Account tombstones ────────────────────────────────────────────────────
+  // Union remote deletions with local before touching the accounts list so any
+  // account the user (or another device) has deleted stays deleted.
+  if (Array.isArray(remoteAccTombs) && remoteAccTombs.length) {
+    let addedAny = false;
+    remoteAccTombs.forEach(id => {
+      if (id && !accountTombstones.has(id)) { accountTombstones.add(id); addedAny = true; }
+    });
+    if (addedAny) saveAccountTombstones();
+  }
   // ── Accounts ──────────────────────────────────────────────────────────────
   if (remoteAccounts && Array.isArray(remoteAccounts) && remoteAccounts.length) {
     const localIds = new Set(accounts.map(a => a.id));
     remoteAccounts.forEach(ra => {
+      // Skip resurrecting a tombstoned account — this is the fix for the
+      // ghost-back-from-sync bug where deletions round-tripped through Drive.
+      if (accountTombstones.has(ra.id)) return;
       if (!localIds.has(ra.id)) accounts.push(ra);
       else {
-        // Remote wins for name/color if it's different (last-write wins via settingsTs not tracked per-account)
+        // Per-account last-write-wins via ts. Missing ts is treated as 0 so
+        // explicit modifications (which stamp Date.now()) always beat legacy
+        // data. If both sides have the same ts, local wins by default (keeps
+        // things stable when nothing has changed).
         const local = accounts.find(a => a.id === ra.id);
-        if (local) { local.name = ra.name; local.color = ra.color; if (ra.currency) local.currency = ra.currency; }
+        if (local) {
+          const localTs  = local.ts  || 0;
+          const remoteTs = ra.ts     || 0;
+          if (remoteTs > localTs) {
+            local.name  = ra.name;
+            local.color = ra.color;
+            if (ra.currency) local.currency = ra.currency;
+            local.ts    = remoteTs;
+          }
+        }
       }
     });
+    // Defensive sweep: if a remote payload from an old-version device pushed a
+    // tombstoned ID back into the accounts list before we could filter, remove
+    // it now. Also covers the case where local already had a ghost pre-fix.
+    enforceAccountTombstones();
     saveAccounts();
     updateAccountsMenuSub();
     renderAccountPills();
     populateAccountSelects();
   }
+  // ── Recurring deletions ───────────────────────────────────────────────────
+  // Union remote deletions with local before processing the rules array so a
+  // rule deleted on another device stops resurfacing here (mirrors what
+  // accountTombstones does for accounts, added v5.5.4).
+  if (Array.isArray(remoteRecurDeleted) && remoteRecurDeleted.length) {
+    let addedAny = false;
+    remoteRecurDeleted.forEach(id => {
+      const key = String(id);
+      if (key && !recurDeletedIds.has(key)) { recurDeletedIds.add(key); addedAny = true; }
+    });
+    if (addedAny) {
+      // Drop any local rules whose ID is now in the deletion set — this is how
+      // a deletion made on another device propagates onto this one.
+      const before = recurRules.length;
+      recurRules = recurRules.filter(r => !recurDeletedIds.has(String(r.id)));
+      if (recurRules.length !== before) {
+        dbg(`applyPayloadSettings: dropped ${before - recurRules.length} local recurring rule(s) tombstoned remotely`);
+      }
+      saveRecurring();
+    }
+  }
+
   // ── Recurring rules ───────────────────────────────────────────────────────
   if (recurring && Array.isArray(recurring)) {
     const localById = new Map(recurRules.map(r => [String(r.id), r]));
@@ -7813,6 +8819,7 @@ function hideLockScreen() {
     initCompatWarning();
     initTabConflictDetection();
     loadAccounts();
+    enforceAccountTombstones();
     updateAccountsMenuSub();
     renderAccountPills();
     populateAccountSelects();
@@ -7826,6 +8833,7 @@ function hideLockScreen() {
       }
       runRecurringCheck();
     }, 60 * 60 * 1000);
+    if (!_didHomeLanding) { _didHomeLanding = true; switchTab("home"); }
   }
 }
 
@@ -7986,19 +8994,40 @@ document.getElementById("setup-modal").addEventListener("click", function(e) {
 // Navigate into a submenu panel
 // Navigate from the Save & Backup main card view into a named sub-panel.
 // Hides the card grid and shows the requested panel ("local", "browser").
+// Force a fade animation to restart on `el` by removing and re-adding the class.
+// The `void offsetWidth` between them is what actually resets the keyframes.
+function _smodTriggerFade(el) {
+  if (!el) return;
+  el.classList.remove("smod-fade-in");
+  void el.offsetWidth;
+  el.classList.add("smod-fade-in");
+}
+
 function openSmodPanel(name) {
   document.getElementById("smod-main").style.display = "none";
-  document.querySelectorAll(".smod-panel").forEach(p => p.classList.remove("open"));
+  document.querySelectorAll(".smod-panel").forEach(p => {
+    p.classList.remove("open");
+    p.classList.remove("smod-fade-in");
+  });
   const panel = document.getElementById("smod-panel-" + name);
-  if (panel) panel.classList.add("open");
+  if (panel) {
+    panel.classList.add("open");
+    _smodTriggerFade(panel);
+  }
 }
 
 // Return to the main card view from a panel
 // Return from a sub-panel back to the Save & Backup main card view.
 function closeSmodPanel() {
-  document.querySelectorAll(".smod-panel").forEach(p => p.classList.remove("open"));
+  document.querySelectorAll(".smod-panel").forEach(p => {
+    p.classList.remove("open");
+    p.classList.remove("smod-fade-in");
+  });
   const main = document.getElementById("smod-main");
-  if (main) main.style.display = "";
+  if (main) {
+    main.style.display = "";
+    _smodTriggerFade(main);
+  }
 }
 
 // Refresh the Save & Backup modal — updates enc UI and local file UI.
@@ -9108,6 +10137,7 @@ let _currentRows      = null;
 let _currentRowsKey   = "";
 let _dataVersion      = 0;
 let _pendingFocusTxId = null; // when set, renderMain jumps to the page containing this tx
+let _didHomeLanding = false;  // one-shot: land on the Home view on first render after boot
 
 // Centralised post-mutation entry point: persist data, invalidate caches, and re-render.
 // `year` may be a specific year key, or `null` for multi-year / cross-cutting mutations
@@ -9147,7 +10177,7 @@ function setActiveYear(y) {
   activeMonth = null;
   activeAccountFilter = "all";
   _currentPage = 1;
-  if (activeTab === "report" || activeTab === "charts") switchTab("all");
+  if (activeTab === "report" || activeTab === "charts" || activeTab === "home") switchTab("all");
   else render();
 }
 
@@ -9211,7 +10241,7 @@ function renderSidebar() {
       activeYear = y;
       activeMonth = null;
       _currentPage = 1;
-      if (activeTab === "report" || activeTab === "charts") switchTab("all");
+      if (activeTab === "report" || activeTab === "charts" || activeTab === "home") switchTab("all");
       else render();
     };
 
@@ -9258,7 +10288,7 @@ function renderSidebar() {
         activeYear = y;
         activeMonth = m;
         _currentPage = 1;
-        if (activeTab === "report" || activeTab === "charts") switchTab("all");
+        if (activeTab === "report" || activeTab === "charts" || activeTab === "home") switchTab("all");
         else render();
       };
       monthList.appendChild(mbtn);
@@ -9270,6 +10300,12 @@ function renderSidebar() {
 }
 
 function renderMain() {
+  if (activeTab === "home") {
+    const _pw = document.getElementById("account-pills-wrap");
+    if (_pw) _pw.style.display = "none";
+    try { renderHome(); } catch (e) { dbg("renderHome error: " + e.message + "\n" + e.stack); console.error("renderHome:", e); }
+    return;
+  }
   const isAllYears = activeYear === "all-years";
   const isMonthView = !isAllYears && !!activeMonth;
   const years = Object.keys(data).sort();
@@ -9569,10 +10605,14 @@ function _renderPagination(totalRows, totalPages) {
 
   const pageStart = (_currentPage - 1) * PAGE_SIZE + 1;
   const pageEnd   = Math.min(_currentPage * PAGE_SIZE, totalRows);
+  // Verbose bits (Showing…, entries, the print/export hint) are wrapped in
+  // hideable spans so CSS can collapse them on narrow viewports without us
+  // needing a resize listener.
   const infoHtml =
     `<div class="tx-pagination-info">` +
-      `Showing <span class="pn-accent">${pageStart.toLocaleString()}–${pageEnd.toLocaleString()}</span> ` +
-      `of ${totalRows.toLocaleString()} entries` +
+      `<span class="pn-verbose">Showing </span>` +
+      `<span class="pn-accent">${pageStart.toLocaleString()}–${pageEnd.toLocaleString()}</span> ` +
+      `of ${totalRows.toLocaleString()}<span class="pn-verbose"> entries</span>` +
       `<span class="pn-sep">·</span>` +
       `<span class="pn-muted">Print/export uses full set</span>` +
     `</div>`;
@@ -9637,17 +10677,902 @@ function _gotoPage(n) {
 
 // Switch the active tab ("all" | "saved" | "removed" | "report").
 // Shows/hides the table vs report panel and triggers the appropriate render.
+// ═══════════════════════ Home screen ══════════════════════════════════════════
+// The Home view is the app's landing page (reachable via Menu → Home). It reads
+// straight from the `data` object and the shared account/currency helpers, so it
+// stays correct across sync/import without touching the DOM-driven table view.
+// All classes/ids are vh-* prefixed to avoid collisions with the rest of the app.
+let vhFilter = "all";        // account id, or "all"
+let vhMode   = "month";      // "month" | "year"
+let vhComparePage = 0;       // Compare window page: 0 = most recent 6 periods
+let vhChartRange = "all";    // Trend range: "6m" | "1y" | "all"
+let vhShowProjection = true; // Trend chart 3-month dashed projection on/off
+const vhCollapsed = new Set(); // section keys currently collapsed (persisted to localStorage)
+const VH_PREFS_KEY = "vault_home_ui";
+// Restore device-local Home view preferences (which sections are collapsed, the
+// Compare account filter and Month/Year mode). These are UI state, not synced data.
+function vhLoadPrefs() {
+  try {
+    const p = JSON.parse(localStorage.getItem(VH_PREFS_KEY) || "{}");
+    if (Array.isArray(p.collapsed)) { vhCollapsed.clear(); p.collapsed.forEach(k => vhCollapsed.add(k)); }
+    if (p.filter === "all" || accounts.some(a => a.id === p.filter)) vhFilter = p.filter;
+    if (p.mode === "month" || p.mode === "year") vhMode = p.mode;
+    if (p.range === "6m" || p.range === "1y" || p.range === "all") vhChartRange = p.range;
+    if (typeof p.proj === "boolean") vhShowProjection = p.proj;
+  } catch (e) {}
+}
+function vhSavePrefs() {
+  try { localStorage.setItem(VH_PREFS_KEY, JSON.stringify({ collapsed: [...vhCollapsed], filter: vhFilter, mode: vhMode, range: vhChartRange, proj: vhShowProjection })); } catch (e) {}
+}
+
+function vhIso(d) { const p = n => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
+function vhMonthKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`; }
+
+// Flatten every transaction into a uniform shape. kind: "dep" | "wit" | "int".
+// amt is in the account's native currency; cur is that currency code.
+function vhAllTx() {
+  const out = [];
+  const def = getDefaultAccountId();
+  Object.values(data).forEach(fy => {
+    (fy.saved || []).forEach(tx => {
+      const accId = tx[6] || def;
+      out.push({ date: tx[0], amt: tx[1], accId, cur: getAccountCurrency(accId),
+                 kind: tx[4] === "interest" ? "int" : "dep", id: tx[2], ts: tx[3] || 0 });
+    });
+    (fy.removed || []).forEach(tx => {
+      const accId = tx[6] || def;
+      out.push({ date: tx[0], amt: tx[1], accId, cur: getAccountCurrency(accId),
+                 kind: "wit", id: tx[2], ts: tx[3] || 0 });
+    });
+  });
+  return out;
+}
+function vhSigned(t) { return t.kind === "wit" ? -t.amt : t.amt; }
+
+// ─── Overview ─────────────────────────────────────────────────────────────────
+function vhRenderOverview() {
+  const body = document.getElementById("vh-overview-body");
+  if (!body) return;
+  const txs = vhAllTx();
+  const netByAcc = {};
+  let total = 0, delta = 0;
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 30);
+  const cutIso = vhIso(cutoff);
+  txs.forEach(t => {
+    netByAcc[t.accId] = (netByAcc[t.accId] || 0) + vhSigned(t);
+    const g = convertToGlobal(vhSigned(t), t.cur);
+    total += g;
+    if (t.date >= cutIso) delta += g;
+  });
+  const foreignCurs = new Set();
+  let rows = "";
+  accounts.forEach(a => {
+    const cur = a.currency || currencyCode;
+    const net = netByAcc[a.id] || 0;
+    const foreign = cur !== currencyCode;
+    if (foreign) foreignCurs.add(cur);
+    let vals = `<div class="vh-acct-native">${fmtCurrency(net, cur)}${foreign ? `<span class="vh-code">${cur}</span>` : ""}</div>`;
+    if (foreign) vals += `<div class="vh-acct-conv">&asymp; ${aud(convertToGlobal(net, cur))}</div>`;
+    rows += `<div class="vh-acct-row" data-vh-acc="${a.id}">`
+          + `<span class="vh-acct-dot" style="background:${a.color || 'var(--text-3)'}"></span>`
+          + `<span class="vh-acct-name">${escapeHTML(a.name)}</span>`
+          + `<div class="vh-acct-vals">${vals}</div></div>`;
+  });
+  let rateNote = "";
+  if (foreignCurs.size) {
+    const parts = [...foreignCurs].map(c => rateDescription(c)).filter(Boolean).join(" &middot; ");
+    if (parts) rateNote = `<div class="vh-rate-note"><strong>Rates used</strong>${parts}</div>`;
+  }
+  // Allocation donut across positive-balance accounts (liabilities excluded)
+  const posSlices = [];
+  accounts.forEach(a => {
+    const g = convertToGlobal(netByAcc[a.id] || 0, a.currency || currencyCode);
+    if (g > 0.005) posSlices.push({ color: a.color || 'var(--text-3)', val: g, name: a.name });
+  });
+  posSlices.sort((a, b) => b.val - a.val);
+  const posTotal = posSlices.reduce((s, x) => s + x.val, 0);
+  let donut = "";
+  if (posSlices.length >= 2 && posTotal > 0) {
+    const R = 54, SW = 16, C = 2 * Math.PI * R;
+    let cum = 0, segs = "", hits = "";
+    posSlices.forEach((sl, si) => {
+      const f = sl.val / posTotal, dash = f * C;
+      const da = `${dash.toFixed(2)} ${(C - dash).toFixed(2)}`, off = `${(-cum * C).toFixed(2)}`;
+      segs += `<circle class="vh-donut-seg" data-vh-seg="${si}" cx="70" cy="70" r="${R}" fill="none" stroke="${sl.color}" stroke-width="${SW}" stroke-dasharray="${da}" stroke-dashoffset="${off}" transform="rotate(-90 70 70)" style="pointer-events:none"/>`;
+      hits += `<circle class="vh-donut-hit" data-vh-slice="${si}" cx="70" cy="70" r="${R}" fill="none" stroke="transparent" stroke-width="26" stroke-dasharray="${da}" stroke-dashoffset="${off}" transform="rotate(-90 70 70)" style="cursor:pointer;pointer-events:stroke"/>`;
+      cum += f;
+    });
+    const topPct = Math.round((posSlices[0].val / posTotal) * 100);
+    const _dCol = vhCollapsed.has("donut") ? " collapsed" : "";
+    donut = `<div class="vh-donut-block${_dCol}"><div class="vh-donut-toggle"><span class="vh-donut-toggle-label">Allocation</span><span class="vh-chevron">&#9662;</span></div>`
+          + `<div class="vh-donut-body"><div class="vh-donut-wrap"><svg class="vh-donut" viewBox="0 0 140 140">${segs}${hits}</svg>`
+          + `<div class="vh-donut-center"><span class="vh-donut-hint">Tap a slice</span></div></div></div></div>`;
+  }
+  const neg = delta < 0;
+  body.innerHTML = `<div class="vh-overview-card">`
+    + `<div class="vh-overview-label">Vault Total</div>`
+    + `<div class="vh-overview-total">${aud(total)}</div>`
+    + `<div class="vh-overview-delta${neg ? ' neg' : ''}">${neg ? '&minus; ' : '+ '}${aud(Math.abs(delta))} last 30d</div>`
+    + donut
+    + (rows ? `<div class="vh-overview-breakdown">${rows}</div>` : "")
+    + rateNote + `</div>`;
+  body.querySelectorAll(".vh-acct-row").forEach(r => r.addEventListener("click", () => vhGoToAccount(r.dataset.vhAcc)));
+  // Interactive slices update the donut centre (no floating tooltip to avoid it
+  // lingering on scroll or covering the ring) and glow the selected segment.
+  const _center = body.querySelector(".vh-donut-center");
+  const _segEls = body.querySelectorAll(".vh-donut-seg");
+  let _selIdx = -1;
+  const _setCentre = idx => {
+    if (!_center) return;
+    const sl = posSlices[idx];
+    const pct = Math.round((sl.val / posTotal) * 100);
+    _center.innerHTML = `<span class="vh-donut-pct">${pct}%</span><span class="vh-donut-cap">${escapeHTML(sl.name)}</span><span class="vh-donut-amt">${aud(sl.val)}</span>`;
+  };
+  const _glow = idx => _segEls.forEach((el, k) => el.classList.toggle("sel", k === idx));
+  const _select = idx => { _selIdx = idx; _setCentre(idx); _glow(idx); };
+  const _clear = () => { _selIdx = -1; if (_center) _center.innerHTML = `<span class="vh-donut-hint">Tap a slice</span>`; _glow(-1); };
+  body.querySelectorAll(".vh-donut-hit").forEach(hit => {
+    const idx = +hit.dataset.vhSlice;
+    hit.addEventListener("mouseenter", () => { if (_selIdx === -1) { _setCentre(idx); _glow(idx); } });
+    hit.addEventListener("mouseleave", () => { if (_selIdx === -1) _clear(); });
+    hit.addEventListener("click", e => { e.stopPropagation(); if (_selIdx === idx) _clear(); else _select(idx); });
+  });
+}
+
+// ─── This month ───────────────────────────────────────────────────────────────
+function vhRenderMonth() {
+  const body = document.getElementById("vh-month-body");
+  if (!body) return;
+  const txs = vhAllTx();
+  const now = new Date();
+  const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const curKey = vhMonthKey(now), prevKey = vhMonthKey(prev);
+  const agg = key => {
+    let saved = 0, wit = 0;
+    txs.forEach(t => {
+      if (!t.date.startsWith(key)) return;
+      const g = convertToGlobal(t.amt, t.cur);
+      if (t.kind === "wit") wit += g; else saved += g;
+    });
+    return { saved, wit, net: saved - wit };
+  };
+  const cur = agg(curKey), pv = agg(prevKey);
+  const prevName = prev.toLocaleString("en", { month: "short" });
+  const deltaHtml = (c, p, favourableUp) => {
+    if (p === 0) return `<div class="vh-month-delta muted">${c === 0 ? '&mdash; vs ' + prevName : 'new vs ' + prevName}</div>`;
+    const pct = ((c - p) / Math.abs(p)) * 100;
+    const up = pct >= 0;
+    const good = favourableUp ? up : !up;
+    return `<div class="vh-month-delta ${good ? 'good' : 'bad'}">${up ? '&#9650;' : '&#9660;'} ${Math.abs(pct).toFixed(0)}% vs ${prevName}</div>`;
+  };
+  body.innerHTML = `<div class="vh-month-cards">`
+    + `<div class="vh-month-card saved"><div class="vh-month-card-label">Saved</div><div class="vh-month-card-val">${aud(cur.saved)}</div>${deltaHtml(cur.saved, pv.saved, true)}</div>`
+    + `<div class="vh-month-card wit"><div class="vh-month-card-label">Withdrawn</div><div class="vh-month-card-val">${aud(cur.wit)}</div>${deltaHtml(cur.wit, pv.wit, false)}</div>`
+    + `<div class="vh-month-card net"><div class="vh-month-card-label">Net</div><div class="vh-month-card-val">${aud(cur.net)}</div>${deltaHtml(cur.net, pv.net, true)}</div>`
+    + `</div>`;
+  const title = document.getElementById("vh-month-title");
+  if (title) title.textContent = `This Month · ${now.toLocaleString("en", { month: "long" })} ${now.getFullYear()}`;
+}
+
+// ─── Compare: YoY ─────────────────────────────────────────────────────────────
+function vhRenderYoY() {
+  const block = document.getElementById("vh-yoy-block");
+  if (!block) return;
+  const txs = vhAllTx();
+  const now = new Date(), y = now.getFullYear();
+  const startThis = `${y}-01-01`, endThis = vhIso(now);
+  const startLast = `${y-1}-01-01`, endLast = vhIso(new Date(y-1, now.getMonth(), now.getDate()));
+  const sumWin = (accId, from, to) => {
+    let s = 0;
+    txs.forEach(t => { if (t.accId === accId && t.date >= from && t.date <= to) s += vhSigned(t); });
+    return s;
+  };
+  let thisYear, lastYear, code, label;
+  if (vhFilter === "all") {
+    thisYear = 0; lastYear = 0;
+    accounts.forEach(a => {
+      const cur = a.currency || currencyCode;
+      thisYear += convertToGlobal(sumWin(a.id, startThis, endThis), cur);
+      lastYear += convertToGlobal(sumWin(a.id, startLast, endLast), cur);
+    });
+    code = currencyCode; label = "All accounts";
+  } else {
+    const a = getAccountById(vhFilter);
+    code = a?.currency || currencyCode; label = a?.name || "Account";
+    thisYear = sumWin(vhFilter, startThis, endThis);
+    lastYear = sumWin(vhFilter, startLast, endLast);
+  }
+  const diff = thisYear - lastYear, ahead = diff >= 0;
+  const max = Math.max(Math.abs(thisYear), Math.abs(lastYear)) || 1;
+  const tp = Math.max(0, (thisYear / max) * 100), lp = Math.max(0, (lastYear / max) * 100);
+  const toDate = now.toLocaleString("en", { day: "numeric", month: "long" });
+  const fmtV = v => vhFilter === "all" ? aud(v) : fmtCurrency(v, code);
+  block.innerHTML = `<div class="vh-yoy-label">${escapeHTML(label)} · this year vs last year · to ${toDate}</div>`
+    + `<div class="vh-yoy-row"><div class="vh-yoy-row-label current">This year</div><div class="vh-yoy-bar-wrap"><div class="vh-yoy-bar current" style="width:${tp}%"></div></div><div class="vh-yoy-val">${fmtV(thisYear)}</div></div>`
+    + `<div class="vh-yoy-row"><div class="vh-yoy-row-label">Last year</div><div class="vh-yoy-bar-wrap"><div class="vh-yoy-bar" style="width:${lp}%"></div></div><div class="vh-yoy-val">${fmtV(lastYear)}</div></div>`
+    + `<div class="vh-yoy-summary ${ahead ? '' : 'behind'}">${ahead ? '&#9650;' : '&#9660;'} ${fmtV(Math.abs(diff))} ${ahead ? 'ahead' : 'behind'}</div>`;
+}
+
+// ─── Compare: period list (Month / Year) ──────────────────────────────────────
+const VH_WIN = 6; // periods shown per Compare window
+// Full ordered list (oldest -> newest) of month periods spanning the data range.
+function vhAllMonthlyPeriods() {
+  const now = new Date();
+  const nowIdx = now.getFullYear() * 12 + now.getMonth();
+  const maxIdx = nowIdx;                // newest window always ends at the current month
+  let minIdx = nowIdx - (VH_WIN - 1);   // guarantee at least the most recent 6 months
+  vhAllTx().forEach(t => {
+    const idx = (+t.date.slice(0, 4)) * 12 + (+t.date.slice(5, 7) - 1);
+    if (idx < minIdx) minIdx = idx;
+  });
+  const out = [];
+  for (let idx = minIdx; idx <= maxIdx; idx++) {
+    const y = Math.floor(idx / 12), m = idx % 12;
+    const d = new Date(y, m, 1);
+    const key = `${y}-${String(m + 1).padStart(2, "0")}`;
+    const last = new Date(y, m + 1, 0).getDate();
+    out.push({ label: d.toLocaleString("en", { month: "short", year: "numeric" }),
+               short: d.toLocaleString("en", { month: "short" }), year: y,
+               from: `${key}-01`, to: `${key}-${String(last).padStart(2, "0")}`, current: idx === nowIdx });
+  }
+  return out;
+}
+// Full ordered list (oldest -> newest) of year periods spanning the data range.
+function vhAllYearlyPeriods() {
+  const nowY = new Date().getFullYear();
+  let minY = nowY, maxY = nowY;
+  vhAllTx().forEach(t => { const y = +t.date.slice(0, 4); if (y < minY) minY = y; if (y > maxY) maxY = y; });
+  const out = [];
+  for (let y = minY; y <= maxY; y++) out.push({ label: String(y), year: y, from: `${y}-01-01`, to: `${y}-12-31`, current: y === nowY });
+  return out;
+}
+// Window the full list into the current page (0 = most recent), newest-anchored, non-overlapping.
+function vhComparePeriods() {
+  const full = vhMode === "year" ? vhAllYearlyPeriods() : vhAllMonthlyPeriods();
+  const total = full.length;
+  const maxPage = Math.max(0, Math.ceil(total / VH_WIN) - 1);
+  if (vhComparePage > maxPage) vhComparePage = maxPage;
+  if (vhComparePage < 0) vhComparePage = 0;
+  const end = total - VH_WIN * vhComparePage;
+  const rows = full.slice(Math.max(0, end - VH_WIN), end);
+  let label = "";
+  if (rows.length) {
+    const a = rows[0], b = rows[rows.length - 1];
+    if (vhMode === "year") label = a.year === b.year ? `${a.year}` : `${a.year} \u2013 ${b.year}`;
+    else label = a.year === b.year ? `${a.short} \u2013 ${b.short} ${b.year}` : `${a.short} ${a.year} \u2013 ${b.short} ${b.year}`;
+  }
+  return { rows, maxPage, canPrev: vhComparePage < maxPage, canNext: vhComparePage > 0, label };
+}
+function vhRenderCompareList() {
+  const list = document.getElementById("vh-compare-list");
+  if (!list) return;
+  const txs = vhAllTx();
+  const { rows, canPrev, canNext, label } = vhComparePeriods();
+  const sumPeriod = p => {
+    if (vhFilter === "all") {
+      let s = 0;
+      txs.forEach(t => { if (t.date >= p.from && t.date <= p.to) s += convertToGlobal(vhSigned(t), t.cur); });
+      return { value: s, code: currencyCode };
+    }
+    const a = getAccountById(vhFilter);
+    let s = 0;
+    txs.forEach(t => { if (t.accId === vhFilter && t.date >= p.from && t.date <= p.to) s += vhSigned(t); });
+    return { value: s, code: a?.currency || currencyCode };
+  };
+  const vals = rows.map(sumPeriod);
+  const max = Math.max(...vals.map(v => Math.abs(v.value)), 1);
+  let html = "";
+  rows.forEach((p, i) => {
+    const v = vals[i];
+    const pct = (Math.abs(v.value) / max) * 100;
+    const barCls = v.value < 0 ? "neg" : (p.current ? "current" : "");
+    const valStr = vhFilter === "all" ? aud(v.value) : fmtCurrency(v.value, v.code);
+    html += `<div class="vh-compare-row"><div class="vh-compare-row-label ${p.current ? 'current' : ''}">${escapeHTML(p.label)}</div>`
+          + `<div class="vh-compare-bar-wrap"><div class="vh-compare-bar ${barCls}" style="width:${pct}%"></div></div>`
+          + `<div class="vh-compare-val ${v.value < 0 ? 'neg' : ''}">${valStr}</div></div>`;
+  });
+  list.innerHTML = html || `<div class="vh-empty">No data yet</div>`;
+  const _lbl = document.getElementById("vh-pager-label");
+  if (_lbl) _lbl.textContent = label;
+  const _prev = document.getElementById("vh-pager-prev");
+  const _next = document.getElementById("vh-pager-next");
+  if (_prev) _prev.classList.toggle("disabled", !canPrev);
+  if (_next) _next.classList.toggle("disabled", !canNext);
+  const _pager = document.getElementById("vh-compare-pager");
+  if (_pager) _pager.style.display = (canPrev || canNext) ? "flex" : "none";
+}
+
+// ─── Compare: filter pills + rate note ────────────────────────────────────────
+function vhRenderFilter() {
+  const wrap = document.getElementById("vh-compare-filter");
+  if (!wrap) return;
+  let html = `<div class="vh-filter-pill ${vhFilter === 'all' ? 'active' : ''}" data-vh-fid="all">All accounts</div>`;
+  accounts.forEach(a => {
+    html += `<div class="vh-filter-pill ${vhFilter === a.id ? 'active' : ''}" data-vh-fid="${a.id}">`
+          + `<span class="vh-fp-dot" style="background:${a.color || 'var(--text-3)'}"></span>${escapeHTML(a.name)}</div>`;
+  });
+  wrap.innerHTML = html;
+  wrap.querySelectorAll(".vh-filter-pill").forEach(p => p.addEventListener("click", () => {
+    vhFilter = p.dataset.vhFid;
+    vhComparePage = 0;
+    vhSavePrefs();
+    vhRenderFilter(); vhRenderYoY(); vhRenderCompareList(); vhUpdateCompareRateNote();
+  }));
+}
+function vhUpdateCompareRateNote() {
+  const el = document.getElementById("vh-compare-rate-note");
+  if (!el) return;
+  const showForeign = vhFilter === "all" && accounts.some(a => (a.currency || currencyCode) !== currencyCode);
+  if (showForeign) {
+    const curs = [...new Set(accounts.map(a => a.currency || currencyCode).filter(c => c !== currencyCode))];
+    const parts = curs.map(c => rateDescription(c)).filter(Boolean).join(" &middot; ");
+    el.innerHTML = `<strong>Rates used</strong>${parts}`;
+    el.style.display = parts ? "" : "none";
+  } else {
+    el.style.display = "none";
+  }
+}
+
+// ─── Recent transactions ──────────────────────────────────────────────────────
+function vhRenderRecent() {
+  const list = document.getElementById("vh-recent-list");
+  if (!list) return;
+  const txs = vhAllTx().sort((a, b) => b.date.localeCompare(a.date) || (b.ts - a.ts)).slice(0, 5);
+  if (!txs.length) { list.innerHTML = `<div class="vh-recent-empty">No transactions yet</div>`; return; }
+  let html = "";
+  txs.forEach(t => {
+    const foreign = t.cur !== currencyCode;
+    const label = t.kind === "dep" ? "Deposit" : t.kind === "wit" ? "Withdrawal" : "Interest";
+    const color = t.kind === "wit" ? "var(--red)" : "var(--green)";
+    let amt = `<div style="color:${color}">${t.kind === 'wit' ? '&minus;' : ''}${fmtCurrency(t.amt, t.cur)}${foreign ? `<span class="vh-code">${t.cur}</span>` : ""}</div>`;
+    if (foreign) amt += `<div class="vh-recent-amt-conv">&asymp; ${aud(convertToGlobal(t.amt, t.cur))}</div>`;
+    html += `<div class="vh-recent-row" data-vh-txid="${t.id || ''}" data-vh-date="${t.date}">`
+          + `<span class="vh-recent-date">${fmtDate(t.date)}</span>`
+          + `<span class="vh-recent-acct-dot" style="background:${getAccountColor(t.accId)}"></span>`
+          + `<span class="vh-recent-type ${t.kind}">${label}</span>`
+          + `<div class="vh-recent-amt">${amt}</div></div>`;
+  });
+  list.innerHTML = html;
+  list.querySelectorAll(".vh-recent-row").forEach(r => r.addEventListener("click", () => vhGoToTx(r.dataset.vhTxid, r.dataset.vhDate)));
+}
+
+// ─── Navigation out of Home ───────────────────────────────────────────────────
+function vhGoToTx(txId, date) {
+  if (date) { const fy = fyKeyForDate(date); if (fy && data[fy]) activeYear = fy; }
+  activeMonth = null;
+  activeAccountFilter = "all";
+  if (txId) _pendingFocusTxId = txId;
+  switchTab("all");
+}
+function vhGoToAccount(accId) {
+  activeYear = "all-years";
+  activeMonth = null;
+  activeAccountFilter = (accId && getAccountById(accId)) ? accId : "all";
+  switchTab("all");
+}
+function vhSeeAllRecent() { activeAccountFilter = "all"; activeMonth = null; switchTab("all"); }
+function vhViewAllCharts() { switchTab("charts"); }
+
+// ─── Trend chart ──────────────────────────────────────────────────────────────
+function vhChartData() {
+  const txs = vhAllTx();
+  if (!txs.length) return [];
+  const byMonth = {};
+  txs.forEach(t => { const k = t.date.slice(0, 7); byMonth[k] = (byMonth[k] || 0) + convertToGlobal(vhSigned(t), t.cur); });
+  const keys = Object.keys(byMonth).sort();
+  let [y, m] = keys[0].split("-").map(Number);
+  const [ly, lm] = keys[keys.length - 1].split("-").map(Number);
+  const out = []; let cum = 0;
+  while (y < ly || (y === ly && m <= lm)) {
+    const k = `${y}-${String(m).padStart(2,"0")}`;
+    cum += byMonth[k] || 0;
+    out.push({ val: cum, label: new Date(y, m - 1, 1).toLocaleString("en", { month: "short", year: "numeric" }) });
+    m++; if (m > 12) { m = 1; y++; }
+    if (out.length > 600) break; // safety guard
+  }
+  return out;
+}
+function vhMonthlyNets() {
+  const txs = vhAllTx();
+  if (!txs.length) return [];
+  const byMonth = {};
+  txs.forEach(t => { const k = t.date.slice(0, 7); byMonth[k] = (byMonth[k] || 0) + convertToGlobal(vhSigned(t), t.cur); });
+  const keys = Object.keys(byMonth).sort();
+  let [y, m] = keys[0].split("-").map(Number);
+  const now = new Date();
+  const endIdx = now.getFullYear() * 12 + now.getMonth();
+  let idx = y * 12 + (m - 1);
+  const out = [];
+  while (idx <= endIdx && out.length < 600) {
+    const yy = Math.floor(idx / 12), mm = idx % 12;
+    const k = `${yy}-${String(mm + 1).padStart(2, "0")}`;
+    out.push({ key: k, net: byMonth[k] || 0, current: idx === endIdx });
+    idx++;
+  }
+  return out;
+}
+function vhRenderStreak() {
+  const section = document.getElementById("vh-streak-section");
+  const body = document.getElementById("vh-streak-body");
+  if (!section || !body) return;
+  // Completed months only — the current, in-progress month never counts.
+  const completed = vhMonthlyNets().filter(m => !m.current);
+  if (completed.length < 1) { section.style.display = "none"; return; }
+  section.style.display = "";
+  let cur = 0;
+  for (let i = completed.length - 1; i >= 0; i--) { if (completed[i].net > 0.005) cur++; else break; }
+  let best = 0, run = 0;
+  completed.forEach(m => { if (m.net > 0.005) { run++; if (run > best) best = run; } else run = 0; });
+  const recent = completed.slice(-6);
+  const avg = recent.reduce((s, m) => s + m.net, 0) / recent.length;
+  const avgStr = (avg < 0 ? "-" : "") + aud(Math.abs(avg));
+  const Wc = Math.min(12, completed.length);
+  const savedCount = completed.slice(-Wc).filter(m => m.net > 0.005).length;
+  let bestM = completed[0];
+  completed.forEach(m => { if (m.net > bestM.net) bestM = m; });
+  const bp = bestM.key.split("-").map(Number);
+  const bestLabel = new Date(bp[0], bp[1] - 1, 1).toLocaleString("en", { month: "short", year: "numeric" });
+  const pct = best > 0 ? Math.min(100, (cur / best) * 100) : 0;
+  const record = cur > 0 && cur >= best;
+  const stateCls = cur === 0 ? " none" : record ? " record" : "";
+  let cap;
+  if (cur === 0) cap = "No active streak — a positive month starts one.";
+  else if (record) cap = "New personal record!";
+  else { const d = best - cur; cap = `${d} more ${d === 1 ? "month" : "months"} to beat your best`; }
+  const curUnit = cur === 1 ? "month in a row" : "months in a row";
+  const avgWin = recent.length;
+  const stats = [
+    { l: "Avg / mo", v: avgStr, s: `last ${avgWin} mo` },
+    { l: "Saved", v: `${savedCount} / ${Wc}`, s: `last ${Wc} months` },
+  ];
+  if (bestM.net > 0.005) stats.push({ l: "Best month", v: aud(bestM.net), s: bestLabel });
+  const statCells = stats.map(st => `<div class="vh-streak-stat"><span class="vh-streak-stat-label">${st.l}</span><span class="vh-streak-stat-val">${st.v}</span><span class="vh-streak-stat-sub">${st.s}</span></div>`).join("");
+  body.innerHTML = `<div class="vh-streak-card${stateCls}">`
+    + `<div class="vh-streak-top"><div class="vh-streak-cur"><span class="vh-streak-n">${cur}</span><span class="vh-streak-cur-lbl">${curUnit}</span></div>`
+    + `<div class="vh-streak-best"><span class="vh-streak-best-n">${best}</span><span class="vh-streak-best-lbl">best streak</span></div></div>`
+    + `<div class="vh-streak-bar"><div class="vh-streak-bar-fill" style="width:${pct}%"></div></div>`
+    + `<div class="vh-streak-cap">${cap}</div>`
+    + `<div class="vh-streak-stats" style="grid-template-columns:repeat(${stats.length},1fr)">${statCells}</div>`
+    + `</div>`;
+}
+function vhProjection(baseVal) {
+  // Robust, recency-weighted linear projection of monthly net 3 months ahead,
+  // with a widening confidence cone.
+  //  - Winsorise via Tukey (IQR) fences so a lone one-off month is clipped hard.
+  //  - Recency-weighted least-squares regression -> level + (dampened, clamped) trend.
+  //  - Cone from ORIGINAL residuals (keeps true volatility honest), bounded so a
+  //    pathological spike can't dominate the chart.
+  const series = vhMonthlyNets().filter(m => !m.current).map(m => m.net);
+  if (series.length < 2) return [];
+  const win = series.slice(-12);
+  const N = win.length;
+  const q = (arr, p) => { const a = [...arr].sort((x, y) => x - y); const idx = (a.length - 1) * p, lo = Math.floor(idx), hi = Math.ceil(idx); return a[lo] + (a[hi] - a[lo]) * (idx - lo); };
+  const Q1 = q(win, 0.25), Q3 = q(win, 0.75), IQR = Q3 - Q1;
+  const fLo = Q1 - 1.5 * IQR, fHi = Q3 + 1.5 * IQR;
+  const wy = win.map(v => Math.min(fHi, Math.max(fLo, v)));      // winsorised
+  const w = win.map((_, i) => i + 1);                            // recency weights
+  const sw = w.reduce((a, b) => a + b, 0);
+  const xbar = w.reduce((a, wi, i) => a + wi * i, 0) / sw;
+  const ybar = w.reduce((a, wi, i) => a + wi * wy[i], 0) / sw;
+  let num = 0, den = 0;
+  for (let i = 0; i < N; i++) { num += w[i] * (i - xbar) * (wy[i] - ybar); den += w[i] * (i - xbar) * (i - xbar); }
+  let slope = den > 0 ? num / den : 0;
+  slope *= 0.6;                                                  // dampen
+  let vsum = 0; for (let i = 0; i < N; i++) vsum += w[i] * (wy[i] - ybar) * (wy[i] - ybar);
+  const wstd = Math.sqrt(vsum / sw);
+  const cap = wstd || Math.abs(ybar) || 1;                       // clamp |slope| ~ 1 std/mo
+  slope = Math.max(-cap, Math.min(cap, slope));
+  let ss = 0; for (let i = 0; i < N; i++) { const pr = ybar + slope * (i - xbar); ss += w[i] * (win[i] - pr) * (win[i] - pr); }
+  const rsigma = Math.sqrt(ss / sw) || wstd || Math.abs(ybar) || 1;
+  const coneCap = 2.5 * wstd + 0.1 * Math.abs(baseVal);         // keep the cone sane
+  const now = new Date();
+  const out = [];
+  let base = baseVal;
+  for (let k = 1; k <= 3; k++) {
+    base += ybar + slope * ((N - 1 + k) - xbar);
+    const halfW = Math.min(1.1 * rsigma, coneCap) * Math.sqrt(k);
+    const d = new Date(now.getFullYear(), now.getMonth() + k, 1);
+    out.push({ val: base, hi: base + halfW, lo: base - halfW, label: d.toLocaleString("en", { month: "short", year: "numeric" }) });
+  }
+  return out;
+}
+function vhRenderChart() {
+  const container = document.getElementById("vh-chart-area");
+  if (!container) return;
+  const sub = document.getElementById("vh-chart-sub");
+  const rangeLabel = vhChartRange === "6m" ? "last 6 months" : vhChartRange === "1y" ? "last 12 months" : "all time";
+  if (sub) sub.textContent = `Rolling total across all accounts \u00b7 ${rangeLabel} (${currencyCode})`;
+  const full = vhChartData();
+  if (full.length < 2) {
+    container.innerHTML = `<div class="vh-chart-empty">Not enough data yet \u2014 add a few transactions to see your trend.</div>`;
+    return;
+  }
+  const winN = vhChartRange === "6m" ? 6 : vhChartRange === "1y" ? 12 : full.length;
+  const DATA = full.slice(Math.max(0, full.length - winN));
+  const proj = vhShowProjection ? vhProjection(DATA[DATA.length - 1].val) : [];
+  const W = container.clientWidth || 400, H = 200;
+  const padL = 48, padR = 12, padT = 12, padB = 26;
+  const cW = W - padL - padR, cH = H - padT - padB;
+  const scaleVals = DATA.map(d => d.val);
+  proj.forEach(p => { scaleVals.push(p.val, p.hi, p.lo); });
+  let maxV = Math.max(...scaleVals);
+  let minV = Math.min(...scaleVals);
+  if (vhChartRange === "all") { maxV = Math.max(maxV, 0); minV = Math.min(minV, 0); }
+  const spread = maxV - minV;
+  const padV = spread > 0 ? spread * 0.08 : (Math.abs(maxV) || 1) * 0.1;
+  maxV += padV; minV -= padV;
+  const range = (maxV - minV) || 1;
+  const nActual = DATA.length;
+  const N = nActual + proj.length;
+  const xStep = cW / (N - 1);
+  const X = i => padL + i * xStep;
+  const Y = v => padT + cH - ((v - minV) / range) * cH;
+  let yLabels = "";
+  for (let i = 0; i <= 4; i++) {
+    const yy = padT + cH - (cH * i / 4);
+    const v = minV + (range * i / 4);
+    yLabels += `<line x1="${padL}" y1="${yy}" x2="${padL + cW}" y2="${yy}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+    yLabels += `<text x="${padL - 6}" y="${yy + 3}" text-anchor="end" fill="#6f6759" font-size="9">${currencySymbol()}${(v / 1000).toFixed(1)}k</text>`;
+  }
+  const actualPts = DATA.map((d, i) => ({ x: X(i), y: Y(d.val), val: d.val, label: d.label }));
+  let path = "", area = `M ${padL} ${padT + cH} `;
+  actualPts.forEach((p, i) => { path += (i === 0 ? "M" : "L") + ` ${p.x} ${p.y} `; area += `L ${p.x} ${p.y} `; });
+  area += `L ${actualPts[nActual - 1].x} ${padT + cH} Z`;
+  let projPath = "", band = "";
+  if (proj.length) {
+    const lastA = actualPts[nActual - 1];
+    projPath = `M ${lastA.x} ${lastA.y} `;
+    proj.forEach((p, k) => { projPath += `L ${X(nActual + k)} ${Y(p.val)} `; });
+    band = `M ${lastA.x} ${lastA.y} `;
+    proj.forEach((p, k) => { band += `L ${X(nActual + k)} ${Y(p.hi)} `; });
+    for (let k = proj.length - 1; k >= 0; k--) band += `L ${X(nActual + k)} ${Y(proj[k].lo)} `;
+    band += "Z";
+  }
+  let xLabels = "";
+  const rightmost = N - 1;
+  const lblIdx = [0];
+  // Only label the current month when it won't crowd the projection-end label.
+  if (proj.length && (X(rightmost) - X(nActual - 1)) > 64) lblIdx.push(nActual - 1);
+  lblIdx.push(rightmost);
+  [...new Set(lblIdx)].forEach(i => {
+    const lbl = i < nActual ? DATA[i].label : proj[i - nActual].label;
+    const anchor = i === 0 ? "start" : i === rightmost ? "end" : "middle";
+    const xp = i === 0 ? padL : i === rightmost ? (padL + cW) : X(i);
+    xLabels += `<text x="${xp}" y="${H - 8}" text-anchor="${anchor}" fill="#6f6759" font-size="9">${lbl}</text>`;
+  });
+  let dots = "";
+  actualPts.forEach((p, i) => {
+    dots += `<circle cx="${p.x}" cy="${p.y}" r="10" fill="transparent" data-vh-i="${i}" class="vh-hit"/>`;
+    if (i === nActual - 1) dots += `<circle cx="${p.x}" cy="${p.y}" r="4" fill="var(--gold)" stroke="var(--bg1)" stroke-width="2" pointer-events="none"/>`;
+  });
+  if (proj.length) { const pe = proj[proj.length - 1]; dots += `<circle cx="${X(N - 1)}" cy="${Y(pe.val)}" r="3.5" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-opacity="0.5" pointer-events="none"/>`; }
+  container.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${yLabels}`
+    + `<defs><linearGradient id="vhChartGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c9a84c" stop-opacity="0.28"/><stop offset="100%" stop-color="#c9a84c" stop-opacity="0.02"/></linearGradient></defs>`
+    + `<path d="${area}" fill="url(#vhChartGrad)"/>`
+    + (band ? `<path d="${band}" fill="var(--gold)" fill-opacity="0.06" stroke="none"/>` : "")
+    + `<path d="${path}" stroke="var(--gold)" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round"/>`
+    + (projPath ? `<path d="${projPath}" stroke="var(--gold)" stroke-width="1.6" fill="none" stroke-dasharray="4 4" stroke-opacity="0.5" stroke-linecap="round"/>` : "")
+    + `${dots}${xLabels}</svg>`;
+  const tt = document.getElementById("vh-chart-tooltip");
+  container.querySelectorAll(".vh-hit").forEach(c => {
+    const show = e => {
+      const p = actualPts[+c.dataset.vhI];
+      tt.innerHTML = `<strong>${aud(p.val)}</strong><span class="vh-tt-date">${p.label}</span>`;
+      const cx = e.touches ? e.touches[0].clientX : e.clientX;
+      const cy = e.touches ? e.touches[0].clientY : e.clientY;
+      tt.style.left = (cx + 12) + "px"; tt.style.top = (cy - 40) + "px"; tt.classList.add("on");
+    };
+    const hide = () => tt.classList.remove("on");
+    c.addEventListener("mouseenter", show);
+    c.addEventListener("mousemove", show);
+    c.addEventListener("mouseleave", hide);
+    c.addEventListener("touchstart", show, { passive: true });
+    c.addEventListener("touchend", hide);
+  });
+}
+
+// ─── Collapsible state + one-time wiring ──────────────────────────────────────
+function vhApplyCollapsed() {
+  document.querySelectorAll("#home-panel .vh-section").forEach(s => s.classList.toggle("collapsed", vhCollapsed.has(s.dataset.vhSection)));
+}
+function openProjInfo() { const m = document.getElementById("vh-proj-info"); if (m) m.style.display = "flex"; }
+function closeProjInfo() { const m = document.getElementById("vh-proj-info"); if (m) m.style.display = "none"; }
+function vhInit() {
+  if (window._vhInit) return;
+  const panel = document.getElementById("home-panel");
+  if (!panel) return;
+  window._vhInit = true;
+  vhLoadPrefs();
+  panel.addEventListener("scroll", () => { const _t = document.getElementById("vh-chart-tooltip"); if (_t) _t.classList.remove("on"); }, { passive: true });
+  panel.addEventListener("click", e => {
+    if (e.target.closest(".vh-see-all")) { e.stopPropagation(); vhSeeAllRecent(); return; }
+    if (e.target.closest("#vh-chart-viewall")) { vhViewAllCharts(); return; }
+    if (e.target.closest("#vh-pager-prev")) { vhComparePage++; vhRenderCompareList(); return; }
+    if (e.target.closest("#vh-pager-next")) { vhComparePage = Math.max(0, vhComparePage - 1); vhRenderCompareList(); return; }
+    if (e.target.closest("#vh-proj-toggle")) {
+      vhShowProjection = !vhShowProjection;
+      vhSavePrefs();
+      const _pt = document.getElementById("vh-proj-toggle");
+      if (_pt) _pt.classList.toggle("on", vhShowProjection);
+      vhRenderChart();
+      return;
+    }
+    const rangeOpt = e.target.closest("#vh-chart-range .vh-opt");
+    if (rangeOpt) {
+      vhChartRange = rangeOpt.dataset.vhRange;
+      vhSavePrefs();
+      panel.querySelectorAll("#vh-chart-range .vh-opt").forEach(o => o.classList.toggle("active", o === rangeOpt));
+      vhRenderChart();
+      return;
+    }
+    const seg = e.target.closest("#vh-compare-seg .vh-opt");
+    if (seg) {
+      vhMode = seg.dataset.vhMode;
+      vhComparePage = 0;
+      vhSavePrefs();
+      panel.querySelectorAll("#vh-compare-seg .vh-opt").forEach(o => o.classList.toggle("active", o === seg));
+      vhRenderCompareList();
+      return;
+    }
+    const donutT = e.target.closest(".vh-donut-toggle");
+    if (donutT) {
+      const block = donutT.closest(".vh-donut-block");
+      if (vhCollapsed.has("donut")) vhCollapsed.delete("donut"); else vhCollapsed.add("donut");
+      if (block) block.classList.toggle("collapsed");
+      vhSavePrefs();
+      return;
+    }
+    const header = e.target.closest(".vh-section-header");
+    if (header) {
+      const sec = header.closest(".vh-section"), key = sec.dataset.vhSection;
+      if (vhCollapsed.has(key)) vhCollapsed.delete(key); else vhCollapsed.add(key);
+      sec.classList.toggle("collapsed");
+      vhSavePrefs();
+    }
+  });
+  // Horizontal swipe on the comparison bars pages through 6-period windows.
+  const _cl = document.getElementById("vh-compare-list");
+  if (_cl) {
+    let _sx = 0, _sy = 0, _tracking = false;
+    _cl.addEventListener("touchstart", ev => { const t = ev.touches[0]; _sx = t.clientX; _sy = t.clientY; _tracking = true; }, { passive: true });
+    _cl.addEventListener("touchend", ev => {
+      if (!_tracking) return;
+      _tracking = false;
+      const t = ev.changedTouches[0];
+      const dx = t.clientX - _sx, dy = t.clientY - _sy;
+      if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+        if (dx < 0) vhComparePage++;                         // swipe left -> previous (older)
+        else vhComparePage = Math.max(0, vhComparePage - 1); // swipe right -> next (newer)
+        vhRenderCompareList();
+      }
+    }, { passive: true });
+  }
+  // Long-press the Projection button to explain how the forecast is calculated.
+  const _projBtn = document.getElementById("vh-proj-toggle");
+  if (_projBtn) {
+    let _lpTimer = null, _lpFired = false;
+    const _startLP = () => { _lpFired = false; _lpTimer = setTimeout(() => { _lpFired = true; openProjInfo(); }, 450); };
+    const _cancelLP = () => { if (_lpTimer) { clearTimeout(_lpTimer); _lpTimer = null; } };
+    _projBtn.addEventListener("touchstart", _startLP, { passive: true });
+    _projBtn.addEventListener("touchend", _cancelLP);
+    _projBtn.addEventListener("touchmove", _cancelLP, { passive: true });
+    _projBtn.addEventListener("touchcancel", _cancelLP);
+    _projBtn.addEventListener("mousedown", _startLP);
+    _projBtn.addEventListener("mouseup", _cancelLP);
+    _projBtn.addEventListener("mouseleave", _cancelLP);
+    _projBtn.addEventListener("contextmenu", e => { e.preventDefault(); openProjInfo(); });
+    // Suppress the toggle click that follows a long-press (capture beats the delegated handler).
+    _projBtn.addEventListener("click", e => { if (_lpFired) { e.stopPropagation(); e.preventDefault(); _lpFired = false; } }, true);
+  }
+  const _projModal = document.getElementById("vh-proj-info");
+  if (_projModal) {
+    _projModal.addEventListener("click", e => { e.stopPropagation(); if (e.target === _projModal || e.target.closest("#vh-proj-info-close")) closeProjInfo(); });
+  }
+  window.addEventListener("resize", () => { if (activeTab === "home") vhRenderChart(); });
+}
+
+// ─── Upcoming (scheduled recurring transactions) ──────────────────────────────
+function vhDaysUntil(dateStr) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const d = new Date(dateStr + "T00:00:00");
+  const days = Math.round((d - today) / 86400000);
+  if (days <= 0) return "today";
+  if (days === 1) return "tomorrow";
+  if (days < 14) return `in ${days} days`;
+  if (days < 60) return `in ${Math.round(days / 7)} wks`;
+  return `in ${Math.round(days / 30)} mo`;
+}
+// Collect the soonest scheduled recurring occurrences (strictly after today).
+function vhUpcoming(limit) {
+  const rules = Array.isArray(recurRules) ? recurRules : [];
+  if (!rules.length || typeof nextOccurrence !== "function") return [];
+  const today = (typeof todayISO === "function") ? todayISO() : vhIso(new Date());
+  const items = [];
+  rules.forEach(rule => {
+    if (!rule || rule.completed || !rule.freq) return;
+    let d = rule.nextDate || rule.startDate;
+    if (!d) return;
+    const skipped = new Set(rule.skippedDates || []);
+    let guard = 0, count = 0;
+    while (d <= today && guard < 800) { d = nextOccurrence(d, rule.freq); guard++; }
+    while (count < limit && guard < 800) {
+      if (rule.endDate && d > rule.endDate) break;
+      if (!skipped.has(d)) {
+        const accId = rule.account || getDefaultAccountId();
+        items.push({ date: d, type: rule.type === "withdrawal" ? "wit" : "dep",
+                     amount: rule.amount, accId, cur: getAccountCurrency(accId) });
+        count++;
+      }
+      d = nextOccurrence(d, rule.freq);
+      guard++;
+    }
+  });
+  items.sort((a, b) => a.date.localeCompare(b.date));
+  return items.slice(0, limit);
+}
+function vhRenderUpcoming() {
+  const section = document.getElementById("vh-upcoming-section");
+  const list = document.getElementById("vh-upcoming-list");
+  if (!section || !list) return;
+  let items = [];
+  try { items = vhUpcoming(5); } catch (e) { items = []; }
+  if (!items.length) { section.style.display = "none"; return; }
+  section.style.display = "";
+  let html = "";
+  items.forEach(t => {
+    const foreign = t.cur !== currencyCode;
+    const label = t.type === "wit" ? "Withdrawal" : "Deposit";
+    const color = t.type === "wit" ? "var(--red)" : "var(--green)";
+    let amt = `<div style="color:${color}">${t.type === "wit" ? "&minus;" : ""}${fmtCurrency(t.amount, t.cur)}${foreign ? `<span class="vh-code">${t.cur}</span>` : ""}</div>`;
+    if (foreign) amt += `<div class="vh-recent-amt-conv">&asymp; ${aud(convertToGlobal(t.amount, t.cur))}</div>`;
+    html += `<div class="vh-upcoming-row">`
+          + `<span class="vh-recent-date">${fmtDate(t.date)}</span>`
+          + `<span class="vh-recent-acct-dot" style="background:${getAccountColor(t.accId)}"></span>`
+          + `<div class="vh-up-mid"><span class="vh-recent-type ${t.type}">${label}</span><span class="vh-up-when">${vhDaysUntil(t.date)}</span></div>`
+          + `<div class="vh-recent-amt">${amt}</div></div>`;
+  });
+  list.innerHTML = html;
+}
+
+// ─── Interest earned ──────────────────────────────────────────────────────────
+// Estimated APY for one account: recency-weighted (2-month half-life) mean of
+// per-payment annualised rates, each measured against the balance the payment was
+// actually earned on over the real gap since the previous interest payment.
+function vhAccountYield(accId) {
+  const def = getDefaultAccountId();
+  const txs = [];
+  Object.values(data).forEach(fy => {
+    (fy.saved || []).forEach(t => { if ((t[6] || def) === accId) txs.push({ date: t[0], ts: t[3] || 0, amt: t[1], int: t[4] === "interest" }); });
+    (fy.removed || []).forEach(t => { if ((t[6] || def) === accId) txs.push({ date: t[0], ts: t[3] || 0, amt: -t[1], int: false }); });
+  });
+  if (!txs.length) return null;
+  txs.sort((a, b) => a.date.localeCompare(b.date) || (a.ts - b.ts));
+  const nowMs = Date.now(), dayMs = 86400000, monMs = dayMs * 30.44;
+  let bal = 0, prevDate = null, prevBal = 0, payments = 0;
+  const obs = [];
+  for (const t of txs) {
+    if (t.int) {
+      if (prevDate) {
+        const days = (new Date(t.date) - new Date(prevDate)) / dayMs;
+        const avgBal = (prevBal + bal) / 2;
+        if (days >= 20 && avgBal > 0) {
+          const periodRate = t.amt / avgBal;
+          let apy = Math.pow(1 + periodRate, 365.25 / days) - 1;
+          if (isFinite(apy)) { apy = Math.max(0, Math.min(0.4, apy)); obs.push({ apy, age: (nowMs - new Date(t.date)) / monMs }); }
+        }
+      }
+      payments++; bal += t.amt; prevDate = t.date; prevBal = bal;
+    } else { bal += t.amt; }
+  }
+  if (!obs.length) return null;
+  let sw = 0, swa = 0;
+  obs.forEach(o => { const w = Math.pow(0.5, o.age / 2); sw += w; swa += w * o.apy; });
+  const apy = sw > 0 ? swa / sw : obs[obs.length - 1].apy;
+  let pool = obs.filter(o => o.age <= 6);
+  if (pool.length < 2) pool = obs.slice(-6);
+  const rates = pool.map(o => o.apy);
+  return { apy, low: Math.min(...rates), high: Math.max(...rates), n: obs.length, payments, bal };
+}
+function vhRenderInterest() {
+  const section = document.getElementById("vh-interest-section");
+  const body = document.getElementById("vh-interest-body");
+  if (!section || !body) return;
+  const now = new Date();
+  const curYear = String(now.getFullYear());
+  const lastMonth = vhMonthKey(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+  let intLast = 0, intYear = 0, intAll = 0;
+  vhAllTx().forEach(t => {
+    if (t.kind !== "int") return;
+    const g = convertToGlobal(t.amt, t.cur);
+    intAll += g;
+    if (t.date.slice(0, 4) === curYear) intYear += g;
+    if (t.date.slice(0, 7) === lastMonth) intLast += g;
+  });
+  if (intAll <= 0.005) { section.style.display = "none"; return; }
+  section.style.display = "";
+  // Estimated yield block
+  const yields = [];
+  accounts.forEach(a => { const y = vhAccountYield(a.id); if (y) yields.push({ a, y }); });
+  let yieldHtml = "";
+  if (yields.length) {
+    const pct1 = x => (x * 100).toFixed(1) + "%";
+    let bestIdx = 0;
+    yields.forEach((it, i) => { if (it.y.apy > yields[bestIdx].y.apy) bestIdx = i; });
+    let bw = 0, bwa = 0;
+    yields.forEach(({ a, y }) => { const g = convertToGlobal(y.bal, a.currency || currencyCode); if (g > 0) { bw += g; bwa += g * y.apy; } });
+    const blended = (yields.length >= 2 && bw > 0) ? bwa / bw : null;
+    let needHist = false, needVar = false, rows = "";
+    yields.forEach(({ a, y }, i) => {
+      const relSpread = y.apy > 0.005 ? (y.high - y.low) / y.apy : 0;
+      let mark = "";
+      if (y.payments < 3) { mark = "*"; needHist = true; }
+      else if (relSpread > 0.4) { mark = "~"; needVar = true; }
+      const showRange = (y.high - y.low) > 0.01;
+      const best = yields.length >= 2 && i === bestIdx;
+      rows += `<div class="vh-yield-row${best ? ' best' : ''}">`
+        + `<span class="vh-yield-dot" style="background:${a.color || 'var(--text-3)'}"></span>`
+        + `<span class="vh-yield-name">${escapeHTML(a.name)}</span>`
+        + `<span class="vh-yield-ratewrap"><span class="vh-yield-rate">&asymp; ${pct1(y.apy)}${mark ? `<span class="vh-yield-mark">${mark}</span>` : ""}</span>`
+        + (showRange ? `<span class="vh-yield-range">${pct1(y.low)} &ndash; ${pct1(y.high)}</span>` : "")
+        + `</span></div>`;
+    });
+    let foot = "";
+    if (needHist) foot += `<span>* based on very little interest history yet &mdash; this will sharpen over time.</span>`;
+    if (needVar) foot += `<span>~ this rate has varied recently &mdash; likely a variable or bonus rate, so treat it loosely.</span>`;
+    yieldHtml = `<div class="vh-yield"><div class="vh-yield-top"><span class="vh-yield-label">Estimated rate</span>`
+      + (blended !== null ? `<span class="vh-yield-blended">Overall &asymp; ${pct1(blended)}</span>` : "")
+      + `</div><div class="vh-yield-list">${rows}</div>`
+      + (foot ? `<div class="vh-yield-foot">${foot}</div>` : "")
+      + `</div>`;
+  }
+  body.innerHTML = `<div class="vh-interest-card"><div class="vh-int-figs">`
+    + `<div class="vh-int-fig"><span class="vh-int-fig-label">Last Month</span><span class="vh-int-fig-val">${aud(intLast)}</span></div>`
+    + `<div class="vh-int-fig"><span class="vh-int-fig-label">${curYear}</span><span class="vh-int-fig-val">${aud(intYear)}</span></div>`
+    + `<div class="vh-int-fig"><span class="vh-int-fig-label">All-time</span><span class="vh-int-fig-val">${aud(intAll)}</span></div>`
+    + `</div>` + yieldHtml + `</div>`;
+}
+
+// Master render — called from renderMain() whenever Home is the active view.
+function renderHome() {
+  vhInit();
+  vhRenderOverview();
+  vhRenderMonth();
+  vhRenderInterest();
+  vhRenderYoY();
+  vhRenderFilter();
+  document.querySelectorAll("#vh-compare-seg .vh-opt").forEach(o => o.classList.toggle("active", o.dataset.vhMode === vhMode));
+  vhRenderCompareList();
+  vhUpdateCompareRateNote();
+  vhRenderRecent();
+  vhRenderUpcoming();
+  document.querySelectorAll("#vh-chart-range .vh-opt").forEach(o => o.classList.toggle("active", o.dataset.vhRange === vhChartRange));
+  const _pt = document.getElementById("vh-proj-toggle");
+  if (_pt) _pt.classList.toggle("on", vhShowProjection);
+  vhRenderStreak();
+  vhApplyCollapsed();
+  requestAnimationFrame(vhRenderChart);
+}
+
 function switchTab(t) {
   activeTab = t;
   _currentPage = 1;
   const isReport = t === "report";
   const isCharts = t === "charts";
+  const isHome   = t === "home";
   const isAll    = t === "all";
-  document.getElementById("table-wrap").style.display    = (isReport || isCharts) ? "none" : "";
+  const hideTable = isReport || isCharts || isHome;
+  document.getElementById("table-wrap").style.display    = hideTable ? "none" : "";
   document.getElementById("report-panel").style.display  = isReport ? "flex" : "none";
   document.getElementById("charts-panel").style.display  = isCharts ? "flex" : "none";
-  document.getElementById("year-summary").style.display  = (isReport || isCharts) ? "none" : "";
-  document.getElementById("tabs").style.display          = (isReport || isCharts) ? "none" : "";
+  const _homePanel = document.getElementById("home-panel");
+  if (_homePanel) _homePanel.style.display = isHome ? "flex" : "none";
+  document.getElementById("year-summary").style.display  = hideTable ? "none" : "";
+  document.getElementById("tabs").style.display          = hideTable ? "none" : "";
+  const _pillsWrap = document.getElementById("account-pills-wrap");
+  if (_pillsWrap) {
+    if (isHome) _pillsWrap.style.display = "none";
+    else if (!isReport && !isCharts) renderAccountPills();
+  }
   if (isReport) renderReport();
   if (isCharts) renderCharts();
   render();
@@ -10637,6 +12562,25 @@ function deletePopupAll() {
   if (!recurId) return;
   const matches = getTxByRecurId(recurId);
   matches.forEach(({ tx }) => { if (tx[2]) addTombstone(tx[2]); });
+
+  // Mark each deleted date as intentionally skipped on the rule so the audit
+  // loop in processRecurring() never re-posts them. Without this, the loop
+  // would see "expected date has no transaction" and cheerfully repost with a
+  // fresh ID (bypassing the tombstone, which only protects against ID reuse).
+  const rule = recurRules.find(r => String(r.id) === String(recurId));
+  if (rule) {
+    if (!Array.isArray(rule.skippedDates)) rule.skippedDates = [];
+    const have = new Set(rule.skippedDates);
+    matches.forEach(({ tx }) => {
+      const d = tx[0];
+      if (typeof d === "string" && !have.has(d)) {
+        rule.skippedDates.push(d);
+        have.add(d);
+      }
+    });
+    saveRecurring();
+  }
+
   Object.keys(data).forEach(y => {
     ["saved", "removed"].forEach(bucket => {
       data[y][bucket] = data[y][bucket].filter(tx => !tx[5] || String(tx[5]) !== String(recurId));
@@ -10813,7 +12757,7 @@ function showPdfPreview(html) {
   const frame   = document.getElementById("pdf-preview-frame");
   if (!overlay || !frame) return;
   frame.srcdoc = html;
-  overlay.style.display = "flex";
+  overlay.classList.remove("hidden");
   document.body.style.overflow = "hidden";
   // Size after a brief paint so toolbar height is available
   requestAnimationFrame(() => { sizePdfModal(); });
@@ -10821,7 +12765,7 @@ function showPdfPreview(html) {
 
 function closePdfPreview() {
   const overlay = document.getElementById("pdf-preview-overlay");
-  if (overlay) overlay.style.display = "none";
+  if (overlay) overlay.classList.add("hidden");
   document.body.style.overflow = "";
 }
 
@@ -10835,6 +12779,7 @@ function printPdfFrame() {
 
 function menuPrint() {
   if (activeTab === "report") { printSearchResults(); return; }
+  if (activeTab === "charts") { printCharts();        return; }
   printCurrentView();
 }
 
@@ -10846,20 +12791,51 @@ function printSearchResults() {
   const amtMin = parseFloat(document.getElementById("report-amt-min")?.value) || null;
   const amtMax = parseFloat(document.getElementById("report-amt-max")?.value) || null;
 
-  // Gather filtered rows — same logic as renderReport
+  // Gather filtered rows — same logic as renderReport, including currency conversion
+  // so print totals match the on-screen report totals. Saved rows with
+  // r[4]==="interest" become type "Interest"; the reportTypeFilter treats
+  // interest as a kind of deposit (matching the main app's Saved tab).
+  const defaultAccId = getDefaultAccountId();
   const deposits = [], withdrawals = [];
   Object.entries(data).forEach(([, fy]) => {
-    fy.saved.forEach(([d, a])   => { if (d >= from && d <= to) deposits.push([d, a]); });
-    fy.removed.forEach(([d, a]) => { if (d >= from && d <= to) withdrawals.push([d, a]); });
+    fy.saved.forEach(r => {
+      if (r[0] >= from && r[0] <= to) {
+        const accId  = r[6] || defaultAccId;
+        const accCur = getAccountCurrency(accId);
+        deposits.push({
+          date: r[0], amt: r[1],
+          accId, accName: getAccountName(accId), accColor: getAccountColor(accId),
+          accCur,
+          gAmt: convertToGlobal(r[1], accCur),
+          type: r[4] === "interest" ? "Interest" : "Deposit"
+        });
+      }
+    });
+    fy.removed.forEach(r => {
+      if (r[0] >= from && r[0] <= to) {
+        const accId  = r[6] || defaultAccId;
+        const accCur = getAccountCurrency(accId);
+        withdrawals.push({
+          date: r[0], amt: r[1],
+          accId, accName: getAccountName(accId), accColor: getAccountColor(accId),
+          accCur,
+          gAmt: convertToGlobal(r[1], accCur),
+          type: "Withdrawal"
+        });
+      }
+    });
   });
 
-  let rows = [
-    ...deposits.map(([d,a])    => ({ date: d, amt: a, type: "Deposit" })),
-    ...withdrawals.map(([d,a]) => ({ date: d, amt: a, type: "Withdrawal" })),
-  ];
-  if (reportTypeFilter !== "all") rows = rows.filter(r => (reportTypeFilter === "dep") === (r.type === "Deposit"));
-  if (amtMin !== null && !isNaN(amtMin)) rows = rows.filter(r => Math.abs(r.amt) >= amtMin);
-  if (amtMax !== null && !isNaN(amtMax)) rows = rows.filter(r => Math.abs(r.amt) <= amtMax);
+  let rows = [ ...deposits, ...withdrawals ];
+  // reportTypeFilter "dep" keeps both Deposit and Interest; "wit" keeps Withdrawal.
+  if (reportTypeFilter !== "all") {
+    rows = rows.filter(r => reportTypeFilter === "dep"
+      ? (r.type === "Deposit" || r.type === "Interest")
+      : r.type === "Withdrawal");
+  }
+  // Amount filters compare against the converted global amount (matches renderReport)
+  if (amtMin !== null && !isNaN(amtMin)) rows = rows.filter(r => Math.abs(r.gAmt) >= amtMin);
+  if (amtMax !== null && !isNaN(amtMax)) rows = rows.filter(r => Math.abs(r.gAmt) <= amtMax);
   rows.sort((a, b) => a.date.localeCompare(b.date));
 
   // Build filter description for the subtitle
@@ -10888,42 +12864,201 @@ function printCurrentView() {
   const addDep = activeTab !== "removed";
   const addWit = activeTab !== "saved";
 
+  const defaultAccId = getDefaultAccountId();
+  // Respect the currently-selected account pill so the print matches what the
+  // user sees on-screen. Predicate mirrors the one in renderMain.
+  const accFilter = activeAccountFilter;
+  const accMatch  = tx => accFilter === "all" || (tx[6] || defaultAccId) === accFilter;
+  // Subtitle picks up the account name so the reader can see the filter at a glance
+  const accSuffix = accFilter === "all" ? "" : " · " + getAccountName(accFilter);
+
+  // Build a row with the native amount, its currency, and the converted global amount.
+  // gAmt is the source of truth for print totals so multi-currency vaults sum correctly;
+  // amt/accCur are retained for future account-column work.
+  // For saved rows, r[4]==="interest" upgrades the type from "Deposit" to "Interest"
+  // so the printed pill matches how the row is shown on-screen.
+  const mkSaved = r => {
+    const accId  = r[6] || defaultAccId;
+    const accCur = getAccountCurrency(accId);
+    return {
+      date: r[0],
+      amt:  r[1],
+      accId,
+      accName:  getAccountName(accId),
+      accColor: getAccountColor(accId),
+      accCur,
+      gAmt: convertToGlobal(r[1], accCur),
+      type: r[4] === "interest" ? "Interest" : "Deposit"
+    };
+  };
+  const mkRemoved = r => {
+    const accId  = r[6] || defaultAccId;
+    const accCur = getAccountCurrency(accId);
+    return {
+      date: r[0],
+      amt:  r[1],
+      accId,
+      accName:  getAccountName(accId),
+      accColor: getAccountColor(accId),
+      accCur,
+      gAmt: convertToGlobal(r[1], accCur),
+      type: "Withdrawal"
+    };
+  };
+
   if (isAllYears) {
     viewTitle = "All Transactions";
-    viewSub   = tabLabel;
+    viewSub   = tabLabel + accSuffix;
     years.forEach(y => {
-      if (addDep) data[y].saved.forEach(r   => rows.push({ date: r[0], amt: r[1], type: "Deposit" }));
-      if (addWit) data[y].removed.forEach(r => rows.push({ date: r[0], amt: r[1], type: "Withdrawal" }));
+      if (addDep) data[y].saved.filter(accMatch).forEach(r   => rows.push(mkSaved(r)));
+      if (addWit) data[y].removed.filter(accMatch).forEach(r => rows.push(mkRemoved(r)));
     });
   } else if (isMonthView) {
     const [my, mm] = activeMonth.split("-");
     viewTitle = new Date(+my, +mm - 1, 1).toLocaleString("en-AU", { month: "long", year: "numeric" });
-    viewSub   = tabLabel;
+    viewSub   = tabLabel + accSuffix;
     const fy  = data[activeYear] || { saved: [], removed: [] };
-    if (addDep) fy.saved.filter(r => r[0].startsWith(activeMonth)).forEach(r =>
-      rows.push({ date: r[0], amt: r[1], type: "Deposit" }));
-    if (addWit) fy.removed.filter(r => r[0].startsWith(activeMonth)).forEach(r =>
-      rows.push({ date: r[0], amt: r[1], type: "Withdrawal" }));
+    if (addDep) fy.saved.filter(r => r[0].startsWith(activeMonth)).filter(accMatch).forEach(r =>
+      rows.push(mkSaved(r)));
+    if (addWit) fy.removed.filter(r => r[0].startsWith(activeMonth)).filter(accMatch).forEach(r =>
+      rows.push(mkRemoved(r)));
   } else {
     viewTitle = yearLabel(activeYear);
-    viewSub   = tabLabel;
+    viewSub   = tabLabel + accSuffix;
     const fy  = data[activeYear] || { saved: [], removed: [] };
-    if (addDep) fy.saved.forEach(r   => rows.push({ date: r[0], amt: r[1], type: "Deposit" }));
-    if (addWit) fy.removed.forEach(r => rows.push({ date: r[0], amt: r[1], type: "Withdrawal" }));
+    if (addDep) fy.saved.filter(accMatch).forEach(r   => rows.push(mkSaved(r)));
+    if (addWit) fy.removed.filter(accMatch).forEach(r => rows.push(mkRemoved(r)));
   }
 
   rows.sort((a, b) => a.date.localeCompare(b.date));
   openPdfWindow({ title: viewTitle, subLine: viewSub, rows, filter: activeTab });
 }
 
+// Build a print-friendly HTML doc from the four SVG charts on the Charts tab.
+// The on-screen charts are drawn for a DARK background — grid lines and axis
+// use white-alpha rgba() values and some strokes reference CSS variables that
+// don't exist outside the main app. themeSwap() rewrites those to their
+// light-mode equivalents before the SVG is embedded in the print doc.
+function printCharts() {
+  const cards = document.querySelectorAll("#charts-panel .chart-card");
+  if (!cards.length) { toast("No charts to print.", "#c0392b"); return; }
+
+  // View-context label for the header, mirrors printCurrentView's choices
+  const isAllYears  = activeYear === "all-years";
+  const isMonthView = !!activeMonth;
+  let viewTitle;
+  if (isAllYears) {
+    viewTitle = "Charts — All Years";
+  } else if (isMonthView) {
+    const [my, mm] = activeMonth.split("-");
+    viewTitle = "Charts — " + new Date(+my, +mm - 1, 1).toLocaleString("en-AU", { month: "long", year: "numeric" });
+  } else {
+    viewTitle = "Charts — " + yearLabel(activeYear);
+  }
+  const today = new Date().toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" });
+
+  // Rewrite dark-mode colours + strip interactive handlers that reference host
+  // functions (showChartTip etc) which don't exist inside the preview iframe.
+  const themeSwap = svg => svg
+    .replace(/rgba\(255,255,255,0\.06\)/g, "rgba(0,0,0,0.08)")
+    .replace(/rgba\(255,255,255,0\.15\)/g, "rgba(0,0,0,0.22)")
+    .replace(/var\(--bg0\)/g,     "#ffffff")
+    .replace(/var\(--bg1\)/g,     "#ffffff")
+    .replace(/var\(--bg2\)/g,     "#ffffff")
+    .replace(/var\(--bg3\)/g,     "#f5f5f5")
+    .replace(/var\(--bg4\)/g,     "#eeeeee")
+    .replace(/var\(--text-1\)/g,  "#111111")
+    .replace(/var\(--text-2\)/g,  "#444444")
+    .replace(/var\(--text-3\)/g,  "#666666")
+    .replace(/var\(--green\)/g,   "#2a7a52")
+    .replace(/var\(--red\)/g,     "#a03030")
+    .replace(/var\(--gold\)/g,    "#8a7530")
+    .replace(/var\(--border\)/g,  "#dddddd")
+    .replace(/\son(mouseenter|mouseleave|click)="[^"]*"/g, "")
+    // Also strip single-quoted variants in case chart code evolves to emit them
+    .replace(/\son(mouseenter|mouseleave|click)='[^']*'/g, "");
+
+  const chartsHtml = [...cards].map(card => {
+    const title = card.querySelector(".chart-title")?.textContent || "";
+    const sub   = card.querySelector(".chart-sub")?.textContent   || "";
+    const svgEl = card.querySelector(".chart-area svg");
+    const chart = svgEl ? themeSwap(svgEl.outerHTML) : `<div class="chart-empty">No data.</div>`;
+    return `<div class="chart-print">
+      <div class="chart-print-title">${title}</div>
+      ${sub ? `<div class="chart-print-sub">${sub}</div>` : ""}
+      <div class="chart-print-area">${chart}</div>
+    </div>`;
+  }).join("");
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Vault — ${viewTitle}</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: #fff; color: #111; font-size: 13px; padding: 40px 48px; line-height: 1.5; }
+  header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 2px solid #111; }
+  .brand { font-family: 'DM Serif Display', serif; font-size: 28px; font-weight: 400; letter-spacing: 0.01em; }
+  .meta { text-align: right; font-size: 11px; color: #666; line-height: 1.8; }
+  .meta strong { color: #111; font-size: 14px; font-weight: 600; display: block; margin-bottom: 2px; }
+  .meta .sub { color: #888; font-size: 11px; }
+  .chart-print { margin-bottom: 32px; page-break-inside: avoid; break-inside: avoid; }
+  .chart-print:last-of-type { margin-bottom: 12px; }
+  .chart-print-title { font-family: 'DM Serif Display', serif; font-size: 16px; font-weight: 400; color: #111; margin-bottom: 3px; }
+  .chart-print-sub   { font-size: 11px; color: #888; margin-bottom: 12px; letter-spacing: 0.02em; }
+  .chart-print-area  { width: 100%; }
+  .chart-print-area svg { width: 100%; height: auto; display: block; }
+  .chart-axis-label  { font-size: 10px; fill: #666; font-family: 'DM Sans', sans-serif; }
+  .chart-empty       { color: #aaa; font-size: 12px; padding: 24px; text-align: center; border: 1px dashed #ddd; border-radius: 6px; }
+  footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid #ddd; font-size: 10px; color: #aaa; display: flex; justify-content: space-between; }
+  @media print { body { padding: 20px 24px; } @page { margin: 1.5cm; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Vault</div>
+  <div class="meta">
+    <strong>${viewTitle}</strong>
+    <span class="sub">Generated ${today}</span>
+  </div>
+</header>
+${chartsHtml}
+<footer>
+  <span>Vault — Personal Savings Tracker</span>
+  <span>${viewTitle}</span>
+</footer>
+</body>
+</html>`;
+
+  showPdfPreview(html);
+}
+
 function openPdfWindow({ title, subLine, rows, filter = "all" }) {
-  const totalDep = rows.filter(r => r.type === "Deposit").reduce((s, r) => s + r.amt, 0);
-  const totalWit = rows.filter(r => r.type === "Withdrawal").reduce((s, r) => s + r.amt, 0);
-  const net      = totalDep - totalWit;
+  // All amounts on rows are expected to include a gAmt field (converted to
+  // global currency). Fall back to amt only if a caller hasn't been updated yet.
+  const gOf = r => (typeof r.gAmt === "number" ? r.gAmt : r.amt);
+  // "Saved" total mirrors the main app: Deposit + Interest lumped together.
+  // Individual interest rows still show their own pill in the table.
+  const isSavedType = r => r.type === "Deposit" || r.type === "Interest";
+  const totalSaved = rows.filter(isSavedType).reduce((s, r) => s + gOf(r), 0);
+  const totalWit   = rows.filter(r => r.type === "Withdrawal").reduce((s, r) => s + gOf(r), 0);
+  const net        = totalSaved - totalWit;
   const today    = new Date().toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" });
 
-  const depCount = rows.filter(r => r.type === "Deposit").length;
-  const witCount = rows.filter(r => r.type === "Withdrawal").length;
+  // Collect non-global currencies actually present in this printout so we can
+  // show a small "Rates used" note under the summary cards.
+  const foreignCurs = [...new Set(
+    rows.map(r => r.accCur).filter(c => c && c !== currencyCode)
+  )].sort();
+  const rateNotes = foreignCurs
+    .map(c => rateDescription(c))
+    .filter(Boolean)
+    .join(" · ");
+
+  const savedCount = rows.filter(isSavedType).length;
+  const witCount   = rows.filter(r => r.type === "Withdrawal").length;
 
   const showDep = filter !== "removed";
   const showWit = filter !== "saved";
@@ -10931,9 +13066,9 @@ function openPdfWindow({ title, subLine, rows, filter = "all" }) {
 
   const summaryCards = `
     ${showDep ? `<div class="summary-card dep">
-      <div class="label">Total Deposited</div>
-      <div class="value">${aud(totalDep)}</div>
-      <div class="count">${depCount} transaction${depCount !== 1 ? "s" : ""}</div>
+      <div class="label">Total Saved</div>
+      <div class="value">${aud(totalSaved)}</div>
+      <div class="count">${savedCount} transaction${savedCount !== 1 ? "s" : ""}</div>
     </div>` : ""}
     ${showWit ? `<div class="summary-card wit">
       <div class="label">Total Withdrawn</div>
@@ -10946,12 +13081,42 @@ function openPdfWindow({ title, subLine, rows, filter = "all" }) {
       <div class="count">${net >= 0 ? "surplus" : "deficit"}</div>
     </div>` : ""}`;
 
+  // Show the Account column only when more than one distinct account appears in
+  // the print set. Single-account or already-filtered printouts stay 3-column.
+  const distinctAccIds = new Set(rows.map(r => r.accId).filter(Boolean));
+  const showAccountCol = distinctAccIds.size > 1;
+
+  // Row amount cell: for foreign-currency rows, show the native amount + code
+  // on the top line and the converted global amount with the rate underneath.
+  // Global-currency rows keep the original single-line format.
   const tableRows = rows.map(r => {
-    const isWit = r.type === "Withdrawal";
+    const isWit    = r.type === "Withdrawal";
+    const isInt    = r.type === "Interest";
+    const pillCls  = isWit ? "wit" : isInt ? "int" : "dep";
+    // Interest borrows the deposit (green) colour for amount text so saved-money
+    // rows stay visually grouped; the blue pill carries the distinction.
+    const amtCls   = isWit ? "red" : "green";
+    const isForeign = r.accCur && r.accCur !== currencyCode;
+    let amtCell;
+    if (isForeign) {
+      const rate   = getRate(r.accCur);
+      const perOne = rate ? (1 / rate).toFixed(4) : null;
+      amtCell =
+        `<div class="amt-native">${fmtCurrency(r.amt, r.accCur)} <span class="amt-code">${r.accCur}</span></div>` +
+        `<div class="amt-conv">≈ ${aud(r.gAmt)}` +
+          (perOne ? ` <span class="amt-rate">@ ${perOne}</span>` : "") +
+        `</div>`;
+    } else {
+      amtCell = aud(gOf(r));
+    }
+    const accCell = showAccountCol
+      ? `<td class="acct"><span class="acct-dot" style="background:${r.accColor || "#888"}"></span>${r.accName || "Unassigned"}</td>`
+      : "";
     return `<tr>
       <td>${fmtDate(r.date)}</td>
-      <td><span class="pill ${isWit ? "wit" : "dep"}">${r.type}</span></td>
-      <td class="amt ${isWit ? "red" : "green"}">${aud(r.amt)}</td>
+      ${accCell}
+      <td><span class="pill ${pillCls}">${r.type}</span></td>
+      <td class="amt ${amtCls}">${amtCell}</td>
     </tr>`;
   }).join("");
 
@@ -10977,6 +13142,16 @@ function openPdfWindow({ title, subLine, rows, filter = "all" }) {
   .summary-card.wit .value { color: #a03030; }
   .summary-card.net .value { color: #7a6020; }
   .summary-card .count { font-size: 11px; color: #888; margin-top: 2px; }
+  /* Currency conversion callout — soft amber banner, appears above the summary
+     cards whenever the printout contains any foreign-currency transactions. */
+  .rate-banner { background: #fdf6e3; border: 1px solid #e8d68a; border-left: 3px solid #c9a84c; border-radius: 6px; padding: 10px 14px 11px; margin-bottom: 24px; }
+  .rate-banner-label { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.09em; color: #8a7530; font-weight: 600; margin-bottom: 4px; }
+  .rate-banner-rates { font-size: 11.5px; color: #5a4820; font-variant-numeric: tabular-nums; line-height: 1.5; }
+  /* Per-row amount cell — used only for foreign-currency rows */
+  .amt-native { font-size: 13px; font-weight: 500; }
+  .amt-code   { font-size: 10px; font-weight: 500; color: #888; letter-spacing: 0.06em; margin-left: 3px; }
+  .amt-conv   { font-size: 10.5px; font-weight: 400; color: #888; margin-top: 1px; font-variant-numeric: tabular-nums; }
+  .amt-rate   { font-size: 9.5px; color: #aaa; margin-left: 4px; font-style: italic; }
   table { width: 100%; border-collapse: collapse; }
   thead tr { border-bottom: 2px solid #111; }
   th { padding: 8px 12px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #666; font-weight: 600; text-align: left; }
@@ -10990,6 +13165,9 @@ function openPdfWindow({ title, subLine, rows, filter = "all" }) {
   .pill { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
   .pill.dep { background: #e6f4ed; color: #2a7a52; }
   .pill.wit { background: #faeaea; color: #a03030; }
+  .pill.int { background: #e6eff5; color: #4a92c0; }
+  .acct { color: #333; font-size: 12.5px; white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+  .acct-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; flex-shrink: 0; }
   footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid #ddd; font-size: 10px; color: #aaa; display: flex; justify-content: space-between; }
   @media print { body { padding: 20px 24px; } @page { margin: 1.5cm; } }
 </style>
@@ -11003,12 +13181,21 @@ function openPdfWindow({ title, subLine, rows, filter = "all" }) {
     <span class="sub">Generated ${today} · ${rows.length} transaction${rows.length !== 1 ? "s" : ""}</span>
   </div>
 </header>
+${rateNotes ? `<div class="rate-banner">
+  <div class="rate-banner-label">Currency conversion applied</div>
+  <div class="rate-banner-rates">${rateNotes}</div>
+</div>` : ""}
 <div class="summary">
   ${summaryCards}
 </div>
 <table>
-  <thead><tr><th>Date</th><th>Type</th><th class="amt">Amount</th></tr></thead>
-  <tbody>${tableRows || '<tr><td colspan="3" style="text-align:center;color:#aaa;padding:24px;">No transactions.</td></tr>'}</tbody>
+  <thead><tr>
+    <th>Date</th>
+    ${showAccountCol ? "<th>Account</th>" : ""}
+    <th>Type</th>
+    <th class="amt">Amount</th>
+  </tr></thead>
+  <tbody>${tableRows || `<tr><td colspan="${showAccountCol ? 4 : 3}" style="text-align:center;color:#aaa;padding:24px;">No transactions.</td></tr>`}</tbody>
 </table>
 <footer>
   <span>Vault — Personal Savings Tracker</span>
@@ -12760,12 +14947,65 @@ document.addEventListener("keydown", (e) => {
   }
   // Intercept Ctrl+P / Cmd+P and route through Vault's print function
   if ((e.ctrlKey || e.metaKey) && e.key === "p") { e.preventDefault(); menuPrint(); }
+  // Escape closes the print preview if it's open (other overlays have their
+  // own close buttons; the preview is the one that lacked keyboard dismissal).
+  if (e.key === "Escape") {
+    // Close inline colour picker first if it's open — it's a lighter overlay
+    // than the print preview.
+    if (_colorStripOpenId) { e.preventDefault(); closeColorStrip(); return; }
+    const pdfOverlay = document.getElementById("pdf-preview-overlay");
+    if (pdfOverlay && !pdfOverlay.classList.contains("hidden")) {
+      e.preventDefault();
+      closePdfPreview();
+    }
+  }
+});
+
+// Button press feedback — attach .btn-press on pointerdown so the animation
+// runs regardless of :active-pseudo timing on mobile. Excludes elements with
+// their own transform-based interactions (pills' hold, swatches' hover scale).
+// The pointermove listener cancels the animation if the pointer drifts beyond
+// a small threshold, so scrolling through a list of buttons doesn't visibly
+// fire the press animation on every button the finger passes over.
+let _btnPressTarget = null;
+let _btnPressStartX = 0;
+let _btnPressStartY = 0;
+const BTN_PRESS_MOVE_CANCEL_PX = 6;
+document.addEventListener("pointerdown", e => {
+  const btn = e.target.closest("button");
+  if (!btn || btn.disabled) return;
+  if (btn.classList.contains("acc-pill") ||
+      btn.classList.contains("color-strip-swatch")) return;
+  // Reset the class first so rapid re-taps re-trigger the animation. Forcing a
+  // reflow between removal and re-add is what actually restarts the keyframes.
+  btn.classList.remove("btn-press");
+  void btn.offsetWidth;
+  btn.classList.add("btn-press");
+  _btnPressTarget = btn;
+  _btnPressStartX = e.clientX;
+  _btnPressStartY = e.clientY;
+});
+document.addEventListener("pointermove", e => {
+  if (!_btnPressTarget) return;
+  if (Math.hypot(e.clientX - _btnPressStartX, e.clientY - _btnPressStartY) > BTN_PRESS_MOVE_CANCEL_PX) {
+    _btnPressTarget.classList.remove("btn-press");
+    _btnPressTarget = null;
+  }
+});
+document.addEventListener("pointerup",     () => { _btnPressTarget = null; });
+document.addEventListener("pointercancel", () => {
+  if (_btnPressTarget) { _btnPressTarget.classList.remove("btn-press"); _btnPressTarget = null; }
+});
+document.addEventListener("animationend", e => {
+  if (e.animationName === "_btnPress" && e.target instanceof HTMLElement) {
+    e.target.classList.remove("btn-press");
+  }
 });
 
 // Keep the PDF preview modal at A4 aspect ratio on resize
 window.addEventListener("resize", () => {
   const overlay = document.getElementById("pdf-preview-overlay");
-  if (overlay && overlay.style.display !== "none") sizePdfModal();
+  if (overlay && !overlay.classList.contains("hidden")) sizePdfModal();
 });
 
 // ─── desktop add transaction popup ────────────────────────────────────────────
@@ -13128,13 +15368,31 @@ function renderMenuTxDropdown() {
     chevron.onclick = (e) => {
       e.stopPropagation();
       const wasExpanded = expandedYears.has(y);
-      expandedYears.clear();
-      if (!wasExpanded) {
-        expandedYears.add(y);
-        if (activeYear !== y) { activeYear = y; activeMonth = null; _currentPage = 1; if (activeTab === "report" || activeTab === "charts") switchTab("all"); }
-        render();
+
+      // If a month list is currently open, run the close animation first and
+      // defer the state update + re-render until it finishes. The DOM element
+      // gets destroyed by renderMenuTxDropdown, so we can't animate it after —
+      // the animation has to run first, on the still-live element.
+      const openList = document.querySelector(".menu-tx-month-list.open");
+
+      const applyChanges = () => {
+        expandedYears.clear();
+        if (!wasExpanded) {
+          expandedYears.add(y);
+          if (activeYear !== y) { activeYear = y; activeMonth = null; _currentPage = 1; if (activeTab === "report" || activeTab === "charts" || activeTab === "home") switchTab("all"); }
+          render();
+        }
+        renderMenuTxDropdown();
+      };
+
+      if (openList) {
+        openList.classList.remove("open");
+        openList.classList.add("closing");
+        // 220ms matches the _monthListSlideOut duration
+        setTimeout(applyChanges, 220);
+      } else {
+        applyChanges();
       }
-      renderMenuTxDropdown();
     };
 
     yearRow.appendChild(inner);
@@ -13158,7 +15416,7 @@ function renderMenuTxDropdown() {
         mbtn.onclick = () => {
           activeYear = y; activeMonth = m;
           _currentPage = 1;
-          if (activeTab === "report" || activeTab === "charts") switchTab("all");
+          if (activeTab === "report" || activeTab === "charts" || activeTab === "home") switchTab("all");
           closeSheets(); menuTxDropdownOpen = false; render();
         };
         mList.appendChild(mbtn);
@@ -13225,10 +15483,10 @@ function toggleDesktopSettingsDropdown() {
   const dropdown = document.getElementById("dmenu-settings-dropdown");
   const arrow    = document.getElementById("dmenu-settings-arrow");
   if (desktopSettingsDropdownOpen) {
-    dropdown.style.display = "block";
+    dropdown.classList.add("open");
     if (arrow) arrow.style.transform = "rotate(90deg)";
   } else {
-    dropdown.style.display = "none";
+    dropdown.classList.remove("open");
     if (arrow) arrow.style.transform = "";
   }
 }
@@ -13269,7 +15527,7 @@ function closeDesktopMenu() {
   desktopSettingsDropdownOpen = false;
   const dd = document.getElementById("dmenu-settings-dropdown");
   const arrow = document.getElementById("dmenu-settings-arrow");
-  if (dd) dd.style.display = "none";
+  if (dd) dd.classList.remove("open");
   if (arrow) arrow.style.transform = "";
 }
 
@@ -13336,7 +15594,7 @@ function renderYearSheet() {
         activeYear = y;
         activeMonth = null;
         _currentPage = 1;
-        if (activeTab === "report" || activeTab === "charts") switchTab("all");
+        if (activeTab === "report" || activeTab === "charts" || activeTab === "home") switchTab("all");
       }
       renderYearSheet(); // re-render sheet in place
       render();          // update main view
@@ -13362,7 +15620,7 @@ function renderYearSheet() {
           activeYear = y;
           activeMonth = m;
           _currentPage = 1;
-          if (activeTab === "report" || activeTab === "charts") switchTab("all");
+          if (activeTab === "report" || activeTab === "charts" || activeTab === "home") switchTab("all");
           closeSheets();
           render();
         };
@@ -13670,22 +15928,57 @@ function initApp() {
   initNAS();
   updateAIMenuSubs(); // initialise AI provider menu labels
 
-  // Delegated click handler for transaction rows (Change 2). Attached once;
-  // each <tr> carries data-* attributes set by renderMain so we don't pay for
-  // a per-row closure on large tables.
+  // Delegated hold-to-edit handler for transaction rows. Attached once; each
+  // <tr> carries data-* attributes set by renderMain so we don't pay for a
+  // per-row closure on large tables. A plain tap does nothing — the popup
+  // opens only after a HOLD_MS press. Same charging animation as the account
+  // pills (via .holding class in CSS).
   if (!window._txBodyDelegated) {
     const _txBody = document.getElementById("tx-body");
     if (_txBody) {
-      _txBody.addEventListener("click", (e) => {
+      let _rowHold = null; // { row, timer, startX, startY, didHold }
+      const _cancelRowHold = () => {
+        if (!_rowHold) return;
+        if (_rowHold.timer) clearTimeout(_rowHold.timer);
+        _rowHold.row.classList.remove("holding");
+        _rowHold = null;
+      };
+      _txBody.addEventListener("pointerdown", (e) => {
+        // Right-click on desktop → let the browser handle it
+        if (e.pointerType === "mouse" && e.button !== 0) return;
         const tr = e.target.closest("tr");
         if (!tr || !tr.dataset || !tr.dataset.date) return;
-        openPopup(
-          tr.dataset.date,
-          parseFloat(tr.dataset.amt),
-          tr.dataset.type,
-          tr.dataset.year || null,
-          tr.dataset.txId || null
-        );
+        _cancelRowHold();
+        const row = tr;
+        const startX = e.clientX, startY = e.clientY;
+        row.classList.add("holding");
+        const timer = setTimeout(() => {
+          if (!_rowHold) return;
+          _rowHold.didHold = true;
+          row.classList.remove("holding");
+          try { if (navigator.vibrate) navigator.vibrate(15); } catch {}
+          openPopup(
+            row.dataset.date,
+            parseFloat(row.dataset.amt),
+            row.dataset.type,
+            row.dataset.year || null,
+            row.dataset.txId || null
+          );
+          _rowHold = null;
+        }, HOLD_MS);
+        _rowHold = { row, timer, startX, startY, didHold: false };
+      });
+      _txBody.addEventListener("pointermove", (e) => {
+        if (!_rowHold) return;
+        if (Math.hypot(e.clientX - _rowHold.startX, e.clientY - _rowHold.startY) > HOLD_MOVE_CANCEL_PX) _cancelRowHold();
+      });
+      _txBody.addEventListener("pointerup",     _cancelRowHold);
+      _txBody.addEventListener("pointercancel", _cancelRowHold);
+      _txBody.addEventListener("pointerleave",  _cancelRowHold);
+      // Suppress iOS long-press context menu on rows so it doesn't hijack the hold
+      _txBody.addEventListener("contextmenu", (e) => {
+        const tr = e.target.closest("tr");
+        if (tr && tr.dataset && tr.dataset.date) e.preventDefault();
       });
       window._txBodyDelegated = true;
     }
@@ -13733,9 +16026,13 @@ function initApp() {
   updateExportMenuSub();
   initCompatWarning();
   initTabConflictDetection();
+  enforceAccountTombstones();
   loadRecurring();
   runRecurringCheck();
   updateRecurMenuSub();
+  // Land on Home only after recurring rules are loaded/processed, so the Upcoming
+  // section sees the fully-populated recurRules on its first render.
+  if (!_didHomeLanding) { _didHomeLanding = true; switchTab("home"); }
   setInterval(() => {
     if (_anyOverlayOpen()) {
       dbg("recurring: hourly check deferred (overlay open)");
@@ -13994,16 +16291,25 @@ function processRecurring() {
 // the hourly recurring check so it doesn't post transactions (and re-render)
 // while the user has an edit popup or sheet open.
 function _anyOverlayOpen() {
+  // Standard *-popup edit dialogs (hidden by default via .hidden class)
   const popups = document.querySelectorAll('[id$="-popup"]');
   for (const el of popups) {
     if (!el.classList.contains('hidden')) return true;
   }
-  // Sheets use .open instead of .hidden
-  const sheetIds = ['add-sheet', 'menu-sheet', 'year-sheet'];
-  for (const id of sheetIds) {
+  // Sheets, About/Privacy overlays, and the desktop menu all use .open to show
+  const openClassIds = [
+    'add-sheet', 'menu-sheet', 'year-sheet',
+    'privacy-overlay', 'about-overlay', 'desktop-menu'
+  ];
+  for (const id of openClassIds) {
     const el = document.getElementById(id);
     if (el && el.classList.contains('open')) return true;
   }
+  // The PDF preview overlay uses inline display: none/flex rather than a class,
+  // so it needs its own check to keep the hourly recurring re-render at bay
+  // while the user is reviewing the print preview.
+  const pdfOverlay = document.getElementById('pdf-preview-overlay');
+  if (pdfOverlay && !pdfOverlay.classList.contains('hidden')) return true;
   return false;
 }
 
@@ -14807,7 +17113,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.4.93</div>
+          <div class="pp-meta" id="about-version-meta">Version v5.5.61</div>
         </div>
 
         <div class="pp-cards">
@@ -14916,7 +17222,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.4.93</div>
+  <div id="version-footer">v5.5.61</div>
 
 </body>
 </html>
