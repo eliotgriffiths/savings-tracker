@@ -321,8 +321,7 @@ Patch · was v3.8.2 · `89c80c7`
 
 Major\* · was v3.7.7 · `d399360`
 
-- **Breaking:** migration for pre-v5.0.0 data removed
-- transactions without IDs are skipped when merging or syncing
+- **Breaking:** migration for pre-v5.0.0 data removed, so transactions without IDs are skipped when merging or syncing
 - Edit recurring rules (amount, frequency, next date, end date)
 
 ## v5.0.10 — 2026-04-01
@@ -390,8 +389,7 @@ Patch · was v3.4.0 · `88cdec2`
 
 Major · was v3.3.9 · `9e42abe`
 
-- **Breaking:** transactions now carry an ID and timestamp
-- existing data is migrated automatically
+- **Breaking:** transactions now carry an ID and timestamp, and existing data is migrated automatically
 - **Breaking:** backup files are wrapped in a new format that also stores deletions and settings
 - Google Drive backup is back, plus network location (NAS/WebDAV) backup
 - Charts
@@ -528,8 +526,7 @@ Patch · was v1.3.2 · `0d742f0`
 
 Major · was v1.3.1 · `763c284`
 
-- **Breaking:** Google Sheets sync removed and replaced by Google Drive sync (`vault-data.json`)
-- the Apps Script URL setting is gone
+- **Breaking:** Google Sheets sync removed and replaced by Google Drive sync (`vault-data.json`), and the Apps Script URL setting is gone
 - All tab showing deposits and withdrawals together
 - Deposit/withdrawal toggle when adding on mobile
 - Setup tutorial, desktop menu and sync-status popup
