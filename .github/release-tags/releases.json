@@ -1,0 +1,1300 @@
+[
+  {
+    "tag": "v1.0.0",
+    "sha": "170f0134d80a2cb0646ced1985afab1c73adcc93",
+    "date": "2026-03-26",
+    "type": "Initial release",
+    "judgement_call": false,
+    "previous_version": null,
+    "commits": [
+      "170f013"
+    ],
+    "notes": [
+      "First version: track deposits and withdrawals grouped by financial year",
+      "Sync to Google Sheets via an Apps Script, or use local-only mode",
+      "Export to CSV"
+    ]
+  },
+  {
+    "tag": "v1.0.1",
+    "sha": "0147752977f3965ac9622ae4801847639e59df3b",
+    "date": "2026-03-26",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "commits": [
+      "0147752"
+    ],
+    "notes": [
+      "Google Sheets sync uses JSONP to avoid CORS errors"
+    ]
+  },
+  {
+    "tag": "v1.0.2",
+    "sha": "58027d28f1fd076c101aa61f5ae51aa347d63f80",
+    "date": "2026-03-26",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "commits": [
+      "58027d2"
+    ],
+    "notes": [
+      "Changes are saved to the Sheet immediately"
+    ]
+  },
+  {
+    "tag": "v1.0.3",
+    "sha": "e84d99015bae88a6ad4a796f21204e231e4d0eb4",
+    "date": "2026-03-26",
+    "type": "Patch",
+    "judgement_call": true,
+    "previous_version": null,
+    "commits": [
+      "e84d990"
+    ],
+    "notes": [
+      "Debug log panel for troubleshooting sync"
+    ]
+  },
+  {
+    "tag": "v1.0.4",
+    "sha": "b247affc4a82a17ff8f4d54dcfbc1baddbb94f7c",
+    "date": "2026-03-26",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "commits": [
+      "b247aff"
+    ],
+    "notes": [
+      "Saves are sent by POST with a JSONP fallback, fixing timeouts on large data"
+    ]
+  },
+  {
+    "tag": "v1.1.0",
+    "sha": "e1100e4a0cbd60bb7c6da70c32efbd51a943127c",
+    "date": "2026-03-26",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": null,
+    "commits": [
+      "e1100e4"
+    ],
+    "notes": [
+      "Renamed to Vault with a new design",
+      "Mobile layout with slide-up sheets for adding transactions and picking years",
+      "Background sync picks up changes made on other devices"
+    ]
+  },
+  {
+    "tag": "v1.2.0",
+    "sha": "bc4c267c25d975f9c3f1ce42449ce42c46d7b671",
+    "date": "2026-03-26",
+    "type": "Minor",
+    "judgement_call": true,
+    "previous_version": null,
+    "commits": [
+      "bc4c267"
+    ],
+    "notes": [
+      "Google sign-in screen (restricted to one account)",
+      "Tap a transaction to edit or delete it",
+      "Sortable columns",
+      "Collapsible sidebar",
+      "Debug button removed"
+    ]
+  },
+  {
+    "tag": "v1.2.1",
+    "sha": "3563e9926a57bbd96da33c39dff3f8b485660417",
+    "date": "2026-03-26",
+    "type": "Patch",
+    "judgement_call": true,
+    "previous_version": null,
+    "commits": [
+      "3563e99"
+    ],
+    "notes": [
+      "Saves to the Sheet include a write token that must match the Apps Script"
+    ]
+  },
+  {
+    "tag": "v1.3.0",
+    "sha": "e18bd6256fd935c7e03fa3570f5ef1680b51a8ac",
+    "date": "2026-03-26",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": null,
+    "commits": [
+      "e18bd62"
+    ],
+    "notes": [
+      "Report tab with totals for any date range and quick presets (all time, this FY, this year, this month)",
+      "Mobile menu"
+    ]
+  },
+  {
+    "tag": "v1.4.0",
+    "sha": "ce6e50b40e216819bd55799d964dbc87e5944568",
+    "date": "2026-03-26",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": null,
+    "commits": [
+      "ce6e50b"
+    ],
+    "notes": [
+      "Export any report range to CSV (replaces the per-year Export CSV button)",
+      "Report moved to a sidebar button"
+    ]
+  },
+  {
+    "tag": "v1.4.1",
+    "sha": "9246f7a8f74ec541cc3a12c6d39e682baf1b298f",
+    "date": "2026-03-26",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "commits": [
+      "9246f7a"
+    ],
+    "notes": [
+      "Sign-in is remembered for 30 days instead of per session",
+      "Sidebar layout fix"
+    ]
+  },
+  {
+    "tag": "v1.4.2",
+    "sha": "469497868507458c2690ed8c9ba5033a4dd00e04",
+    "date": "2026-03-26",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v1.0.0",
+    "commits": [
+      "4694978"
+    ],
+    "notes": [
+      "Version number shown in the footer"
+    ]
+  },
+  {
+    "tag": "v2.0.0",
+    "sha": "763c28482505af2058d66d8017eed34c383ced72",
+    "date": "2026-03-26",
+    "type": "Major",
+    "judgement_call": false,
+    "previous_version": "v1.3.1",
+    "commits": [
+      "763c284"
+    ],
+    "notes": [
+      "**Breaking:** Google Sheets sync removed and replaced by Google Drive sync (`vault-data.json`), and the Apps Script URL setting is gone",
+      "All tab showing deposits and withdrawals together",
+      "Deposit/withdrawal toggle when adding on mobile",
+      "Setup tutorial, desktop menu and sync-status popup"
+    ]
+  },
+  {
+    "tag": "v2.0.1",
+    "sha": "0d742f052dc38670e2becd7c03ab2121ba3f7a40",
+    "date": "2026-03-26",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v1.3.2",
+    "commits": [
+      "0d742f0"
+    ],
+    "notes": [
+      "Drive sync only uploads local data when the Drive file doesn't exist yet",
+      "Clearer Drive error messages"
+    ]
+  },
+  {
+    "tag": "v2.0.2",
+    "sha": "4c82836fcfa18afea348b7d49f571fba4d6848e9",
+    "date": "2026-03-26",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v1.3.3",
+    "commits": [
+      "4c82836"
+    ],
+    "notes": [
+      "Clearer error when creating the Drive file fails"
+    ]
+  },
+  {
+    "tag": "v2.1.0",
+    "sha": "33a7fb6e847ddf2262e17372c45cb8ef82caf669",
+    "date": "2026-03-28",
+    "type": "Minor",
+    "judgement_call": true,
+    "previous_version": "v2.4.6",
+    "commits": [
+      "33a7fb6"
+    ],
+    "notes": [
+      "Recurring transactions (weekly to yearly)",
+      "Calendar-year or financial-year mode with a custom FY start date",
+      "Excel spreadsheet export (replaces CSV export)",
+      "Desktop Add Transaction dialog",
+      "Transactions are filed into the correct year automatically"
+    ]
+  },
+  {
+    "tag": "v2.1.1",
+    "sha": "b5ad6916f1edae71bc1e2225d7d5b7c72acf9231",
+    "date": "2026-03-28",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v2.4.8",
+    "commits": [
+      "b5ad691"
+    ],
+    "notes": [
+      "Code clean-up",
+      "Table fills the full width",
+      "Row hover style"
+    ]
+  },
+  {
+    "tag": "v2.2.0",
+    "sha": "26918f4ffd77f4ec42399a225505df539e65f772",
+    "date": "2026-03-28",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": "v2.5.0",
+    "commits": [
+      "26918f4"
+    ],
+    "notes": [
+      "Log Out option that syncs to Drive first",
+      "Menu reachable on phones in landscape"
+    ]
+  },
+  {
+    "tag": "v2.3.0",
+    "sha": "9fec0648bef0970e266c1cad1433084b576cbc80",
+    "date": "2026-03-28",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": "v2.5.3",
+    "commits": [
+      "9fec064"
+    ],
+    "notes": [
+      "When connecting Drive and a Vault file already exists, choose to load it or start fresh"
+    ]
+  },
+  {
+    "tag": "v2.4.0",
+    "sha": "704aab9ec6c6e7653e3405a90373ed3b709f060c",
+    "date": "2026-03-28",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": "v2.5.5",
+    "commits": [
+      "704aab9"
+    ],
+    "notes": [
+      "Disconnecting Drive asks whether to keep or clear local data"
+    ]
+  },
+  {
+    "tag": "v2.5.0",
+    "sha": "cf58a3116829d75a7241488c4e3e9e560f78f683",
+    "date": "2026-03-28",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": "v2.6.3",
+    "commits": [
+      "cf58a31"
+    ],
+    "notes": [
+      "Optional password encryption for the Drive backup, with a downloadable recovery key",
+      "Menu item renamed Sync & Backup"
+    ]
+  },
+  {
+    "tag": "v3.0.0",
+    "sha": "53d36356b8113dd9319f06c619026b4816af26fa",
+    "date": "2026-03-28",
+    "type": "Major",
+    "judgement_call": true,
+    "previous_version": "v2.6.6",
+    "commits": [
+      "53d3635"
+    ],
+    "notes": [
+      "**Breaking:** Google sign-in screen and Log Out removed",
+      "Save to and load from a local file"
+    ]
+  },
+  {
+    "tag": "v3.0.1",
+    "sha": "d75e157c9071f262508211abdac181baabd32039",
+    "date": "2026-03-28",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v2.6.7",
+    "commits": [
+      "d75e157"
+    ],
+    "notes": [
+      "Restored the Google script needed to connect Drive"
+    ]
+  },
+  {
+    "tag": "v3.0.2",
+    "sha": "512ac5e1cb419632755068fc68e7fd44eb3e9784",
+    "date": "2026-03-28",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v2.6.8",
+    "commits": [
+      "512ac5e"
+    ],
+    "notes": [
+      "Sync & Backup screen reorganised into cards"
+    ]
+  },
+  {
+    "tag": "v4.0.0",
+    "sha": "88541c994b8e9ffa045559844e58cc1ecfed5c9c",
+    "date": "2026-03-29",
+    "type": "Major",
+    "judgement_call": false,
+    "previous_version": "v2.7.5",
+    "commits": [
+      "88541c9"
+    ],
+    "notes": [
+      "**Breaking:** Google Drive sync removed, replaced by automatic saving to a local file you choose",
+      "Encryption moved to its own menu",
+      "Setup tutorial and sync-status popup removed"
+    ]
+  },
+  {
+    "tag": "v4.0.1",
+    "sha": "bcc9e29a7dcea4af63406d9a4c8c94f6bd3f1960",
+    "date": "2026-03-29",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v2.7.8",
+    "commits": [
+      "bcc9e29"
+    ],
+    "notes": [
+      "Save-status indicator in the header"
+    ]
+  },
+  {
+    "tag": "v4.0.2",
+    "sha": "13b92dba32255e9b6eca1bf518e9b3ff5ae11101",
+    "date": "2026-03-29",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v2.8.1",
+    "commits": [
+      "13b92db"
+    ],
+    "notes": [
+      "Sync & Backup renamed Storage & Backup",
+      "Layout tweaks"
+    ]
+  },
+  {
+    "tag": "v4.1.0",
+    "sha": "8feba2eec9835e67dbd33059cabf89bd7d9f0f30",
+    "date": "2026-03-29",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": "v2.8.5",
+    "commits": [
+      "8feba2e"
+    ],
+    "notes": [
+      "First-run welcome screen: save to a file, load a file, or use browser storage",
+      "Prompt to encrypt when choosing a file",
+      "Clear all browser data option"
+    ]
+  },
+  {
+    "tag": "v4.1.1",
+    "sha": "f2e1099f50cbf05d9bac2dc27707344a481f38d7",
+    "date": "2026-03-29",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v2.8.6",
+    "commits": [
+      "f2e1099"
+    ],
+    "notes": [
+      "Clearing browser data no longer overwrites the linked file with empty data"
+    ]
+  },
+  {
+    "tag": "v4.2.0",
+    "sha": "07533b1e53ae5703e5916b8e52dda28ca3231bbc",
+    "date": "2026-03-29",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": "v2.9.2",
+    "commits": [
+      "07533b1"
+    ],
+    "notes": [
+      "Export Spreadsheet and Print in the menu",
+      "Banner for browsers that can't auto-save to a file",
+      "Reminder to back up after several changes"
+    ]
+  },
+  {
+    "tag": "v4.2.1",
+    "sha": "49ec3f72edd26ba479668c6fc2d78cf13add07f3",
+    "date": "2026-03-29",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v2.9.3",
+    "commits": [
+      "040bed8",
+      "49ec3f7"
+    ],
+    "notes": [
+      "Linked-file panel wording and styling"
+    ]
+  },
+  {
+    "tag": "v5.0.0",
+    "sha": "9e42abee44be7daa12abe6476e647888ba6b88ed",
+    "date": "2026-03-31",
+    "type": "Major",
+    "judgement_call": false,
+    "previous_version": "v3.3.9",
+    "commits": [
+      "9e42abe"
+    ],
+    "notes": [
+      "**Breaking:** transactions now carry an ID and timestamp, and existing data is migrated automatically",
+      "**Breaking:** backup files are wrapped in a new format that also stores deletions and settings",
+      "Google Drive backup is back, plus network location (NAS/WebDAV) backup",
+      "Charts",
+      "Search with amount filter",
+      "Auto-lock screen",
+      "Warning when Vault is open in two tabs"
+    ]
+  },
+  {
+    "tag": "v5.0.1",
+    "sha": "88cdec2d8c2e0910f74bc6409820a62020fb9eb0",
+    "date": "2026-03-31",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v3.4.0",
+    "commits": [
+      "88cdec2"
+    ],
+    "notes": [
+      "Drive sign-in redirect moved to vaultsavings.app"
+    ]
+  },
+  {
+    "tag": "v5.0.2",
+    "sha": "9cd4f27145b96454432a82b103124df463d65ec3",
+    "date": "2026-03-31",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v3.4.1",
+    "commits": [
+      "9cd4f27"
+    ],
+    "notes": [
+      "Welcome screen no longer appears during the Drive sign-in redirect"
+    ]
+  },
+  {
+    "tag": "v5.0.3",
+    "sha": "c6e10262314599965f5d541f00808cf66f17ebf5",
+    "date": "2026-03-31",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v3.4.2",
+    "commits": [
+      "c6e1026"
+    ],
+    "notes": [
+      "Further fix for the welcome screen appearing during Drive sign-in"
+    ]
+  },
+  {
+    "tag": "v5.0.4",
+    "sha": "912e0a1f4a65ddab43bfef2b05fccea49fdd8b19",
+    "date": "2026-03-31",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v3.4.3",
+    "commits": [
+      "912e0a1"
+    ],
+    "notes": [
+      "Further fix for the welcome screen appearing during Drive sign-in"
+    ]
+  },
+  {
+    "tag": "v5.0.5",
+    "sha": "008b246b154c8a6abf5d1967fa9ec3a70696e741",
+    "date": "2026-03-31",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v3.4.4",
+    "commits": [
+      "008b246"
+    ],
+    "notes": [
+      "Further fix for the welcome screen appearing during Drive sign-in",
+      "Drive connection remembered across sessions"
+    ]
+  },
+  {
+    "tag": "v5.0.6",
+    "sha": "5f4c55b4bca1dd8201e6c655c5f3b4f4e35014b7",
+    "date": "2026-03-31",
+    "type": "Patch",
+    "judgement_call": true,
+    "previous_version": "v3.4.5",
+    "commits": [
+      "5f4c55b"
+    ],
+    "notes": [
+      "First-run welcome screen turned off (storage options remain in the menu)"
+    ]
+  },
+  {
+    "tag": "v5.0.7",
+    "sha": "a80d406742ce4917c2e0cc1d198a9844e36a01a3",
+    "date": "2026-03-31",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v3.4.6",
+    "commits": [
+      "a80d406"
+    ],
+    "notes": [
+      "Clearer Drive sign-in errors"
+    ]
+  },
+  {
+    "tag": "v5.0.8",
+    "sha": "a796f8b09663c824b7e72392e8f72e21c580100c",
+    "date": "2026-03-31",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v3.4.7",
+    "commits": [
+      "a796f8b"
+    ],
+    "notes": [
+      "Fixed Drive sign-in token exchange"
+    ]
+  },
+  {
+    "tag": "v5.0.9",
+    "sha": "33a73753aaa31d08a5b076307d8188e8ea869012",
+    "date": "2026-04-01",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v3.4.8",
+    "commits": [
+      "33a7375"
+    ],
+    "notes": [
+      "Removes duplicate transactions created when two devices migrated old data separately"
+    ]
+  },
+  {
+    "tag": "v5.0.10",
+    "sha": "415c3854111913a6db31858be35c63e8cb97d4f2",
+    "date": "2026-04-01",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v3.5.0",
+    "commits": [
+      "415c385"
+    ],
+    "notes": [
+      "Prevents migration duplicates when connecting Drive on a new device"
+    ]
+  },
+  {
+    "tag": "v6.0.0",
+    "sha": "d39936075251e36c04e4bf3d044d503ec950c75b",
+    "date": "2026-04-03",
+    "type": "Major",
+    "judgement_call": true,
+    "previous_version": "v3.7.7",
+    "commits": [
+      "d399360"
+    ],
+    "notes": [
+      "**Breaking:** migration for pre-v5.0.0 data removed, so transactions without IDs are skipped when merging or syncing",
+      "Edit recurring rules (amount, frequency, next date, end date)"
+    ]
+  },
+  {
+    "tag": "v6.0.1",
+    "sha": "89c80c7349d77ad75977db7cd314f50360c901e4",
+    "date": "2026-04-03",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v3.8.2",
+    "commits": [
+      "89c80c7"
+    ],
+    "notes": [
+      "Desktop menu grouped into sections",
+      "PDF preview restyled"
+    ]
+  },
+  {
+    "tag": "v6.1.0",
+    "sha": "3756b691382a87bc71894c2dc095aab0f6dbcb50",
+    "date": "2026-04-04",
+    "type": "Minor",
+    "judgement_call": true,
+    "previous_version": "v4.1.3",
+    "commits": [
+      "3756b69"
+    ],
+    "notes": [
+      "Add, edit and delete recurring rules in dialogs",
+      "Choose to merge or overwrite when a backup location already has a Vault file",
+      "Confirmation before switching backup location",
+      "Manual Drive Load and Save now buttons removed (sync is automatic)"
+    ]
+  },
+  {
+    "tag": "v6.1.1",
+    "sha": "36a6a41b33f333a34d1dbc38f3b61e53dd64e530",
+    "date": "2026-04-04",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v4.1.5",
+    "commits": [
+      "36a6a41"
+    ],
+    "notes": [
+      "Merge choice is kept when switching to Drive (survives the sign-in redirect)"
+    ]
+  },
+  {
+    "tag": "v6.1.2",
+    "sha": "f1470b13c9d6b1ba4a5cbf530eb3d99dcb935c02",
+    "date": "2026-04-04",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v4.1.7",
+    "commits": [
+      "f1470b1"
+    ],
+    "notes": [
+      "Deleted recurring rules no longer come back after syncing",
+      "New favicon"
+    ]
+  },
+  {
+    "tag": "v6.1.3",
+    "sha": "970f53ee2574e19ad7f9a0932a3093c68cbea493",
+    "date": "2026-04-04",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v4.2.0",
+    "commits": [
+      "970f53e"
+    ],
+    "notes": [
+      "Linking a local file offers the same merge/overwrite choice as Drive",
+      "Unused code removed"
+    ]
+  },
+  {
+    "tag": "v6.1.4",
+    "sha": "a81bb128ba21667775cd003c5667e8da620aae06",
+    "date": "2026-04-04",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v4.2.1",
+    "commits": [
+      "a81bb12"
+    ],
+    "notes": [
+      "New home-screen icon for iPhone and iPad"
+    ]
+  },
+  {
+    "tag": "v6.2.0",
+    "sha": "b5c8325889ae094707eea5cea5c46caf8e46d372",
+    "date": "2026-04-05",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": "v4.4.2",
+    "commits": [
+      "b5c8325"
+    ],
+    "notes": [
+      "Privacy Policy page",
+      "Tap the save-status indicator for a guide to what each status means"
+    ]
+  },
+  {
+    "tag": "v6.2.1",
+    "sha": "1b4033453ca36d4dad1b0e6338ed641bb27e879b",
+    "date": "2026-04-05",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v4.4.5",
+    "commits": [
+      "1b40334"
+    ],
+    "notes": [
+      "Save-status guide made more compact"
+    ]
+  },
+  {
+    "tag": "v6.3.0",
+    "sha": "5fadbe42e57adead47a3a4cd862144d97b25bac5",
+    "date": "2026-04-07",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": "v4.7.7",
+    "commits": [
+      "5fadbe4"
+    ],
+    "notes": [
+      "Choose your currency, with conversion at live exchange rates",
+      "Interest transaction type",
+      "About page",
+      "Edit or delete all transactions created by a recurring rule"
+    ]
+  },
+  {
+    "tag": "v6.4.0",
+    "sha": "6752b719c1d0a02926013741f318ba9f4b272f67",
+    "date": "2026-04-19 to 2026-04-20",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": "v5.4.18",
+    "commits": [
+      "d4be840",
+      "6752b71"
+    ],
+    "notes": [
+      "Multiple savings accounts, each with its own currency",
+      "AI provider settings and AI statement import (not yet in the menu)",
+      "Drive sign-in handled by a server so no secret is stored in the app",
+      "Fixed a loop when resolving a currency mismatch",
+      "Mobile table layout fixes"
+    ]
+  },
+  {
+    "tag": "v6.4.1",
+    "sha": "b442641bd61ee02680b036a6b4393aaaff48d6b0",
+    "date": "2026-04-20",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.19",
+    "commits": [
+      "b442641"
+    ],
+    "notes": [
+      "AI connection test no longer retries when rate-limited"
+    ]
+  },
+  {
+    "tag": "v6.4.2",
+    "sha": "1258dbb085b6b5453a35b34f4679ca9684cfe66f",
+    "date": "2026-04-20",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.21",
+    "commits": [
+      "1258dbb"
+    ],
+    "notes": [
+      "Saved AI keys are shown collapsed",
+      "Billing hint on AI quota errors"
+    ]
+  },
+  {
+    "tag": "v6.4.3",
+    "sha": "7445e211bb1e2109608bd5635a7a2947e654f836",
+    "date": "2026-04-20",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.22",
+    "commits": [
+      "7445e21"
+    ],
+    "notes": [
+      "Clearer AI quota error",
+      "Error messages stay on screen longer"
+    ]
+  },
+  {
+    "tag": "v6.4.4",
+    "sha": "4d6edce406fb43ac40748321cabef06429704549",
+    "date": "2026-04-20",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.24",
+    "commits": [
+      "4d6edce"
+    ],
+    "notes": [
+      "AI connection test falls back to the main model if the test model is retired"
+    ]
+  },
+  {
+    "tag": "v6.5.0",
+    "sha": "3e7f6c0d5fe9618338b3828323f5eb242738ab33",
+    "date": "2026-04-20",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": "v5.4.25",
+    "commits": [
+      "3e7f6c0"
+    ],
+    "notes": [
+      "Import (AI) added to the menu"
+    ]
+  },
+  {
+    "tag": "v6.5.1",
+    "sha": "72194fa7fd2eca28d598096f886b36665d736e4f",
+    "date": "2026-04-20",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.26",
+    "commits": [
+      "72194fa"
+    ],
+    "notes": [
+      "Retries when the AI provider is overloaded"
+    ]
+  },
+  {
+    "tag": "v6.5.2",
+    "sha": "9e024efef7b8592769e0a778dbef0ee5a2f1aac7",
+    "date": "2026-04-20",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.27",
+    "commits": [
+      "9e024ef"
+    ],
+    "notes": [
+      "Hidden shortcut to export AI import results as JSON"
+    ]
+  },
+  {
+    "tag": "v6.5.3",
+    "sha": "845d0d67ab6046f88ae3044eb6f0f96c190c5bbe",
+    "date": "2026-04-20",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.28",
+    "commits": [
+      "845d0d6"
+    ],
+    "notes": [
+      "Hidden export shortcut removed",
+      "Gemini test model changed"
+    ]
+  },
+  {
+    "tag": "v6.5.4",
+    "sha": "7d0f43c59cbc8d7e0cf656442246bfb0e551a5be",
+    "date": "2026-04-20",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.29",
+    "commits": [
+      "7d0f43c"
+    ],
+    "notes": [
+      "Hidden export shortcut restored as Ctrl+Shift+X"
+    ]
+  },
+  {
+    "tag": "v6.5.5",
+    "sha": "876e5e7a1d19a1106bfe0784b6ba86f4565e1423",
+    "date": "2026-04-20",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.31",
+    "commits": [
+      "876e5e7"
+    ],
+    "notes": [
+      "AI retries back off gradually",
+      "Animated import progress bar"
+    ]
+  },
+  {
+    "tag": "v6.5.6",
+    "sha": "0601f28d5728c3c36a683091556b05db011f17c2",
+    "date": "2026-04-20",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.32",
+    "commits": [
+      "0601f28"
+    ],
+    "notes": [
+      "Switched to Gemini 2.0 Flash",
+      "Combined retry handling for busy and rate-limited responses"
+    ]
+  },
+  {
+    "tag": "v6.5.7",
+    "sha": "02a2d7344c9b891e2cf94545793f63bedcd746ea",
+    "date": "2026-04-20",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.33",
+    "commits": [
+      "02a2d73"
+    ],
+    "notes": [
+      "Switched to Gemini 2.5 Flash-Lite"
+    ]
+  },
+  {
+    "tag": "v6.5.8",
+    "sha": "dfe54d27f45df395c5a8e20978d9d922a4060e70",
+    "date": "2026-04-20",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.34",
+    "commits": [
+      "dfe54d2"
+    ],
+    "notes": [
+      "AI import is stricter about what counts as interest"
+    ]
+  },
+  {
+    "tag": "v6.5.9",
+    "sha": "02ad9701c15ec8347f007ebc4b3b450ec3138462",
+    "date": "2026-04-20",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.35",
+    "commits": [
+      "02ad970"
+    ],
+    "notes": [
+      "AI import no longer skips rows just because they mention interest"
+    ]
+  },
+  {
+    "tag": "v6.5.10",
+    "sha": "a718b9f5f02c5c60a47cfd3ed832dc3e8fc5e9d7",
+    "date": "2026-04-20",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.36",
+    "commits": [
+      "a718b9f"
+    ],
+    "notes": [
+      "Spreadsheet imports read every sheet, not just the first"
+    ]
+  },
+  {
+    "tag": "v6.5.11",
+    "sha": "e0c304d34b69a03c4657b56a076efb6142862bc1",
+    "date": "2026-04-20",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.37",
+    "commits": [
+      "e0c304d"
+    ],
+    "notes": [
+      "AI import detects pending transactions"
+    ]
+  },
+  {
+    "tag": "v6.5.12",
+    "sha": "2b11c3065fa0ed89242c8f28e748411b6c7eb5df",
+    "date": "2026-04-21",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.38",
+    "commits": [
+      "2b11c30"
+    ],
+    "notes": [
+      "AI import prompt wording tweak"
+    ]
+  },
+  {
+    "tag": "v6.5.13",
+    "sha": "8bb308f1589b4b84e4b64b2adc43bdda63d0c007",
+    "date": "2026-04-21",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.39",
+    "commits": [
+      "8bb308f"
+    ],
+    "notes": [
+      "AI import handles statements with separate Debit and Credit columns"
+    ]
+  },
+  {
+    "tag": "v6.5.14",
+    "sha": "83dfd554705784bd68531b3e106adfb2299c2c4c",
+    "date": "2026-04-22",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.42",
+    "commits": [
+      "dafc875",
+      "1df2439",
+      "9ce5523",
+      "83dfd55"
+    ],
+    "notes": [
+      "Smoother per-file import progress",
+      "Backup reminder hidden when cloud sync is active",
+      "Clearer AI provider errors",
+      "Updated Grok model and API"
+    ]
+  },
+  {
+    "tag": "v6.5.15",
+    "sha": "346f0b91534f1f0d0e042d4e35d9f0359f494fbe",
+    "date": "2026-04-22",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.48",
+    "commits": [
+      "346f0b9"
+    ],
+    "notes": [
+      "Stray spaces trimmed from AI keys"
+    ]
+  },
+  {
+    "tag": "v6.5.16",
+    "sha": "f961a3971a00114fbecf14cb18843d260272008f",
+    "date": "2026-04-22",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.49",
+    "commits": [
+      "f961a39"
+    ],
+    "notes": [
+      "Removed AI keys are no longer restored by sync"
+    ]
+  },
+  {
+    "tag": "v6.6.0",
+    "sha": "1c159853587a734603ea623a89e53ef4ff04dd28",
+    "date": "2026-04-23",
+    "type": "Minor",
+    "judgement_call": true,
+    "previous_version": "v5.4.51",
+    "commits": [
+      "1c15985"
+    ],
+    "notes": [
+      "AI import accepts TXT and SVG files",
+      "Images converted automatically for providers that only accept JPG/PNG",
+      "Fallback for Numbers files that can't be read directly"
+    ]
+  },
+  {
+    "tag": "v6.6.1",
+    "sha": "e69213c5ca10462fe54436b7edeb8f42032271d6",
+    "date": "2026-04-23",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.52",
+    "commits": [
+      "e69213c"
+    ],
+    "notes": [
+      "Progress bar code tidy-up"
+    ]
+  },
+  {
+    "tag": "v6.6.2",
+    "sha": "35bfeddc828f4da0b446b16137a8bce44a1f688a",
+    "date": "2026-04-23",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.53",
+    "commits": [
+      "35bfedd"
+    ],
+    "notes": [
+      "Progress bar animation restyled"
+    ]
+  },
+  {
+    "tag": "v6.6.3",
+    "sha": "9ee771f2a0b4bf30b4cf53436d9417df5ef0bf9d",
+    "date": "2026-04-23",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.54",
+    "commits": [
+      "9ee771f"
+    ],
+    "notes": [
+      "PDF import works with Grok"
+    ]
+  },
+  {
+    "tag": "v6.6.4",
+    "sha": "b463ee95e213539e4e3989a215925aa964cff18c",
+    "date": "2026-04-23",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.55",
+    "commits": [
+      "b463ee9"
+    ],
+    "notes": [
+      "Fixed Grok request format"
+    ]
+  },
+  {
+    "tag": "v6.6.5",
+    "sha": "e8dd2f3ff935a2445bf67b5e72d5ded9b45d175a",
+    "date": "2026-04-23",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.56",
+    "commits": [
+      "e8dd2f3"
+    ],
+    "notes": [
+      "AI import interest rule tweak"
+    ]
+  },
+  {
+    "tag": "v6.6.6",
+    "sha": "3caf97e37235de727075196f6ff07fcf12646f17",
+    "date": "2026-04-23",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.57",
+    "commits": [
+      "3caf97e"
+    ],
+    "notes": [
+      "SVG imports send only the text content"
+    ]
+  },
+  {
+    "tag": "v6.6.7",
+    "sha": "cf87bd40831f6bebf799d9318c42380acc816554",
+    "date": "2026-04-23",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.58",
+    "commits": [
+      "cf87bd4"
+    ],
+    "notes": [
+      "Retries when the AI returns no transactions"
+    ]
+  },
+  {
+    "tag": "v6.6.8",
+    "sha": "5a65b73d69204cad0dc24e629ea6db18d7619a57",
+    "date": "2026-04-23",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.59",
+    "commits": [
+      "5a65b73"
+    ],
+    "notes": [
+      "SVG files skip image conversion"
+    ]
+  },
+  {
+    "tag": "v6.7.0",
+    "sha": "2effa997a29acd0c92983029e0a806c4384e2eb9",
+    "date": "2026-05-07",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": "v5.4.92",
+    "commits": [
+      "2effa99"
+    ],
+    "notes": [
+      "Transaction list is paginated",
+      "Recurring rule history, with the option to re-add skipped dates",
+      "Edit or delete \"this only\" or \"all in series\"",
+      "Warning when browser storage is full"
+    ]
+  },
+  {
+    "tag": "v6.7.1",
+    "sha": "076066c320ad7f8e94f672bfe9c349313fc6116d",
+    "date": "2026-05-08",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": "v5.4.93",
+    "commits": [
+      "076066c"
+    ],
+    "notes": [
+      "Fixed duplicate transaction IDs that made deleted or recurring transactions reappear"
+    ]
+  },
+  {
+    "tag": "v6.8.0",
+    "sha": "8eec5d93c2844162f02df72056ba2edb07da6d01",
+    "date": "2026-07-14",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": "v5.5.61",
+    "commits": [
+      "8eec5d9"
+    ],
+    "notes": [
+      "Home dashboard: overview, this month, trend, projection, interest earned, savings streak, upcoming and comparisons",
+      "Account colours",
+      "Deleting an account syncs across devices",
+      "When deleting an account, move its transactions or delete them",
+      "Print charts"
+    ]
+  },
+  {
+    "tag": "v6.9.0",
+    "sha": "e5c291274b23fcfeab9db741966c1812d4c55402",
+    "date": "2026-10-06",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": "v5.11.9",
+    "commits": [
+      "e5c2912"
+    ],
+    "notes": [
+      "Savings goals",
+      "Customisable Home layout (reorder and hide sections)",
+      "FX impact and currency exposure",
+      "Activity calendar, milestones, records and last-month recap",
+      "Search from Home",
+      "Filter reports by account"
+    ]
+  }
+]

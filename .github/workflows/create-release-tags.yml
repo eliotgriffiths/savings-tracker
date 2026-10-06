@@ -1,0 +1,32 @@
+# Creates a tag (and optionally a GitHub Release) for every version in
+# CHANGELOG.md, using .github/release-tags/releases.json. Run it by hand from
+# the Actions tab. Re-running it is safe: existing tags and releases are kept.
+name: Create release tags
+
+on:
+  workflow_dispatch:
+    inputs:
+      create_releases:
+        description: "Also create a GitHub Release for each version"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: create-release-tags
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create tags and releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CREATE_RELEASES: ${{ inputs.create_releases }}
+        run: python3 .github/release-tags/create_release_tags.py
