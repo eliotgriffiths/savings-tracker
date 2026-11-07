@@ -3119,6 +3119,7 @@
 #home-panel .vh-int-proj-sub { display:block; font-size:10px; letter-spacing:0; text-transform:none; font-weight:400; color:var(--text-3); margin-top:3px; }
 #home-panel .vh-int-proj-val { font-size:15px; font-weight:700; color:var(--gold); font-variant-numeric:tabular-nums; white-space:nowrap; }
 #home-panel .vh-yield-foot span { font-size:10px; color:var(--text-3); line-height:1.45; }
+#home-panel .vh-yield-foot .vh-yield-fn { font-size:12px; margin-right:2px; }
 #home-panel .vh-int-trend { margin-top:14px; padding-top:14px; border-top:1px dashed var(--border); }
 #home-panel .vh-int-trend-top { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:10px; }
 #home-panel .vh-int-trend-yoy { font-size:11.5px; font-weight:600; color:var(--text-2); font-variant-numeric:tabular-nums; white-space:nowrap; }
@@ -14746,15 +14747,22 @@ function vhRenderInterest() {
     let bw = 0, bwa = 0;
     live.forEach(({ a, y }) => { const g = convertToGlobal(y.bal, a.currency || currencyCode); if (g > 0) { bw += g; bwa += g * y.apy; } });
     const blended = (live.length >= 2 && bw > 0) ? bwa / bw : null;
-    let needHist = false, needVar = false, needStale = false, rows = "";
-    yields.forEach(({ a, y }, i) => {
+    // Which caveat (if any) each rate carries. Stale outranks the other two:
+    // whether the rate is thin or variable matters much less than whether it is
+    // still being paid at all.
+    const noteOf = y => {
       const relSpread = y.apy > 0.005 ? (y.high - y.low) / y.apy : 0;
-      let mark = "";
-      // Stale outranks the other two: whether the rate is thin or variable matters
-      // much less than whether it is still being paid at all.
-      if (y.stale) { mark = "†"; needStale = true; }
-      else if (y.payments < 3) { mark = "*"; needHist = true; }
-      else if (relSpread > 0.4) { mark = "~"; needVar = true; }
+      return y.stale ? "stale" : y.payments < 3 ? "hist" : relSpread > 0.4 ? "var" : "";
+    };
+    const notes = yields.map(({ y }) => noteOf(y));
+    const needStale = notes.includes("stale"), needHist = notes.includes("hist"), needVar = notes.includes("var");
+    // Footnotes are numbered ¹ ² ³ in the order they're printed, counting only the
+    // ones present. (Previously † * ~ — the dagger read as a crucifix.)
+    const noteOrder = ["stale", "hist", "var"].filter(k => notes.includes(k));
+    const noteMark = k => "¹²³"[noteOrder.indexOf(k)];
+    let rows = "";
+    yields.forEach(({ a, y }, i) => {
+      const mark = notes[i] ? noteMark(notes[i]) : "";
       const showRange = (y.high - y.low) > 0.01;
       const best = live.length >= 2 && i === bestIdx && !y.stale;
       rows += `<div class="vh-yield-row${best ? ' best' : ''}${y.stale ? ' stale' : ''}">`
@@ -14776,14 +14784,14 @@ function vhRenderInterest() {
         const [sy, sm] = y.lastKey.split("-").map(Number);
         return MONTH_NAMES_SHORT[sm - 1] + " " + sy;
       });
-      foot += `<span>&dagger; ${names} ${staleOnes.length === 1 ? "has" : "have"} paid no interest since `
+      foot += `<span><span class="vh-yield-fn">${noteMark("stale")}</span>${names} ${staleOnes.length === 1 ? "has" : "have"} paid no interest since `
             + `${when.join(", ")}. That rate is what it used to pay, so `
             + (willProject ? `it is left out of the projection below.`
                            : `no forward projection is shown.`)
             + `</span>`;
     }
-    if (needHist) foot += `<span>* based on very little interest history yet &mdash; this will sharpen over time.</span>`;
-    if (needVar) foot += `<span>~ this rate has varied recently &mdash; likely a variable or bonus rate, so treat it loosely.</span>`;
+    if (needHist) foot += `<span><span class="vh-yield-fn">${noteMark("hist")}</span>based on very little interest history yet &mdash; this will sharpen over time.</span>`;
+    if (needVar) foot += `<span><span class="vh-yield-fn">${noteMark("var")}</span>this rate has varied recently &mdash; likely a variable or bonus rate, so treat it loosely.</span>`;
     // Forward projection: bwa is Σ(balance × apy) across the accounts still paying,
     // i.e. the expected interest over the next 12 months at today's balances.
     //
@@ -14803,7 +14811,7 @@ function vhRenderInterest() {
         + `<span class="vh-int-proj-label">Projected next 12 months`
         + `<span class="vh-int-proj-sub">on today's ${aud(bw)} at current rates</span></span>`
         + `<span class="vh-int-proj-val">&asymp; ${aud(bwa)}`
-        + (needHist ? `<span class="vh-yield-mark">*</span>` : "")
+        + (needHist ? `<span class="vh-yield-mark">${noteMark("hist")}</span>` : "")
         + `</span></div>`;
     }
     yieldHtml = `<div class="vh-yield"><div class="vh-yield-top"><span class="vh-yield-label">Estimated rate</span>`
@@ -21907,7 +21915,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.10.0</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.10.1</div>
         </div>
 
         <div class="pp-cards">
@@ -22016,7 +22024,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v6.10.0</div>
+  <div id="version-footer">v6.10.1</div>
 
 </body>
 </html>
