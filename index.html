@@ -2952,11 +2952,25 @@
 /* Results overlay hangs beneath the whole corner, right-aligned under the field. */
 #home-panel .vh-search-drop { position:absolute; top:44px; right:0; width:min(84vw,340px);
   background:var(--bg1); border:1px solid var(--border-hi); border-radius:var(--radius-lg);
-  box-shadow:0 12px 32px rgba(0,0,0,0.45); overflow:hidden; display:none; }
-#home-panel .vh-search-corner.open .vh-search-drop.has-content { display:block; }
-/* Link-only (empty) state: no box, no background — just the link floating under
-   the field. The full card treatment is only for results and no-match lists. */
-#home-panel .vh-search-drop.bare { background:none; border:none; box-shadow:none; }
+  overflow:hidden;
+  /* Reveals the way the field does: grows leftward from the right edge and fades
+     in on the same 0.24s/0.18s curve, trailing the field by a beat so it reads
+     as following it out. clip-path rather than width so the link and result rows
+     don't reflow mid-animation; the open inset is negative so the shadow isn't
+     clipped. The shadow itself lands after the reveal — mid-sweep, the clip's
+     moving edge cut it into a hard dark strip over the content behind.
+     visibility waits for the close to finish before hiding. */
+  visibility:hidden; opacity:0; pointer-events:none; clip-path:inset(0 0 0 100%);
+  box-shadow:0 12px 32px rgba(0,0,0,0);
+  transition:clip-path 0.24s ease, opacity 0.18s ease, box-shadow 0.1s ease, visibility 0s linear 0.24s; }
+#home-panel .vh-search-corner.open .vh-search-drop.has-content { visibility:visible; opacity:1; pointer-events:auto;
+  clip-path:inset(-48px); box-shadow:0 12px 32px rgba(0,0,0,0.45);
+  transition:clip-path 0.24s ease 0.06s, opacity 0.18s ease 0.06s, box-shadow 0.2s ease 0.28s, visibility 0s; }
+/* Link-only (empty) state: a compact pill sized to the link, matching the ⋮ menu.
+   It used to have no background, so the link printed straight over the hero's
+   greeting line beneath it. Results and no-match lists keep the full-width card. */
+#home-panel .vh-search-drop.bare { width:auto; border-radius:var(--radius); }
+#home-panel .vh-search-drop.bare .vh-search-all.solo { white-space:nowrap; padding:11px 16px; }
 #home-panel .vh-home-title { pointer-events:auto; font-family:'DM Serif Display',serif; font-size:21px; line-height:1; color:var(--text-1); }
 #home-panel .vh-topbar-actions { display:flex; align-items:center; gap:8px; pointer-events:auto; }
 #home-panel .vh-menu { position:relative; pointer-events:auto; }
@@ -21915,7 +21929,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.10.1</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.10.2</div>
         </div>
 
         <div class="pp-cards">
@@ -22024,7 +22038,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v6.10.1</div>
+  <div id="version-footer">v6.10.2</div>
 
 </body>
 </html>
