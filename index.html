@@ -6512,6 +6512,7 @@ let data = {}, activeYear, activeTab = "all";
 let activeMonth = null;
 let expandedYears = new Set();
 let sortKey = "date", sortDir = "asc";
+let sortTs  = 0; // when the user last changed the sort — last-write-wins across devices (v6.10.0)
 
 // ─── accounts ─────────────────────────────────────────────────────────────────
 // accounts: [{ id, name, color }] — global, persisted to localStorage + payload
@@ -8853,6 +8854,7 @@ async function buildVaultPayload() {
     _goalsDeleted: goalDeletedIds.size ? [...goalDeletedIds] : null,
     _settingsTs:   getSettingsTs(),
     _aiSettings:   buildAISettingsPayload(),
+    _sort:         buildSortPayload(),
   };
   if (vaultEncActive && vaultEncKey) {
     if (vaultRecovKey) {
@@ -9459,9 +9461,10 @@ function unwrapPayload(obj) {
       goalsDeleted:  obj._goalsDeleted  || null,
       settingsTs:    obj._settingsTs    || 0,
       aiSettings:    obj._aiSettings    || null,
+      sort:          obj._sort          || null,
     };
   }
-  return { data: obj, tombstones: [], accountTombstones: [], recurDeleted: [], recurring: null, accounts: null, yearMode: null, fyStartMonth: null, fyStartDay: null, currency: null, exchangeRates: null, fxHist: null, goals: null, goalsDeleted: null, homeLayout: null, autoLayout: null, settingsTs: 0, aiSettings: null };
+  return { data: obj, tombstones: [], accountTombstones: [], recurDeleted: [], recurring: null, accounts: null, yearMode: null, fyStartMonth: null, fyStartDay: null, currency: null, exchangeRates: null, fxHist: null, goals: null, goalsDeleted: null, homeLayout: null, autoLayout: null, settingsTs: 0, aiSettings: null, sort: null };
 }
 
 // Pending year mode change from a remote sync — applied on next startup, not mid-session
@@ -9471,7 +9474,7 @@ let _pendingYearModeChange = null;
 // Recurring rules: always apply if present (rules are additive, not conflicting).
 // Year mode: only apply if remote timestamp is newer than local. If app is already
 // running (not startup), defer the change to next startup to avoid disrupting the session.
-function applyPayloadSettings({ recurring, recurDeleted: remoteRecurDeleted, accounts: remoteAccounts, accountTombstones: remoteAccTombs, yearMode: ym, fyStartMonth: fym, fyStartDay: fyd, currency: cur, exchangeRates: exRates, fxHist: remoteFxHist, goals: remoteGoals, goalsDeleted: remoteGoalsDel, homeLayout: remoteHomeLayout, autoLayout: remoteAutoLayout, settingsTs, aiSettings }, isStartup) {
+function applyPayloadSettings({ recurring, recurDeleted: remoteRecurDeleted, accounts: remoteAccounts, accountTombstones: remoteAccTombs, yearMode: ym, fyStartMonth: fym, fyStartDay: fyd, currency: cur, exchangeRates: exRates, fxHist: remoteFxHist, goals: remoteGoals, goalsDeleted: remoteGoalsDel, homeLayout: remoteHomeLayout, autoLayout: remoteAutoLayout, settingsTs, aiSettings, sort: remoteSort }, isStartup) {
   // ── AI Settings ───────────────────────────────────────────────────────────
   if (aiSettings) applyAISettingsPayload(aiSettings);
   // ── Account tombstones ────────────────────────────────────────────────────
@@ -9633,6 +9636,12 @@ function applyPayloadSettings({ recurring, recurDeleted: remoteRecurDeleted, acc
   const _layoutChanged = remoteHomeLayout ? mergeHomeLayout(remoteHomeLayout) : false;
   const _autoChanged   = remoteAutoLayout ? mergeAutoLayout(remoteAutoLayout) : false;
   if ((_layoutChanged || _autoChanged) && activeTab === "home") renderHome();
+
+  // ── Remembered sort (v6.10.0) ────────────────────────────────────────────
+  // Newer ts wins. Mid-session the list is redrawn here because the sync
+  // callers render before settings are applied; startup callers render after.
+  if (remoteSort && applyRemoteSortPref(remoteSort) && !isStartup &&
+      (activeTab === "all" || activeTab === "saved" || activeTab === "removed")) render();
 
   // ── FX history archive ────────────────────────────────────────────────────
   // Grow-only set of immutable values, so this is an unconditional union — no
@@ -11295,6 +11304,36 @@ let _currentRows      = null;
 let _currentRowsKey   = "";
 let _dataVersion      = 0;
 let _pendingFocusTxId = null; // when set, renderMain jumps to the page containing this tx
+
+// Would a tx (ISO date, "saved"|"removed", accountId) appear in the current
+// transaction list? Mirrors the filters in renderMain. Add/edit use it to
+// decide whether to jump to the tx's page — they never change the view itself.
+function txVisibleInCurrentView(date, tab, accountId) {
+  if (activeTab !== "all" && activeTab !== "saved" && activeTab !== "removed") return false;
+  if (activeTab !== "all" && activeTab !== tab) return false;
+  const accId = accountId || getDefaultAccountId();
+  if (activeAccountFilter && activeAccountFilter !== "all" && activeAccountFilter !== accId) return false;
+  if (activeYear === "all-years") return true;
+  if (yearKeyForDate(date) !== activeYear) return false;
+  if (activeMonth && !date.startsWith(activeMonth)) return false;
+  return true;
+}
+
+// Toast text after adding a tx: the base message, plus where it landed when
+// it isn't visible in the list the user is looking at.
+function addedTxToastMsg(base, date, tab, accountId) {
+  if (activeTab !== "all" && activeTab !== "saved" && activeTab !== "removed") return base;
+  if (txVisibleInCurrentView(date, tab, accountId)) return base;
+  if (activeYear !== "all-years") {
+    const fy = yearKeyForDate(date);
+    if (fy !== activeYear) return `${base} in ${yearLabelParts(fy)[0]}`;
+    if (activeMonth && !date.startsWith(activeMonth)) {
+      const [y, m] = date.split("-");
+      return `${base} in ${MONTH_NAMES_SHORT[parseInt(m, 10) - 1]} ${y}`;
+    }
+  }
+  return `${base} \u2014 hidden by current filter`;
+}
 let _didHomeLanding = false;  // one-shot: land on the Home view on first render after boot
 
 // Centralised post-mutation entry point: persist data, invalidate caches, and re-render.
@@ -16659,8 +16698,65 @@ function setSort(key) {
     sortKey = key;
     sortDir = key === "amount" ? "desc" : "asc"; // amount defaults desc, others default asc
   }
+  sortTs = Date.now();
+  saveSortPref();
+  scheduleSortSync();
   _currentPage = 1;
   render();
+}
+
+// ── Remembered sort (v6.10.0) ──────────────────────────────────────────────
+// Stored locally and in the vault file as { key, dir, ts }. Remote copies win
+// only when their ts is newer. Uses its own ts rather than _settingsTs so a sort
+// tap can't make this device's year mode / currency look newer than another's.
+const SORT_PREF_KEY   = "vault_sort_v1";
+const SORT_KEYS_VALID = ["date", "amount", "type", "account"];
+
+function isValidSortPref(p) {
+  return !!p && typeof p === "object" && SORT_KEYS_VALID.includes(p.key) && (p.dir === "asc" || p.dir === "desc");
+}
+
+// Restore on startup. Anything missing or malformed leaves the Date ↑ default.
+function loadSortPref() {
+  try {
+    const p = JSON.parse(localStorage.getItem(SORT_PREF_KEY) || "null");
+    if (isValidSortPref(p)) {
+      sortKey = p.key;
+      sortDir = p.dir;
+      sortTs  = Number(p.ts) || 0;
+    }
+  } catch {}
+}
+
+function saveSortPref() {
+  try { localStorage.setItem(SORT_PREF_KEY, JSON.stringify({ key: sortKey, dir: sortDir, ts: sortTs })); } catch {}
+}
+
+// Debounced so tapping through the headers costs one sync, not one per tap.
+let _sortSyncTimer = null;
+function scheduleSortSync() {
+  clearTimeout(_sortSyncTimer);
+  _sortSyncTimer = setTimeout(() => { _sortSyncTimer = null; triggerCloudSync(); }, 2000);
+}
+
+// Adopt a sort from a synced payload when it's newer. Returns true if the
+// visible sort changed.
+function applyRemoteSortPref(p) {
+  if (!isValidSortPref(p)) return false;
+  const ts = Number(p.ts) || 0;
+  if (ts <= sortTs) return false;
+  const changed = p.key !== sortKey || p.dir !== sortDir;
+  sortKey = p.key;
+  sortDir = p.dir;
+  sortTs  = ts;
+  saveSortPref();
+  return changed;
+}
+
+// Payload form — null until the user has picked a sort, so an untouched
+// device never pushes the default over someone else's choice.
+function buildSortPayload() {
+  return sortTs ? { key: sortKey, dir: sortDir, ts: sortTs } : null;
 }
 
 /* getSortedRows was a helper that duplicated the inline sort in render(); removed. */
@@ -16836,7 +16932,9 @@ function pruneEmptyYears() {
   if (changed) {
     // Reset activeYear to the earliest available year if the current one was pruned
     const remaining = Object.keys(data).sort();
-    if (!remaining.includes(activeYear)) {
+    // "all-years" is never a data key — without this guard, emptying any year
+    // (delete / edit) kicked the user out of the All years view.
+    if (activeYear !== "all-years" && !remaining.includes(activeYear)) {
       activeYear = remaining[0] || null;
       activeMonth = null;
     }
@@ -17079,7 +17177,7 @@ function _doSavePopup(dateVal, amtVal, accountId) {
     eTx.push(accountId);
     targetList.push(eTx);
     targetList.sort((a, b) => a[0].localeCompare(b[0]));
-    activeYear = newFY; activeMonth = null;
+    // View stays put (v6.10.0); the toast below says where the tx went.
     invalidateYear = null; // both years touched
     toast(`Transaction moved to ${yearLabel(newFY)}`);
   } else {
@@ -17094,8 +17192,10 @@ function _doSavePopup(dateVal, amtVal, accountId) {
   }
   pruneEmptyYears();
   closePopup();
-  // Jump to the page containing the edited tx after render
-  _pendingFocusTxId = existingId;
+  // Jump to the page containing the edited tx after render — only when it is
+  // still in the current view (otherwise a stale focus id would hijack the
+  // page on the next list render).
+  if (txVisibleInCurrentView(dateVal, popupType, accountId)) _pendingFocusTxId = existingId;
   saveAndRender(invalidateYear);
   triggerCloudSync();
 }
@@ -19842,8 +19942,9 @@ function desktopAddTransaction() {
     triggerCloudSync();
     toast(`Recurring ${rule.type} scheduled${posted > 0 ? " — first entry added" : ""}`);
   } else {
+    // The view stays where the user left it (v6.10.0) — adding used to switch
+    // activeYear to the tx's year, kicking the user out of All years / month view.
     const fyKey = ensureFY(yearKeyForDate(dv));
-    if (fyKey !== activeYear) activeYear = fyKey;
     const newId = newTxId();
     const dTx = [dv, amt, newId, Date.now()];
     if (subtype) dTx.push(subtype); else dTx.push(null);
@@ -19852,10 +19953,11 @@ function desktopAddTransaction() {
     data[fyKey][tab].push(dTx);
     data[fyKey][tab].sort((a,b) => a[0].localeCompare(b[0]));
     closeDesktopAddSheet();
-    _pendingFocusTxId = newId; // jump to the page containing the new tx
+    const _deskMsg = addedTxToastMsg(deskTxType === "deposit" ? "Deposit recorded" : deskTxType === "interest" ? "Interest recorded" : "Withdrawal recorded", dv, tab, accountId);
+    if (txVisibleInCurrentView(dv, tab, accountId)) _pendingFocusTxId = newId; // jump to the page containing the new tx
     saveAndRender(fyKey);
     triggerCloudSync();
-    toast(deskTxType === "deposit" ? "Deposit recorded" : deskTxType === "interest" ? "Interest recorded" : "Withdrawal recorded");
+    toast(_deskMsg);
   }
 }
 
@@ -19962,8 +20064,8 @@ function mobileAddTransaction() {
     if (!dv) { toast("Enter a date.", "#c0392b"); return; }
     const tab     = mobTxType === "withdraw" ? "removed" : "saved";
     const subtype = mobTxType === "interest" ? "interest" : null;
+    // View stays put (v6.10.0) — see desktopAddTransaction.
     const fyKey = ensureFY(fyKeyForDate(dv));
-    if (fyKey !== activeYear) { activeYear = fyKey; }
     const newId = newTxId();
     const tx = [dv, amt, newId, Date.now()];
     if (subtype) tx.push(subtype); else tx.push(null);
@@ -19972,10 +20074,11 @@ function mobileAddTransaction() {
     data[fyKey][tab].push(tx);
     data[fyKey][tab].sort((a, b) => a[0].localeCompare(b[0]));
     closeSheets();
-    _pendingFocusTxId = newId; // jump to the page containing the new tx
+    const _mobMsg = addedTxToastMsg(mobTxType === "deposit" ? "Deposit recorded" : mobTxType === "interest" ? "Interest recorded" : "Withdrawal recorded", dv, tab, accountId);
+    if (txVisibleInCurrentView(dv, tab, accountId)) _pendingFocusTxId = newId; // jump to the page containing the new tx
     saveAndRender(fyKey);
     triggerCloudSync();
-    toast(mobTxType === "deposit" ? "Deposit recorded" : mobTxType === "interest" ? "Interest recorded" : "Withdrawal recorded");
+    toast(_mobMsg);
   }
 }
 
@@ -20584,6 +20687,7 @@ function welcomeUseBrowser() {
 }
 
 function initApp() {
+  loadSortPref(); // before the first render so the list opens in the remembered order
   loadLocal();
   loadEncActive();
   loadCurrency();
@@ -21803,7 +21907,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.11.9</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.10.0</div>
         </div>
 
         <div class="pp-cards">
@@ -21912,7 +22016,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.11.9</div>
+  <div id="version-footer">v6.10.0</div>
 
 </body>
 </html>
