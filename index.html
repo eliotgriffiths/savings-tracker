@@ -2952,11 +2952,25 @@
 /* Results overlay hangs beneath the whole corner, right-aligned under the field. */
 #home-panel .vh-search-drop { position:absolute; top:44px; right:0; width:min(84vw,340px);
   background:var(--bg1); border:1px solid var(--border-hi); border-radius:var(--radius-lg);
-  box-shadow:0 12px 32px rgba(0,0,0,0.45); overflow:hidden; display:none; }
-#home-panel .vh-search-corner.open .vh-search-drop.has-content { display:block; }
-/* Link-only (empty) state: no box, no background — just the link floating under
-   the field. The full card treatment is only for results and no-match lists. */
-#home-panel .vh-search-drop.bare { background:none; border:none; box-shadow:none; }
+  overflow:hidden;
+  /* Reveals the way the field does: grows leftward from the right edge and fades
+     in on the same 0.24s/0.18s curve, trailing the field by a beat so it reads
+     as following it out. clip-path rather than width so the link and result rows
+     don't reflow mid-animation; the open inset is negative so the shadow isn't
+     clipped. The shadow itself lands after the reveal — mid-sweep, the clip's
+     moving edge cut it into a hard dark strip over the content behind.
+     visibility waits for the close to finish before hiding. */
+  visibility:hidden; opacity:0; pointer-events:none; clip-path:inset(0 0 0 100%);
+  box-shadow:0 12px 32px rgba(0,0,0,0);
+  transition:clip-path 0.24s ease, opacity 0.18s ease, box-shadow 0.1s ease, visibility 0s linear 0.24s; }
+#home-panel .vh-search-corner.open .vh-search-drop.has-content { visibility:visible; opacity:1; pointer-events:auto;
+  clip-path:inset(-48px); box-shadow:0 12px 32px rgba(0,0,0,0.45);
+  transition:clip-path 0.24s ease 0.06s, opacity 0.18s ease 0.06s, box-shadow 0.2s ease 0.28s, visibility 0s; }
+/* Link-only (empty) state: a compact pill sized to the link, matching the ⋮ menu.
+   It used to have no background, so the link printed straight over the hero's
+   greeting line beneath it. Results and no-match lists keep the full-width card. */
+#home-panel .vh-search-drop.bare { width:auto; border-radius:var(--radius); }
+#home-panel .vh-search-drop.bare .vh-search-all.solo { white-space:nowrap; padding:11px 16px; }
 #home-panel .vh-home-title { pointer-events:auto; font-family:'DM Serif Display',serif; font-size:21px; line-height:1; color:var(--text-1); }
 #home-panel .vh-topbar-actions { display:flex; align-items:center; gap:8px; pointer-events:auto; }
 #home-panel .vh-menu { position:relative; pointer-events:auto; }
@@ -3119,6 +3133,7 @@
 #home-panel .vh-int-proj-sub { display:block; font-size:10px; letter-spacing:0; text-transform:none; font-weight:400; color:var(--text-3); margin-top:3px; }
 #home-panel .vh-int-proj-val { font-size:15px; font-weight:700; color:var(--gold); font-variant-numeric:tabular-nums; white-space:nowrap; }
 #home-panel .vh-yield-foot span { font-size:10px; color:var(--text-3); line-height:1.45; }
+#home-panel .vh-yield-foot .vh-yield-fn { font-size:12px; margin-right:2px; }
 #home-panel .vh-int-trend { margin-top:14px; padding-top:14px; border-top:1px dashed var(--border); }
 #home-panel .vh-int-trend-top { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:10px; }
 #home-panel .vh-int-trend-yoy { font-size:11.5px; font-weight:600; color:var(--text-2); font-variant-numeric:tabular-nums; white-space:nowrap; }
@@ -6512,6 +6527,7 @@ let data = {}, activeYear, activeTab = "all";
 let activeMonth = null;
 let expandedYears = new Set();
 let sortKey = "date", sortDir = "asc";
+let sortTs  = 0; // when the user last changed the sort — last-write-wins across devices (v6.10.0)
 
 // ─── accounts ─────────────────────────────────────────────────────────────────
 // accounts: [{ id, name, color }] — global, persisted to localStorage + payload
@@ -8853,6 +8869,7 @@ async function buildVaultPayload() {
     _goalsDeleted: goalDeletedIds.size ? [...goalDeletedIds] : null,
     _settingsTs:   getSettingsTs(),
     _aiSettings:   buildAISettingsPayload(),
+    _sort:         buildSortPayload(),
   };
   if (vaultEncActive && vaultEncKey) {
     if (vaultRecovKey) {
@@ -9459,9 +9476,10 @@ function unwrapPayload(obj) {
       goalsDeleted:  obj._goalsDeleted  || null,
       settingsTs:    obj._settingsTs    || 0,
       aiSettings:    obj._aiSettings    || null,
+      sort:          obj._sort          || null,
     };
   }
-  return { data: obj, tombstones: [], accountTombstones: [], recurDeleted: [], recurring: null, accounts: null, yearMode: null, fyStartMonth: null, fyStartDay: null, currency: null, exchangeRates: null, fxHist: null, goals: null, goalsDeleted: null, homeLayout: null, autoLayout: null, settingsTs: 0, aiSettings: null };
+  return { data: obj, tombstones: [], accountTombstones: [], recurDeleted: [], recurring: null, accounts: null, yearMode: null, fyStartMonth: null, fyStartDay: null, currency: null, exchangeRates: null, fxHist: null, goals: null, goalsDeleted: null, homeLayout: null, autoLayout: null, settingsTs: 0, aiSettings: null, sort: null };
 }
 
 // Pending year mode change from a remote sync — applied on next startup, not mid-session
@@ -9471,7 +9489,7 @@ let _pendingYearModeChange = null;
 // Recurring rules: always apply if present (rules are additive, not conflicting).
 // Year mode: only apply if remote timestamp is newer than local. If app is already
 // running (not startup), defer the change to next startup to avoid disrupting the session.
-function applyPayloadSettings({ recurring, recurDeleted: remoteRecurDeleted, accounts: remoteAccounts, accountTombstones: remoteAccTombs, yearMode: ym, fyStartMonth: fym, fyStartDay: fyd, currency: cur, exchangeRates: exRates, fxHist: remoteFxHist, goals: remoteGoals, goalsDeleted: remoteGoalsDel, homeLayout: remoteHomeLayout, autoLayout: remoteAutoLayout, settingsTs, aiSettings }, isStartup) {
+function applyPayloadSettings({ recurring, recurDeleted: remoteRecurDeleted, accounts: remoteAccounts, accountTombstones: remoteAccTombs, yearMode: ym, fyStartMonth: fym, fyStartDay: fyd, currency: cur, exchangeRates: exRates, fxHist: remoteFxHist, goals: remoteGoals, goalsDeleted: remoteGoalsDel, homeLayout: remoteHomeLayout, autoLayout: remoteAutoLayout, settingsTs, aiSettings, sort: remoteSort }, isStartup) {
   // ── AI Settings ───────────────────────────────────────────────────────────
   if (aiSettings) applyAISettingsPayload(aiSettings);
   // ── Account tombstones ────────────────────────────────────────────────────
@@ -9633,6 +9651,12 @@ function applyPayloadSettings({ recurring, recurDeleted: remoteRecurDeleted, acc
   const _layoutChanged = remoteHomeLayout ? mergeHomeLayout(remoteHomeLayout) : false;
   const _autoChanged   = remoteAutoLayout ? mergeAutoLayout(remoteAutoLayout) : false;
   if ((_layoutChanged || _autoChanged) && activeTab === "home") renderHome();
+
+  // ── Remembered sort (v6.10.0) ────────────────────────────────────────────
+  // Newer ts wins. Mid-session the list is redrawn here because the sync
+  // callers render before settings are applied; startup callers render after.
+  if (remoteSort && applyRemoteSortPref(remoteSort) && !isStartup &&
+      (activeTab === "all" || activeTab === "saved" || activeTab === "removed")) render();
 
   // ── FX history archive ────────────────────────────────────────────────────
   // Grow-only set of immutable values, so this is an unconditional union — no
@@ -11295,6 +11319,36 @@ let _currentRows      = null;
 let _currentRowsKey   = "";
 let _dataVersion      = 0;
 let _pendingFocusTxId = null; // when set, renderMain jumps to the page containing this tx
+
+// Would a tx (ISO date, "saved"|"removed", accountId) appear in the current
+// transaction list? Mirrors the filters in renderMain. Add/edit use it to
+// decide whether to jump to the tx's page — they never change the view itself.
+function txVisibleInCurrentView(date, tab, accountId) {
+  if (activeTab !== "all" && activeTab !== "saved" && activeTab !== "removed") return false;
+  if (activeTab !== "all" && activeTab !== tab) return false;
+  const accId = accountId || getDefaultAccountId();
+  if (activeAccountFilter && activeAccountFilter !== "all" && activeAccountFilter !== accId) return false;
+  if (activeYear === "all-years") return true;
+  if (yearKeyForDate(date) !== activeYear) return false;
+  if (activeMonth && !date.startsWith(activeMonth)) return false;
+  return true;
+}
+
+// Toast text after adding a tx: the base message, plus where it landed when
+// it isn't visible in the list the user is looking at.
+function addedTxToastMsg(base, date, tab, accountId) {
+  if (activeTab !== "all" && activeTab !== "saved" && activeTab !== "removed") return base;
+  if (txVisibleInCurrentView(date, tab, accountId)) return base;
+  if (activeYear !== "all-years") {
+    const fy = yearKeyForDate(date);
+    if (fy !== activeYear) return `${base} in ${yearLabelParts(fy)[0]}`;
+    if (activeMonth && !date.startsWith(activeMonth)) {
+      const [y, m] = date.split("-");
+      return `${base} in ${MONTH_NAMES_SHORT[parseInt(m, 10) - 1]} ${y}`;
+    }
+  }
+  return `${base} \u2014 hidden by current filter`;
+}
 let _didHomeLanding = false;  // one-shot: land on the Home view on first render after boot
 
 // Centralised post-mutation entry point: persist data, invalidate caches, and re-render.
@@ -14707,15 +14761,22 @@ function vhRenderInterest() {
     let bw = 0, bwa = 0;
     live.forEach(({ a, y }) => { const g = convertToGlobal(y.bal, a.currency || currencyCode); if (g > 0) { bw += g; bwa += g * y.apy; } });
     const blended = (live.length >= 2 && bw > 0) ? bwa / bw : null;
-    let needHist = false, needVar = false, needStale = false, rows = "";
-    yields.forEach(({ a, y }, i) => {
+    // Which caveat (if any) each rate carries. Stale outranks the other two:
+    // whether the rate is thin or variable matters much less than whether it is
+    // still being paid at all.
+    const noteOf = y => {
       const relSpread = y.apy > 0.005 ? (y.high - y.low) / y.apy : 0;
-      let mark = "";
-      // Stale outranks the other two: whether the rate is thin or variable matters
-      // much less than whether it is still being paid at all.
-      if (y.stale) { mark = "†"; needStale = true; }
-      else if (y.payments < 3) { mark = "*"; needHist = true; }
-      else if (relSpread > 0.4) { mark = "~"; needVar = true; }
+      return y.stale ? "stale" : y.payments < 3 ? "hist" : relSpread > 0.4 ? "var" : "";
+    };
+    const notes = yields.map(({ y }) => noteOf(y));
+    const needStale = notes.includes("stale"), needHist = notes.includes("hist"), needVar = notes.includes("var");
+    // Footnotes are numbered ¹ ² ³ in the order they're printed, counting only the
+    // ones present. (Previously † * ~ — the dagger read as a crucifix.)
+    const noteOrder = ["stale", "hist", "var"].filter(k => notes.includes(k));
+    const noteMark = k => "¹²³"[noteOrder.indexOf(k)];
+    let rows = "";
+    yields.forEach(({ a, y }, i) => {
+      const mark = notes[i] ? noteMark(notes[i]) : "";
       const showRange = (y.high - y.low) > 0.01;
       const best = live.length >= 2 && i === bestIdx && !y.stale;
       rows += `<div class="vh-yield-row${best ? ' best' : ''}${y.stale ? ' stale' : ''}">`
@@ -14737,14 +14798,14 @@ function vhRenderInterest() {
         const [sy, sm] = y.lastKey.split("-").map(Number);
         return MONTH_NAMES_SHORT[sm - 1] + " " + sy;
       });
-      foot += `<span>&dagger; ${names} ${staleOnes.length === 1 ? "has" : "have"} paid no interest since `
+      foot += `<span><span class="vh-yield-fn">${noteMark("stale")}</span>${names} ${staleOnes.length === 1 ? "has" : "have"} paid no interest since `
             + `${when.join(", ")}. That rate is what it used to pay, so `
             + (willProject ? `it is left out of the projection below.`
                            : `no forward projection is shown.`)
             + `</span>`;
     }
-    if (needHist) foot += `<span>* based on very little interest history yet &mdash; this will sharpen over time.</span>`;
-    if (needVar) foot += `<span>~ this rate has varied recently &mdash; likely a variable or bonus rate, so treat it loosely.</span>`;
+    if (needHist) foot += `<span><span class="vh-yield-fn">${noteMark("hist")}</span>based on very little interest history yet &mdash; this will sharpen over time.</span>`;
+    if (needVar) foot += `<span><span class="vh-yield-fn">${noteMark("var")}</span>this rate has varied recently &mdash; likely a variable or bonus rate, so treat it loosely.</span>`;
     // Forward projection: bwa is Σ(balance × apy) across the accounts still paying,
     // i.e. the expected interest over the next 12 months at today's balances.
     //
@@ -14764,7 +14825,7 @@ function vhRenderInterest() {
         + `<span class="vh-int-proj-label">Projected next 12 months`
         + `<span class="vh-int-proj-sub">on today's ${aud(bw)} at current rates</span></span>`
         + `<span class="vh-int-proj-val">&asymp; ${aud(bwa)}`
-        + (needHist ? `<span class="vh-yield-mark">*</span>` : "")
+        + (needHist ? `<span class="vh-yield-mark">${noteMark("hist")}</span>` : "")
         + `</span></div>`;
     }
     yieldHtml = `<div class="vh-yield"><div class="vh-yield-top"><span class="vh-yield-label">Estimated rate</span>`
@@ -16659,8 +16720,65 @@ function setSort(key) {
     sortKey = key;
     sortDir = key === "amount" ? "desc" : "asc"; // amount defaults desc, others default asc
   }
+  sortTs = Date.now();
+  saveSortPref();
+  scheduleSortSync();
   _currentPage = 1;
   render();
+}
+
+// ── Remembered sort (v6.10.0) ──────────────────────────────────────────────
+// Stored locally and in the vault file as { key, dir, ts }. Remote copies win
+// only when their ts is newer. Uses its own ts rather than _settingsTs so a sort
+// tap can't make this device's year mode / currency look newer than another's.
+const SORT_PREF_KEY   = "vault_sort_v1";
+const SORT_KEYS_VALID = ["date", "amount", "type", "account"];
+
+function isValidSortPref(p) {
+  return !!p && typeof p === "object" && SORT_KEYS_VALID.includes(p.key) && (p.dir === "asc" || p.dir === "desc");
+}
+
+// Restore on startup. Anything missing or malformed leaves the Date ↑ default.
+function loadSortPref() {
+  try {
+    const p = JSON.parse(localStorage.getItem(SORT_PREF_KEY) || "null");
+    if (isValidSortPref(p)) {
+      sortKey = p.key;
+      sortDir = p.dir;
+      sortTs  = Number(p.ts) || 0;
+    }
+  } catch {}
+}
+
+function saveSortPref() {
+  try { localStorage.setItem(SORT_PREF_KEY, JSON.stringify({ key: sortKey, dir: sortDir, ts: sortTs })); } catch {}
+}
+
+// Debounced so tapping through the headers costs one sync, not one per tap.
+let _sortSyncTimer = null;
+function scheduleSortSync() {
+  clearTimeout(_sortSyncTimer);
+  _sortSyncTimer = setTimeout(() => { _sortSyncTimer = null; triggerCloudSync(); }, 2000);
+}
+
+// Adopt a sort from a synced payload when it's newer. Returns true if the
+// visible sort changed.
+function applyRemoteSortPref(p) {
+  if (!isValidSortPref(p)) return false;
+  const ts = Number(p.ts) || 0;
+  if (ts <= sortTs) return false;
+  const changed = p.key !== sortKey || p.dir !== sortDir;
+  sortKey = p.key;
+  sortDir = p.dir;
+  sortTs  = ts;
+  saveSortPref();
+  return changed;
+}
+
+// Payload form — null until the user has picked a sort, so an untouched
+// device never pushes the default over someone else's choice.
+function buildSortPayload() {
+  return sortTs ? { key: sortKey, dir: sortDir, ts: sortTs } : null;
 }
 
 /* getSortedRows was a helper that duplicated the inline sort in render(); removed. */
@@ -16836,7 +16954,9 @@ function pruneEmptyYears() {
   if (changed) {
     // Reset activeYear to the earliest available year if the current one was pruned
     const remaining = Object.keys(data).sort();
-    if (!remaining.includes(activeYear)) {
+    // "all-years" is never a data key — without this guard, emptying any year
+    // (delete / edit) kicked the user out of the All years view.
+    if (activeYear !== "all-years" && !remaining.includes(activeYear)) {
       activeYear = remaining[0] || null;
       activeMonth = null;
     }
@@ -17079,7 +17199,7 @@ function _doSavePopup(dateVal, amtVal, accountId) {
     eTx.push(accountId);
     targetList.push(eTx);
     targetList.sort((a, b) => a[0].localeCompare(b[0]));
-    activeYear = newFY; activeMonth = null;
+    // View stays put (v6.10.0); the toast below says where the tx went.
     invalidateYear = null; // both years touched
     toast(`Transaction moved to ${yearLabel(newFY)}`);
   } else {
@@ -17094,8 +17214,10 @@ function _doSavePopup(dateVal, amtVal, accountId) {
   }
   pruneEmptyYears();
   closePopup();
-  // Jump to the page containing the edited tx after render
-  _pendingFocusTxId = existingId;
+  // Jump to the page containing the edited tx after render — only when it is
+  // still in the current view (otherwise a stale focus id would hijack the
+  // page on the next list render).
+  if (txVisibleInCurrentView(dateVal, popupType, accountId)) _pendingFocusTxId = existingId;
   saveAndRender(invalidateYear);
   triggerCloudSync();
 }
@@ -19842,8 +19964,9 @@ function desktopAddTransaction() {
     triggerCloudSync();
     toast(`Recurring ${rule.type} scheduled${posted > 0 ? " — first entry added" : ""}`);
   } else {
+    // The view stays where the user left it (v6.10.0) — adding used to switch
+    // activeYear to the tx's year, kicking the user out of All years / month view.
     const fyKey = ensureFY(yearKeyForDate(dv));
-    if (fyKey !== activeYear) activeYear = fyKey;
     const newId = newTxId();
     const dTx = [dv, amt, newId, Date.now()];
     if (subtype) dTx.push(subtype); else dTx.push(null);
@@ -19852,10 +19975,11 @@ function desktopAddTransaction() {
     data[fyKey][tab].push(dTx);
     data[fyKey][tab].sort((a,b) => a[0].localeCompare(b[0]));
     closeDesktopAddSheet();
-    _pendingFocusTxId = newId; // jump to the page containing the new tx
+    const _deskMsg = addedTxToastMsg(deskTxType === "deposit" ? "Deposit recorded" : deskTxType === "interest" ? "Interest recorded" : "Withdrawal recorded", dv, tab, accountId);
+    if (txVisibleInCurrentView(dv, tab, accountId)) _pendingFocusTxId = newId; // jump to the page containing the new tx
     saveAndRender(fyKey);
     triggerCloudSync();
-    toast(deskTxType === "deposit" ? "Deposit recorded" : deskTxType === "interest" ? "Interest recorded" : "Withdrawal recorded");
+    toast(_deskMsg);
   }
 }
 
@@ -19962,8 +20086,8 @@ function mobileAddTransaction() {
     if (!dv) { toast("Enter a date.", "#c0392b"); return; }
     const tab     = mobTxType === "withdraw" ? "removed" : "saved";
     const subtype = mobTxType === "interest" ? "interest" : null;
+    // View stays put (v6.10.0) — see desktopAddTransaction.
     const fyKey = ensureFY(fyKeyForDate(dv));
-    if (fyKey !== activeYear) { activeYear = fyKey; }
     const newId = newTxId();
     const tx = [dv, amt, newId, Date.now()];
     if (subtype) tx.push(subtype); else tx.push(null);
@@ -19972,10 +20096,11 @@ function mobileAddTransaction() {
     data[fyKey][tab].push(tx);
     data[fyKey][tab].sort((a, b) => a[0].localeCompare(b[0]));
     closeSheets();
-    _pendingFocusTxId = newId; // jump to the page containing the new tx
+    const _mobMsg = addedTxToastMsg(mobTxType === "deposit" ? "Deposit recorded" : mobTxType === "interest" ? "Interest recorded" : "Withdrawal recorded", dv, tab, accountId);
+    if (txVisibleInCurrentView(dv, tab, accountId)) _pendingFocusTxId = newId; // jump to the page containing the new tx
     saveAndRender(fyKey);
     triggerCloudSync();
-    toast(mobTxType === "deposit" ? "Deposit recorded" : mobTxType === "interest" ? "Interest recorded" : "Withdrawal recorded");
+    toast(_mobMsg);
   }
 }
 
@@ -20584,6 +20709,7 @@ function welcomeUseBrowser() {
 }
 
 function initApp() {
+  loadSortPref(); // before the first render so the list opens in the remembered order
   loadLocal();
   loadEncActive();
   loadCurrency();
@@ -21803,7 +21929,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v5.11.9</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.10.2</div>
         </div>
 
         <div class="pp-cards">
@@ -21912,7 +22038,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v5.11.9</div>
+  <div id="version-footer">v6.10.2</div>
 
 </body>
 </html>
