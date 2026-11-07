@@ -1342,5 +1342,57 @@
       "Fixed the Advanced search link on Home overlapping the greeting beneath it",
       "The Advanced search link slides in with the search bar instead of appearing all at once"
     ]
+  },
+  {
+    "tag": "v6.10.3",
+    "sha": "25858737bd14d2c3e92d3c16661d8a360034af8b",
+    "date": "2026-11-07",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "versioned_at_release": true,
+    "commits": [
+      "2585873"
+    ],
+    "notes": [
+      "Printing a transaction list keeps your sort order, and the printout says how it's sorted"
+    ]
+  },
+  {
+    "tag": "v6.10.4",
+    "sha": "6b0584eb733ede3c2d1a5de83e56df16c965644e",
+    "date": "2026-11-07",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "versioned_at_release": true,
+    "commits": [
+      "6b0584e"
+    ],
+    "notes": [
+      "Fixed iPhone zooming in when you tap the financial-year start day or month"
+    ]
+  },
+  {
+    "tag": "v6.11.0",
+    "sha": "76b918af0a726242f869e43922b7b3bfe23ed6f9",
+    "date": "2026-11-07",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": null,
+    "versioned_at_release": true,
+    "commits": [
+      "76b918a"
+    ],
+    "notes": [
+      "Search is now Advanced Search: one search bar that understands amounts, accounts, months, types and \"recurring\", plus a Filters panel for dates (including a custom range), types, accounts, amounts, recurring rules and currencies",
+      "Results use the same table and sort as your transaction list, and a number you type shows the closest matches first (or turn on Exact only)",
+      "Hold a result to edit it without losing your search",
+      "Recent searches, and suggestions for what to remove when nothing matches",
+      "Print and Export Spreadsheet cover exactly what Advanced Search shows",
+      "Home search: two words of the same kind now mean either, so \"ing ubank\" shows both accounts",
+      "Fixed the transaction list's Total on the All tab adding withdrawals instead of subtracting them",
+      "Fixed the transaction list's account pills showing on the search page"
+    ]
   }
 ]
