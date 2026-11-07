@@ -2,7 +2,7 @@
 
 All changes to Vault (`index.html`), newest first.
 
-Version numbers follow [Semantic Versioning](https://semver.org/) and were assigned retroactively from the git history. The footer showed different numbers at the time, so each entry also lists the version it used to show ("was"). The first 11 releases came before the footer existed. Commits that kept the same footer version are grouped into one release.
+Version numbers follow [Semantic Versioning](https://semver.org/) and were assigned retroactively from the git history. The footer showed different numbers at the time, so each entry also lists the version it used to show ("was"). The first 11 releases came before the footer existed, and releases from v6.10.1 on were numbered this way from the start. Commits that kept the same footer version are grouped into one release.
 
 - **Major:** breaks compatibility. Older data, backup or sync files no longer load without a migration, a storage or data format changes, or a feature is removed.
 - **Minor:** adds a feature or user-visible capability without breaking anything.
@@ -10,9 +10,22 @@ Version numbers follow [Semantic Versioning](https://semver.org/) and were assig
 
 The first release is v1.0.0. A major bump resets minor and patch to 0, a minor bump resets patch to 0, and patch rolls over into the next minor after .99. Types marked \* are judgement calls, explained in [Notes](#notes) at the end.
 
-## v6.10.0 — Unreleased
+## v6.10.2 — 2026-11-07
 
-Minor · was v5.11.10
+Patch · `4bfebec`
+
+- Fixed the Advanced search link on Home overlapping the greeting beneath it
+- The Advanced search link slides in with the search bar instead of appearing all at once
+
+## v6.10.1 — 2026-11-07
+
+Patch · `61c0986`
+
+- Interest rate notes are marked ¹ ² ³ instead of † * ~
+
+## v6.10.0 — 2026-11-07
+
+Minor · was v5.11.10 · `15a86d0`
 
 - Fixed the transaction list jumping to another year or month after adding or editing a transaction
 - Sort order is remembered and syncs across devices

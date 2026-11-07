@@ -37,13 +37,16 @@ def plain(text):
 
 
 def history_line(r):
+    """None when the version shown at release was already its semver number."""
     if r["previous_version"]:
         return f"Previously numbered {r['previous_version']}"
+    if r.get("versioned_at_release"):
+        return None
     return "Released before the app showed a version number"
 
 
 def tag_message(r):
-    lines = [f"{r['tag']} ({r['date']})", "", f"{r['type']} · {history_line(r)}"]
+    lines = [f"{r['tag']} ({r['date']})", "", " · ".join(filter(None, [r["type"], history_line(r)]))]
     if len(r["commits"]) > 1:
         lines.append("Commits: " + ", ".join(r["commits"]))
     lines.append("")
@@ -54,7 +57,7 @@ def tag_message(r):
 
 
 def release_body(r):
-    lines = [f"**{r['type']}** · {r['date']} · {history_line(r)}", ""]
+    lines = [" · ".join(filter(None, [f"**{r['type']}**", r["date"], history_line(r)])), ""]
     lines += ["- " + note for note in r["notes"]]
     lines += ["", "Commits: " + ", ".join(f"`{c}`" for c in r["commits"])]
     if r["judgement_call"]:

@@ -1296,5 +1296,51 @@
       "Search from Home",
       "Filter reports by account"
     ]
+  },
+  {
+    "tag": "v6.10.0",
+    "sha": "15a86d0ff28b880fdbdbd95c6a9b18befc8c11fb",
+    "date": "2026-11-07",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": "v5.11.10",
+    "commits": [
+      "15a86d0"
+    ],
+    "notes": [
+      "Fixed the transaction list jumping to another year or month after adding or editing a transaction",
+      "Sort order is remembered and syncs across devices"
+    ]
+  },
+  {
+    "tag": "v6.10.1",
+    "sha": "61c0986b18a6e23ce97ad0c83e788415211db68f",
+    "date": "2026-11-07",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "versioned_at_release": true,
+    "commits": [
+      "61c0986"
+    ],
+    "notes": [
+      "Interest rate notes are marked ¹ ² ³ instead of † * ~"
+    ]
+  },
+  {
+    "tag": "v6.10.2",
+    "sha": "4bfebec68c3e282cb276ec5ff053fdf70ae2b903",
+    "date": "2026-11-07",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "versioned_at_release": true,
+    "commits": [
+      "4bfebec"
+    ],
+    "notes": [
+      "Fixed the Advanced search link on Home overlapping the greeting beneath it",
+      "The Advanced search link slides in with the search bar instead of appearing all at once"
+    ]
   }
 ]
