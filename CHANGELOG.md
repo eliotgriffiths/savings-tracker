@@ -10,6 +10,31 @@ Version numbers follow [Semantic Versioning](https://semver.org/) and were assig
 
 The first release is v1.0.0. A major bump resets minor and patch to 0, a minor bump resets patch to 0, and patch rolls over into the next minor after .99. Types marked \* are judgement calls, explained in [Notes](#notes) at the end.
 
+## v6.11.0 — 2026-11-07
+
+Minor · `76b918a`
+
+- Search is now Advanced Search: one search bar that understands amounts, accounts, months, types and "recurring", plus a Filters panel for dates (including a custom range), types, accounts, amounts, recurring rules and currencies
+- Results use the same table and sort as your transaction list, and a number you type shows the closest matches first (or turn on Exact only)
+- Hold a result to edit it without losing your search
+- Recent searches, and suggestions for what to remove when nothing matches
+- Print and Export Spreadsheet cover exactly what Advanced Search shows
+- Home search: two words of the same kind now mean either, so "ing ubank" shows both accounts
+- Fixed the transaction list's Total on the All tab adding withdrawals instead of subtracting them
+- Fixed the transaction list's account pills showing on the search page
+
+## v6.10.4 — 2026-11-07
+
+Patch · `6b0584e`
+
+- Fixed iPhone zooming in when you tap the financial-year start day or month
+
+## v6.10.3 — 2026-11-07
+
+Patch · `2585873`
+
+- Printing a transaction list keeps your sort order, and the printout says how it's sorted
+
 ## v6.10.2 — 2026-11-07
 
 Patch · `4bfebec`
@@ -641,4 +666,4 @@ These classifications were judgement calls:
 - **v6.1.0, Minor:** the manual Drive Load and Save now buttons were removed, but automatic sync covers what they did.
 - **v6.6.0, Minor:** adds new import file types. It could be Patch if that's too small to count as a feature.
 
-If v3.0.0 and v6.0.0 were Minor instead, the current release would be v4.11.0 rather than v6.10.0.
+If v3.0.0 and v6.0.0 were Minor instead, the current release would be v4.12.0 rather than v6.11.0.

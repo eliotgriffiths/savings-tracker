@@ -378,8 +378,8 @@
   /* Table fills the available content area; no max-width cap */
   table { width: 100%; border-collapse: collapse; }
   /* Account dot column: small fixed width centred */
-  #tx-table th.sort-col-account { width: 50px; }
-  #tx-table td.tx-account-cell  { width: 50px; }
+  #tx-table th.sort-col-account, #as-table th.sort-col-account { width: 50px; }
+  #tx-table td.tx-account-cell, #as-table td.tx-account-cell { width: 50px; }
   thead tr { border-bottom: 1px solid var(--border); }
   th {
     padding: 10px 14px;
@@ -414,11 +414,11 @@
   /* Tx row hold-to-edit: gold-tinted background fades in over HOLD_MS, same
      spirit as the .acc-pill.holding animation but table-safe (no transform,
      no outer box-shadow that would conflict with cell borders). */
-  #tx-body tr.holding {
+  #tx-body tr.holding, #as-body tr.holding {
     background: rgba(201,168,76,0.12);
     transition: background 0.5s ease-out;
   }
-  #tx-body tr.holding td { color: var(--gold); }
+  #tx-body tr.holding td, #as-body tr.holding td { color: var(--gold); }
   td { padding: 11px 14px; font-size: 13px; color: var(--text-1); }
   td:first-child { white-space: nowrap; }
   td.num    { text-align: right; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -1065,41 +1065,105 @@
     padding: 16px 0;
   }
 
-  /* ── report panel ── */
-  #report-controls { margin-bottom: 20px; }
-  .report-row {
-    display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;
+  /* ── Advanced Search (v6.11.0) ── */
+  .as-title { font-family:'DM Serif Display',serif; font-size:22px; font-weight:400; color:var(--text-1); margin:0 0 10px; }
+  /* The search bar pins to the top once you scroll past it. Done in script
+     (asPinTop): the app scrolls the whole page and every ancestor clips its
+     overflow, so CSS position:sticky can't work here. */
+  .as-top { position:relative; z-index:20; background:var(--bg0); padding:10px 0 10px; margin-top:-10px; }
+  .as-top.pinned { position:fixed; top:env(safe-area-inset-top, 0px); z-index:50; margin:0; box-shadow:0 10px 18px -10px rgba(0,0,0,0.6); }
+  .as-bar-wrap { position:relative; }
+  .as-bar { display:flex; gap:8px; }
+  .as-field { flex:1; min-width:0; display:flex; align-items:center; height:42px; background:var(--bg1); border:1px solid var(--border-hi); border-radius:var(--radius); }
+  .as-field:focus-within { border-color:var(--gold-dim); }
+  .as-field svg { margin-left:12px; color:var(--text-3); flex-shrink:0; }
+  .as-field input { flex:1; min-width:0; background:none; border:none; outline:none; color:var(--text-1); font-size:16px; font-family:'DM Sans',sans-serif; padding:0 8px; }
+  .as-field input::placeholder { color:var(--text-3); }
+  .as-field input::-webkit-search-cancel-button { -webkit-appearance:none; }
+  .as-x { background:none; border:none; color:var(--text-3); font-size:19px; line-height:1; padding:6px 11px; display:none; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .as-field.has .as-x { display:block; }
+  .as-fbtn { flex-shrink:0; position:relative; display:flex; align-items:center; gap:6px; height:42px; padding:0 14px; background:var(--bg1); border:1px solid var(--border-hi); border-radius:var(--radius); color:var(--text-2); font-size:14px; font-weight:500; font-family:'DM Sans',sans-serif; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .as-fbtn.on { color:var(--gold); border-color:var(--gold-dim); }
+  .as-badge { min-width:18px; height:18px; padding:0 5px; border-radius:9px; background:var(--gold); color:#111; font-size:11px; font-weight:600; display:none; align-items:center; justify-content:center; }
+  .as-fbtn.on .as-badge { display:inline-flex; }
+  .as-chips { display:flex; gap:6px; overflow-x:auto; padding:10px 0 2px; scrollbar-width:none; }
+  .as-chips::-webkit-scrollbar { display:none; }
+  .as-chip { flex-shrink:0; display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 6px 0 11px; border-radius:15px; background:rgba(201,168,76,0.1); border:1px solid var(--gold-dim); color:var(--gold); font-size:12.5px; font-weight:500; white-space:nowrap; }
+  .as-chip.from-q { border-style:dashed; padding-right:11px; }
+  .as-chip button { background:none; border:none; color:var(--gold); opacity:0.75; font-size:15px; line-height:1; padding:2px 4px; cursor:pointer; }
+  .as-chip-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; display:inline-block; }
+  .as-clear-all { flex-shrink:0; background:none; border:none; color:var(--text-3); font-size:12.5px; padding:0 6px; white-space:nowrap; cursor:pointer; font-family:'DM Sans',sans-serif; }
+  .as-summary { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin:12px 0 6px; }
+  .as-sum { min-width:0; background:var(--bg1); border:1px solid var(--border); border-radius:var(--radius); padding:10px 12px; }
+  .as-sum .l { font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-3); font-weight:600; }
+  .as-sum .v { font-family:'DM Serif Display',serif; font-size:19px; margin-top:3px; font-variant-numeric:tabular-nums; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .as-sum .c { font-size:11px; color:var(--text-3); margin-top:1px; }
+  .as-sum.in .v { color:var(--green); } .as-sum.out .v { color:var(--red); } .as-sum.net .v { color:var(--gold); }
+  .as-results { margin-top:14px; }
+  .as-rank-note { font-size:11.5px; color:var(--text-3); padding:0 0 6px; }
+  #as-table th[data-as-sort] { cursor:pointer; }
+  /* Type column always shows here (the list only shows it on the All tab). */
+  #as-table th.sort-col-type, #as-table td.tx-type-cell { display:table-cell; }
+  .as-empty { text-align:center; color:var(--text-3); padding:48px 12px; font-size:14px; line-height:1.6; }
+  .as-sugg { display:flex; flex-direction:column; gap:8px; margin:16px auto 0; max-width:320px; }
+  .as-sugg button { display:flex; justify-content:space-between; align-items:center; gap:10px; width:100%; background:var(--bg1); border:1px solid var(--border-hi); color:var(--text-1); border-radius:var(--radius); padding:11px 14px; font-size:13.5px; text-align:left; font-family:'DM Sans',sans-serif; cursor:pointer; }
+  .as-sugg button span { color:var(--text-3); font-size:12px; white-space:nowrap; }
+  .as-clear-link { margin-top:14px; background:none; border:none; color:var(--text-3); font-size:12.5px; padding:4px; cursor:pointer; font-family:'DM Sans',sans-serif; }
+  .as-recent { position:absolute; left:0; right:0; top:48px; z-index:25; background:var(--bg1); border:1px solid var(--border-hi); border-radius:var(--radius-lg); box-shadow:0 12px 32px rgba(0,0,0,0.45); overflow:hidden; display:none; }
+  .as-recent.show { display:block; }
+  .as-recent-head { display:flex; justify-content:space-between; align-items:center; padding:11px 16px 6px; }
+  .as-recent-head span { font-size:10px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; color:var(--text-3); }
+  .as-recent-head button { background:none; border:none; color:var(--text-3); font-size:12px; padding:2px 0; cursor:pointer; font-family:'DM Sans',sans-serif; }
+  .as-recent-row { display:flex; align-items:center; gap:10px; padding:0 6px 0 16px; border-top:1px solid var(--border); }
+  .as-recent-row:first-of-type { border-top:none; }
+  .as-recent-row .go { flex:1; min-width:0; text-align:left; background:none; border:none; color:var(--text-1); font-size:14px; padding:12px 0; display:flex; align-items:center; gap:10px; cursor:pointer; font-family:'DM Sans',sans-serif; }
+  .as-recent-row .go span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .as-recent-row .go svg { color:var(--text-3); flex-shrink:0; }
+  .as-recent-row .rm { background:none; border:none; color:var(--text-3); font-size:17px; padding:8px 10px; cursor:pointer; }
+  /* Filters sheet — above the floating Menu / Add New buttons */
+  .as-scrim { position:fixed; inset:0; z-index:399; background:rgba(0,0,0,0.55); opacity:0; pointer-events:none; transition:opacity 0.22s ease; }
+  .as-scrim.open { opacity:1; pointer-events:auto; }
+  .as-sheet { position:fixed; left:0; right:0; bottom:0; z-index:400; max-width:560px; margin:0 auto; max-height:88vh; display:flex; flex-direction:column; background:var(--bg1); border:1px solid var(--border-hi); border-bottom:none; border-radius:18px 18px 0 0; transform:translateY(100%); transition:transform 0.28s cubic-bezier(.2,.8,.2,1); visibility:hidden; }
+  .as-sheet.open { transform:translateY(0); visibility:visible; }
+  .as-sheet.dragging { transition:none; }
+  html.as-locked, html.as-locked body { overflow:hidden; }
+  .as-sh-drag { touch-action:none; cursor:grab; }
+  .as-grab { width:38px; height:4px; border-radius:2px; background:var(--border-hi); margin:9px auto 2px; }
+  .as-sh-head { display:flex; justify-content:space-between; align-items:center; padding:8px 18px 10px; }
+  .as-sh-head h3 { font-family:'DM Serif Display',serif; font-weight:400; font-size:20px; margin:0; color:var(--text-1); }
+  .as-sh-head button { background:none; border:none; color:var(--text-3); font-size:13px; cursor:pointer; font-family:'DM Sans',sans-serif; }
+  .as-sh-body { overflow-y:auto; padding:0 18px 8px; overscroll-behavior:contain; }
+  .as-sec { padding:14px 0; border-top:1px solid var(--border); }
+  .as-sec h4 { margin:0 0 10px; font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-3); }
+  .as-opts { display:flex; flex-wrap:wrap; gap:6px; }
+  .as-opt { height:34px; padding:0 13px; border-radius:17px; background:var(--bg3); border:1px solid var(--border); color:var(--text-2); font-size:13px; font-family:'DM Sans',sans-serif; display:inline-flex; align-items:center; gap:7px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .as-opt.active { background:rgba(201,168,76,0.1); border-color:var(--gold-dim); color:var(--gold); }
+  .as-range { display:none; gap:10px; margin-top:12px; }
+  .as-range.show { display:flex; }
+  .as-amt-row { display:flex; gap:10px; margin-top:12px; }
+  /* Inputs use the Add sheet's field styling. min-width:0 on the column and the
+     input lets two iOS date pickers share a row (Safari gives date inputs a
+     built-in minimum width, so they used to overlap). */
+  .as-inp { flex:1 1 0; min-width:0; display:flex; flex-direction:column; gap:6px; }
+  .as-inp label { font-size:11px; color:var(--text-3); }
+  .as-inp input, .as-inp select { display:block; width:100%; min-width:0; max-width:100%; box-sizing:border-box; height:48px; padding:0 14px; font-size:16px; font-family:'DM Sans',sans-serif; color:var(--text-1); background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); color-scheme:dark; outline:none; }
+  .as-inp input:focus, .as-inp select:focus { border-color:var(--gold-dim); }
+  .as-inp input[type=date] { -webkit-appearance:none; appearance:none; line-height:48px; }
+  .as-note { font-size:11px; color:var(--text-3); margin-top:8px; line-height:1.5; }
+  .as-sh-foot { padding:12px 18px calc(14px + env(safe-area-inset-bottom)); border-top:1px solid var(--border); }
+  .as-show { width:100%; height:46px; border-radius:var(--radius); background:var(--gold); border:none; color:#15120a; font-size:15px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; }
+  @media (max-width: 640px) {
+    /* Full-bleed results like the transaction list; room at the bottom so the
+       last row scrolls clear of the floating Menu / Add New buttons. */
+    #report-panel { padding:14px 16px 160px !important; }
+    .as-results { margin:14px -16px 0; }
+    .as-rank-note { padding:0 16px 6px; }
   }
-  #report-summary {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 24px;
+  @media (max-width: 360px) {
+    .as-summary { gap:6px; }
+    .as-sum { padding:9px; }
+    .as-sum .v { font-size:16px; }
   }
-  .report-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 18px 20px;
-    display: flex; flex-direction: column; gap: 6px;
-  }
-  .report-card.green { border-color: rgba(61,158,110,0.25); }
-  .report-card.red   { border-color: rgba(192,80,74,0.25); }
-  .report-card.gold  { border-color: rgba(201,168,76,0.25); }
-  .rc-label { font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
-  .rc-value { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .report-card.green .rc-value { color: var(--green); }
-  .report-card.red   .rc-value { color: var(--red); }
-  .report-card.gold  .rc-value { color: var(--gold); }
-  .rc-count { font-size: 11px; color: var(--text-3); font-weight: 300; }
-
-  #report-table thead tr { border-bottom: 1px solid var(--border); }
-  #report-table th { padding: 10px 14px; font-size: 10px; color: var(--text-3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
-  #report-table th.right { text-align: right; }
-  #report-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; cursor: default; }
-  @media (hover: hover) { #report-table tbody tr:hover { background: var(--bg2); } }
-  #report-table td { padding: 11px 14px; font-size: 13px; }
-  #report-table td.right { text-align: right; font-weight: 500; font-variant-numeric: tabular-nums; }
   .type-pill {
     display: inline-block; padding: 2px 9px; border-radius: 20px;
     font-size: 11px; font-weight: 500; letter-spacing: 0.03em;
@@ -1550,16 +1614,6 @@
   .ai-privacy-provider-item { background: var(--bg3); border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.6; }
   .ai-privacy-provider-name { font-weight: 600; color: var(--text-1); margin-bottom: 2px; }
   .ai-privacy-provider-detail { color: var(--text-3); }
-  .report-filter-pill {
-    background: var(--bg3); border: 1px solid var(--border-hi);
-    border-radius: 20px; padding: 6px 14px;
-    font-size: 12px; font-weight: 500; color: var(--text-2);
-    font-family: 'DM Sans', sans-serif; cursor: pointer;
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
-    white-space: nowrap;
-  }
-  .report-filter-pill:hover { border-color: var(--border-hi); color: var(--text-1); background: var(--bg4); }
-  .report-filter-pill.active { background: rgba(201,168,76,0.1); border-color: var(--gold-dim); color: var(--gold); }
 
   /* ── Charts ── */
   .chart-card {
@@ -1590,13 +1644,6 @@
     box-shadow: 0 4px 16px rgba(0,0,0,0.4);
   }
 
-  /* ── Report panel responsive: 2-col cards on narrow screens ── */
-  @media (max-width: 640px) {
-    #report-summary { grid-template-columns: 1fr 1fr; }
-    .report-card.gold { grid-column: span 2; }
-    .rc-value { font-size: 18px; }
-    .report-row { gap: 8px; }
-  }
 
   /* ════════════════════════════════════════════
      MOBILE (≤ 640px)
@@ -1646,19 +1693,19 @@
     td { padding: 13px 12px; font-size: 14px; }
     th { padding: 10px 12px; }
     /* Single-account mobile: fixed layout so columns don't overflow */
-    #tx-table { table-layout: fixed; }
-    #tx-table th.sort-col         { width: 34%; }
-    #tx-table th.sort-col-type    { width: 36%; text-align: center; }
+    #tx-table, #as-table { table-layout: fixed; }
+    #tx-table th.sort-col, #as-table th.sort-col { width: 34%; }
+    #tx-table th.sort-col-type, #as-table th.sort-col-type { width: 36%; text-align: center; }
     td.tx-type-cell { text-align: center; }
-    #tx-table th.sort-col.right   { width: 30%; }
+    #tx-table th.sort-col.right, #as-table th.sort-col.right { width: 30%; }
 
     /* When account column is visible, use fixed layout with even column distribution */
-    body.multi-account #tx-table { table-layout: fixed; }
-    body.multi-account #tx-table th.sort-col         { width: 26%; }
-    body.multi-account #tx-table th.sort-col-account  { width: 22%; }
-    body.multi-account #tx-table th.sort-col-type     { width: 26%; text-align: center; }
+    body.multi-account #tx-table, body.multi-account #as-table { table-layout: fixed; }
+    body.multi-account #tx-table th.sort-col, body.multi-account #as-table th.sort-col { width: 26%; }
+    body.multi-account #tx-table th.sort-col-account, body.multi-account #as-table th.sort-col-account { width: 22%; }
+    body.multi-account #tx-table th.sort-col-type, body.multi-account #as-table th.sort-col-type { width: 26%; text-align: center; }
     body.multi-account td.tx-type-cell { text-align: center; padding: 11px 0; }
-    body.multi-account #tx-table th.sort-col.right    { width: 26%; }
+    body.multi-account #tx-table th.sort-col.right, body.multi-account #as-table th.sort-col.right { width: 26%; }
     body.multi-account td { padding: 11px 0; font-size: 13px; }
     body.multi-account th { padding: 9px 0; }
     body.multi-account td:first-child,
@@ -2376,7 +2423,7 @@
     }
     #fy-start-day-select, #fy-start-month-select {
       padding: 13px 12px !important;
-      font-size: 15px !important;
+      font-size: 16px !important; /* 15px made iOS zoom on tap; this rule outranked the 16px touch rule */
     }
     #yfmt-fy-config p {
       text-align: center;
@@ -2707,8 +2754,6 @@
     #sidebar-collapse-btn:hover { color: var(--text-3); }
     .year-btn .fy-chevron:hover { color: var(--text-2); background: transparent; }
 
-    /* Report panel */
-    .report-filter-pill:hover { border-color: var(--border-hi); color: var(--text-2); background: var(--bg3); }
   }
 </style>
 <style id="vh-home-styles">
@@ -4055,7 +4100,7 @@
           <line x1="9.75" y1="9.75" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
       </span>
-      <div><div class="dmenu-btn-label">Search</div><div class="dmenu-btn-sub">Search and filter your transactions</div></div>
+      <div><div class="dmenu-btn-label">Advanced Search</div><div class="dmenu-btn-sub">Search and filter your transactions</div></div>
     </button>
 
     <button class="dmenu-btn" onclick="closeDesktopMenu(); switchTab('charts');">
@@ -4532,91 +4577,94 @@
     </div>
 
     <div id="report-panel" style="display:none; flex:1; overflow-y:auto; padding:20px 24px 24px; flex-direction:column;">
-
-      <div style="margin-bottom:20px;">
-        <h2 style="font-family:'DM Serif Display',serif; font-size:22px; font-weight:400; color:var(--text-1); margin:0 0 2px;">Search</h2>
-        <div style="font-size:12px; color:var(--text-3); font-weight:300;">Search and filter your transactions by date, type or amount</div>
+      <!-- Advanced Search (v6.11.0) -->
+      <h2 class="as-title">Advanced Search</h2>
+      <div id="as-top-spacer"></div>
+      <div class="as-top" id="as-top">
+        <div class="as-bar-wrap">
+          <div class="as-bar">
+            <div class="as-field" id="as-field">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="4.25" stroke="currentColor" stroke-width="1.6"/><line x1="9.75" y1="9.75" x2="14" y2="14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              <input id="as-q" type="search" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="search" placeholder="$50, ubank, june, recurring" aria-label="Search transactions">
+              <button type="button" class="as-x" id="as-qx" aria-label="Clear">&times;</button>
+            </div>
+            <button type="button" class="as-fbtn" id="as-fbtn">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M4.5 8h7M7 12h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              Filters <span class="as-badge" id="as-badge">0</span>
+            </button>
+          </div>
+          <div class="as-recent" id="as-recent"></div>
+        </div>
+        <div class="as-chips" id="as-chips" style="display:none"></div>
       </div>
 
-      <div id="report-controls" style="margin-bottom:20px;">
-
-        <!-- Date range -->
-        <div style="font-size:10px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;">Date Range</div>
-        <div class="report-row" style="margin-bottom:14px;">
-          <div class="field">
-            <label>From</label>
-            <input type="date" id="report-from" style="color-scheme:dark" oninput="renderReport()">
-          </div>
-          <div class="field">
-            <label>To</label>
-            <input type="date" id="report-to" style="color-scheme:dark" oninput="renderReport()">
-          </div>
-          <button id="report-preset-fy" class="btn-ghost" onclick="setReportPreset('fy')">This FY</button>
-          <button class="btn-ghost" onclick="setReportPreset('year')">This year</button>
-          <button class="btn-ghost" onclick="setReportPreset('month')">This month</button>
-          <button class="btn-ghost" onclick="setReportPreset('all')">All time</button>
-        </div>
-
-        <!-- Type filter -->
-        <div style="font-size:10px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;">Transaction Type</div>
-        <div style="display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;">
-          <button class="report-filter-pill active" id="rfilt-all"  onclick="setReportTypeFilter('all')">All</button>
-          <button class="report-filter-pill"        id="rfilt-dep"  onclick="setReportTypeFilter('dep')">Deposits only</button>
-          <button class="report-filter-pill"        id="rfilt-wit"  onclick="setReportTypeFilter('wit')">Withdrawals only</button>
-        </div>
-
-        <!-- Account filter (hidden when there's only one account) -->
-        <div id="report-acct-block" style="display:none;">
-          <div style="font-size:10px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;">Account</div>
-          <div id="report-acct-pills" style="display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;"></div>
-        </div>
-
-        <!-- Amount filter -->
-        <div style="font-size:10px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;">Amount</div>
-        <div style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
-          <div class="field" style="min-width:120px;">
-            <label>Min ($)</label>
-            <input type="number" id="report-amt-min" min="0" step="0.01" placeholder="e.g. 100" inputmode="decimal" oninput="renderReport()" style="background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); padding:8px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
-          </div>
-          <div class="field" style="min-width:120px;">
-            <label>Max ($)</label>
-            <input type="number" id="report-amt-max" min="0" step="0.01" placeholder="e.g. 1000" inputmode="decimal" oninput="renderReport()" style="background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); padding:8px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%;">
-          </div>
-          <button class="btn-ghost" onclick="clearAmountFilter()" style="margin-bottom:1px;">Clear</button>
-          <button class="btn-ghost" onclick="printSearchResults()" style="margin-bottom:1px; margin-left:auto;">Print</button>
-        </div>
-
+      <div class="as-summary">
+        <div class="as-sum in"><div class="l">In</div><div class="v" id="as-in"></div><div class="c" id="as-in-c"></div></div>
+        <div class="as-sum out"><div class="l">Out</div><div class="v" id="as-out"></div><div class="c" id="as-out-c"></div></div>
+        <div class="as-sum net"><div class="l">Net</div><div class="v" id="as-net"></div><div class="c" id="as-net-c"></div></div>
       </div>
 
-      <div id="report-summary">
-        <div class="report-card green">
-          <div class="rc-label">Total Deposited</div>
-          <div class="rc-value" id="rc-in">—</div>
-          <div class="rc-count" id="rc-in-count"></div>
-        </div>
-        <div class="report-card red">
-          <div class="rc-label">Total Withdrawn</div>
-          <div class="rc-value" id="rc-out">—</div>
-          <div class="rc-count" id="rc-out-count"></div>
-        </div>
-        <div class="report-card gold">
-          <div class="rc-label">Net</div>
-          <div class="rc-value" id="rc-net">—</div>
-          <div class="rc-count" id="rc-net-label"></div>
-        </div>
+      <div class="as-results">
+        <div class="as-rank-note" id="as-rank-note" style="display:none"></div>
+        <div id="as-pagination-top" class="tx-pagination tx-pagination-top" style="display:none;"></div>
+        <table id="as-table" style="display:none">
+          <thead><tr>
+            <th id="as-sort-date"    data-as-sort="date"    class="sort-col" style="white-space:nowrap;">Date</th>
+            <th id="as-sort-account" data-as-sort="account" class="sort-col-account" style="white-space:nowrap;">Account</th>
+            <th id="as-sort-type"    data-as-sort="type"    class="sort-col-type" style="white-space:nowrap;">Type</th>
+            <th id="as-sort-amount"  data-as-sort="amount"  class="sort-col right" style="white-space:nowrap;">Amount</th>
+          </tr></thead>
+          <tfoot><tr>
+            <td class="foot-label" id="as-foot-label" colspan="3"></td>
+            <td class="foot-total" id="as-foot-total"></td>
+          </tr></tfoot>
+          <tbody id="as-body"></tbody>
+        </table>
+        <div id="as-pagination-bottom" class="tx-pagination tx-pagination-bottom" style="display:none;"></div>
+        <div class="as-empty" id="as-empty" style="display:none"></div>
       </div>
 
-      <div id="report-empty" style="display:none; text-align:center; padding:40px 0; color:var(--text-3); font-size:14px; font-weight:300;">No transactions in this date range.</div>
-      <table id="report-table" style="display:none; width:100%; border-collapse:collapse; margin-top:4px;">
-        <thead><tr>
-          <th>Date</th>
-          <th>Type</th>
-          <th class="right">Amount</th>
-        </tr></thead>
-        <tbody id="report-body"></tbody>
-      </table>
+      <div class="as-scrim" id="as-scrim"></div>
+      <div class="as-sheet" id="as-sheet" role="dialog" aria-label="Filters">
+        <div class="as-sh-drag" id="as-sh-drag">
+          <div class="as-grab"></div>
+          <div class="as-sh-head"><h3>Filters</h3><button type="button" id="as-reset">Reset all</button></div>
+        </div>
+        <div class="as-sh-body">
+          <div class="as-sec" style="border-top:none">
+            <h4>Date</h4>
+            <div class="as-opts" id="as-o-date"></div>
+            <div class="as-range" id="as-range">
+              <div class="as-inp"><label for="as-from">From</label><input type="date" id="as-from"></div>
+              <div class="as-inp"><label for="as-to">To</label><input type="date" id="as-to"></div>
+            </div>
+          </div>
+          <div class="as-sec"><h4>Type</h4><div class="as-opts" id="as-o-type"></div><div class="as-note">Pick any combination. None picked shows all types.</div></div>
+          <div class="as-sec" id="as-sec-acc"><h4>Account</h4><div class="as-opts" id="as-o-acc"></div></div>
+          <div class="as-sec">
+            <h4>Amount</h4>
+            <div class="as-opts" id="as-o-amtmode"></div>
+            <div class="as-amt-row" id="as-amt-range">
+              <div class="as-inp"><label for="as-amin">Min</label><input type="number" inputmode="decimal" min="0" step="0.01" id="as-amin" placeholder="Any"></div>
+              <div class="as-inp"><label for="as-amax">Max</label><input type="number" inputmode="decimal" min="0" step="0.01" id="as-amax" placeholder="Any"></div>
+            </div>
+            <div class="as-amt-row" id="as-amt-exact" style="display:none">
+              <div class="as-inp"><label for="as-aexact">Exactly</label><input type="number" inputmode="decimal" min="0" step="0.01" id="as-aexact" placeholder="e.g. 50"></div>
+            </div>
+            <h4 style="margin-top:16px">Typed amounts</h4>
+            <div class="as-opts" id="as-o-typed"></div>
+            <div class="as-note">How a number in the search bar matches. Closest first: “50” finds $50.00 first, then $500.00, $250.00. Exact only: just $50.00, the same as typing “=50”.</div>
+          </div>
+          <div class="as-sec">
+            <h4>Recurring</h4>
+            <div class="as-opts" id="as-o-rec"></div>
+            <div class="as-inp" style="margin-top:12px; display:none;" id="as-rule-wrap"><label for="as-rule">Rule</label><select id="as-rule"></select></div>
+          </div>
+          <div class="as-sec" id="as-sec-cur"><h4>Currency</h4><div class="as-opts" id="as-o-cur"></div></div>
+        </div>
+        <div class="as-sh-foot"><button type="button" class="as-show" id="as-show">Show results</button></div>
+      </div>
     </div>
-
     <!-- Charts panel -->
     <div id="charts-panel" style="display:none; flex:1; overflow-y:auto; padding:20px 24px 32px; flex-direction:column; gap:28px;">
 
@@ -4755,7 +4803,7 @@
       </svg>
     </span>
     <span class="menu-item-body">
-      <span class="menu-item-label">Search</span>
+      <span class="menu-item-label">Advanced Search</span>
       <span class="menu-item-sub">Search and filter your transactions</span>
     </span>
   </button>
@@ -8279,6 +8327,60 @@ const HOLD_MS = 500;
 // Distance (in CSS px) the pointer can drift before we treat it as intent to
 // scroll and cancel the hold. Classic tap-vs-drag threshold.
 const HOLD_MOVE_CANCEL_PX = 8;
+
+// Delegated hold-to-edit for a table body of transaction rows. Attached once per
+// tbody; each <tr> carries data-date/amt/type/year/tx-id, so there's no per-row
+// closure on large tables. A plain tap does nothing — the popup opens only after
+// a HOLD_MS press, with the gold "charging" tint (.holding) as feedback. Moving
+// more than HOLD_MOVE_CANCEL_PX (a scroll) cancels. Shared by the transaction
+// list and Advanced Search so the two behave identically (v6.11.0).
+function _bindRowHold(tbody, beforeOpen) {
+  if (!tbody || tbody.dataset.holdBound) return;
+  tbody.dataset.holdBound = "1";
+  let hold = null; // { row, timer, startX, startY }
+  const cancel = () => {
+    if (!hold) return;
+    if (hold.timer) clearTimeout(hold.timer);
+    hold.row.classList.remove("holding");
+    hold = null;
+  };
+  tbody.addEventListener("pointerdown", (e) => {
+    // Right-click on desktop → let the browser handle it
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    const tr = e.target.closest("tr");
+    if (!tr || !tr.dataset || !tr.dataset.date) return;
+    cancel();
+    const row = tr;
+    row.classList.add("holding");
+    const timer = setTimeout(() => {
+      if (!hold) return;
+      row.classList.remove("holding");
+      hold = null;
+      try { if (navigator.vibrate) navigator.vibrate(15); } catch {}
+      if (beforeOpen) { try { beforeOpen(row); } catch {} }
+      openPopup(
+        row.dataset.date,
+        parseFloat(row.dataset.amt),
+        row.dataset.type,
+        row.dataset.year || null,
+        row.dataset.txId || null
+      );
+    }, HOLD_MS);
+    hold = { row, timer, startX: e.clientX, startY: e.clientY };
+  });
+  tbody.addEventListener("pointermove", (e) => {
+    if (!hold) return;
+    if (Math.hypot(e.clientX - hold.startX, e.clientY - hold.startY) > HOLD_MOVE_CANCEL_PX) cancel();
+  });
+  tbody.addEventListener("pointerup",     cancel);
+  tbody.addEventListener("pointercancel", cancel);
+  tbody.addEventListener("pointerleave",  cancel);
+  // Suppress iOS long-press context menu on rows so it doesn't hijack the hold
+  tbody.addEventListener("contextmenu", (e) => {
+    const tr = e.target.closest("tr");
+    if (tr && tr.dataset && tr.dataset.date) e.preventDefault();
+  });
+}
 // Back-compat alias (used only within this file)
 const PILL_HOLD_MS = HOLD_MS;
 
@@ -8354,7 +8456,8 @@ function renderAccountPills() {
   // edits, import) that don't know which panel is active, and any that lands
   // after renderMain() would re-show the strip over Home. Guarding here rather
   // than at every call site.
-  if (activeTab === "home") {
+  // Advanced Search has its own Account filter too (v6.11.0).
+  if (activeTab === "home" || activeTab === "report") {
     if (outer) outer.style.display = "none";
     return;
   }
@@ -11614,7 +11717,8 @@ function renderMain() {
   const table = document.getElementById("tx-table");
   const empty = document.getElementById("empty-msg");
 
-  if (isReport || isCharts) return;
+  if (isReport) { asRender(); return; }
+  if (isCharts) return;
 
   // ── Build rows ─────────────────────────────────────────────────────────────
   // Cache the full filtered+sorted rows array across renders. The cache key
@@ -11659,19 +11763,10 @@ function renderMain() {
       rows = src.filter(filterFn).map(r => [r[0], r[1], activeTab, activeYear, r[4] || null, r[5] || null, r[6] || defaultAccId, r[2] || null]);
     }
 
-    // Sort — type key groups deposit < interest < withdrawal for clean grouping
-    const txTypeSortKey = r => r[2] === "removed" ? "c_withdrawal" : r[4] === "interest" ? "b_interest" : "a_deposit";
-    rows.sort((a, b) => {
-      let av, bv;
-      if (sortKey === "date")           { av = a[0]; bv = b[0]; }
-      else if (sortKey === "amount")    { av = a[1]; bv = b[1]; }
-      else if (sortKey === "account")   { av = getAccountName(a[6]); bv = getAccountName(b[6]); }
-      else /* type */                   { av = txTypeSortKey(a); bv = txTypeSortKey(b); }
-      if (av < bv) return sortDir === "asc" ? -1 :  1;
-      if (av > bv) return sortDir === "asc" ?  1 : -1;
-      if (sortKey !== "date") return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0;
-      return 0;
-    });
+    rows.sort(txSortComparator(r => ({
+      date: r[0], amt: r[1], acc: getAccountName(r[6]),
+      type: r[2] === "removed" ? "Withdrawal" : r[4] === "interest" ? "Interest" : "Deposit",
+    })));
 
     _currentRows    = rows;
     _currentRowsKey = rowsKey;
@@ -11789,11 +11884,16 @@ function renderMain() {
     if (rateNote) rateNote.style.display = "none";
   }
 
-  const totalAmt = rows.reduce((s, [,a,,,,, accId]) => s + convertToGlobal(a, getAccountCurrency(accId || defaultAccId)), 0);
+  // On the All tab the rows are mixed, so the total is the net (deposits less
+  // withdrawals), matching the Net card. It used to add withdrawals in (v6.11.0).
+  const totalAmt = rows.reduce((s, [,a,type,,,, accId]) => {
+    const g = convertToGlobal(a, getAccountCurrency(accId || defaultAccId));
+    return s + (activeTab === "all" && type === "removed" ? -g : g);
+  }, 0);
   document.getElementById("foot-label").textContent = `Total (${rows.length} entries)`;
   const ft = document.getElementById("foot-total");
   ft.textContent = aud(totalAmt);
-  ft.style.color = (isAll || isAllYears || isMonthView) ? (tn >= 0 ? "var(--green)" : "var(--red)") : (activeTab==="saved" ? "var(--green)" : "var(--red)");
+  ft.style.color = activeTab === "all" ? (totalAmt >= 0 ? "var(--green)" : "var(--red)") : (activeTab === "saved" ? "var(--green)" : "var(--red)");
   updateSortButtons();
 }
 
@@ -11842,9 +11942,8 @@ function _renderPagination(totalRows, totalPages) {
   });
 }
 
-function _buildPaginationHTML(totalPages) {
+function _buildPaginationHTML(totalPages, p = _currentPage) {
   const isMobile = window.matchMedia("(max-width: 640px)").matches;
-  const p = _currentPage;
   if (isMobile) {
     // Mobile shows only the compact form because the full button list won't
     // fit. The "Page X of Y" text is required here since the compact form
@@ -12085,19 +12184,19 @@ function vhMonthKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).pad
 function vhAllTx() {
   const out = [];
   const def = getDefaultAccountId();
-  Object.values(data).forEach(fy => {
+  Object.entries(data).forEach(([year, fy]) => {
     (fy.saved || []).forEach(tx => {
       const accId = tx[6] || def;
       // tx[5] is the recurring rule that produced this entry, if any. Carried
       // through so a scheduled deposit can be told apart from a deliberate one.
       out.push({ date: tx[0], amt: tx[1], accId, cur: getAccountCurrency(accId),
                  kind: tx[4] === "interest" ? "int" : "dep", id: tx[2], ts: tx[3] || 0,
-                 recur: tx[5] || null });
+                 recur: tx[5] || null, year });
     });
     (fy.removed || []).forEach(tx => {
       const accId = tx[6] || def;
       out.push({ date: tx[0], amt: tx[1], accId, cur: getAccountCurrency(accId),
-                 kind: "wit", id: tx[2], ts: tx[3] || 0, recur: tx[5] || null });
+                 kind: "wit", id: tx[2], ts: tx[3] || 0, recur: tx[5] || null, year });
     });
   });
   return out;
@@ -13634,78 +13733,147 @@ function vhParseToken(tok) {
   return { raw: body, num: vhAmountToken(body), exact };
 }
 
-// How well does one parsed token match this transaction? 0 = no match, and the
-// tiers rank results so a search for "50" leads with $50.00 rather than burying
-// it among $250.00s that merely contain "50".
-//   3 = exact   2 = prefix   1 = contains
-// A token can hit several fields, so the best hit wins.
+// ─── Search rules — shared by Home quick-find and Advanced Search (v6.11.0) ───
+// One parser and one matcher, so the two can never disagree about what a search
+// means. Each word is sorted into a kind (account, type, month, amount…):
+//   • words of different kinds AND together — "ubank interest"
+//   • words of the same kind mean either — "ing ubank" is both accounts
+//   • a plain number matches any amount containing those digits, ranked
+//     exact → starts with → contains; "=50" is exact. Every number word must
+//     match (amounts AND, since one amount can't be two numbers)
+//   • multi-word account names ("ING Savings") are recognised whole
+//   • a word that's none of these matches nothing, so a typo shows as such
+// Scores feed Home's relevance order and Advanced Search's "closest first".
 const VH_EXACT = 3, VH_PREFIX = 2, VH_CONTAINS = 1;
+const VS_TYPE_WORDS = [["deposit", "dep"], ["interest", "int"], ["withdrawal", "wit"]];
+const VS_MONTHS_LONG = ["january","february","march","april","may","june","july","august","september","october","november","december"];
 
-function vhTokenScore(t, tok) {
-  const raw = tok.raw;
-  // "=45" / "=$45" — explicit exact, no partials wanted at all.
-  if (tok.exact) {
-    const want = parseFloat(tok.num != null ? tok.num : raw);
-    return (isFinite(want) && Math.abs(t.amt - want) < 0.005) ? VH_EXACT : 0;
+function vsClassify(tok) {
+  const pt = vhParseToken(tok);
+  if (pt.exact) {
+    const v = parseFloat(pt.num != null ? pt.num : pt.raw);
+    return (pt.raw && isFinite(v)) ? { kind: "amt", text: tok, raw: pt.num != null ? pt.num : pt.raw, val: v, exact: true }
+                                   : { kind: "unknown", text: tok };
   }
-  let best = 0;
-  const bump = v => { if (v > best) best = v; };
+  if (/^\d{4}-\d{0,2}(-\d{0,2})?$/.test(tok)) return { kind: "date", text: tok };
+  if (pt.num != null) {
+    // A four-digit year-like number can mean either: "2026" finds amounts containing
+    // 2026 and anything dated in 2026, as Home always did.
+    return { kind: "amt", text: tok, raw: pt.num, val: parseFloat(pt.num), exact: false,
+             year: /^(19|20)\d{2}$/.test(pt.num) ? pt.num : null };
+  }
+  const hits = {};
+  accounts.forEach(a => {
+    const n = (a.name || "").toLowerCase().trim();
+    if (!n) return;
+    const sc = n === tok ? VH_EXACT
+             : (n.startsWith(tok) || n.split(/\s+/).some(w => w.startsWith(tok))) ? VH_PREFIX
+             : (tok.length >= 3 && n.includes(tok)) ? VH_CONTAINS : 0;
+    if (sc) hits[a.id] = sc;
+  });
+  if (Object.keys(hits).length) return { kind: "acc", text: tok, hits };
+  if (tok.length === 3 && accounts.some(a => (a.currency || currencyCode).toLowerCase() === tok))
+    return { kind: "cur", text: tok, code: tok };
+  if (tok.length >= 3) {
+    const m = VS_MONTHS_LONG.findIndex(n => n.startsWith(tok));
+    if (m >= 0) return { kind: "month", text: tok, m };
+  }
+  const ty = VS_TYPE_WORDS.find(([w]) => w.startsWith(tok));
+  if (ty) return { kind: "type", text: tok, t: ty[1], score: ty[0] === tok ? VH_EXACT : VH_PREFIX };
+  if (tok.length >= 3 && "recurring".startsWith(tok)) return { kind: "rec", text: tok, want: "rec" };
+  if (tok.length >= 3 && ("one-off".startsWith(tok) || "oneoff".startsWith(tok))) return { kind: "rec", text: tok, want: "one" };
+  return { kind: "unknown", text: tok };
+}
 
-  // Amount. Compare against both the 2dp form and the rounded integer so "500"
-  // ranks as a prefix of 500.00 and "50" still finds 250.00 further down.
-  if (tok.num != null) {
-    const want = parseFloat(tok.num);
-    const s2   = t.amt.toFixed(2);
-    const sInt = String(Math.round(t.amt));
-    if (isFinite(want) && Math.abs(t.amt - want) < 0.005) bump(VH_EXACT);
-    else if (s2.startsWith(tok.num) || sInt.startsWith(tok.num)) bump(VH_PREFIX);
-    else if (s2.includes(tok.num) || sInt.includes(tok.num)) bump(VH_CONTAINS);
+// Parse once per search. Returns { words: [...] } in the order typed.
+function vsParse(q) {
+  const words = [];
+  let rest = " " + String(q || "").toLowerCase().replace(/\s+/g, " ").trim() + " ";
+  // Whole multi-word account names first, longest first.
+  [...accounts].filter(a => /\s/.test((a.name || "").trim()))
+    .sort((a, b) => b.name.length - a.name.length)
+    .forEach(a => {
+      const n = " " + a.name.toLowerCase().replace(/\s+/g, " ").trim() + " ";
+      const at = rest.indexOf(n);
+      if (at >= 0) {
+        words.push({ kind: "acc", text: n.trim(), hits: { [a.id]: VH_EXACT }, at });
+        rest = rest.slice(0, at) + " ".repeat(n.length - 1) + rest.slice(at + n.length - 1);
+      }
+    });
+  let pos = 0;
+  rest.split(" ").forEach(tok => {
+    if (tok) words.push(Object.assign(vsClassify(tok), { at: pos }));
+    pos += tok.length + 1;
+  });
+  words.sort((a, b) => a.at - b.at);
+  return { words };
+}
+
+function vsWordScore(t, w, exactAmts) {
+  switch (w.kind) {
+    case "acc":   return w.hits[t.accId] || 0;
+    case "cur":   return (t.cur || "").toLowerCase() === w.code ? VH_EXACT : 0;
+    case "date":  return t.date === w.text ? VH_EXACT : t.date.startsWith(w.text) ? VH_PREFIX : 0;
+    case "month": return Number(t.date.slice(5, 7)) === w.m + 1 ? VH_PREFIX : 0;
+    case "type":  return t.kind === w.t ? w.score : 0;
+    case "rec":   return (w.want === "rec") === vhIsRecurring(t) ? VH_PREFIX : 0;
+    case "amt": {
+      if (w.exact || exactAmts) return Math.abs(t.amt - w.val) < 0.005 ? VH_EXACT : 0;
+      const s2 = t.amt.toFixed(2), sInt = String(Math.round(t.amt));
+      let sc = Math.abs(t.amt - w.val) < 0.005 ? VH_EXACT
+             : (s2.startsWith(w.raw) || sInt.startsWith(w.raw)) ? VH_PREFIX
+             : (s2.includes(w.raw) || sInt.includes(w.raw)) ? VH_CONTAINS : 0;
+      if (w.year && t.date.startsWith(w.year)) sc = Math.max(sc, VH_PREFIX);
+      return sc;
+    }
+    default: return 0;
   }
-  // Account name.
-  const acc = getAccountById(t.accId);
-  if (acc) {
-    const n = acc.name.toLowerCase();
-    if (n === raw) bump(VH_EXACT);
-    else if (n.startsWith(raw)) bump(VH_PREFIX);
-    else if (n.includes(raw)) bump(VH_CONTAINS);
+}
+
+// 0 = no match; otherwise a relevance score.
+function vsMatch(t, P, exactAmts = false) {
+  if (!P.words.length || P.words.some(w => w.kind === "unknown")) return 0;
+  let total = 0;
+  const best = {};
+  for (const w of P.words) {
+    const sc = vsWordScore(t, w, exactAmts);
+    if (w.kind === "amt") { if (!sc) return 0; total += sc; continue; }   // amounts AND
+    best[w.kind] = Math.max(best[w.kind] || 0, sc);                        // same kind: either
   }
-  // Currency code — only ever an exact match.
-  if (t.cur && t.cur.toLowerCase() === raw) bump(VH_EXACT);
-  // Date, as raw ISO.
-  if (t.date === raw) bump(VH_EXACT);
-  else if (t.date.startsWith(raw)) bump(VH_PREFIX);
-  else if (t.date.includes(raw)) bump(VH_CONTAINS);
-  // Month name ("jun"). Never exact — it identifies a month, not a transaction.
-  const mi = MONTH_NAMES_SHORT.findIndex(m => m.toLowerCase() === raw.slice(0, 3));
-  if (mi >= 0 && raw.length >= 3 && Number(t.date.slice(5, 7)) === mi + 1) bump(VH_PREFIX);
-  // Type.
-  const label = t.kind === "dep" ? "deposit" : t.kind === "wit" ? "withdrawal" : "interest";
-  if (label === raw) bump(VH_EXACT);
-  else if (label.startsWith(raw)) bump(VH_PREFIX);
-  // "recurring" / "recur" / "rec" — anything a recurring rule posted. This used to
-  // read t.recurId, a field vhAllTx has never written (it writes t.recur), so the
-  // branch could not fire and the keyword matched nothing at all.
-  //
-  // Every match scores the same VH_PREFIX, so vhSearchMatches' date tie-break
-  // orders a bare "recurring" query newest-first, which is what you want from it.
-  if ("recurring".startsWith(raw) && raw.length >= 3 && vhIsRecurring(t)) bump(VH_PREFIX);
-  return best;
+  for (const k in best) { if (!best[k]) return 0; total += best[k]; }
+  return total;
+}
+
+// Advanced Search's "closest first": how well the number words match.
+function vsAmtScore(t, P, exactAmts) {
+  if (exactAmts) return 0;
+  return P.words.filter(w => w.kind === "amt" && !w.exact).reduce((s, w) => s + vsWordScore(t, w, false), 0);
+}
+function vsRanks(P, exactAmts) { return !exactAmts && P.words.some(w => w.kind === "amt" && !w.exact); }
+
+// Plain-English label for a parsed word (chips, print subtitle, suggestions).
+function vsWordLabel(w, exactAmts) {
+  switch (w.kind) {
+    case "acc": {
+      const names = Object.keys(w.hits).map(id => getAccountName(id));
+      return names.length === 1 ? names[0] : names.join(" or ");
+    }
+    case "cur":   return w.code.toUpperCase();
+    case "date":  return w.text;
+    case "month": return VS_MONTHS_LONG[w.m][0].toUpperCase() + VS_MONTHS_LONG[w.m].slice(1);
+    case "type":  return { dep: "Deposits", int: "Interest", wit: "Withdrawals" }[w.t];
+    case "rec":   return w.want === "rec" ? "Recurring" : "One-off";
+    case "amt":   return (w.exact || exactAmts) ? "Exactly " + aud(w.val)
+                       : "Amount includes " + w.raw + (w.year ? " (or dated " + w.year + ")" : "");
+    default:      return "“" + w.text + "” — not recognised";
+  }
 }
 
 function vhSearchMatches(q) {
-  const raw = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  if (!raw.length) return null;
-  const tokens = raw.map(vhParseToken);
+  const P = vsParse(q);
+  if (!P.words.length) return null;
   const out = [];
-  vhAllTx().forEach(t => {
-    let total = 0;
-    for (const tok of tokens) {
-      const sc = vhTokenScore(t, tok);
-      if (!sc) return;          // every token must match — AND, not OR
-      total += sc;
-    }
-    out.push({ t, score: total });
-  });
+  vhAllTx().forEach(t => { const score = vsMatch(t, P); if (score) out.push({ t, score }); });
   // Relevance first, then newest. Without the score tier an exact $50.00 from
   // last year would sit below a $250.00 from yesterday.
   out.sort((a, b) => b.score - a.score
@@ -13798,7 +13966,7 @@ function vhRenderSearch() {
           + `<span class="vh-recent-type ${t.kind}">${label}</span>`
           + `<div class="vh-recent-amt">${amt}</div></div>`;
   });
-  html += `</div><button class="vh-search-all" id="vh-search-all">See all in Search &rarr;</button>`;
+  html += `</div><button class="vh-search-all" id="vh-search-all">See all in Advanced Search &rarr;</button>`;
   box.classList.remove("bare");
   box.classList.add("has-content");
   box.innerHTML = html;
@@ -13806,61 +13974,6 @@ function vhRenderSearch() {
     r.addEventListener("click", () => { vhSearchClose(); vhGoToTx(r.dataset.vhTxid, r.dataset.vhDate); }));
   const all = document.getElementById("vh-search-all");
   if (all) all.addEventListener("click", () => vhSearchHandoff(_vhSearchQ));
-}
-
-// Hand off to the Search tab, translating whatever the query expressed into the
-// tab's structured controls. Anything that can't be expressed there is dropped
-// rather than silently narrowing results behind the user's back.
-function vhSearchHandoff(q) {
-  const tokens = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  const txs = vhAllTx();
-  let from = null, to = null, min = null, max = null, type = "all", acct = "all";
-
-  tokens.forEach(tok => {
-    const parsed = vhParseToken(tok);
-    if (parsed.exact) {
-      const v = parseFloat(parsed.num != null ? parsed.num : parsed.raw);
-      if (isFinite(v)) { min = v; max = v; }
-      return;
-    }
-    const acc = accounts.find(a => a.name.toLowerCase().includes(tok));
-    if (acc) { acct = acc.id; return; }
-    if (/^\d{4}-\d{2}$/.test(tok)) {
-      from = tok + "-01";
-      const [y, m] = tok.split("-").map(Number);
-      to = tok + "-" + new Date(y, m, 0).getDate();
-      return;
-    }
-    if (/^\d{4}-\d{2}-\d{2}$/.test(tok)) { from = to = tok; return; }
-    const mi = MONTH_NAMES_SHORT.findIndex(m => m.toLowerCase() === tok.slice(0, 3));
-    if (mi >= 0 && tok.length >= 3) {
-      // No year given — use the most recent year that actually has data in that month.
-      const yrs = [...new Set(txs.filter(t => Number(t.date.slice(5, 7)) === mi + 1)
-                                 .map(t => t.date.slice(0, 4)))].sort();
-      const y = Number(yrs[yrs.length - 1] || new Date().getFullYear());
-      from = `${y}-${String(mi + 1).padStart(2, "0")}-01`;
-      to   = `${y}-${String(mi + 1).padStart(2, "0")}-${new Date(y, mi + 1, 0).getDate()}`;
-      return;
-    }
-    if ("deposit".startsWith(tok) || "interest".startsWith(tok)) { type = "dep"; return; }
-    if ("withdrawal".startsWith(tok)) { type = "wit"; return; }
-    if (parsed.num != null) { const v = parseFloat(parsed.num); if (isFinite(v)) { min = v; max = v; } }
-  });
-
-  // Default to all-time unless the query pinned a window.
-  if (!from || !to) {
-    const ds = txs.map(t => t.date).sort();
-    from = ds[0] || todayLocal();
-    to   = ds[ds.length - 1] || todayLocal();
-  }
-  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v == null ? "" : v; };
-  set("report-from", from); set("report-to", to);
-  set("report-amt-min", min); set("report-amt-max", max);
-  reportTypeFilter = type;
-  reportAccountFilter = acct;
-  ["all", "dep", "wit"].forEach(k =>
-    document.getElementById("rfilt-" + k)?.classList.toggle("active", k === type));
-  switchTab("report");
 }
 
 // ─── Recent transactions ──────────────────────────────────────────────────────
@@ -16249,6 +16362,7 @@ function vhApplyLayout() {
 }
 
 function switchTab(t) {
+  const _prevTab = _asPrevTab; _asPrevTab = t;
   activeTab = t;
   _currentPage = 1;
   const isReport = t === "report";
@@ -16266,177 +16380,483 @@ function switchTab(t) {
   const _pillsWrap = document.getElementById("account-pills-wrap");
   if (_pillsWrap) {
     if (isHome) _pillsWrap.style.display = "none";
-    else if (!isReport && !isCharts) renderAccountPills();
+    else if (!isCharts) renderAccountPills();   // hides itself on Home and Advanced Search
   }
-  if (isReport) { renderReportAccountPills(); renderReport(); }
+  if (isReport) asEnter(_prevTab);
+  updateExportMenuSub();
   if (isCharts) renderCharts();
   render();
 }
 
-// Set the report date range to a common preset and re-render the report.
-// preset: "month" | "year" | "fy" | "all"
-function setReportPreset(preset) {
-  const now   = new Date();
-  const pad   = n => String(n).padStart(2,"0");
-  const iso   = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-  let from, to = iso(now);
+// ─── Advanced Search (v6.11.0) ───────────────────────────────────────────────
+// Replaces the old Search panel. One search bar (same words as Home), a Filters
+// sheet, chips for everything active, In/Out/Net, and the transaction list's own
+// table — same columns, remembered sort, pagination and hold-to-edit popup.
+// Print, Export Spreadsheet and Ctrl/⌘+P use exactly what's shown, in this order.
+// Starts fresh each visit unless arriving from Home with a query.
+const AS_RECENT_KEY = "vault_search_recent_v1";   // this device only, never synced
+const AS_RECENT_MAX = 5;
+const asBlank = () => ({ date: "all", from: "", to: "", types: [], accs: [], curs: [],
+  amtMode: "range", amin: "", amax: "", aexact: "", exactAmts: false, rec: "all", rule: "" });
+let asF = asBlank();       // applied filters
+let asD = asBlank();       // draft while the Filters sheet is open
+let asQ = "";              // search bar text
+let asPage = 1;
+let asRecent = [];
+let _asRows = [];          // last rendered results, in display order (print/export use these)
 
-  if (preset === "month") {
-    from = `${now.getFullYear()}-${pad(now.getMonth()+1)}-01`;
-  } else if (preset === "year") {
-    from = `${now.getFullYear()}-01-01`;
-  } else if (preset === "fy") {
-    // Financial year — use configured fyStartMonth + fyStartDay
-    const sm = fyStartMonth; // 1-based
-    const sd = fyStartDay;   // 1-based day
-    // Current date is "in" the new FY if it's past the start month/day
-    const nowM = now.getMonth() + 1;
-    const nowD = now.getDate();
-    const inNewYear = (nowM > sm) || (nowM === sm && nowD >= sd);
-    const fyStart = inNewYear ? now.getFullYear() : now.getFullYear() - 1;
-    from = `${fyStart}-${pad(sm)}-${pad(sd)}`;
+function asLoadRecent() {
+  try {
+    const v = JSON.parse(localStorage.getItem(AS_RECENT_KEY) || "[]");
+    asRecent = Array.isArray(v) ? v.filter(x => typeof x === "string" && x.trim()).slice(0, AS_RECENT_MAX) : [];
+  } catch { asRecent = []; }
+}
+function asSaveRecent() { try { localStorage.setItem(AS_RECENT_KEY, JSON.stringify(asRecent)); } catch {} }
+
+// ── Dates ─────────────────────────────────────────────────────────────────
+function asIso(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
+// Start of the year that contains `d`, in the app's year mode.
+function asYearStart(d) {
+  if (yearMode !== "financial") return new Date(d.getFullYear(), 0, 1);
+  const start = new Date(d.getFullYear(), fyStartMonth - 1, fyStartDay);
+  return d >= start ? start : new Date(d.getFullYear() - 1, fyStartMonth - 1, fyStartDay);
+}
+function asDateOpts() {
+  const fy = yearMode === "financial";
+  return [["all", "All time"], ["month", "This month"], ["lastmonth", "Last month"], ["30", "Last 30 days"],
+          ["year", fy ? "This FY" : "This year"], ["lastyear", fy ? "Last FY" : "Last year"], ["custom", "Custom"]];
+}
+// [from, to] inclusive ISO dates, or null for all time. "This month" and "This FY"
+// cover the whole period, so anything dated later in it is included.
+function asDateWindow(f) {
+  const now = new Date(), t = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dayBefore = d => { const x = new Date(d); x.setDate(x.getDate() - 1); return x; };
+  switch (f.date) {
+    case "month":     return [asIso(new Date(t.getFullYear(), t.getMonth(), 1)), asIso(new Date(t.getFullYear(), t.getMonth() + 1, 0))];
+    case "lastmonth": return [asIso(new Date(t.getFullYear(), t.getMonth() - 1, 1)), asIso(new Date(t.getFullYear(), t.getMonth(), 0))];
+    case "30":        { const d = new Date(t); d.setDate(d.getDate() - 29); return [asIso(d), asIso(t)]; }
+    case "year":      { const s = asYearStart(t); const e = new Date(s); e.setFullYear(e.getFullYear() + 1); return [asIso(s), asIso(dayBefore(e))]; }
+    case "lastyear":  { const s0 = asYearStart(t); const s = new Date(s0); s.setFullYear(s.getFullYear() - 1); return [asIso(s), asIso(dayBefore(s0))]; }
+    case "custom": {
+      // Reversed dates are swapped rather than matching nothing.
+      const a = f.from || "0000-01-01", b = f.to || "9999-12-31";
+      return a <= b ? [a, b] : [b, a];
+    }
+    default: return null;
+  }
+}
+
+// ── Amount range: reversed min/max swapped, negatives ignored ─────────────
+function asAmtRange(f) {
+  const num = v => { const n = parseFloat(v); return v === "" || !isFinite(n) ? null : Math.abs(n); };
+  let lo = num(f.amin), hi = num(f.amax);
+  if (lo !== null && hi !== null && lo > hi) [lo, hi] = [hi, lo];
+  return [lo, hi];
+}
+
+// ── Recurring rule names ──────────────────────────────────────────────────
+function asRuleLabel(r) {
+  const acc = r.account || getDefaultAccountId();
+  const type = r.type === "withdrawal" ? "withdrawal" : r.type === "interest" ? "interest" : "deposit";
+  const freq = r.freq ? r.freq[0].toUpperCase() + r.freq.slice(1) : "Recurring";
+  return `${freq} ${fmtCurrency(r.amount, getAccountCurrency(acc))} ${type} · ${getAccountName(acc)}`;
+}
+function asRules() { return Array.isArray(recurRules) ? recurRules : []; }
+function asForeignCurrencies() {
+  const set = new Set(accounts.map(a => a.currency || currencyCode));
+  return set.size > 1 || !set.has(currencyCode) ? [...set].sort() : [];
+}
+
+// ── Matching ──────────────────────────────────────────────────────────────
+function asMatches(t, f, P) {
+  const w = asDateWindow(f);
+  if (w && (t.date < w[0] || t.date > w[1])) return false;
+  if (f.types.length && !f.types.includes(t.kind)) return false;
+  if (f.accs.length && !f.accs.includes(t.accId)) return false;
+  if (f.curs.length && !f.curs.includes(t.cur)) return false;
+  if (f.amtMode === "exact") {
+    const v = parseFloat(f.aexact);
+    if (f.aexact !== "" && isFinite(v) && Math.abs(t.amt - Math.abs(v)) > 0.005) return false;
   } else {
-    // all time — find earliest transaction across all years
-    let earliest = "9999-12-31";
-    Object.values(data).forEach(fy => {
-      [...fy.saved, ...fy.removed].forEach(([d]) => { if (d < earliest) earliest = d; });
-    });
-    from = earliest === "9999-12-31" ? "2020-01-01" : earliest;
+    const [lo, hi] = asAmtRange(f);
+    if (lo !== null && t.amt < lo - 0.005) return false;
+    if (hi !== null && t.amt > hi + 0.005) return false;
   }
-  document.getElementById("report-from").value = from;
-  document.getElementById("report-to").value   = to;
-  renderReport();
+  if (f.rec === "rec" && !vhIsRecurring(t)) return false;
+  if (f.rec === "one" && vhIsRecurring(t)) return false;
+  if (f.rec === "rec" && f.rule && String(t.recur) !== String(f.rule)) return false;
+  if (P && P.words.length && !vsMatch(t, P, f.exactAmts)) return false;
+  return true;
+}
+function asResults(f = asF, q = asQ) {
+  const P = vsParse(q);
+  return vhAllTx().filter(t => asMatches(t, f, P));
+}
+// Closest matches first when the search has a plain number; the remembered sort
+// decides the order within each group (and on its own otherwise).
+function asSorted(rows, f = asF, q = asQ) {
+  const P = vsParse(q);
+  const cmp = txSortComparator(t => ({ date: t.date, amt: t.amt, acc: getAccountName(t.accId),
+    type: t.kind === "wit" ? "Withdrawal" : t.kind === "int" ? "Interest" : "Deposit" }));
+  if (!vsRanks(P, f.exactAmts)) return rows.slice().sort(cmp);
+  const sc = new Map(rows.map(t => [t, vsAmtScore(t, P, f.exactAmts)]));
+  return rows.slice().sort((a, b) => (sc.get(b) - sc.get(a)) || cmp(a, b));
 }
 
-// Build the report panel: aggregate all transactions in the selected date range,
-// update the summary cards, and render the sorted transaction table.
-let reportTypeFilter = "all"; // "all" | "dep" | "wit"
-let reportAccountFilter = "all"; // account id, or "all"
-
-// Account pills for the Search tab. Mirrors the transactions strip, but scoped
-// to Search's own filter state so the two views don't fight over one variable.
-function renderReportAccountPills() {
-  const block = document.getElementById("report-acct-block");
-  const wrap  = document.getElementById("report-acct-pills");
-  if (!block || !wrap) return;
-  if (accounts.length <= 1) { block.style.display = "none"; return; }
-  block.style.display = "";
-  // A filtered-to account that's since been deleted would silently return nothing.
-  if (reportAccountFilter !== "all" && !getAccountById(reportAccountFilter)) reportAccountFilter = "all";
-  let html = `<button class="report-filter-pill${reportAccountFilter === "all" ? " active" : ""}" data-racct="all">All</button>`;
-  accounts.forEach(a => {
-    html += `<button class="report-filter-pill${reportAccountFilter === a.id ? " active" : ""}" data-racct="${a.id}">`
-          + `<span class="acc-pill-dot" style="background:${a.color}"></span>${escapeHTML(a.name)}</button>`;
-  });
-  wrap.innerHTML = html;
-  wrap.querySelectorAll("[data-racct]").forEach(b =>
-    b.addEventListener("click", () => setReportAccountFilter(b.dataset.racct)));
+// ── Chips ─────────────────────────────────────────────────────────────────
+function asFmtShort(iso) {
+  const [y, m, d] = iso.split("-").map(Number);
+  return `${d} ${MONTH_NAMES_SHORT[m - 1]}${y === new Date().getFullYear() ? "" : " " + y}`;
 }
-
-function setReportAccountFilter(id) {
-  reportAccountFilter = id;
-  renderReportAccountPills();
-  renderReport();
-}
-
-function setReportTypeFilter(type) {
-  reportTypeFilter = type;
-  ["all", "dep", "wit"].forEach(t => {
-    const el = document.getElementById("rfilt-" + t);
-    if (el) el.classList.toggle("active", t === type);
-  });
-  renderReport();
-}
-
-function clearAmountFilter() {
-  const min = document.getElementById("report-amt-min");
-  const max = document.getElementById("report-amt-max");
-  if (min) min.value = "";
-  if (max) max.value = "";
-  renderReport();
-}
-
-function renderReport() {
-  const from = document.getElementById("report-from").value;
-  const to   = document.getElementById("report-to").value;
-  if (!from || !to) return;
-
-  const amtMin = parseFloat(document.getElementById("report-amt-min")?.value) || null;
-  const amtMax = parseFloat(document.getElementById("report-amt-max")?.value) || null;
-
-  const defaultAccId = getDefaultAccountId();
-  // Gather all transactions across ALL years in range
-  const deposits    = [];
-  const withdrawals = [];
-
-  const acctOk = r => reportAccountFilter === "all" || (r[6] || defaultAccId) === reportAccountFilter;
-
-  Object.entries(data).forEach(([fy, fyData]) => {
-    fyData.saved.forEach(r => {
-      const [d, a] = r;
-      if (d >= from && d <= to && acctOk(r)) {
-        const gAmt = convertToGlobal(a, getAccountCurrency(r[6] || defaultAccId));
-        deposits.push([d, gAmt, r[4] || null]);
-      }
-    });
-    fyData.removed.forEach(r => {
-      const [d, a] = r;
-      if (d >= from && d <= to && acctOk(r)) {
-        const gAmt = convertToGlobal(a, getAccountCurrency(r[6] || defaultAccId));
-        withdrawals.push([d, gAmt]);
-      }
-    });
-  });
-
-  const totalIn  = deposits.reduce((s, [,a]) => s + a, 0);
-  const totalOut = withdrawals.reduce((s, [,a]) => s + a, 0);
-  const net      = totalIn - totalOut;
-
-  // Update summary cards (always reflect full date range, ignoring type/amount filters)
-  document.getElementById("rc-in").textContent        = aud(totalIn);
-  document.getElementById("rc-out").textContent       = aud(totalOut);
-  document.getElementById("rc-net").textContent       = aud(net);
-  document.getElementById("rc-in-count").textContent  = deposits.length + " transaction" + (deposits.length !== 1 ? "s" : "");
-  document.getElementById("rc-out-count").textContent = withdrawals.length + " transaction" + (withdrawals.length !== 1 ? "s" : "");
-  document.getElementById("rc-net-label").textContent = net >= 0 ? "surplus" : "deficit";
-
-  // Build combined list applying type and amount filters
-  let all = [
-    ...deposits.map(([d,a])    => ({ d, a, type: "dep" })),
-    ...withdrawals.map(([d,a]) => ({ d, a, type: "wit" })),
-  ];
-
-  // Type filter
-  if (reportTypeFilter !== "all") {
-    all = all.filter(r => r.type === reportTypeFilter);
+function asDateLabel(f) {
+  if (f.date === "custom") {
+    const [a, b] = asDateWindow(f);
+    return (a === "0000-01-01" ? "Any date" : asFmtShort(a)) + " – " + (b === "9999-12-31" ? "any date" : asFmtShort(b));
   }
-
-  // Amount filter — compare absolute value so withdrawals match positive thresholds
-  if (amtMin !== null && !isNaN(amtMin)) all = all.filter(r => Math.abs(r.a) >= amtMin);
-  if (amtMax !== null && !isNaN(amtMax)) all = all.filter(r => Math.abs(r.a) <= amtMax);
-
-  all.sort((a, b) => a.d.localeCompare(b.d));
-
-  const tbody = document.getElementById("report-body");
-  const table = document.getElementById("report-table");
-  const empty = document.getElementById("report-empty");
-  tbody.innerHTML = "";
-
-  if (!all.length) {
-    table.style.display = "none"; empty.style.display = "block"; return;
+  return (asDateOpts().find(o => o[0] === f.date) || [, ""])[1];
+}
+// Applied filters as chips; each knows how to remove itself from `f`.
+function asFilterChips(f = asF) {
+  const c = [];
+  if (f.date !== "all") c.push({ label: asDateLabel(f), clear: x => { x.date = "all"; x.from = x.to = ""; } });
+  f.types.forEach(k => c.push({ label: { dep: "Deposits", int: "Interest", wit: "Withdrawals" }[k], clear: x => { x.types = x.types.filter(v => v !== k); } }));
+  f.accs.forEach(id => c.push({ label: getAccountName(id), dot: getAccountColor(id), clear: x => { x.accs = x.accs.filter(v => v !== id); } }));
+  f.curs.forEach(cu => c.push({ label: cu, clear: x => { x.curs = x.curs.filter(v => v !== cu); } }));
+  if (f.amtMode === "exact" && f.aexact !== "" && isFinite(parseFloat(f.aexact)))
+    c.push({ label: "Exactly " + aud(Math.abs(parseFloat(f.aexact))), clear: x => { x.aexact = ""; } });
+  if (f.amtMode === "range") {
+    const [lo, hi] = asAmtRange(f);
+    if (lo !== null || hi !== null)
+      c.push({ label: lo !== null && hi !== null ? `${aud(lo)} – ${aud(hi)}` : lo !== null ? `${aud(lo)} or more` : `Up to ${aud(hi)}`,
+               clear: x => { x.amin = x.amax = ""; } });
   }
-  table.style.display = "table"; empty.style.display = "none";
+  if (f.exactAmts) c.push({ label: "Exact amounts", clear: x => { x.exactAmts = false; } });
+  if (f.rec !== "all") {
+    const rule = f.rule && asRules().find(r => String(r.id) === String(f.rule));
+    c.push({ label: f.rec === "one" ? "One-off" : rule ? asRuleLabel(rule) : "Recurring", clear: x => { x.rec = "all"; x.rule = ""; } });
+  }
+  return c;
+}
 
-  all.forEach(({ d, a, type }) => {
-    const tr = document.createElement("tr");
-    const colour = type === "dep" ? "var(--green)" : "var(--red)";
-    tr.innerHTML = `
-      <td>${fmtDate(d)}</td>
-      <td><span class="type-pill ${type}">${type === "dep" ? "Deposit" : type === "int" ? "Interest" : "Withdrawal"}</span></td>
-      <td class="right" style="color:${colour}">${aud(a)}</td>`;
-    tbody.appendChild(tr);
+// Everything that's narrowing the results, in words (print/export subtitle).
+function asDescribe(f = asF, q = asQ) {
+  const parts = [];
+  const w = asDateWindow(f);
+  parts.push(w ? `${w[0] === "0000-01-01" ? "Any date" : fmtDate(w[0])} – ${w[1] === "9999-12-31" ? "any date" : fmtDate(w[1])}` : "All dates");
+  asFilterChips(f).forEach((c, i) => { if (!(i === 0 && f.date !== "all")) parts.push(c.label); });
+  vsParse(q).words.forEach(x => parts.push(vsWordLabel(x, f.exactAmts)));
+  const P = vsParse(q);
+  const sortTxt = txSortDescription();
+  parts.push(vsRanks(P, f.exactAmts) ? "Closest matches first" + (sortTxt ? ", then " + sortTxt.replace(/^Sorted by /, "by ") : "")
+                                     : (sortTxt || "Sorted by date, oldest first"));
+  return parts.join(" · ");
+}
+
+// For the empty state: each active filter or search word, and how many results
+// dropping just that one would give. Best first, at most three.
+function asRelaxations() {
+  const out = [];
+  asFilterChips(asF).forEach((c, i) => {
+    const f2 = JSON.parse(JSON.stringify(asF));
+    asFilterChips(f2)[i].clear(f2);
+    const n = asResults(f2, asQ).length;
+    if (n) out.push({ label: c.label, n, apply: () => { asF = f2; } });
   });
+  const P = vsParse(asQ);
+  P.words.forEach(w => {
+    const rest = P.words.filter(x => x !== w).map(x => x.text).join(" ");
+    const n = asResults(asF, rest).length;
+    if (n) out.push({ label: w.kind === "unknown" ? "“" + w.text + "”" : vsWordLabel(w, asF.exactAmts), n,
+                      apply: () => { asSetQuery(rest); } });
+  });
+  return out.sort((a, b) => b.n - a.n).slice(0, 3);
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+function asSetQuery(q) {
+  asQ = q;
+  const inp = document.getElementById("as-q");
+  if (inp && inp.value !== q) inp.value = q;
+  asSyncField();
+}
+function asSyncField() {
+  const inp = document.getElementById("as-q");
+  document.getElementById("as-field")?.classList.toggle("has", !!(inp && inp.value));
+}
+function asClearAll() { asF = asBlank(); asSetQuery(""); asPage = 1; asRender(); }
+
+function asRender() {
+  const panel = document.getElementById("report-panel");
+  if (!panel) return;
+  const P = vsParse(asQ);
+
+  // Chips: search words (dashed, edit them in the bar) then filters (×).
+  const fc = asFilterChips(asF);
+  const chips = document.getElementById("as-chips");
+  const dot = c => c.dot ? `<span class="as-chip-dot" style="background:${c.dot}"></span>` : "";
+  chips.innerHTML =
+      P.words.map(w => `<span class="as-chip from-q">${w.kind === "acc" && Object.keys(w.hits).length === 1 ? dot({ dot: getAccountColor(Object.keys(w.hits)[0]) }) : ""}${escapeHTML(vsWordLabel(w, asF.exactAmts))}</span>`).join("")
+    + fc.map((c, i) => `<span class="as-chip">${dot(c)}${escapeHTML(c.label)}<button type="button" data-i="${i}" aria-label="Remove">&times;</button></span>`).join("")
+    + (fc.length + P.words.length ? `<button type="button" class="as-clear-all" id="as-clearall">Clear all</button>` : "");
+  chips.style.display = fc.length + P.words.length ? "flex" : "none";
+  chips.querySelectorAll(".as-chip button").forEach(b => b.onclick = () => { fc[+b.dataset.i].clear(asF); asPage = 1; asRender(); });
+  const ca = document.getElementById("as-clearall"); if (ca) ca.onclick = asClearAll;
+  const fb = document.getElementById("as-fbtn");
+  fb.classList.toggle("on", fc.length > 0);
+  document.getElementById("as-badge").textContent = fc.length;
+
+  // Results + summary (converted to the global currency, like the rest of the app).
+  const rows = asSorted(asResults());
+  _asRows = rows;
+  const g = t => convertToGlobal(t.amt, t.cur);
+  const inn = rows.filter(t => t.kind !== "wit"), out = rows.filter(t => t.kind === "wit");
+  const tin = inn.reduce((s, t) => s + g(t), 0), tout = out.reduce((s, t) => s + g(t), 0), net = tin - tout;
+  const plural = n => n + " transaction" + (n === 1 ? "" : "s");
+  document.getElementById("as-in").textContent = aud(tin);
+  document.getElementById("as-in-c").textContent = plural(inn.length);
+  document.getElementById("as-out").textContent = aud(tout);
+  document.getElementById("as-out-c").textContent = plural(out.length);
+  document.getElementById("as-net").textContent = aud(net);
+  document.getElementById("as-net-c").textContent = net >= 0 ? "surplus" : "deficit";
+
+  const table = document.getElementById("as-table"), body = document.getElementById("as-body");
+  const empty = document.getElementById("as-empty"), note = document.getElementById("as-rank-note");
+  const showAccDot = accounts.length > 1;
+  document.body.classList.toggle("multi-account", showAccDot);
   updateExportMenuSub();
+
+  if (!rows.length) {
+    table.style.display = "none"; note.style.display = "none"; empty.style.display = "";
+    asRenderPagination(0, 1);
+    if (!vhAllTx().length) { empty.innerHTML = `No transactions yet.`; return; }
+    const sugg = asRelaxations();
+    empty.innerHTML = `Nothing matches all of these.`
+      + (sugg.length ? `<br>Try removing one:<div class="as-sugg">${sugg.map((x, i) =>
+          `<button type="button" data-i="${i}">Remove ${escapeHTML(x.label)}<span>${x.n.toLocaleString()} result${x.n === 1 ? "" : "s"}</span></button>`).join("")}</div>` : "")
+      + `<button type="button" class="as-clear-link" id="as-loosen">Clear all filters</button>`;
+    empty.querySelectorAll(".as-sugg button").forEach(b => b.onclick = () => { sugg[+b.dataset.i].apply(); asPage = 1; asRender(); });
+    document.getElementById("as-loosen").onclick = asClearAll;
+    return;
+  }
+  empty.style.display = "none"; table.style.display = "table";
+
+  const ranks = vsRanks(P, asF.exactAmts);
+  note.style.display = ranks ? "" : "none";
+  if (ranks) note.textContent = "Closest matches first, then by " + ({ date: "date", amount: "amount", account: "account", type: "type" }[sortKey] || "date");
+
+  // Header arrows — same markup as the transaction list's updateSortButtons().
+  const arrow = col => ` <span style="font-size:13px; letter-spacing:0; position:relative; bottom:0;">${sortKey === col ? (sortDir === "asc" ? "↑" : "↓") : "⇅"}</span>`;
+  [["date", "Date", "sort-col"], ["account", "Account", "sort-col-account"], ["type", "Type", "sort-col-type"], ["amount", "Amount", "sort-col right"]]
+    .forEach(([k, label, cls]) => {
+      const th = document.getElementById("as-sort-" + k);
+      th.innerHTML = label + arrow(k);
+      th.className = cls + (sortKey === k ? " active-" + sortDir : "");
+    });
+
+  // Page slice — same page size as the list.
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  asPage = Math.min(Math.max(1, asPage), totalPages);
+  const pageRows = rows.slice((asPage - 1) * PAGE_SIZE, asPage * PAGE_SIZE);
+  const showCodes = new Set(rows.map(t => t.cur)).size > 1;
+  body.innerHTML = pageRows.map(t => {
+    let nativeFmt; try { nativeFmt = fmtCurrency(t.amt, t.cur); } catch { nativeFmt = aud(t.amt); }
+    const amt = showCodes ? `${nativeFmt} <span class="tx-currency-code">${t.cur}</span>` : nativeFmt;
+    const label = t.kind === "wit" ? "Withdrawal" : t.kind === "int" ? "Interest" : "Deposit";
+    return `<tr data-date="${t.date}" data-amt="${t.amt}" data-type="${t.kind === "wit" ? "removed" : "saved"}" data-year="${escapeHTML(t.year || "")}" data-tx-id="${escapeHTML(t.id || "")}">`
+      + `<td>${fmtDate(t.date)}</td>`
+      + `<td class="tx-account-cell"><span class="tx-acc-dot-cell" style="background:${showAccDot ? getAccountColor(t.accId) : "transparent"}" title="${escapeHTML(getAccountName(t.accId) || "")}"></span></td>`
+      + `<td class="tx-type-cell"><span class="type-pill ${t.kind}">${label}</span></td>`
+      + `<td class="num" style="color:${t.kind === "wit" ? "var(--red)" : "var(--green)"}">${amt}</td></tr>`;
+  }).join("");
+  document.getElementById("as-foot-label").textContent = `Total (${rows.length.toLocaleString()} entries)`;
+  const ft = document.getElementById("as-foot-total");
+  ft.textContent = aud(net);
+  ft.style.color = net >= 0 ? "var(--green)" : "var(--red)";
+  asRenderPagination(rows.length, totalPages);
+}
+
+function asRenderPagination(totalRows, totalPages) {
+  const top = document.getElementById("as-pagination-top"), bot = document.getElementById("as-pagination-bottom");
+  if (!top || !bot) return;
+  if (totalPages <= 1 || !totalRows) { top.style.display = bot.style.display = "none"; return; }
+  top.style.display = bot.style.display = "flex";
+  const a = (asPage - 1) * PAGE_SIZE + 1, b = Math.min(asPage * PAGE_SIZE, totalRows);
+  const info = `<div class="tx-pagination-info"><span class="pn-verbose">Showing </span><span class="pn-accent">${a.toLocaleString()}–${b.toLocaleString()}</span> of ${totalRows.toLocaleString()}<span class="pn-verbose"> entries</span><span class="pn-sep">·</span><span class="pn-muted">Print/export uses full set</span></div>`;
+  const controls = `<div class="tx-pagination-controls">${_buildPaginationHTML(totalPages, asPage)}</div>`;
+  top.innerHTML = info + controls; bot.innerHTML = controls;
+  [top, bot].forEach(bar => bar.querySelectorAll("[data-page]").forEach(btn => btn.onclick = () => {
+    asPage = parseInt(btn.dataset.page, 10); asRender();
+    try { document.getElementById("as-table").scrollIntoView({ block: "start", behavior: "smooth" }); } catch {}
+  }));
+}
+
+// ── Filters sheet ─────────────────────────────────────────────────────────
+function asOpts(id, list, isOn, onTap) {
+  const el = document.getElementById(id);
+  el.innerHTML = list.map(([k, l, dotC]) => `<button type="button" class="as-opt${isOn(k) ? " active" : ""}" data-k="${escapeHTML(k)}">${dotC ? `<span class="as-chip-dot" style="background:${dotC}"></span>` : ""}${escapeHTML(l)}</button>`).join("");
+  el.querySelectorAll(".as-opt").forEach(b => b.onclick = () => { onTap(b.dataset.k); asDrawSheet(); });
+}
+function asDrawSheet() {
+  const D = asD;
+  asOpts("as-o-date", asDateOpts(), k => D.date === k, k => {
+    D.date = k;
+    // Custom opens filled in (1st of this month to today) rather than blank.
+    if (k === "custom") {
+      const now = new Date();
+      if (!D.from) document.getElementById("as-from").value = D.from = asIso(new Date(now.getFullYear(), now.getMonth(), 1));
+      if (!D.to)   document.getElementById("as-to").value   = D.to   = asIso(now);
+    }
+  });
+  document.getElementById("as-range").classList.toggle("show", D.date === "custom");
+  asOpts("as-o-type", [["dep", "Deposits"], ["int", "Interest"], ["wit", "Withdrawals"]], k => D.types.includes(k),
+         k => { D.types = D.types.includes(k) ? D.types.filter(x => x !== k) : [...D.types, k]; });
+  document.getElementById("as-sec-acc").style.display = accounts.length > 1 ? "" : "none";
+  asOpts("as-o-acc", accounts.map(a => [a.id, a.name, a.color]), k => D.accs.includes(k),
+         k => { D.accs = D.accs.includes(k) ? D.accs.filter(x => x !== k) : [...D.accs, k]; });
+  const curs = asForeignCurrencies();
+  document.getElementById("as-sec-cur").style.display = curs.length ? "" : "none";
+  asOpts("as-o-cur", curs.map(c => [c, c]), k => D.curs.includes(k),
+         k => { D.curs = D.curs.includes(k) ? D.curs.filter(x => x !== k) : [...D.curs, k]; });
+  asOpts("as-o-amtmode", [["range", "Range"], ["exact", "Exact amount"]], k => D.amtMode === k, k => { D.amtMode = k; });
+  document.getElementById("as-amt-range").style.display = D.amtMode === "range" ? "flex" : "none";
+  document.getElementById("as-amt-exact").style.display = D.amtMode === "exact" ? "block" : "none";
+  asOpts("as-o-typed", [["closest", "Closest first"], ["exact", "Exact only"]], k => (k === "exact") === !!D.exactAmts, k => { D.exactAmts = k === "exact"; });
+  asOpts("as-o-rec", [["all", "All"], ["rec", "Recurring only"], ["one", "One-off only"]], k => D.rec === k,
+         k => { D.rec = k; if (k !== "rec") { D.rule = ""; document.getElementById("as-rule").value = ""; } });
+  const rules = asRules();
+  document.getElementById("as-rule-wrap").style.display = D.rec === "rec" && rules.length ? "flex" : "none";
+  const n = asResults(D, asQ).length;
+  document.getElementById("as-show").textContent = `Show ${n.toLocaleString()} result${n === 1 ? "" : "s"}`;
+}
+function asOpenSheet() {
+  asD = JSON.parse(JSON.stringify(asF));
+  const sel = document.getElementById("as-rule");
+  sel.innerHTML = `<option value="">Any rule</option>` + asRules().map(r => `<option value="${escapeHTML(String(r.id))}">${escapeHTML(asRuleLabel(r))}</option>`).join("");
+  ["from", "to", "amin", "amax", "aexact", "rule"].forEach(k => { const el = document.getElementById("as-" + k); if (el) el.value = asD[k]; });
+  asDrawSheet();
+  document.getElementById("as-scrim").classList.add("open");
+  document.getElementById("as-sheet").classList.add("open");
+  document.documentElement.classList.add("as-locked");
+}
+function asCloseSheet(apply) {
+  if (apply) { asF = JSON.parse(JSON.stringify(asD)); asPage = 1; }
+  const sh = document.getElementById("as-sheet");
+  document.getElementById("as-scrim").classList.remove("open");
+  sh.classList.remove("open", "dragging"); sh.style.transform = "";
+  document.documentElement.classList.remove("as-locked");
+  asRender();
+}
+function asSheetOpen() { return !!document.getElementById("as-sheet")?.classList.contains("open"); }
+
+// ── Recent searches ───────────────────────────────────────────────────────
+function asRemember() {
+  const inp = document.getElementById("as-q");
+  if (inp) asQ = inp.value;                    // the box, not a debounced copy
+  const q = asQ.trim();
+  if (!q || !asResults(asF, q).length) return;
+  asRecent = [q, ...asRecent.filter(r => r.toLowerCase() !== q.toLowerCase())].slice(0, AS_RECENT_MAX);
+  asSaveRecent();
+}
+function asDrawRecent() {
+  const el = document.getElementById("as-recent"), inp = document.getElementById("as-q");
+  const show = document.activeElement === inp && !inp.value && asRecent.length > 0;
+  el.classList.toggle("show", show);
+  if (!show) return;
+  const clock = `<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.4"/><path d="M8 4.5V8l2.5 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
+  el.innerHTML = `<div class="as-recent-head"><span>Recent</span><button type="button" id="as-rc-clear">Clear</button></div>`
+    + asRecent.map((r, i) => `<div class="as-recent-row"><button type="button" class="go" data-i="${i}">${clock}<span>${escapeHTML(r)}</span></button><button type="button" class="rm" data-i="${i}" aria-label="Remove">&times;</button></div>`).join("");
+  // mousedown + preventDefault keeps focus in the field, so the list doesn't vanish mid-tap.
+  el.querySelectorAll(".go").forEach(b => b.onmousedown = e => { e.preventDefault(); asSetQuery(asRecent[+b.dataset.i]); asPage = 1; asRender(); inp.blur(); asDrawRecent(); });
+  el.querySelectorAll(".rm").forEach(b => b.onmousedown = e => { e.preventDefault(); asRecent.splice(+b.dataset.i, 1); asSaveRecent(); asDrawRecent(); });
+  document.getElementById("as-rc-clear").onmousedown = e => { e.preventDefault(); asRecent = []; asSaveRecent(); asDrawRecent(); };
+}
+
+// ── Pinned search bar ─────────────────────────────────────────────────────
+// Fixed to the top of the screen once its spot scrolls out of view; a spacer
+// keeps the page from jumping. Re-measured on scroll and resize.
+let _asPinRaf = 0;
+function asPinTop() {
+  _asPinRaf = 0;
+  const top = document.getElementById("as-top"), sp = document.getElementById("as-top-spacer"), panel = document.getElementById("report-panel");
+  if (!top || !sp || !panel) return;
+  const on = activeTab === "report" && panel.style.display !== "none" && sp.getBoundingClientRect().top < 0;
+  if (on) {
+    const pr = panel.getBoundingClientRect(), cs = getComputedStyle(panel);
+    sp.style.height = (sp.style.height && top.classList.contains("pinned")) ? sp.style.height : top.offsetHeight + "px";
+    top.style.left = (pr.left + parseFloat(cs.paddingLeft)) + "px";
+    top.style.width = (panel.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)) + "px";
+  } else {
+    sp.style.height = ""; top.style.left = ""; top.style.width = "";
+  }
+  top.classList.toggle("pinned", on);
+}
+function asQueuePin() { if (!_asPinRaf) _asPinRaf = requestAnimationFrame(asPinTop); }
+
+// ── Wiring (once) ─────────────────────────────────────────────────────────
+function asInit() {
+  const inp = document.getElementById("as-q");
+  if (!inp || inp.dataset.asBound) return;
+  inp.dataset.asBound = "1";
+  let t = null;
+  inp.addEventListener("input", () => {
+    asSyncField(); asDrawRecent();
+    clearTimeout(t);
+    t = setTimeout(() => { asQ = inp.value; asPage = 1; asRender(); }, 140);
+  });
+  inp.addEventListener("focus", asDrawRecent);
+  inp.addEventListener("blur", () => { asRemember(); setTimeout(asDrawRecent, 0); });
+  inp.addEventListener("keydown", e => { if (e.key === "Enter") { clearTimeout(t); asQ = inp.value; asRemember(); inp.blur(); asPage = 1; asRender(); } });
+  document.getElementById("as-qx").onclick = () => { clearTimeout(t); asSetQuery(""); asPage = 1; asRender(); inp.focus(); };
+  document.getElementById("as-fbtn").onclick = asOpenSheet;
+  document.getElementById("as-scrim").onclick = () => asCloseSheet(false);
+  document.getElementById("as-show").onclick = () => asCloseSheet(true);
+  document.getElementById("as-reset").onclick = () => {
+    asD = asBlank();
+    ["from", "to", "amin", "amax", "aexact", "rule"].forEach(k => { const el = document.getElementById("as-" + k); if (el) el.value = ""; });
+    asDrawSheet();
+  };
+  // "change" as well as "input": the iOS date wheel reports through change.
+  ["from", "to", "amin", "amax", "aexact", "rule"].forEach(k => ["input", "change"].forEach(ev =>
+    document.getElementById("as-" + k).addEventListener(ev, e => { asD[k] = e.target.value; asDrawSheet(); })));
+  document.querySelectorAll("#as-table th[data-as-sort]").forEach(th => th.addEventListener("click", () => { asPage = 1; setSort(th.dataset.asSort); }));
+  // Swipe the handle or title down to dismiss (same as tapping outside: draft dropped).
+  const sh = document.getElementById("as-sheet"), h = document.getElementById("as-sh-drag");
+  let y0 = null, dy = 0;
+  h.addEventListener("pointerdown", e => {
+    if (e.target.closest("button")) return;
+    y0 = e.clientY; dy = 0; sh.classList.add("dragging");
+    try { h.setPointerCapture(e.pointerId); } catch {}
+  });
+  h.addEventListener("pointermove", e => { if (y0 === null) return; dy = Math.max(0, e.clientY - y0); sh.style.transform = `translateY(${dy}px)`; });
+  const end = () => { if (y0 === null) return; y0 = null; sh.classList.remove("dragging"); if (dy > 80) asCloseSheet(false); else sh.style.transform = ""; };
+  h.addEventListener("pointerup", end); h.addEventListener("pointercancel", end);
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && asSheetOpen()) asCloseSheet(false); });
+  _bindRowHold(document.getElementById("as-body"), () => asRemember());
+  window.addEventListener("scroll", asQueuePin, { passive: true });
+  document.getElementById("report-panel").addEventListener("scroll", asQueuePin, { passive: true });
+  window.addEventListener("resize", asQueuePin);
+}
+
+// Arriving on the page: fresh each visit (filters and search cleared), except
+// when Home hands over a query. Staying on the page (re-renders, sort taps) keeps
+// everything.
+let _asPrevTab = null, _asFromHome = false;
+function asEnter(prevTab) {
+  asInit();
+  if (!_asFromHome && prevTab !== "report") { asF = asBlank(); asSetQuery(""); asPage = 1; }
+  _asFromHome = false;
+  if (asSheetOpen()) asCloseSheet(false);
+  asQueuePin();
+}
+
+// Home's "Advanced search →" / "See all in Advanced Search →": a fresh page with
+// the query carried over as typed — no translation, so nothing is lost.
+function vhSearchHandoff(q) {
+  try { vhSearchClose(); } catch {}      // don't leave Home's search open behind us
+  asF = asBlank(); asPage = 1;
+  asSetQuery(String(q || "").trim());
+  _asFromHome = true;
+  switchTab("report");
 }
 
 // ─── charts ───────────────────────────────────────────────────────────────────
@@ -16782,6 +17202,40 @@ function buildSortPayload() {
 }
 
 /* getSortedRows was a helper that duplicated the inline sort in render(); removed. */
+
+// The remembered sort as a comparator, shared by the on-screen list and Print
+// current view so the two can't drift apart. `view` maps a caller's row shape to
+// { date, amt, acc, type } — amt is the native amount (as on screen), acc the
+// account name, type "Deposit" | "Interest" | "Withdrawal". Ties fall back to
+// oldest first; date ties keep their existing order.
+const TX_TYPE_SORT_ORDER = { Deposit: 0, Interest: 1, Withdrawal: 2 };
+function txSortComparator(view, key = sortKey, dir = sortDir) {
+  const sign = dir === "asc" ? 1 : -1;
+  return (a, b) => {
+    const A = view(a), B = view(b);
+    let av, bv;
+    if (key === "date")         { av = A.date; bv = B.date; }
+    else if (key === "amount")  { av = A.amt;  bv = B.amt; }
+    else if (key === "account") { av = A.acc;  bv = B.acc; }
+    else /* type */             { av = TX_TYPE_SORT_ORDER[A.type] ?? 9; bv = TX_TYPE_SORT_ORDER[B.type] ?? 9; }
+    if (av < bv) return -sign;
+    if (av > bv) return  sign;
+    if (key !== "date") return A.date < B.date ? -1 : A.date > B.date ? 1 : 0;
+    return 0;
+  };
+}
+
+// Plain-English sort for print subtitles; empty for the Date ↑ default.
+function txSortDescription(key = sortKey, dir = sortDir) {
+  if (key === "date" && dir === "asc") return "";
+  const asc = dir === "asc";
+  return "Sorted by " + ({
+    date:    asc ? "date, oldest first"   : "date, newest first",
+    amount:  asc ? "amount, smallest first" : "amount, largest first",
+    account: asc ? "account, A to Z"      : "account, Z to A",
+    type:    asc ? "type, deposits first" : "type, withdrawals first",
+  })[key];
+}
 
 function updateSortButtons() {
   const dateEl    = document.getElementById("sort-date");
@@ -17468,22 +17922,26 @@ function confirmAddYear() {
 
 // ─── export ───────────────────────────────────────────────────────────────────
 
-// Export from the menu — uses report date range if set, otherwise all-time.
-// Works from any tab, not just the report view.
+// Export from the menu. On Advanced Search: exactly the results shown, in that
+// order, with the filters written into the Summary sheet. Anywhere else: every
+// transaction, oldest first.
 function menuExportXLSX() {
-  const from = document.getElementById("report-from").value;
-  const to   = document.getElementById("report-to").value;
-  // If no date range is set, default to all-time
-  if (!from || !to) setReportPreset("all");
-  exportReportXLSX();
+  if (activeTab === "report") {
+    asRender();
+    exportRowsXLSX(asPrintRows(), asDescribe(), `vault-search-${todayLocal()}.xlsx`);
+  } else {
+    const all = vhAllTx().sort((a, b) => a.date.localeCompare(b.date) || (a.ts - b.ts)).map(t => ({
+      date: t.date, amt: t.amt, accId: t.accId, accName: getAccountName(t.accId), accCur: t.cur,
+      gAmt: convertToGlobal(t.amt, t.cur), type: t.kind === "wit" ? "Withdrawal" : t.kind === "int" ? "Interest" : "Deposit",
+    }));
+    exportRowsXLSX(all, "All transactions", `vault-all-transactions-${todayLocal()}.xlsx`);
+  }
   updateExportMenuSub();
 }
 
-// Update the Export Spreadsheet sub-label in both menus to reflect the current date range
+// The Export Spreadsheet sub-label in both menus says what it will export.
 function updateExportMenuSub() {
-  const from = document.getElementById("report-from").value;
-  const to   = document.getElementById("report-to").value;
-  const label = (from && to) ? fmtDate(from) + " – " + fmtDate(to) : "All transactions";
+  const label = activeTab === "report" ? "Advanced Search results as XLSX" : "All transactions as XLSX";
   const d = document.getElementById("dmenu-export-sub");
   const m = document.getElementById("mob-export-sub");
   if (d) d.textContent = label;
@@ -17568,72 +18026,33 @@ function menuPrint() {
   printCurrentView();
 }
 
+// Advanced Search's results in the row shape the print and spreadsheet builders
+// use — exactly what's on screen, in the same order (all pages, not just this one).
+function asPrintRows() {
+  return _asRows.map(t => ({
+    date: t.date, amt: t.amt, accId: t.accId,
+    accName: getAccountName(t.accId), accColor: getAccountColor(t.accId), accCur: t.cur,
+    gAmt: convertToGlobal(t.amt, t.cur),
+    type: t.kind === "wit" ? "Withdrawal" : t.kind === "int" ? "Interest" : "Deposit",
+  }));
+}
+// Which summary cards the printout shows, from the type filter.
+function asPrintFilter() {
+  const ts = asF.types;
+  if (ts.length && ts.every(k => k === "wit")) return "removed";
+  if (ts.length && ts.every(k => k !== "wit")) return "saved";
+  return "all";
+}
+
+// Print Advanced Search: the results as shown, with every filter and the order
+// spelled out in the subtitle so the printout says what it covers.
 function printSearchResults() {
-  const from = document.getElementById("report-from")?.value;
-  const to   = document.getElementById("report-to")?.value;
-  if (!from || !to) { toast("Set a date range first.", "#c0392b"); return; }
-
-  const amtMin = parseFloat(document.getElementById("report-amt-min")?.value) || null;
-  const amtMax = parseFloat(document.getElementById("report-amt-max")?.value) || null;
-
-  // Gather filtered rows — same logic as renderReport, including currency conversion
-  // so print totals match the on-screen report totals. Saved rows with
-  // r[4]==="interest" become type "Interest"; the reportTypeFilter treats
-  // interest as a kind of deposit (matching the main app's Saved tab).
-  const defaultAccId = getDefaultAccountId();
-  const deposits = [], withdrawals = [];
-  Object.entries(data).forEach(([, fy]) => {
-    fy.saved.forEach(r => {
-      if (r[0] >= from && r[0] <= to) {
-        const accId  = r[6] || defaultAccId;
-        const accCur = getAccountCurrency(accId);
-        deposits.push({
-          date: r[0], amt: r[1],
-          accId, accName: getAccountName(accId), accColor: getAccountColor(accId),
-          accCur,
-          gAmt: convertToGlobal(r[1], accCur),
-          type: r[4] === "interest" ? "Interest" : "Deposit"
-        });
-      }
-    });
-    fy.removed.forEach(r => {
-      if (r[0] >= from && r[0] <= to) {
-        const accId  = r[6] || defaultAccId;
-        const accCur = getAccountCurrency(accId);
-        withdrawals.push({
-          date: r[0], amt: r[1],
-          accId, accName: getAccountName(accId), accColor: getAccountColor(accId),
-          accCur,
-          gAmt: convertToGlobal(r[1], accCur),
-          type: "Withdrawal"
-        });
-      }
-    });
-  });
-
-  let rows = [ ...deposits, ...withdrawals ];
-  // reportTypeFilter "dep" keeps both Deposit and Interest; "wit" keeps Withdrawal.
-  if (reportTypeFilter !== "all") {
-    rows = rows.filter(r => reportTypeFilter === "dep"
-      ? (r.type === "Deposit" || r.type === "Interest")
-      : r.type === "Withdrawal");
-  }
-  // Amount filters compare against the converted global amount (matches renderReport)
-  if (amtMin !== null && !isNaN(amtMin)) rows = rows.filter(r => Math.abs(r.gAmt) >= amtMin);
-  if (amtMax !== null && !isNaN(amtMax)) rows = rows.filter(r => Math.abs(r.gAmt) <= amtMax);
-  rows.sort((a, b) => a.date.localeCompare(b.date));
-
-  // Build filter description for the subtitle
-  const typePart = reportTypeFilter === "dep" ? "Deposits only" : reportTypeFilter === "wit" ? "Withdrawals only" : "All types";
-  const amtPart  = (amtMin || amtMax)
-    ? " · " + (amtMin ? `Min ${aud(amtMin)}` : "") + (amtMin && amtMax ? " – " : "") + (amtMax ? `Max ${aud(amtMax)}` : "")
-    : "";
-
+  if (activeTab === "report") asRender();     // make sure _asRows is current
   openPdfWindow({
-    title:   "Search Results",
-    subLine: `${fmtDate(from)} – ${fmtDate(to)} · ${typePart}${amtPart}`,
-    rows,
-    filter:  reportTypeFilter === "dep" ? "saved" : reportTypeFilter === "wit" ? "removed" : "all",
+    title:   "Advanced Search",
+    subLine: asDescribe(),
+    rows:    asPrintRows(),
+    filter:  asPrintFilter(),
   });
 }
 
@@ -17715,7 +18134,10 @@ function printCurrentView() {
     if (addWit) fy.removed.filter(accMatch).forEach(r => rows.push(mkRemoved(r)));
   }
 
-  rows.sort((a, b) => a.date.localeCompare(b.date));
+  // Same order as the list on screen — the remembered sort, not always by date.
+  rows.sort(txSortComparator(r => ({ date: r.date, amt: r.amt, acc: r.accName, type: r.type })));
+  const sortDesc = txSortDescription();
+  if (sortDesc) viewSub += " · " + sortDesc;
   openPdfWindow({ title: viewTitle, subLine: viewSub, rows, filter: activeTab });
 }
 
@@ -17993,82 +18415,53 @@ ${rateNotes ? `<div class="rate-banner">
   showPdfPreview(html);
 }
 
-// Export the current report date range as a CSV file download
-
-// Export the current report date range as an XLSX spreadsheet (uses SheetJS).
-// Produces two sheets: a Summary and a full Transactions list.
-function exportReportXLSX() {
-  const from = document.getElementById("report-from").value;
-  const to   = document.getElementById("report-to").value;
-  if (!from || !to) { toast("Set a date range first.", "#c0392b"); return; }
+// Export rows as an XLSX spreadsheet (uses SheetJS): a Summary sheet saying what
+// the export covers, and a Transactions sheet in the order given.
+// rows: [{ date, amt, accName, accCur, gAmt, type }]
+function exportRowsXLSX(rows, coverage, fname) {
   if (typeof XLSX === "undefined") { toast("Spreadsheet library is still loading — try again in a few seconds.", "#c0392b"); return; }
-
-  const defaultAccId = getDefaultAccountId();
-  const all = [];
-  Object.entries(data).forEach(([fy, fyData]) => {
-    fyData.saved.forEach(r => {
-      const [d, a] = r;
-      if (d >= from && d <= to) {
-        const accId   = r[6] || defaultAccId;
-        const accCur  = getAccountCurrency(accId);
-        const accName = getAccountName(accId);
-        const gAmt    = parseFloat(convertToGlobal(a, accCur).toFixed(2));
-        const rate    = getRate(accCur);
-        const rateStr = accCur !== currencyCode && rate ? `1 ${accCur} = ${(1/rate).toFixed(4)} ${currencyCode}` : "-";
-        all.push({ d, type: r[4]==="interest" ? "Interest" : "Deposit", accName, nAmt: a, accCur, rateStr, gAmt, dep: gAmt, wit: 0 });
-      }
-    });
-    fyData.removed.forEach(r => {
-      const [d, a] = r;
-      if (d >= from && d <= to) {
-        const accId   = r[6] || defaultAccId;
-        const accCur  = getAccountCurrency(accId);
-        const accName = getAccountName(accId);
-        const gAmt    = parseFloat(convertToGlobal(a, accCur).toFixed(2));
-        const rate    = getRate(accCur);
-        const rateStr = accCur !== currencyCode && rate ? `1 ${accCur} = ${(1/rate).toFixed(4)} ${currencyCode}` : "-";
-        all.push({ d, type: "Withdrawal", accName, nAmt: a, accCur, rateStr, gAmt, dep: 0, wit: gAmt });
-      }
-    });
+  if (!rows.length) { toast("Nothing to export.", "#c0392b"); return; }
+  const r2 = n => parseFloat(n.toFixed(2));
+  const all = rows.map(r => {
+    const rate = getRate(r.accCur);
+    const rateStr = r.accCur !== currencyCode && rate ? `1 ${r.accCur} = ${(1 / rate).toFixed(4)} ${currencyCode}` : "-";
+    const gAmt = r2(r.gAmt);
+    return { d: r.date, type: r.type, accName: r.accName, nAmt: r.amt, accCur: r.accCur, rateStr, gAmt,
+             dep: r.type === "Withdrawal" ? 0 : gAmt, wit: r.type === "Withdrawal" ? gAmt : 0 };
   });
-  all.sort((a,b) => a.d.localeCompare(b.d));
-
-  const totalIn  = all.filter(r => r.type !== "Withdrawal").reduce((s,r) => s + r.dep, 0);
-  const totalOut = all.filter(r => r.type === "Withdrawal").reduce((s,r) => s + r.wit, 0);
+  const totalIn  = all.reduce((s, r) => s + r.dep, 0);
+  const totalOut = all.reduce((s, r) => s + r.wit, 0);
   const net      = totalIn - totalOut;
 
   const wb = XLSX.utils.book_new();
-
   const summaryData = [
-    ["Vault — Report"],
+    ["Vault — Transactions"],
     [],
-    ["Date Range",      `${fmtDate(from)} – ${fmtDate(to)}`],
+    ["Covers",           coverage],
+    ["Transactions",     all.length],
     ["Global Currency",  currencyCode],
-    ["Total Deposited",  parseFloat(totalIn.toFixed(2))],
-    ["Total Withdrawn",  parseFloat(totalOut.toFixed(2))],
-    ["Net",              parseFloat(net.toFixed(2))],
+    ["Total Deposited",  r2(totalIn)],
+    ["Total Withdrawn",  r2(totalOut)],
+    ["Net",              r2(net)],
+    ["Exported",         fmtDate(todayLocal())],
   ];
   const ws_summary = XLSX.utils.aoa_to_sheet(summaryData);
-  ws_summary["!cols"] = [{wch:20},{wch:28}];
+  ws_summary["!cols"] = [{ wch: 20 }, { wch: 60 }];
   XLSX.utils.book_append_sheet(wb, ws_summary, "Summary");
 
   const txRows = [
-    ["Date","Type","Account","Native Amount","Native Currency","Exchange Rate",
-     `Amount (${currencyCode})`,`Deposits (${currencyCode})`,`Withdrawals (${currencyCode})`],
-    ...all.map(r => [
-      fmtDate(r.d), r.type, r.accName, r.nAmt, r.accCur, r.rateStr, r.gAmt,
-      r.dep || "", r.wit || ""
-    ]),
+    ["Date", "Type", "Account", "Native Amount", "Native Currency", "Exchange Rate",
+     `Amount (${currencyCode})`, `Deposits (${currencyCode})`, `Withdrawals (${currencyCode})`],
+    ...all.map(r => [fmtDate(r.d), r.type, r.accName, r.nAmt, r.accCur, r.rateStr, r.gAmt, r.dep || "", r.wit || ""]),
     [],
-    ["","Total Deposited","","","","","", parseFloat(totalIn.toFixed(2)), ""],
-    ["","Total Withdrawn","","","","","", "", parseFloat(totalOut.toFixed(2))],
-    ["","Net",            "","","","","", parseFloat(net.toFixed(2)), ""],
+    ["", "Total Deposited", "", "", "", "", "", r2(totalIn), ""],
+    ["", "Total Withdrawn", "", "", "", "", "", "", r2(totalOut)],
+    ["", "Net",             "", "", "", "", "", r2(net), ""],
   ];
   const ws_tx = XLSX.utils.aoa_to_sheet(txRows);
-  ws_tx["!cols"] = [{wch:14},{wch:14},{wch:18},{wch:16},{wch:16},{wch:24},{wch:16},{wch:16},{wch:18}];
+  ws_tx["!cols"] = [{ wch: 14 }, { wch: 14 }, { wch: 18 }, { wch: 16 }, { wch: 16 }, { wch: 24 }, { wch: 16 }, { wch: 16 }, { wch: 18 }];
   XLSX.utils.book_append_sheet(wb, ws_tx, "Transactions");
 
-  const fname = `vault-report-${from}-to-${to}.xlsx`;
   XLSX.writeFile(wb, fname);
   toast("Spreadsheet exported");
 }
@@ -20710,6 +21103,7 @@ function welcomeUseBrowser() {
 
 function initApp() {
   loadSortPref(); // before the first render so the list opens in the remembered order
+  asLoadRecent(); // Advanced Search's recent searches (this device only)
   loadLocal();
   loadEncActive();
   loadCurrency();
@@ -20720,61 +21114,8 @@ function initApp() {
   initNAS();
   updateAIMenuSubs(); // initialise AI provider menu labels
 
-  // Delegated hold-to-edit handler for transaction rows. Attached once; each
-  // <tr> carries data-* attributes set by renderMain so we don't pay for a
-  // per-row closure on large tables. A plain tap does nothing — the popup
-  // opens only after a HOLD_MS press. Same charging animation as the account
-  // pills (via .holding class in CSS).
-  if (!window._txBodyDelegated) {
-    const _txBody = document.getElementById("tx-body");
-    if (_txBody) {
-      let _rowHold = null; // { row, timer, startX, startY, didHold }
-      const _cancelRowHold = () => {
-        if (!_rowHold) return;
-        if (_rowHold.timer) clearTimeout(_rowHold.timer);
-        _rowHold.row.classList.remove("holding");
-        _rowHold = null;
-      };
-      _txBody.addEventListener("pointerdown", (e) => {
-        // Right-click on desktop → let the browser handle it
-        if (e.pointerType === "mouse" && e.button !== 0) return;
-        const tr = e.target.closest("tr");
-        if (!tr || !tr.dataset || !tr.dataset.date) return;
-        _cancelRowHold();
-        const row = tr;
-        const startX = e.clientX, startY = e.clientY;
-        row.classList.add("holding");
-        const timer = setTimeout(() => {
-          if (!_rowHold) return;
-          _rowHold.didHold = true;
-          row.classList.remove("holding");
-          try { if (navigator.vibrate) navigator.vibrate(15); } catch {}
-          openPopup(
-            row.dataset.date,
-            parseFloat(row.dataset.amt),
-            row.dataset.type,
-            row.dataset.year || null,
-            row.dataset.txId || null
-          );
-          _rowHold = null;
-        }, HOLD_MS);
-        _rowHold = { row, timer, startX, startY, didHold: false };
-      });
-      _txBody.addEventListener("pointermove", (e) => {
-        if (!_rowHold) return;
-        if (Math.hypot(e.clientX - _rowHold.startX, e.clientY - _rowHold.startY) > HOLD_MOVE_CANCEL_PX) _cancelRowHold();
-      });
-      _txBody.addEventListener("pointerup",     _cancelRowHold);
-      _txBody.addEventListener("pointercancel", _cancelRowHold);
-      _txBody.addEventListener("pointerleave",  _cancelRowHold);
-      // Suppress iOS long-press context menu on rows so it doesn't hijack the hold
-      _txBody.addEventListener("contextmenu", (e) => {
-        const tr = e.target.closest("tr");
-        if (tr && tr.dataset && tr.dataset.date) e.preventDefault();
-      });
-      window._txBodyDelegated = true;
-    }
-  }
+  _bindRowHold(document.getElementById("tx-body"));
+
   // Set an appropriate initial status before async inits resolve.
   // If GD tokens, a local file handle, or NAS config exist, show "Reconnecting…"
   // instead of "No backup" to avoid a misleading flash on startup.
@@ -21929,7 +22270,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.10.2</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.11.0</div>
         </div>
 
         <div class="pp-cards">
@@ -22038,7 +22379,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v6.10.2</div>
+  <div id="version-footer">v6.11.0</div>
 
 </body>
 </html>
