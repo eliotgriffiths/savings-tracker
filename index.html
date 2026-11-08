@@ -1207,7 +1207,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .as-recent-row .go span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .as-recent-row .go svg { color:var(--text-3); flex-shrink:0; }
   .as-recent-row .rm { background:none; border:none; color:var(--text-3); font-size:17px; padding:8px 10px; cursor:pointer; }
-  /* Filters sheet — above the floating Menu / Add New buttons */
+  /* Filters sheet — above the tab bar and the other sheets */
   .as-scrim { position:fixed; inset:0; z-index:399; background:rgba(0,0,0,0.55); opacity:0; pointer-events:none; transition:opacity 0.22s ease; }
   .as-scrim.open { opacity:1; pointer-events:auto; }
   .as-sheet { position:fixed; left:0; right:0; bottom:0; z-index:400; max-width:560px; margin:0 auto; max-height:88vh; display:flex; flex-direction:column; background:var(--bg1); border:1px solid var(--border-hi); border-bottom:none; border-radius:18px 18px 0 0; transform:translateY(100%); transition:transform 0.28s cubic-bezier(.2,.8,.2,1); visibility:hidden; }
@@ -1240,9 +1240,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .as-sh-foot { padding:12px 18px calc(14px + env(safe-area-inset-bottom)); border-top:1px solid var(--border); }
   .as-show { width:100%; height:46px; border-radius:var(--radius); background:var(--gold); border:none; color:#15120a; font-size:15px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; }
   @media (max-width: 640px) {
-    /* Full-bleed results like the transaction list; room at the bottom so the
-       last row scrolls clear of the floating Menu / Add New buttons. */
-    #report-panel { padding:14px 16px 160px !important; }
+    /* Full-bleed results like the transaction list. #main already leaves room
+       for the tab bar, so only a little extra here. */
+    #report-panel { padding:14px 16px 24px !important; }
     .as-results { margin:14px -16px 0; }
     .as-rank-note { padding:0 16px 6px; }
   }
@@ -1274,17 +1274,6 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   /* Desktop settings sub-dropdown — same slide+fade animation as the mobile
      dropdown. JS toggles the .open class instead of style.display so the
      transitions can fire. */
-  #dmenu-settings-dropdown {
-    display: block;
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
-    transition: max-height 0.28s ease-out, opacity 0.22s ease-out;
-  }
-  #dmenu-settings-dropdown.open {
-    max-height: 800px;
-    opacity: 1;
-  }
   /* iOS: keep tap highlight from double-flashing over the animation */
   button { -webkit-tap-highlight-color: transparent; }
 
@@ -1745,7 +1734,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     #header { padding: 0 16px; height: 52px; }
     #header h1 { font-size: 18px; }
     #layout { flex-direction: column; }
-    #main { padding-bottom: 100px; }
+    #main { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }   /* clear of the tab bar */
 
     #year-summary {
       padding: 10px 16px;
@@ -1795,42 +1784,6 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     body.multi-account td.tx-account-cell { padding: 11px 0; text-align: center; }
     body.multi-account th.sort-col-account { padding: 9px 0; text-align: center; width: 22%; }
     body.multi-account #table-wrap { padding: 16px 0 24px; }
-
-    /* floating action buttons */
-    #mob-fabs {
-      display: flex !important;
-      flex-direction: column;
-      gap: 12px;
-      position: fixed;
-      bottom: 24px;
-      right: 20px;
-      z-index: 90;
-    }
-    #fab-add, #fab-menu {
-      height: 52px;
-      border-radius: 26px;
-      padding: 0 14px;
-      font-size: 14px;
-      font-weight: 600;
-      font-family: 'DM Sans', sans-serif;
-      letter-spacing: 0.02em;
-      cursor: pointer;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-      transition: opacity 0.15s, transform 0.15s;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      white-space: nowrap;
-    }
-    #fab-add {
-      background: var(--gold);
-      color: #0f0f11;
-      border: none;
-    }
-    #fab-menu {
-      background: var(--bg3);
-      color: var(--text-1);
-      border: 1px solid var(--border-hi);
-    }
-    #fab-add:active, #fab-menu:active { opacity: 0.85; transform: scale(0.96); }
 
     /* slide-up sheets */
     #menu-sheet, #year-sheet, #add-sheet {
@@ -1885,69 +1838,13 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     }
     .sheet-back-btn:hover { color: var(--text-1); }
     /* ── menu inline transactions dropdown ── */
-    .menu-tx-dropdown {
-      /* Slide-down / slide-up animation. max-height is capped at 800px which
-         easily covers the current dropdown content; if the menu ever grows
-         beyond that, bump the cap. overflow:hidden + opacity give a clean
-         combined fade+slide effect. */
-      display: block;
-      max-height: 0;
-      opacity: 0;
-      overflow: hidden;
-      background: var(--bg1);
-      border-bottom: 0 solid var(--border);
-      transition: max-height 0.28s ease-out, opacity 0.22s ease-out, border-bottom-width 0s 0.28s;
-    }
-    .menu-tx-dropdown.open {
-      max-height: 800px;
-      opacity: 1;
-      border-bottom-width: 1px;
-      transition: max-height 0.28s ease-out, opacity 0.22s ease-out, border-bottom-width 0s 0s;
-    }
-    .menu-tx-dropdown-item {
-      width: 100%; background: transparent; border: none;
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; gap: 14px;
-      padding: 14px 20px 14px 52px;
-      cursor: pointer; font-size: 14px; font-weight: 400;
-      color: var(--text-2); font-family: 'DM Sans', sans-serif;
-      text-align: left; transition: background 0.1s, color 0.1s;
-    }
-    .menu-tx-dropdown-item:last-child { border-bottom: none; }
-    .menu-tx-dropdown-item:hover { background: var(--bg3); color: var(--text-1); }
-    .menu-tx-dropdown-item.active { color: var(--gold); background: var(--bg2); }
-    .menu-tx-year-net { margin-left: auto; font-size: 12px; font-weight: 300; }
-    .menu-tx-all-spacer { flex-shrink: 0; width: 42px; }
-    .menu-tx-dropdown-item.year-row { padding-right: 0; }
-    .menu-tx-year-inner { display: flex; align-items: center; gap: 14px; flex: 1; padding: 14px 20px 14px 52px; }
-    .menu-tx-year-chevron {
-      font-size: 16px; color: var(--text-3);
-      padding: 14px 16px; line-height: 1; flex-shrink: 0;
-      transition: transform 0.18s, color 0.15s;
-    }
-    .menu-tx-dropdown-item.year-row.expanded .menu-tx-year-chevron { transform: rotate(90deg); }
-    .menu-tx-dropdown-item.year-row:hover .menu-tx-year-chevron { color: var(--text-1); }
-    .menu-tx-month-list {
-      display: none;
-      background: var(--bg0);
-      overflow: hidden;
-    }
     /* When the year row is expanded, the month sub-list slides down.
        Uses animation (not transition) because the list is created fresh in
        the DOM each render — an animation fires reliably on element creation
        when a matching selector state is present. */
-    .menu-tx-month-list.open {
-      display: block;
-      animation: _monthListSlideIn 0.28s ease-out;
-    }
     /* Applied by the chevron click handler when a currently-open list needs
      to be dismissed. The re-render (which would destroy the element) is
      deferred until after the slide-out completes so the animation can play. */
-    .menu-tx-month-list.closing {
-      display: block;
-      overflow: hidden;
-      animation: _monthListSlideOut 0.22s ease-out forwards;
-    }
     @keyframes _monthListSlideIn {
       from { max-height: 0; opacity: 0; }
       to   { max-height: 800px; opacity: 1; }
@@ -1956,71 +1853,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       from { max-height: 800px; opacity: 1; }
       to   { max-height: 0; opacity: 0; }
     }
-    .menu-tx-month-btn {
-      width: 100%; background: transparent; border: none;
-      border-top: 1px solid var(--border);
-      color: var(--text-3); padding: 12px 20px 12px 68px;
-      text-align: left; cursor: pointer;
-      font-size: 13px; font-weight: 400;
-      font-family: 'DM Sans', sans-serif;
-      transition: background 0.1s, color 0.1s;
-      display: flex; align-items: center;
-    }
-    @media (hover: hover) { .menu-tx-month-btn:hover { background: var(--bg2); color: var(--text-2); } }
-    .menu-tx-month-btn.active { color: var(--gold); background: var(--bg2); }
     .menu-item-arrow { transition: transform 0.2s; }
     .menu-item-btn.tx-open .menu-item-arrow { transform: rotate(90deg); }
 
-    .ysheet-all-btn {
-      display: flex; align-items: center;
-      width: 100%; background: transparent; border: none;
-      border-bottom: 1px solid var(--border);
-      color: var(--text-2); padding: 15px 16px;
-      text-align: left; cursor: pointer;
-      font-size: 15px; font-weight: 500;
-      font-family: 'DM Sans', sans-serif;
-      transition: background 0.1s, color 0.1s;
-    }
-    .ysheet-all-btn:hover { background: var(--bg3); color: var(--text-1); }
-    .ysheet-all-btn.active { color: var(--gold); background: var(--bg3); }
-    .ysheet-btn {
-      width: 100%; background: transparent; border: none;
-      border-bottom: 1px solid var(--border);
-      color: var(--text-1); padding: 0; text-align: left;
-      cursor: default; display: block;
-      transition: background 0.1s;
-    }
-    .ysheet-btn.active .ysheet-btn-label { color: var(--gold); }
-    .ysheet-btn-label {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 15px 16px; cursor: pointer; width: 100%;
-      transition: background 0.1s;
-    }
-    @media (hover: hover) { .ysheet-btn-label:hover { background: var(--bg3); } }
-    .ysheet-btn .yb-label { font-weight: 500; font-size: 15px; }
-    .ysheet-btn .yb-net   { font-size: 13px; font-weight: 300; }
-    .ysheet-chevron {
-      font-size: 16px; color: var(--text-2);
-      padding: 6px 10px; border-radius: 6px;
-      transition: transform 0.18s, background 0.15s;
-      flex-shrink: 0; line-height: 1;
-    }
-    .ysheet-chevron:hover { background: var(--bg4); }
-    .ysheet-btn.expanded .ysheet-chevron { transform: rotate(90deg); }
-    .ysheet-month-list { display: none; }
-    .ysheet-month-list.open { display: block; }
-    .ysheet-month-btn {
-      width: 100%; background: transparent; border: none;
-      border-bottom: 1px solid var(--border);
-      color: var(--text-3); padding: 12px 16px 12px 32px;
-      text-align: left; cursor: pointer;
-      font-size: 13px; font-weight: 400;
-      font-family: 'DM Sans', sans-serif;
-      transition: background 0.1s, color 0.1s;
-      border-left: 2px solid transparent;
-    }
-    @media (hover: hover) { .ysheet-month-btn:hover { background: var(--bg3); color: var(--text-2); } }
-    .ysheet-month-btn.active { color: var(--gold); border-left-color: var(--gold); background: var(--bg3); }
     .menu-item-btn {
       width: 100%; background: transparent; border: none;
       border-bottom: 1px solid var(--border);
@@ -2071,24 +1906,6 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       color: var(--gold);
     }
     .menu-item-btn.menu-item-active .menu-item-label { color: var(--gold); }
-    #ysheet-new-btn {
-      width: calc(100% - 32px); margin: 12px 16px 0;
-      background: transparent; border: 1px dashed var(--border-hi);
-      border-radius: var(--radius); padding: 12px 0;
-      color: var(--text-3); font-weight: 500; font-size: 14px;
-      font-family: 'DM Sans', sans-serif; cursor: pointer;
-      transition: border-color 0.15s, color 0.15s;
-    }
-    #ysheet-new-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
-    #ysheet-new-form { display: none; padding: 12px 16px 0; gap: 8px; flex-direction: column; }
-    #ysheet-new-form.show { display: flex; }
-    #ysheet-new-input {
-      background: var(--bg3); border: 1px solid var(--border-hi);
-      border-radius: var(--radius); padding: 11px 14px;
-      color: var(--text-1); font-size: 15px;
-      font-family: 'DM Sans', sans-serif; width: 100%; outline: none;
-    }
-    #ysheet-new-input:focus { border-color: var(--gold-dim); }
 
 
     #add-sheet .field { margin-bottom: 16px; }
@@ -2176,8 +1993,6 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     #desktop-menu-btn  { display: block !important; }
     #desktop-menu      { display: block; }          /* allow it to open */
     #desktop-menu-overlay { display: block; }       /* allow overlay too */
-    /* FABs take up too much room in landscape — hide them and rely on the header menu */
-    #mob-fabs          { display: none !important; }
   }
 
   @media (min-width: 641px) and (max-width: 900px) {
@@ -2188,7 +2003,6 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   }
 
   @media (min-width: 641px) {
-    #mob-fabs     { display: none !important; }
     #menu-sheet   { display: none !important; }
     #year-sheet   { display: none !important; }
     #add-sheet    { display: none !important; }
@@ -2306,6 +2120,95 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
 
 
+
+  /* ── Phone tab bar (v6.14.0, N1/N3) ── */
+  #tabbar { display: none; }
+  @media (max-width: 640px) {
+    #tabbar {
+      display: grid; grid-template-columns: repeat(5, 1fr); align-items: end;
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 130;
+      background: var(--bg1); border-top: 1px solid var(--border);
+      padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+    }
+    .tb-btn {
+      background: none; border: none; min-height: 48px; padding: 6px 0 2px;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      color: var(--text-3); font: 500 10.5px 'DM Sans', sans-serif; cursor: pointer;
+    }
+    .tb-btn svg { width: 22px; height: 22px; }
+    .tb-btn.nav-on, body:has(#menu-sheet.open) #tb-menu { color: var(--gold); }
+    .tb-add-wrap { display: flex; justify-content: center; }
+    #tb-add {
+      width: 52px; height: 52px; border-radius: 50%; border: none; cursor: pointer;
+      background: var(--gold); color: var(--bg0); font-size: 28px; line-height: 1;
+      display: flex; align-items: center; justify-content: center; margin-top: -22px;
+      box-shadow: 0 6px 18px var(--gold-glow), 0 0 0 5px var(--bg0);
+    }
+    #tb-add:active { transform: scale(0.95); }
+    .menu-version { text-align: center; font-size: 11px; color: var(--text-3); padding: 14px 0 calc(10px + env(safe-area-inset-bottom, 0px)); letter-spacing: 0.04em; }
+    /* Search is in the bar, so Home's own search icon goes (rules §9) */
+    #vh-search-corner { display: none; }
+    /* N5: the list title is the period picker */
+    #fy-title { cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    #fy-title::after {
+      content: "▾"; font-size: 11px; color: var(--gold); background: var(--bg3);
+      border-radius: 7px; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center;
+    }
+  }
+
+  /* ── Period picker (v6.14.0, N5) ── */
+  .ps-quick { display: flex; flex-wrap: wrap; gap: 8px; padding: 6px 18px 12px; }
+  .ps-chip { padding: 8px 14px; border-radius: 20px; border: 1px solid var(--border-hi); background: var(--bg3); color: var(--text-2); font: 500 13px 'DM Sans', sans-serif; cursor: pointer; }
+  .ps-chip.on { border-color: var(--gold); color: var(--gold); background: var(--gold-glow); }
+  .ps-row { width: 100%; display: flex; align-items: center; gap: 10px; padding: 13px 20px; min-height: 48px; background: none; border: none; border-bottom: 1px solid var(--border); color: var(--text-1); font: 400 15px 'DM Sans', sans-serif; text-align: left; cursor: pointer; }
+  .ps-row.on { color: var(--gold); box-shadow: inset 3px 0 0 var(--gold); background: var(--gold-glow); }
+  .ps-net { margin-left: auto; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .ps-year { display: flex; align-items: center; border-bottom: 1px solid var(--border); }
+  .ps-year .ps-row { border-bottom: none; flex: 1; }
+  .ps-exp { width: 36px; height: 36px; margin: 0 14px 0 2px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg3); color: var(--text-2); font-size: 12px; cursor: pointer; flex: 0 0 auto; }
+  .ps-months { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 10px 20px 14px; background: var(--bg1); border-bottom: 1px solid var(--border); }
+  .ps-months button { min-height: 40px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg2); color: var(--text-2); font: 500 13px 'DM Sans', sans-serif; cursor: pointer; }
+  .ps-months button.on { border-color: var(--gold); color: var(--gold); }
+  #ps-body { padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+
+  /* ── Settings page (v6.14.0, N6) ── */
+  #settings-page {
+    position: fixed; top: 0; bottom: 0; right: 0; width: 100%; max-width: 440px; z-index: 160;
+    background: var(--bg0); display: flex; flex-direction: column; border-left: 1px solid var(--border);
+    transform: translateX(100%); visibility: hidden;
+    transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear 0.26s;
+  }
+  #settings-page.open { transform: none; visibility: visible; transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  #settings-scrim { position: fixed; inset: 0; z-index: 159; background: rgba(0,0,0,0.5); display: none; }
+  #settings-scrim.open { display: block; }
+  html.sp-lock { overflow: hidden; }
+  .sp-head { display: flex; align-items: center; gap: 8px; padding: calc(12px + env(safe-area-inset-top, 0px)) 14px 12px; background: var(--bg1); border-bottom: 1px solid var(--border); }
+  .sp-head h2 { margin: 0; flex: 1; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 22px; color: var(--text-1); }
+  .sp-back { background: none; border: none; color: var(--gold); font: 500 15px 'DM Sans', sans-serif; cursor: pointer; padding: 8px 6px; min-height: 44px; }
+  @media (min-width: 641px) { .sp-back { display: none; } .sp-head h2 { padding-left: 6px; } }
+  @media (max-width: 640px) { .sp-x { display: none; } #settings-page { border-left: none; } }
+  .sp-body { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 0 0 calc(30px + env(safe-area-inset-bottom, 0px)); }
+  .sp-label { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); font-weight: 600; padding: 20px 20px 7px; }
+  .sp-group { margin: 0 14px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .sp-item { width: 100%; display: flex; align-items: center; gap: 13px; padding: 11px 14px; min-height: 56px; background: none; border: none; border-bottom: 1px solid var(--border); text-align: left; cursor: pointer; color: var(--text-1); font-family: 'DM Sans', sans-serif; }
+  .sp-item:last-child { border-bottom: none; }
+  @media (hover: hover) { .sp-item:hover { background: var(--bg3); } }
+  .sp-item:active { background: var(--bg3); }
+  .sp-ic { width: 32px; height: 32px; border-radius: 9px; background: var(--bg3); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-2); flex: 0 0 auto; }
+  .sp-txt { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+  .sp-t { font-size: 15px; }
+  .sp-s { font-size: 12px; color: var(--text-3); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sp-arr { color: var(--text-3); font-size: 18px; }
+
+  /* ── Desktop sidebar screens (v6.14.0, N11) ── */
+  .side-nav { padding: 10px 0 6px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .side-nav-btn { width: 100%; display: flex; align-items: center; gap: 12px; padding: 9px 16px 9px 13px; background: none; border: none; border-left: 3px solid transparent; color: var(--text-2); font: 500 13px 'DM Sans', sans-serif; cursor: pointer; text-align: left; }
+  @media (hover: hover) { .side-nav-btn:hover { background: var(--bg2); color: var(--text-1); } }
+  .side-nav-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .side-nav-btn.nav-on { color: var(--gold); border-left-color: var(--gold); background: var(--bg2); }
+  #sidebar.collapsed .side-nav-btn { justify-content: center; padding: 10px 0; }
+  #sidebar.collapsed .side-nav-btn span { display: none; }
+
   /* ── version footer ── */
   #version-footer {
     position: fixed;
@@ -2320,7 +2223,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     opacity: 0.5;
   }
   @media (max-width: 640px) {
-    #version-footer { bottom: 10px; }
+    #version-footer { display: none; }   /* nothing floats over the page on a phone; the Menu shows it instead */
   }
 
   /* ── desktop menu dropdown ── */
@@ -4161,63 +4064,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <div class="dmenu-header-label">Vault</div>
   </div>
   <div class="dmenu-items">
-
-    <!-- Section: View -->
-    <div class="dmenu-section-label">View</div>
-
-    <button class="dmenu-btn" data-nav="home" onclick="closeDesktopMenu(); switchTab('home');">
-      <span class="dmenu-btn-icon">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M2.5 7.5 L8 2.5 L13.5 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M4 6.8 V13 H12 V6.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-          <rect x="6.6" y="9.2" width="2.8" height="3.8" stroke="currentColor" stroke-width="1.2" fill="none"/>
-        </svg>
-      </span>
-      <div><div class="dmenu-btn-label">Home</div><div class="dmenu-btn-sub">Overview, trends &amp; recent activity</div></div>
-    </button>
-
-    <button class="dmenu-btn" data-nav="report" onclick="closeDesktopMenu(); switchTab('report');">
-      <span class="dmenu-btn-icon">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="6.5" cy="6.5" r="4.25" stroke="currentColor" stroke-width="1.5"/>
-          <line x1="9.75" y1="9.75" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-      </span>
-      <div><div class="dmenu-btn-label">Advanced Search</div><div class="dmenu-btn-sub">Search and filter your transactions</div></div>
-    </button>
-
-    <button class="dmenu-btn" data-nav="charts" onclick="closeDesktopMenu(); switchTab('charts');">
-      <span class="dmenu-btn-icon">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M1.5 13.5 L1.5 2" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" opacity="0.35"/>
-          <line x1="1.5" y1="13.5" x2="14.5" y2="13.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" opacity="0.35"/>
-          <path d="M1.5 11 L4.5 7.5 L7.5 9.5 L11 4.5 L14 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </span>
-      <div><div class="dmenu-btn-label">Charts</div><div class="dmenu-btn-sub">Visual breakdown of your savings</div></div>
-    </button>
-
-    <button class="dmenu-btn" onclick="toast('Holdings tracking is coming soon','notice')" style="opacity:0.6; cursor:not-allowed;" title="Coming soon">
-      <span class="dmenu-btn-icon">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <line x1="3.5" y1="2" x2="3.5" y2="14" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.35"/>
-          <rect x="2" y="4.5" width="3" height="5" rx="0.6" stroke="currentColor" stroke-width="1.2" fill="none"/>
-          <line x1="8" y1="1.5" x2="8" y2="14" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.35"/>
-          <rect x="6.5" y="3" width="3" height="6" rx="0.6" stroke="currentColor" stroke-width="1.2" fill="none"/>
-          <line x1="12.5" y1="3" x2="12.5" y2="14" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.35"/>
-          <rect x="11" y="5.5" width="3" height="5.5" rx="0.6" stroke="currentColor" stroke-width="1.2" fill="none"/>
-          <path d="M2 12.5 L6 9 L10 10.5 L14 6" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
-        </svg>
-      </span>
-      <div>
-        <div class="dmenu-btn-label">Holdings <span style="font-size:10px; color:var(--gold); font-weight:500; margin-left:5px; opacity:0.85;">Soon</span></div>
-        <div class="dmenu-btn-sub">Shares, ETFs &amp; commodities</div>
-      </div>
-    </button>
-
-    <!-- Section: Data -->
-    <div class="dmenu-section-label">Data</div>
-
+    <div class="dmenu-section-label">Manage</div>
     <button class="dmenu-btn" onclick="closeDesktopMenu(); openRecurringModal();">
       <span class="dmenu-btn-icon">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -4229,7 +4076,39 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       </span>
       <div><div class="dmenu-btn-label">Recurring</div><div class="dmenu-btn-sub" id="dmenu-recur-sub">None active</div></div>
     </button>
-
+    <button class="dmenu-btn" onclick="closeDesktopMenu(); openAccountsModal();">
+        <span class="dmenu-btn-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1.5" y="3.5" width="13" height="9" rx="1.75" stroke="currentColor" stroke-width="1.25" fill="none"/>
+            <rect x="1.5" y="3.5" width="13" height="3.5" rx="1.75" fill="currentColor" opacity="0.25"/>
+            <line x1="1.5" y1="7" x2="14.5" y2="7" stroke="currentColor" stroke-width="0.75" opacity="0.4"/>
+            <rect x="3" y="8.5" width="3.5" height="2.25" rx="0.6" stroke="currentColor" stroke-width="1.1" fill="none"/>
+            <line x1="3.75" y1="9.2" x2="5.75" y2="9.2" stroke="currentColor" stroke-width="0.85" stroke-linecap="round" opacity="0.6"/>
+            <line x1="3.75" y1="10.1" x2="5.75" y2="10.1" stroke="currentColor" stroke-width="0.85" stroke-linecap="round" opacity="0.4"/>
+            <line x1="8" y1="8.75" x2="12.5" y2="8.75" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.5"/>
+            <line x1="8" y1="10.5" x2="10.5" y2="10.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.35"/>
+            <circle cx="12.25" cy="5.25" r="1.1" fill="currentColor" opacity="0.55"/>
+            <circle cx="10" cy="5.25" r="1.1" fill="currentColor" opacity="0.3"/>
+          </svg>
+        </span>
+        <div><div class="dmenu-btn-label">Accounts</div><div class="dmenu-btn-sub" id="dmenu-accounts-sub">1 account</div></div>
+      </button>
+    <button class="dmenu-btn" onclick="closeDesktopMenu(); openGoalsModal();">
+        <span class="dmenu-btn-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.25" fill="none"/><circle cx="8" cy="8" r="3.25" stroke="currentColor" stroke-width="1.1" fill="none" opacity="0.6"/><circle cx="8" cy="8" r="1" fill="currentColor"/></svg></span>
+        <div><div class="dmenu-btn-label">Goals</div><div class="dmenu-btn-sub" id="dmenu-goals-sub">No goals set</div></div>
+      </button>
+    <div class="dmenu-section-label">Data</div>
+    <button class="dmenu-btn" onclick="closeDesktopMenu(); openImportPopup();">
+      <span class="dmenu-btn-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="1" width="14" height="14" rx="1.5" stroke="currentColor" stroke-width="1.25" fill="none"/>
+          <line x1="8" y1="4" x2="8" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <polyline points="5,7.5 8,11 11,7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="4" y1="13" x2="12" y2="13" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" opacity="0.5"/>
+        </svg>
+      </span>
+      <div><div class="dmenu-btn-label">Import</div><div class="dmenu-btn-sub">Import transactions with AI</div></div>
+    </button>
     <button class="dmenu-btn" onclick="closeDesktopMenu(); menuExportXLSX();">
       <span class="dmenu-btn-icon">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -4247,19 +4126,6 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       </span>
       <div><div class="dmenu-btn-label">Export spreadsheet</div><div class="dmenu-btn-sub" id="dmenu-export-sub">All transactions as XLSX</div></div>
     </button>
-
-    <button class="dmenu-btn" onclick="closeDesktopMenu(); openImportPopup();">
-      <span class="dmenu-btn-icon">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="1" y="1" width="14" height="14" rx="1.5" stroke="currentColor" stroke-width="1.25" fill="none"/>
-          <line x1="8" y1="4" x2="8" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          <polyline points="5,7.5 8,11 11,7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <line x1="4" y1="13" x2="12" y2="13" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" opacity="0.5"/>
-        </svg>
-      </span>
-      <div><div class="dmenu-btn-label">Import</div><div class="dmenu-btn-sub">Import transactions with AI</div></div>
-    </button>
-
     <button class="dmenu-btn" onclick="closeDesktopMenu(); menuPrint();">
       <span class="dmenu-btn-icon">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -4272,11 +4138,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       </span>
       <div><div class="dmenu-btn-label">Print</div><div class="dmenu-btn-sub" id="dmenu-print-sub">All transactions</div></div>
     </button>
-
-    <!-- Section: Settings (collapsible) -->
     <div class="dmenu-section-label">Settings</div>
-
-    <button class="dmenu-btn" id="dmenu-settings-toggle-btn" onclick="toggleDesktopSettingsDropdown()">
+    <button class="dmenu-btn" onclick="closeDesktopMenu(); openSettingsPage();">
       <span class="dmenu-btn-icon">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <line x1="2" y1="4.5" x2="14" y2="4.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
@@ -4287,133 +4150,26 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <circle cx="6.5" cy="11.5" r="1.75" fill="var(--bg2)" stroke="currentColor" stroke-width="1.25"/>
         </svg>
       </span>
-      <div style="flex:1"><div class="dmenu-btn-label">Settings</div><div class="dmenu-btn-sub">Accounts, backup, AI &amp; more</div></div>
-      <span class="menu-item-arrow" id="dmenu-settings-arrow" style="font-size:16px; color:var(--text-3); flex-shrink:0; transition:transform 0.2s;">›</span>
+      <div style="flex:1"><div class="dmenu-btn-label">Settings</div><div class="dmenu-btn-sub">Backup, currency, year format &amp; more</div></div>
+      <span class="menu-item-arrow" style="font-size:16px; color:var(--text-3); flex-shrink:0; transition:transform 0.2s;">›</span>
     </button>
-    <div id="dmenu-settings-dropdown">
-      <button class="dmenu-btn" onclick="closeDesktopMenu(); openAccountsModal();">
-        <span class="dmenu-btn-icon">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="1.5" y="3.5" width="13" height="9" rx="1.75" stroke="currentColor" stroke-width="1.25" fill="none"/>
-            <rect x="1.5" y="3.5" width="13" height="3.5" rx="1.75" fill="currentColor" opacity="0.25"/>
-            <line x1="1.5" y1="7" x2="14.5" y2="7" stroke="currentColor" stroke-width="0.75" opacity="0.4"/>
-            <rect x="3" y="8.5" width="3.5" height="2.25" rx="0.6" stroke="currentColor" stroke-width="1.1" fill="none"/>
-            <line x1="3.75" y1="9.2" x2="5.75" y2="9.2" stroke="currentColor" stroke-width="0.85" stroke-linecap="round" opacity="0.6"/>
-            <line x1="3.75" y1="10.1" x2="5.75" y2="10.1" stroke="currentColor" stroke-width="0.85" stroke-linecap="round" opacity="0.4"/>
-            <line x1="8" y1="8.75" x2="12.5" y2="8.75" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.5"/>
-            <line x1="8" y1="10.5" x2="10.5" y2="10.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.35"/>
-            <circle cx="12.25" cy="5.25" r="1.1" fill="currentColor" opacity="0.55"/>
-            <circle cx="10" cy="5.25" r="1.1" fill="currentColor" opacity="0.3"/>
-          </svg>
-        </span>
-        <div><div class="dmenu-btn-label">Accounts</div><div class="dmenu-btn-sub" id="dmenu-accounts-sub">1 account</div></div>
-      </button>
-      <button class="dmenu-btn" onclick="closeDesktopMenu(); openGoalsModal();">
-        <span class="dmenu-btn-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.25" fill="none"/><circle cx="8" cy="8" r="3.25" stroke="currentColor" stroke-width="1.1" fill="none" opacity="0.6"/><circle cx="8" cy="8" r="1" fill="currentColor"/></svg></span>
-        <div><div class="dmenu-btn-label">Goals</div><div class="dmenu-btn-sub" id="dmenu-goals-sub">No goals set</div></div>
-      </button>
-      <button class="dmenu-btn" onclick="closeDesktopMenu(); openLayoutModal();">
-        <span class="dmenu-btn-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2.5" width="12" height="3" rx="1" stroke="currentColor" stroke-width="1.25"/><rect x="2" y="7" width="12" height="3" rx="1" stroke="currentColor" stroke-width="1.25"/><rect x="2" y="11.5" width="7" height="2.5" rx="1" stroke="currentColor" stroke-width="1.25" opacity="0.5"/></svg></span>
-        <div><div class="dmenu-btn-label">Customise Home</div><div class="dmenu-btn-sub" id="dmenu-layout-sub">Arrange sections</div></div>
-      </button>
-      <button class="dmenu-btn" onclick="closeDesktopMenu(); setTimeout(openSetup, 50);">
-        <span class="dmenu-btn-icon">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2 3.5A1.5 1.5 0 0 1 3.5 2h7L13 4.5V12a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 2 12V3.5z" stroke="currentColor" stroke-width="1.25" fill="none"/>
-            <path d="M10.5 2v2.5H13" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
-            <rect x="4.5" y="2.25" width="3.75" height="3" rx="0.4" fill="currentColor" opacity="0.15" stroke="currentColor" stroke-width="1.1"/>
-            <line x1="5.25" y1="3.1" x2="7.5" y2="3.1" stroke="currentColor" stroke-width="0.85" stroke-linecap="round" opacity="0.55"/>
-            <line x1="5.25" y1="4.1" x2="7.5" y2="4.1" stroke="currentColor" stroke-width="0.85" stroke-linecap="round" opacity="0.4"/>
-            <rect x="3.5" y="7.5" width="9" height="4.5" rx="0.75" fill="currentColor" opacity="0.08" stroke="currentColor" stroke-width="1.1"/>
-            <line x1="5" y1="9.5" x2="7.5" y2="9.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.55"/>
-            <line x1="5" y1="10.75" x2="9" y2="10.75" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
-            <line x1="9.5" y1="9.5" x2="11" y2="9.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.3"/>
-          </svg>
-        </span>
-        <div><div class="dmenu-btn-label">Save &amp; backup</div><div class="dmenu-btn-sub">Manage file saves &amp; backup</div></div>
-      </button>
-      <button class="dmenu-btn" onclick="closeDesktopMenu(); openAIProviderSettings();">
-        <span class="dmenu-btn-icon">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="2.5" y="4.5" width="11" height="9" rx="2" stroke="currentColor" stroke-width="1.25" fill="none"/>
-            <line x1="8" y1="2" x2="8" y2="4.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
-            <circle cx="8" cy="1.5" r="0.75" fill="currentColor"/>
-            <circle cx="5.5" cy="8" r="1.25" stroke="currentColor" stroke-width="1.1" fill="none"/>
-            <circle cx="10.5" cy="8" r="1.25" stroke="currentColor" stroke-width="1.1" fill="none"/>
-            <circle cx="5.5" cy="8" r="0.4" fill="currentColor"/>
-            <circle cx="10.5" cy="8" r="0.4" fill="currentColor"/>
-            <path d="M5.5 11h5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
-            <line x1="2.5" y1="7" x2="1" y2="7" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.5"/>
-            <line x1="13.5" y1="7" x2="15" y2="7" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.5"/>
-          </svg>
-        </span>
-        <div><div class="dmenu-btn-label">AI provider</div><div class="dmenu-btn-sub" id="dmenu-ai-sub">No provider configured</div></div>
-      </button>
-      <button class="dmenu-btn" onclick="closeDesktopMenu(); openCurrencyPopup();">
-        <span class="dmenu-btn-icon">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.25" fill="none"/>
-            <path d="M8 3.5v1M8 11.5v1" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
-            <path d="M5.75 6c0-1 1-1.5 2.25-1.5S10.25 5 10.25 6s-1 1.25-2.25 1.5S5.75 8.25 5.75 9.5 6.75 11 8 11s2.25-.5 2.25-1.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
-          </svg>
-        </span>
-        <div><div class="dmenu-btn-label">Currency</div><div class="dmenu-btn-sub" id="dmenu-currency-sub">Australian Dollar</div></div>
-      </button>
-      <button class="dmenu-btn" onclick="closeDesktopMenu(); openYearFormatPopup();">
-        <span class="dmenu-btn-icon">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="1.5" y="3" width="13" height="11" rx="1.75" stroke="currentColor" stroke-width="1.25" fill="none"/>
-            <line x1="1.5" y1="6.5" x2="14.5" y2="6.5" stroke="currentColor" stroke-width="1" opacity="0.35"/>
-            <path d="M5 1.5v3M11 1.5v3" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
-            <rect x="2.75" y="7.75" width="2.25" height="2.25" rx="0.5" fill="currentColor" opacity="0.7"/>
-            <rect x="5.75" y="7.75" width="2.25" height="2.25" rx="0.5" fill="currentColor" opacity="0.45"/>
-            <rect x="8.75" y="7.75" width="2.25" height="2.25" rx="0.5" fill="currentColor" opacity="0.25"/>
-            <rect x="11.75" y="7.75" width="1.5" height="2.25" rx="0.5" fill="currentColor" opacity="0.12"/>
-            <rect x="2.75" y="10.75" width="1.5" height="1.5" rx="0.4" fill="currentColor" opacity="0.2"/>
-            <rect x="5.75" y="10.75" width="2.25" height="1.5" rx="0.4" fill="currentColor" opacity="0.55"/>
-            <rect x="8.75" y="10.75" width="2.25" height="1.5" rx="0.4" fill="currentColor" opacity="0.35"/>
-            <rect x="11.75" y="10.75" width="1.5" height="1.5" rx="0.4" fill="currentColor" opacity="0.15"/>
-          </svg>
-        </span>
-        <div><div class="dmenu-btn-label">Year format</div><div class="dmenu-btn-sub" id="dmenu-yearmode-sub">Calendar year</div></div>
-      </button>
-      <button class="dmenu-btn" onclick="openEncryptionMenu()">
-        <span class="dmenu-btn-icon">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="3" y="7.5" width="10" height="7" rx="1.75" stroke="currentColor" stroke-width="1.25" fill="none"/>
-            <rect x="3" y="7.5" width="10" height="7" rx="1.75" fill="currentColor" opacity="0.06"/>
-            <path d="M5.5 7.5V5a2.5 2.5 0 0 1 5 0v2.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
-            <circle cx="8" cy="11" r="1.5" stroke="currentColor" stroke-width="1.1" fill="none"/>
-            <line x1="8" y1="12.5" x2="8" y2="13.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
-          </svg>
-        </span>
-        <div><div class="dmenu-btn-label">Encryption</div><div class="dmenu-btn-sub" id="dmenu-enc-sub">Off — backups unencrypted</div></div>
-      </button>
-    </div>
-
-    <!-- Section: About -->
-    <div class="dmenu-section-label">About</div>
-
-    <button class="dmenu-btn" onclick="closeDesktopMenu(); openPrivacy();">
-      <div class="dmenu-btn-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M8 1.5L2.5 3.75v4c0 3.25 2.5 5.75 5.5 6.75 3-1 5.5-3.5 5.5-6.75v-4L8 1.5z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round" fill="none"/>
-        <path d="M6 6.5h4M6 8.5h4M6 10.5h2.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.55"/>
-      </svg></div>
-      <div><div class="dmenu-btn-label">Privacy policy</div><div class="dmenu-btn-sub">How Vault handles your data</div></div>
-    </button>
-
-    <button class="dmenu-btn" onclick="closeDesktopMenu(); openAbout();">
+    <button class="dmenu-btn" onclick="toast('Holdings tracking is coming soon','notice')" style="opacity:0.6; cursor:not-allowed;" title="Coming soon">
       <span class="dmenu-btn-icon">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.25" fill="none"/>
-          <circle cx="8" cy="5.25" r="0.9" fill="currentColor"/>
-          <line x1="8" y1="7.5" x2="8" y2="11.5" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
-          <line x1="6.5" y1="11.5" x2="9.5" y2="11.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.5"/>
+          <line x1="3.5" y1="2" x2="3.5" y2="14" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.35"/>
+          <rect x="2" y="4.5" width="3" height="5" rx="0.6" stroke="currentColor" stroke-width="1.2" fill="none"/>
+          <line x1="8" y1="1.5" x2="8" y2="14" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.35"/>
+          <rect x="6.5" y="3" width="3" height="6" rx="0.6" stroke="currentColor" stroke-width="1.2" fill="none"/>
+          <line x1="12.5" y1="3" x2="12.5" y2="14" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.35"/>
+          <rect x="11" y="5.5" width="3" height="5.5" rx="0.6" stroke="currentColor" stroke-width="1.2" fill="none"/>
+          <path d="M2 12.5 L6 9 L10 10.5 L14 6" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
         </svg>
       </span>
-      <div><div class="dmenu-btn-label">About Vault</div><div class="dmenu-btn-sub">Version, credits &amp; attribution</div></div>
+      <div>
+        <div class="dmenu-btn-label">Holdings <span style="font-size:10px; color:var(--gold); font-weight:500; margin-left:5px; opacity:0.85;">Soon</span></div>
+        <div class="dmenu-btn-sub">Shares, ETFs &amp; commodities</div>
+      </div>
     </button>
-
   </div>
 </div>
 <div id="desktop-menu-overlay" onclick="closeDesktopMenu()"></div>
@@ -4421,6 +4177,23 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 <div id="layout">
   <div id="layout-inner">
   <div id="sidebar">
+    <!-- v6.14.0 (N11): the screens; years and months stay under Transactions below -->
+    <nav class="side-nav" aria-label="Screens">
+    <button class="side-nav-btn" data-nav="home" type="button" onclick="switchTab('home')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2.5 7.5 L8 2.5 L13.5 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M4 6.8 V13 H12 V6.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="6.6" y="9.2" width="2.8" height="3.8" stroke="currentColor" stroke-width="1.2" fill="none"/>
+        </svg><span>Home</span></button>
+    <button class="side-nav-btn" data-nav="report" type="button" onclick="switchTab('report')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="6.5" cy="6.5" r="4.25" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="9.75" y1="9.75" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg><span>Search</span></button>
+    <button class="side-nav-btn" data-nav="charts" type="button" onclick="switchTab('charts')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1.5 13.5 L1.5 2" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" opacity="0.35"/>
+          <line x1="1.5" y1="13.5" x2="14.5" y2="13.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" opacity="0.35"/>
+          <path d="M1.5 11 L4.5 7.5 L7.5 9.5 L11 4.5 L14 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg><span>Charts</span></button>
+    </nav>
     <div class="sidebar-header">
       <span class="sidebar-label" id="sidebar-years-label">Years</span>
       <button id="sidebar-collapse-btn" onclick="toggleSidebar()" title="Collapse">‹</button>
@@ -4457,7 +4230,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
   <div id="main">
     <div id="year-summary">
-      <div class="fy-title" id="fy-title">FY 20--</div>
+      <div class="fy-title" id="fy-title" role="button" tabindex="0" aria-label="Choose a period" onclick="openPeriodSheet()">FY 20--</div>
       <div class="stat"><span class="stat-label" id="stat-in-label">Saved</span>   <span class="stat-val"     id="stat-in"  style="color:var(--green)"></span></div>
       <div class="stat"><span class="stat-label" id="stat-out-label">Withdrawn</span>  <span class="stat-val"     id="stat-out" style="color:var(--red)"></span></div>
       <div class="stat"><span class="stat-label" id="stat-net-label">Net</span>         <span class="stat-val big" id="stat-net"></span></div>
@@ -4477,7 +4250,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     </div>
 
     <div id="table-wrap">
-      <div id="empty-msg" style="display:none">No transactions yet. Tap Add New to record your first one.</div>
+      <div id="empty-msg" style="display:none">No transactions yet. Add your first one with the + button.</div>
       <div id="tx-pagination-top" class="tx-pagination tx-pagination-top" style="display:none;"></div>
       <table id="tx-table" style="display:none">
         <thead><tr>
@@ -4661,7 +4434,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
     <div id="report-panel" style="display:none; flex:1; overflow-y:auto; padding:20px 24px 24px; flex-direction:column;">
       <!-- Advanced Search (v6.11.0) -->
-      <h2 class="as-title">Advanced Search</h2>
+      <h2 class="as-title">Search</h2>
       <div id="as-top-spacer"></div>
       <div class="as-top" id="as-top">
         <div class="as-bar-wrap">
@@ -4824,11 +4597,29 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   <div class="npn-hint">The keyboard shortcut (Ctrl&nbsp;+&nbsp;P, or ⌘&nbsp;+&nbsp;P on a Mac) opens Vault's print directly.</div>
 </div>
 
-<!-- Mobile: floating action buttons -->
-<div id="mob-fabs" style="display:none">
-  <button id="fab-menu" onclick="openMenuSheet()"><span>☰</span> Menu</button>
-  <button id="fab-add"  onclick="openAddSheet()"><span>+</span> Add New</button>
-</div>
+<!-- Phone: bottom tab bar (v6.14.0, N1). It sits below the page, so nothing floats
+     over the amounts any more (N3). Tapping the tab you're on scrolls to the top. -->
+<nav id="tabbar" aria-label="Screens">
+  <button class="tb-btn" data-nav="home" type="button" onclick="navTab('home')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2.5 7.5 L8 2.5 L13.5 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M4 6.8 V13 H12 V6.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="6.6" y="9.2" width="2.8" height="3.8" stroke="currentColor" stroke-width="1.2" fill="none"/>
+      </svg><span>Home</span></button>
+  <button class="tb-btn" data-nav="list" type="button" onclick="navTab('list')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="3.5" cy="4.5" r="1.25" fill="currentColor" opacity="0.5"/>
+        <circle cx="3.5" cy="8" r="1.25" fill="currentColor" opacity="0.75"/>
+        <circle cx="3.5" cy="11.5" r="1.25" fill="currentColor"/>
+        <line x1="6.5" y1="4.5" x2="14" y2="4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.5"/>
+        <line x1="6.5" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.75"/>
+        <line x1="6.5" y1="11.5" x2="14" y2="11.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg><span>Transactions</span></button>
+  <div class="tb-add-wrap"><button id="tb-add" type="button" onclick="openAddSheet()" aria-label="Add transaction">+</button></div>
+  <button class="tb-btn" data-nav="report" type="button" onclick="navTab('report')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="6.5" cy="6.5" r="4.25" stroke="currentColor" stroke-width="1.5"/>
+        <line x1="9.75" y1="9.75" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg><span>Search</span></button>
+  <button class="tb-btn" id="tb-menu" type="button" onclick="openMenuSheet()"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span>Menu</span></button>
+</nav>
 
 <!-- Mobile: sheet overlay -->
 <div id="sheet-overlay" onclick="sheetOverlayTap()"></div>
@@ -4840,58 +4631,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <div class="sheet-title">Menu</div>
     <button class="sheet-close-btn" onclick="closeSheets();">✕</button>
   </div>
-
-  <!-- Section: View -->
+  <!-- v6.14.0 (N6): the bar below holds Home, Transactions, Add and Search, so the Menu
+       is one short screen. Settings opens its own page. -->
   <div class="menu-section-label">View</div>
-
-  <button class="menu-item-btn" data-nav="home" onclick="closeSheets(); mobileTab('home');">
-    <span class="menu-item-icon">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M2.5 7.5 L8 2.5 L13.5 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M4 6.8 V13 H12 V6.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-        <rect x="6.6" y="9.2" width="2.8" height="3.8" stroke="currentColor" stroke-width="1.2" fill="none"/>
-      </svg>
-    </span>
-    <span class="menu-item-body">
-      <span class="menu-item-label">Home</span>
-      <span class="menu-item-sub">Overview, trends &amp; recent activity</span>
-    </span>
-  </button>
-
-  <button class="menu-item-btn" id="menu-tx-toggle-btn" data-nav="list" onclick="toggleMenuTxDropdown()">
-    <span class="menu-item-icon">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="3.5" cy="4.5" r="1.25" fill="currentColor" opacity="0.5"/>
-        <circle cx="3.5" cy="8" r="1.25" fill="currentColor" opacity="0.75"/>
-        <circle cx="3.5" cy="11.5" r="1.25" fill="currentColor"/>
-        <line x1="6.5" y1="4.5" x2="14" y2="4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.5"/>
-        <line x1="6.5" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.75"/>
-        <line x1="6.5" y1="11.5" x2="14" y2="11.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-      </svg>
-    </span>
-    <span class="menu-item-body">
-      <span class="menu-item-label" id="mob-years-label">Transactions</span>
-      <span class="menu-item-sub">Browse by year or month</span>
-    </span>
-    <span class="menu-item-arrow">›</span>
-  </button>
-  <div class="menu-tx-dropdown" id="menu-tx-dropdown">
-    <!-- populated by renderMenuTxDropdown() -->
-  </div>
-
-  <button class="menu-item-btn" data-nav="report" onclick="closeSheets(); mobileTab('report');">
-    <span class="menu-item-icon">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="6.5" cy="6.5" r="4.25" stroke="currentColor" stroke-width="1.5"/>
-        <line x1="9.75" y1="9.75" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-    </span>
-    <span class="menu-item-body">
-      <span class="menu-item-label">Advanced Search</span>
-      <span class="menu-item-sub">Search and filter your transactions</span>
-    </span>
-  </button>
-
   <button class="menu-item-btn" data-nav="charts" onclick="closeSheets(); mobileTab('charts');">
     <span class="menu-item-icon">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -4905,28 +4647,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       <span class="menu-item-sub">Visual breakdown of your savings</span>
     </span>
   </button>
-
-  <button class="menu-item-btn" onclick="toast('Holdings tracking is coming soon','notice')" style="opacity:0.6; cursor:not-allowed;" title="Coming soon">
-    <span class="menu-item-icon">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <line x1="3.5" y1="2" x2="3.5" y2="14" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.35"/>
-        <rect x="2" y="4.5" width="3" height="5" rx="0.6" stroke="currentColor" stroke-width="1.2" fill="none"/>
-        <line x1="8" y1="1.5" x2="8" y2="14" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.35"/>
-        <rect x="6.5" y="3" width="3" height="6" rx="0.6" stroke="currentColor" stroke-width="1.2" fill="none"/>
-        <line x1="12.5" y1="3" x2="12.5" y2="14" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.35"/>
-        <rect x="11" y="5.5" width="3" height="5.5" rx="0.6" stroke="currentColor" stroke-width="1.2" fill="none"/>
-        <path d="M2 12.5 L6 9 L10 10.5 L14 6" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
-      </svg>
-    </span>
-    <span class="menu-item-body">
-      <span class="menu-item-label">Holdings <span style="font-size:10px; color:var(--gold); font-weight:500; margin-left:5px; opacity:0.85;">Soon</span></span>
-      <span class="menu-item-sub">Shares, ETFs &amp; commodities</span>
-    </span>
-  </button>
-
-  <!-- Section: Data -->
-  <div class="menu-section-label">Data</div>
-
+  <div class="menu-section-label">Manage</div>
   <button class="menu-item-btn" onclick="closeSheets(); openRecurringModal();">
     <span class="menu-item-icon">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -4941,7 +4662,48 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       <span class="menu-item-sub" id="mob-recur-manage-sub">None active</span>
     </span>
   </button>
-
+  <button class="menu-item-btn" onclick="closeSheets(); setTimeout(openAccountsModal,50);">
+      <span class="menu-item-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1.5" y="3.5" width="13" height="9" rx="1.75" stroke="currentColor" stroke-width="1.25" fill="none"/>
+          <rect x="1.5" y="3.5" width="13" height="3.5" rx="1.75" fill="currentColor" opacity="0.25"/>
+          <line x1="1.5" y1="7" x2="14.5" y2="7" stroke="currentColor" stroke-width="0.75" opacity="0.4"/>
+          <rect x="3" y="8.5" width="3.5" height="2.25" rx="0.6" stroke="currentColor" stroke-width="1.1" fill="none"/>
+          <line x1="3.75" y1="9.2" x2="5.75" y2="9.2" stroke="currentColor" stroke-width="0.85" stroke-linecap="round" opacity="0.6"/>
+          <line x1="3.75" y1="10.1" x2="5.75" y2="10.1" stroke="currentColor" stroke-width="0.85" stroke-linecap="round" opacity="0.4"/>
+          <line x1="8" y1="8.75" x2="12.5" y2="8.75" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.5"/>
+          <line x1="8" y1="10.5" x2="10.5" y2="10.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.35"/>
+          <circle cx="12.25" cy="5.25" r="1.1" fill="currentColor" opacity="0.55"/>
+          <circle cx="10" cy="5.25" r="1.1" fill="currentColor" opacity="0.3"/>
+        </svg>
+      </span>
+      <span class="menu-item-body">
+        <span class="menu-item-label">Accounts</span>
+        <span class="menu-item-sub" id="mob-accounts-sub">1 account</span>
+      </span>
+    </button>
+  <button class="menu-item-btn" onclick="closeSheets(); setTimeout(openGoalsModal,50);">
+      <span class="menu-item-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.25" fill="none"/><circle cx="8" cy="8" r="3.25" stroke="currentColor" stroke-width="1.1" fill="none" opacity="0.6"/><circle cx="8" cy="8" r="1" fill="currentColor"/></svg></span>
+      <span class="menu-item-body">
+        <span class="menu-item-label">Goals</span>
+        <span class="menu-item-sub" id="menu-goals-sub">No goals set</span>
+      </span>
+    </button>
+  <div class="menu-section-label">Data</div>
+  <button class="menu-item-btn" onclick="closeSheets(); openImportPopup();">
+    <span class="menu-item-icon">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="14" height="14" rx="1.5" stroke="currentColor" stroke-width="1.25" fill="none"/>
+        <line x1="8" y1="4" x2="8" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <polyline points="5,7.5 8,11 11,7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <line x1="4" y1="13" x2="12" y2="13" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" opacity="0.5"/>
+      </svg>
+    </span>
+    <span class="menu-item-body">
+      <span class="menu-item-label">Import</span>
+      <span class="menu-item-sub">Import transactions with AI</span>
+    </span>
+  </button>
   <button class="menu-item-btn" onclick="closeSheets(); menuExportXLSX();">
     <span class="menu-item-icon">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -4962,22 +4724,6 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       <span class="menu-item-sub" id="mob-export-sub">XLSX</span>
     </span>
   </button>
-
-  <button class="menu-item-btn" onclick="closeSheets(); openImportPopup();">
-    <span class="menu-item-icon">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="1" y="1" width="14" height="14" rx="1.5" stroke="currentColor" stroke-width="1.25" fill="none"/>
-        <line x1="8" y1="4" x2="8" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <polyline points="5,7.5 8,11 11,7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <line x1="4" y1="13" x2="12" y2="13" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" opacity="0.5"/>
-      </svg>
-    </span>
-    <span class="menu-item-body">
-      <span class="menu-item-label">Import</span>
-      <span class="menu-item-sub">Import transactions with AI</span>
-    </span>
-  </button>
-
   <button class="menu-item-btn" onclick="closeSheets(); menuPrint();">
     <span class="menu-item-icon">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -4993,11 +4739,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       <span class="menu-item-sub" id="mob-print-sub">All transactions</span>
     </span>
   </button>
-
-  <!-- Section: Settings (collapsible) -->
   <div class="menu-section-label">Settings</div>
-
-  <button class="menu-item-btn" id="menu-settings-toggle-btn" onclick="toggleMenuSettingsDropdown()">
+  <button class="menu-item-btn" onclick="closeSheets(); openSettingsPage();">
     <span class="menu-item-icon">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         <line x1="2" y1="4.5" x2="14" y2="4.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
@@ -5010,48 +4753,53 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     </span>
     <span class="menu-item-body">
       <span class="menu-item-label">Settings</span>
-      <span class="menu-item-sub">Accounts, backup, AI &amp; more</span>
+      <span class="menu-item-sub">Backup, currency, year format &amp; more</span>
     </span>
     <span class="menu-item-arrow">›</span>
   </button>
-  <div class="menu-tx-dropdown" id="menu-settings-dropdown">
-    <button class="menu-item-btn" onclick="closeSheets(); setTimeout(openAccountsModal,50);">
-      <span class="menu-item-icon">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="1.5" y="3.5" width="13" height="9" rx="1.75" stroke="currentColor" stroke-width="1.25" fill="none"/>
-          <rect x="1.5" y="3.5" width="13" height="3.5" rx="1.75" fill="currentColor" opacity="0.25"/>
-          <line x1="1.5" y1="7" x2="14.5" y2="7" stroke="currentColor" stroke-width="0.75" opacity="0.4"/>
-          <rect x="3" y="8.5" width="3.5" height="2.25" rx="0.6" stroke="currentColor" stroke-width="1.1" fill="none"/>
-          <line x1="3.75" y1="9.2" x2="5.75" y2="9.2" stroke="currentColor" stroke-width="0.85" stroke-linecap="round" opacity="0.6"/>
-          <line x1="3.75" y1="10.1" x2="5.75" y2="10.1" stroke="currentColor" stroke-width="0.85" stroke-linecap="round" opacity="0.4"/>
-          <line x1="8" y1="8.75" x2="12.5" y2="8.75" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.5"/>
-          <line x1="8" y1="10.5" x2="10.5" y2="10.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.35"/>
-          <circle cx="12.25" cy="5.25" r="1.1" fill="currentColor" opacity="0.55"/>
-          <circle cx="10" cy="5.25" r="1.1" fill="currentColor" opacity="0.3"/>
-        </svg>
-      </span>
-      <span class="menu-item-body">
-        <span class="menu-item-label">Accounts</span>
-        <span class="menu-item-sub" id="mob-accounts-sub">1 account</span>
-      </span>
-    </button>
-    <button class="menu-item-btn" onclick="closeSheets(); setTimeout(openGoalsModal,50);">
-      <span class="menu-item-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.25" fill="none"/><circle cx="8" cy="8" r="3.25" stroke="currentColor" stroke-width="1.1" fill="none" opacity="0.6"/><circle cx="8" cy="8" r="1" fill="currentColor"/></svg></span>
-      <span class="menu-item-body">
-        <span class="menu-item-label">Goals</span>
-        <span class="menu-item-sub" id="menu-goals-sub">No goals set</span>
-      </span>
-    </button>
-    <button class="menu-item-btn" onclick="closeSheets(); setTimeout(openLayoutModal,50);">
-      <span class="menu-item-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2.5" width="12" height="3" rx="1" stroke="currentColor" stroke-width="1.25"/><rect x="2" y="7" width="12" height="3" rx="1" stroke="currentColor" stroke-width="1.25"/><rect x="2" y="11.5" width="7" height="2.5" rx="1" stroke="currentColor" stroke-width="1.25" opacity="0.5"/></svg></span>
-      <span class="menu-item-body">
-        <span class="menu-item-label">Customise Home</span>
-        <span class="menu-item-sub">Arrange sections</span>
-      </span>
-    </button>
-    <button class="menu-item-btn" onclick="closeSheets(); setTimeout(openSetup, 50);">
-      <span class="menu-item-icon">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <button class="menu-item-btn" onclick="toast('Holdings tracking is coming soon','notice')" style="opacity:0.6; cursor:not-allowed;" title="Coming soon">
+    <span class="menu-item-icon">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <line x1="3.5" y1="2" x2="3.5" y2="14" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.35"/>
+        <rect x="2" y="4.5" width="3" height="5" rx="0.6" stroke="currentColor" stroke-width="1.2" fill="none"/>
+        <line x1="8" y1="1.5" x2="8" y2="14" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.35"/>
+        <rect x="6.5" y="3" width="3" height="6" rx="0.6" stroke="currentColor" stroke-width="1.2" fill="none"/>
+        <line x1="12.5" y1="3" x2="12.5" y2="14" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.35"/>
+        <rect x="11" y="5.5" width="3" height="5.5" rx="0.6" stroke="currentColor" stroke-width="1.2" fill="none"/>
+        <path d="M2 12.5 L6 9 L10 10.5 L14 6" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+      </svg>
+    </span>
+    <span class="menu-item-body">
+      <span class="menu-item-label">Holdings <span style="font-size:10px; color:var(--gold); font-weight:500; margin-left:5px; opacity:0.85;">Soon</span></span>
+      <span class="menu-item-sub">Shares, ETFs &amp; commodities</span>
+    </span>
+  </button>
+  <div class="menu-version" id="menu-version" aria-hidden="true"></div>
+</div>
+
+<!-- Mobile: period picker (v6.14.0, N5) — opened by tapping the list title -->
+<div id="year-sheet" role="dialog" aria-label="Choose a period">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div class="sheet-title">Show</div>
+    <button class="sheet-close-btn" onclick="closeSheets();">✕</button>
+  </div>
+  <div id="ps-body"></div>
+</div>
+
+<!-- Settings page (v6.14.0, N6): opened from the Menu. Popups opened from here sit
+     on top of it, so closing one comes back to Settings. -->
+<div id="settings-scrim" onclick="closeSettingsPage()"></div>
+<div id="settings-page" role="dialog" aria-label="Settings" aria-hidden="true">
+  <div class="sp-head">
+    <button class="sp-back" type="button" onclick="closeSettingsPage(true)">‹ Back</button>
+    <h2>Settings</h2>
+    <button class="modal-close sp-x" type="button" onclick="closeSettingsPage()" title="Close">✕</button>
+  </div>
+  <div class="sp-body">
+    <div class="sp-label">Backup</div>
+    <div class="sp-group">
+      <button class="sp-item" type="button" onclick="openSetup()"><span class="sp-ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M2 3.5A1.5 1.5 0 0 1 3.5 2h7L13 4.5V12a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 2 12V3.5z" stroke="currentColor" stroke-width="1.25" fill="none"/>
           <path d="M10.5 2v2.5H13" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
           <rect x="4.5" y="2.25" width="3.75" height="3" rx="0.4" fill="currentColor" opacity="0.15" stroke="currentColor" stroke-width="1.1"/>
@@ -5061,49 +4809,23 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <line x1="5" y1="9.5" x2="7.5" y2="9.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.55"/>
           <line x1="5" y1="10.75" x2="9" y2="10.75" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
           <line x1="9.5" y1="9.5" x2="11" y2="9.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.3"/>
-        </svg>
-      </span>
-      <span class="menu-item-body">
-        <span class="menu-item-label">Save &amp; backup</span>
-        <span class="menu-item-sub" id="smod-save-sub">Manage file saves &amp; backup</span>
-      </span>
-    </button>
-    <button class="menu-item-btn" onclick="closeSheets(); openAIProviderSettings();">
-      <span class="menu-item-icon">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="2.5" y="4.5" width="11" height="9" rx="2" stroke="currentColor" stroke-width="1.25" fill="none"/>
-          <line x1="8" y1="2" x2="8" y2="4.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
-          <circle cx="8" cy="1.5" r="0.75" fill="currentColor"/>
-          <circle cx="5.5" cy="8" r="1.25" stroke="currentColor" stroke-width="1.1" fill="none"/>
-          <circle cx="10.5" cy="8" r="1.25" stroke="currentColor" stroke-width="1.1" fill="none"/>
-          <circle cx="5.5" cy="8" r="0.4" fill="currentColor"/>
-          <circle cx="10.5" cy="8" r="0.4" fill="currentColor"/>
-          <path d="M5.5 11h5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
-          <line x1="2.5" y1="7" x2="1" y2="7" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.5"/>
-          <line x1="13.5" y1="7" x2="15" y2="7" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.5"/>
-        </svg>
-      </span>
-      <span class="menu-item-body">
-        <span class="menu-item-label">AI provider</span>
-        <span class="menu-item-sub" id="mob-ai-sub">No provider configured</span>
-      </span>
-    </button>
-    <button class="menu-item-btn" onclick="openCurrencyPopup(); closeSheets();">
-      <span class="menu-item-icon">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        </svg></span><span class="sp-txt"><span class="sp-t">Save &amp; backup</span><span class="sp-s" id="smod-save-sub">Manage file saves &amp; backup</span></span><span class="sp-arr" aria-hidden="true">›</span></button>
+      <button class="sp-item" type="button" onclick="openEncryptionMenu()"><span class="sp-ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="7.5" width="10" height="7" rx="1.75" stroke="currentColor" stroke-width="1.25" fill="none"/>
+          <rect x="3" y="7.5" width="10" height="7" rx="1.75" fill="currentColor" opacity="0.06"/>
+          <path d="M5.5 7.5V5a2.5 2.5 0 0 1 5 0v2.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+          <circle cx="8" cy="11" r="1.5" stroke="currentColor" stroke-width="1.1" fill="none"/>
+          <line x1="8" y1="12.5" x2="8" y2="13.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+        </svg></span><span class="sp-txt"><span class="sp-t">Encryption</span><span class="sp-s" id="mob-enc-sub">Off</span></span><span class="sp-arr" aria-hidden="true">›</span></button>
+    </div>
+    <div class="sp-label">Preferences</div>
+    <div class="sp-group">
+      <button class="sp-item" type="button" onclick="openCurrencyPopup()"><span class="sp-ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.25" fill="none"/>
           <path d="M8 3.5v1M8 11.5v1" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
           <path d="M5.75 6c0-1 1-1.5 2.25-1.5S10.25 5 10.25 6s-1 1.25-2.25 1.5S5.75 8.25 5.75 9.5 6.75 11 8 11s2.25-.5 2.25-1.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
-        </svg>
-      </span>
-      <span class="menu-item-body">
-        <span class="menu-item-label">Currency</span>
-        <span class="menu-item-sub" id="mob-currency-sub">Australian Dollar</span>
-      </span>
-    </button>
-    <button class="menu-item-btn" onclick="closeSheets(); setTimeout(openYearFormatPopup, 50);">
-      <span class="menu-item-icon">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        </svg></span><span class="sp-txt"><span class="sp-t">Currency</span><span class="sp-s" id="mob-currency-sub">Australian Dollar</span></span><span class="sp-arr" aria-hidden="true">›</span></button>
+      <button class="sp-item" type="button" onclick="openYearFormatPopup()"><span class="sp-ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect x="1.5" y="3" width="13" height="11" rx="1.75" stroke="currentColor" stroke-width="1.25" fill="none"/>
           <line x1="1.5" y1="6.5" x2="14.5" y2="6.5" stroke="currentColor" stroke-width="1" opacity="0.35"/>
           <path d="M5 1.5v3M11 1.5v3" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
@@ -5115,83 +4837,33 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <rect x="5.75" y="10.75" width="2.25" height="1.5" rx="0.4" fill="currentColor" opacity="0.55"/>
           <rect x="8.75" y="10.75" width="2.25" height="1.5" rx="0.4" fill="currentColor" opacity="0.35"/>
           <rect x="11.75" y="10.75" width="1.5" height="1.5" rx="0.4" fill="currentColor" opacity="0.15"/>
-        </svg>
-      </span>
-      <span class="menu-item-body">
-        <span class="menu-item-label">Year format</span>
-        <span class="menu-item-sub" id="mob-yearmode-sub">Calendar year</span>
-      </span>
-    </button>
-    <button class="menu-item-btn" onclick="openEncryptionMenu()">
-      <span class="menu-item-icon">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="3" y="7.5" width="10" height="7" rx="1.75" stroke="currentColor" stroke-width="1.25" fill="none"/>
-          <rect x="3" y="7.5" width="10" height="7" rx="1.75" fill="currentColor" opacity="0.06"/>
-          <path d="M5.5 7.5V5a2.5 2.5 0 0 1 5 0v2.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
-          <circle cx="8" cy="11" r="1.5" stroke="currentColor" stroke-width="1.1" fill="none"/>
-          <line x1="8" y1="12.5" x2="8" y2="13.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
-        </svg>
-      </span>
-      <span class="menu-item-body">
-        <span class="menu-item-label">Encryption</span>
-        <span class="menu-item-sub" id="mob-enc-sub">Off</span>
-      </span>
-    </button>
-  </div>
-
-  <!-- Section: About -->
-  <div class="menu-section-label">About</div>
-
-  <button class="menu-item-btn" onclick="closeSheets(); openPrivacy();">
-    <span class="menu-item-icon">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        </svg></span><span class="sp-txt"><span class="sp-t">Year format</span><span class="sp-s" id="mob-yearmode-sub">Calendar year</span></span><span class="sp-arr" aria-hidden="true">›</span></button>
+      <button class="sp-item" type="button" onclick="openLayoutModal()"><span class="sp-ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2.5" width="12" height="3" rx="1" stroke="currentColor" stroke-width="1.25"/><rect x="2" y="7" width="12" height="3" rx="1" stroke="currentColor" stroke-width="1.25"/><rect x="2" y="11.5" width="7" height="2.5" rx="1" stroke="currentColor" stroke-width="1.25" opacity="0.5"/></svg></span><span class="sp-txt"><span class="sp-t">Customise Home</span><span class="sp-s">Arrange sections</span></span><span class="sp-arr" aria-hidden="true">›</span></button>
+      <button class="sp-item" type="button" onclick="openAIProviderSettings()"><span class="sp-ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2.5" y="4.5" width="11" height="9" rx="2" stroke="currentColor" stroke-width="1.25" fill="none"/>
+          <line x1="8" y1="2" x2="8" y2="4.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+          <circle cx="8" cy="1.5" r="0.75" fill="currentColor"/>
+          <circle cx="5.5" cy="8" r="1.25" stroke="currentColor" stroke-width="1.1" fill="none"/>
+          <circle cx="10.5" cy="8" r="1.25" stroke="currentColor" stroke-width="1.1" fill="none"/>
+          <circle cx="5.5" cy="8" r="0.4" fill="currentColor"/>
+          <circle cx="10.5" cy="8" r="0.4" fill="currentColor"/>
+          <path d="M5.5 11h5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+          <line x1="2.5" y1="7" x2="1" y2="7" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.5"/>
+          <line x1="13.5" y1="7" x2="15" y2="7" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.5"/>
+        </svg></span><span class="sp-txt"><span class="sp-t">AI provider</span><span class="sp-s" id="mob-ai-sub">No provider configured</span></span><span class="sp-arr" aria-hidden="true">›</span></button>
+    </div>
+    <div class="sp-label">About</div>
+    <div class="sp-group">
+      <button class="sp-item" type="button" onclick="openPrivacy()"><span class="sp-ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M8 1.5L2.5 3.75v4c0 3.25 2.5 5.75 5.5 6.75 3-1 5.5-3.5 5.5-6.75v-4L8 1.5z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round" fill="none"/>
         <path d="M6 6.5h4M6 8.5h4M6 10.5h2.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.55"/>
-      </svg>
-    </span>
-    <span class="menu-item-body">
-      <span class="menu-item-label">Privacy policy</span>
-      <span class="menu-item-sub">How Vault handles your data</span>
-    </span>
-  </button>
-
-  <button class="menu-item-btn" onclick="closeSheets(); openAbout();">
-    <span class="menu-item-icon">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      </svg></span><span class="sp-txt"><span class="sp-t">Privacy policy</span><span class="sp-s">How Vault handles your data</span></span><span class="sp-arr" aria-hidden="true">›</span></button>
+      <button class="sp-item" type="button" onclick="openAbout()"><span class="sp-ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.25" fill="none"/>
         <circle cx="8" cy="5.25" r="0.9" fill="currentColor"/>
         <line x1="8" y1="7.5" x2="8" y2="11.5" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
         <line x1="6.5" y1="11.5" x2="9.5" y2="11.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.5"/>
-      </svg>
-    </span>
-    <span class="menu-item-body">
-      <span class="menu-item-label">About Vault</span>
-      <span class="menu-item-sub">Version, credits &amp; attribution</span>
-    </span>
-  </button>
-
-</div>
-
-<!-- Mobile: year picker sheet -->
-<div id="year-sheet">
-  <div class="sheet-handle"></div>
-  <div class="sheet-header">
-    <button class="sheet-back-btn" onclick="document.getElementById('year-sheet').classList.remove('open'); openMenuSheet();">‹</button>
-    <div class="sheet-title" id="ysheet-years-title">Years</div>
-    <button class="sheet-close-btn" onclick="closeSheets();">✕</button>
-  </div>
-  <button class="ysheet-all-btn" onclick="setActiveYear('all-years'); closeSheets();">
-    <span style="flex:1">All</span><span id="ysheet-all-net" style="font-size:12px; font-weight:300;"></span>
-  </button>
-  <div id="ysheet-year-list">
-  </div>
-  <button id="ysheet-new-btn" onclick="showYsheetNewForm()">+ New year</button>
-  <div id="ysheet-new-form">
-    <input id="ysheet-new-input" type="text" maxlength="5" placeholder="e.g. 26-27"
-           onkeydown="if(event.key==='Enter')confirmYsheetYear()">
-    <div class="add-year-btns">
-      <button class="btn-confirm" onclick="confirmYsheetYear()">Add</button>
-      <button class="btn-cancel"  onclick="hideYsheetNewForm()">Cancel</button>
+      </svg></span><span class="sp-txt"><span class="sp-t">About Vault</span><span class="sp-s">Version, credits &amp; attribution</span></span><span class="sp-arr" aria-hidden="true">›</span></button>
     </div>
   </div>
 </div>
@@ -6121,7 +5793,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
       <h2 style="margin:0; flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400;">Encrypt your backup?</h2>
     </div>
-    <p style="font-size:13px; color:var(--text-2); line-height:1.7; margin-bottom:20px; font-weight:300;">Choose whether to password-protect your backup file. You can change this at any time from <strong style="color:var(--text-1);">Menu → Encryption</strong>.</p>
+    <p style="font-size:13px; color:var(--text-2); line-height:1.7; margin-bottom:20px; font-weight:300;">Choose whether to password-protect your backup file. You can change this at any time from <strong style="color:var(--text-1);">Menu → Settings → Encryption</strong>.</p>
 
     <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
 
@@ -6143,7 +5815,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
     </div>
 
-    <p style="font-size:11px; color:var(--text-3); text-align:center; line-height:1.6;">You can add or remove encryption later from <strong style="color:var(--text-2);">Menu → Encryption</strong>.</p>
+    <p style="font-size:11px; color:var(--text-3); text-align:center; line-height:1.6;">You can add or remove encryption later from <strong style="color:var(--text-2);">Menu → Settings → Encryption</strong>.</p>
   </div>
 </div>
 
@@ -8177,7 +7849,7 @@ function updateYearModeUI() {
   const isFY = yearMode === "financial";
   // Update year labels across the UI
   const yearsLabel = "Transactions";
-  ["sidebar-years-label", "mob-years-label", "ysheet-years-title"].forEach(id => {
+  ["sidebar-years-label"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.textContent = yearsLabel;
   });
@@ -8185,7 +7857,7 @@ function updateYearModeUI() {
   const fyBtn = document.getElementById("report-preset-fy");
   if (fyBtn) fyBtn.style.display = isFY ? "" : "none";
   // Update new-year input placeholders
-  ["new-year-input", "ysheet-new-input"].forEach(id => {
+  ["new-year-input"].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       el.placeholder = yearKeyPlaceholder();
@@ -9424,7 +9096,7 @@ function promptAndDecrypt(encryptedText) {
         disablePasswordEncryption();
         popup.classList.add("hidden");
         cleanup();
-        toast("Recovery successful — encryption disabled. Re-enable with a new password from Menu → Encryption", "var(--gold-dim)");
+        toast("Recovery successful — encryption disabled. Re-enable with a new password from Menu → Settings → Encryption", "var(--gold-dim)");
         resolve(result);
       } catch (e) {
         errEl.textContent = "That recovery file didn't work. Check it's the right vault-recovery.json.";
@@ -10371,7 +10043,7 @@ async function unlockWithRecoveryFile(input) {
     disablePasswordEncryption();
     hideLockScreen();
     saveAndRender(null);
-    toast("Unlocked with recovery key — encryption disabled. Set a new password from Menu → Encryption");
+    toast("Unlocked with recovery key — encryption disabled. Set a new password from Menu → Settings → Encryption");
     dbg("Lock: unlocked with recovery key");
   } catch (e) {
     if (errEl) { errEl.textContent = "Recovery file invalid or did not match."; errEl.style.display = ""; }
@@ -12165,7 +11837,7 @@ function _gotoPage(n) {
 // Switch the active tab ("all" | "saved" | "removed" | "report").
 // Shows/hides the table vs report panel and triggers the appropriate render.
 // ═══════════════════════ Home screen ══════════════════════════════════════════
-// The Home view is the app's landing page (reachable via Menu → Home). It reads
+// The Home view is the app's landing page (the Home tab, or Home in the sidebar). It reads
 // straight from the `data` object and the shared account/currency helpers, so it
 // stays correct across sync/import without touching the DOM-driven table view.
 // All classes/ids are vh-* prefixed to avoid collisions with the rest of the app.
@@ -14134,7 +13806,7 @@ function vhRenderSearch() {
     // Nothing typed yet: show just the route through to the full filters, so the
     // expanded field always offers advanced search even before anything's typed.
     box.classList.add("has-content", "bare");
-    box.innerHTML = `<button class="vh-search-all solo" id="vh-search-all">Advanced search &rarr;</button>`;
+    box.innerHTML = `<button class="vh-search-all solo" id="vh-search-all">Open in Search &rarr;</button>`;
     document.getElementById("vh-search-all")?.addEventListener("click", () => { vhSearchClose(); vhSearchHandoff(""); });
     return;
   }
@@ -14143,7 +13815,7 @@ function vhRenderSearch() {
     box.classList.remove("bare");
     box.classList.add("has-content");
     box.innerHTML = `<div class="vh-search-hint">No matches for &ldquo;${escapeHTML(_vhSearchQ)}&rdquo;.</div>`
-                  + `<button class="vh-search-all solo" id="vh-search-all">Advanced search &rarr;</button>`;
+                  + `<button class="vh-search-all solo" id="vh-search-all">Open in Search &rarr;</button>`;
     document.getElementById("vh-search-all")?.addEventListener("click", () => vhSearchHandoff(_vhSearchQ));
     return;
   }
@@ -14164,7 +13836,7 @@ function vhRenderSearch() {
           + `<span class="vh-recent-type ${t.kind}">${label}</span>`
           + `<div class="vh-recent-amt">${amt}</div></div>`;
   });
-  html += `</div><button class="vh-search-all" id="vh-search-all">See all in Advanced Search &rarr;</button>`;
+  html += `</div><button class="vh-search-all" id="vh-search-all">See all in Search &rarr;</button>`;
   box.classList.remove("bare");
   box.classList.add("has-content");
   box.innerHTML = html;
@@ -16596,6 +16268,7 @@ function vhApplyLayout() {
 }
 
 function switchTab(t) {
+  if (isListTab(t)) _lastListTab = t;
   if (_navLeaveY == null) _navLeaveY = window.scrollY || 0;   // where you were, for Back
   const _prevTab = _asPrevTab; _asPrevTab = t;
   activeTab = t;
@@ -16864,7 +16537,7 @@ function asRender() {
   if (!rows.length) {
     table.style.display = "none"; note.style.display = "none"; empty.style.display = "";
     asRenderPagination(0, 1);
-    if (!vhAllTx().length) { empty.innerHTML = `No transactions yet. Tap Add New to record your first one.`; return; }
+    if (!vhAllTx().length) { empty.innerHTML = `No transactions yet. Add your first one with the + button.`; return; }
     const sugg = asRelaxations();
     empty.innerHTML = `Nothing matches all of these filters.`
       + (sugg.length ? `<br>Try removing one:<div class="as-sugg">${sugg.map((x, i) =>
@@ -18384,7 +18057,7 @@ function asPrintFilter() {
 function printSearchResults() {
   if (activeTab === "report") asRender();     // make sure _asRows is current
   openPdfWindow({
-    title:   "Advanced Search",
+    title:   "Search",
     subLine: asDescribe(),
     rows:    asPrintRows(),
     filter:  asPrintFilter(),
@@ -18485,7 +18158,7 @@ function printCurrentView() {
 }
 // What Print and Export will cover from here, for the menu labels (N9).
 function viewScopeLabel() {
-  if (activeTab === "report") return "Advanced Search results";
+  if (activeTab === "report") return "Search results";
   if (!isListTab()) return "All transactions";
   let label = "All transactions";
   if (activeYear !== "all-years") {
@@ -20135,7 +19808,7 @@ async function saveAIKey(providerId) {
       localStorage.setItem("vault_ai_enc_warned", "1");
       const proceed = await vaultConfirm({
         title: "Save the key unencrypted?",
-        message: "Your API key will be saved in your backup without encryption, so anyone who can open that backup could read it. Turn on encryption in Menu → Encryption to protect it.",
+        message: "Your API key will be saved in your backup without encryption, so anyone who can open that backup could read it. Turn on encryption in Menu → Settings → Encryption to protect it.",
         ok: "Save anyway",
       });
       if (!proceed) return;
@@ -20961,190 +20634,13 @@ function mobileAddTransaction() {
 // Open the sync status info popup (triggered by clicking the sync pill in the header)
 
 
-// ─── mobile menu transaction dropdown ─────────────────────────────────────────
-// Renders the expandable year/month picker inside the mobile menu sheet.
-// Each year row has a chevron to expand its month list in-place.
-function renderMenuTxDropdown() {
-  const dropdown = document.getElementById("menu-tx-dropdown");
-  if (!dropdown) return;
-  dropdown.innerHTML = "";
-
-  // "All" item
-  const _defAccId = getDefaultAccountId();
-  const _sumG = (arr) => arr.reduce((s, tx) => s + convertToGlobal(tx[1], getAccountCurrency(tx[6] || _defAccId)), 0);
-  const allBtn = document.createElement("button");
-  allBtn.className = "menu-tx-dropdown-item" + (isListTab() && activeYear === "all-years" ? " active" : "");
-  const allNet = Object.values(data).reduce((s,y) => s + _sumG(y.saved) - _sumG(y.removed), 0);
-  allBtn.innerHTML = `<span style="flex:1">All</span><span class="menu-tx-year-net ${allNet>=0?'pos':'neg'}">${aud(allNet)}</span><span class="menu-tx-all-spacer"></span>`;
-  allBtn.style.cssText += '; display:flex; align-items:center; width:100%;';
-  allBtn.onclick = () => { setActiveYear("all-years"); closeSheets(); menuTxDropdownOpen = false; };
-  dropdown.appendChild(allBtn);
-
-  // Year items with expandable month sub-lists (sorted so newest year appears last)
-  Object.keys(data).sort().forEach(y => {
-    const si = _sumG(data[y].saved), so = _sumG(data[y].removed), n = si - so;
-    const isActiveYear = isListTab() && activeYear === y && !activeMonth;
-    const isExpanded   = expandedYears.has(y);
-
-    // Gather months
-    const monthSet = new Set();
-    [...data[y].saved, ...data[y].removed].forEach(([d]) => monthSet.add(d.substring(0, 7)));
-    const months = Array.from(monthSet).sort();
-
-    // Year row — flex container with inner label area + chevron
-    const yearRow = document.createElement("div");
-    yearRow.className = "menu-tx-dropdown-item year-row" +
-                        (isActiveYear ? " active" : "") +
-                        (isExpanded   ? " expanded" : "");
-    yearRow.style.cssText = "display:flex; align-items:stretch; padding:0;";
-
-    const inner = document.createElement("div");
-    inner.className = "menu-tx-year-inner";
-    inner.style.cssText = "flex:1; display:flex; align-items:center; cursor:pointer;";
-    inner.innerHTML = `<span style="flex:1">${yearLabel(y)}</span><span class="menu-tx-year-net ${n>=0?"pos":"neg"}">${aud(n)}</span>`;
-    inner.onclick = () => { setActiveYear(y); closeSheets(); menuTxDropdownOpen = false; };
-
-    const chevron = document.createElement("span");
-    chevron.className = "menu-tx-year-chevron";
-    chevron.textContent = "›";
-    chevron.onclick = (e) => {
-      e.stopPropagation();
-      const wasExpanded = expandedYears.has(y);
-
-      // If a month list is currently open, run the close animation first and
-      // defer the state update + re-render until it finishes. The DOM element
-      // gets destroyed by renderMenuTxDropdown, so we can't animate it after —
-      // the animation has to run first, on the still-live element.
-      const openList = document.querySelector(".menu-tx-month-list.open");
-
-      const applyChanges = () => {
-        expandedYears.clear();
-        if (!wasExpanded) {
-          expandedYears.add(y);
-          if (activeYear !== y) { activeYear = y; activeMonth = null; _currentPage = 1; if (activeTab === "report" || activeTab === "charts" || activeTab === "home") switchTab("all"); }
-          render();
-        }
-        renderMenuTxDropdown();
-      };
-
-      if (openList) {
-        openList.classList.remove("open");
-        openList.classList.add("closing");
-        // 220ms matches the _monthListSlideOut duration
-        setTimeout(applyChanges, 220);
-      } else {
-        applyChanges();
-      }
-    };
-
-    yearRow.appendChild(inner);
-    if (months.length) yearRow.appendChild(chevron);
-    dropdown.appendChild(yearRow);
-
-    // Month sub-list
-    if (isExpanded && months.length) {
-      const mList = document.createElement("div");
-      mList.className = "menu-tx-month-list open";
-      months.forEach(m => {
-        const isActiveMonth = isListTab() && activeYear === y && activeMonth === m;
-        const [my, mm] = m.split("-");
-        const label = new Date(+my, +mm - 1, 1).toLocaleString("en-AU", { month: "long", year: "numeric" });
-        const mbtn = document.createElement("button");
-        const mSaved2   = data[y].saved.filter(r => r[0].startsWith(m));
-        const mRemoved2 = data[y].removed.filter(r => r[0].startsWith(m));
-        const mNet2 = sumArr(mSaved2) - sumArr(mRemoved2);
-        mbtn.className = "menu-tx-month-btn" + (isActiveMonth ? " active" : "");
-        mbtn.innerHTML = `<span style="flex:1">${label}</span><span style="font-size:12px; font-weight:300; margin-left:8px; color:${mNet2>=0?"var(--green)":"var(--red)"}">${aud(mNet2)}</span><span class="menu-tx-all-spacer"></span>`;
-        mbtn.onclick = () => {
-          activeYear = y; activeMonth = m;
-          _currentPage = 1;
-          if (activeTab === "report" || activeTab === "charts" || activeTab === "home") switchTab("all");
-          closeSheets(); menuTxDropdownOpen = false; render();
-        };
-        mList.appendChild(mbtn);
-      });
-      dropdown.appendChild(mList);
-    }
-  });
-}
-
-// Track whether the transactions dropdown in the mobile menu is open
-let menuTxDropdownOpen = false;
-
-// Toggle the transactions sub-dropdown in the mobile menu
-function toggleMenuTxDropdown() {
-  menuTxDropdownOpen = !menuTxDropdownOpen;
-  // Close settings dropdown if open
-  if (menuTxDropdownOpen && menuSettingsDropdownOpen) {
-    menuSettingsDropdownOpen = false;
-    const sdd = document.getElementById("menu-settings-dropdown");
-    const stb = document.getElementById("menu-settings-toggle-btn");
-    if (sdd) sdd.classList.remove("open");
-    if (stb) stb.classList.remove("tx-open");
-  }
-  const dropdown = document.getElementById("menu-tx-dropdown");
-  const btn      = document.getElementById("menu-tx-toggle-btn");
-  if (menuTxDropdownOpen) {
-    renderMenuTxDropdown();
-    dropdown.classList.add("open");
-    btn.classList.add("tx-open");
-  } else {
-    dropdown.classList.remove("open");
-    btn.classList.remove("tx-open");
-  }
-}
-
-let menuSettingsDropdownOpen = false;
-
-// Toggle the settings sub-dropdown in the mobile menu
-function toggleMenuSettingsDropdown() {
-  menuSettingsDropdownOpen = !menuSettingsDropdownOpen;
-  // Close tx dropdown if open
-  if (menuSettingsDropdownOpen && menuTxDropdownOpen) {
-    menuTxDropdownOpen = false;
-    const txdd = document.getElementById("menu-tx-dropdown");
-    const txtb = document.getElementById("menu-tx-toggle-btn");
-    if (txdd) txdd.classList.remove("open");
-    if (txtb) txtb.classList.remove("tx-open");
-  }
-  const dropdown = document.getElementById("menu-settings-dropdown");
-  const btn      = document.getElementById("menu-settings-toggle-btn");
-  if (menuSettingsDropdownOpen) {
-    dropdown.classList.add("open");
-    btn.classList.add("tx-open");
-  } else {
-    dropdown.classList.remove("open");
-    btn.classList.remove("tx-open");
-  }
-}
-
-// Toggle the desktop settings sub-dropdown
-let desktopSettingsDropdownOpen = false;
-function toggleDesktopSettingsDropdown() {
-  desktopSettingsDropdownOpen = !desktopSettingsDropdownOpen;
-  const dropdown = document.getElementById("dmenu-settings-dropdown");
-  const arrow    = document.getElementById("dmenu-settings-arrow");
-  if (desktopSettingsDropdownOpen) {
-    dropdown.classList.add("open");
-    if (arrow) arrow.style.transform = "rotate(90deg)";
-  } else {
-    dropdown.classList.remove("open");
-    if (arrow) arrow.style.transform = "";
-  }
-}
-
-// Open the mobile menu slide-up sheet, resetting the transaction dropdown state
+// Open the phone Menu sheet (tapping Menu again closes it)
 function openMenuSheet() {
-  menuTxDropdownOpen = false;
-  menuSettingsDropdownOpen = false;
-  const dd = document.getElementById("menu-tx-dropdown");
-  const tb = document.getElementById("menu-tx-toggle-btn");
-  if (dd) dd.classList.remove("open");
-  if (tb) tb.classList.remove("tx-open");
-  const sd = document.getElementById("menu-settings-dropdown");
-  const sb = document.getElementById("menu-settings-toggle-btn");
-  if (sd) sd.classList.remove("open");
-  if (sb) sb.classList.remove("tx-open");
+  const ms = document.getElementById("menu-sheet");
+  if (ms && ms.classList.contains("open")) { closeSheets(); return; }   // the Menu tab toggles it
+  closeSheets();
+  const mv = document.getElementById("menu-version"), vf = document.getElementById("version-footer");
+  if (mv && vf) mv.textContent = "Vault " + vf.textContent.trim();
   document.getElementById("menu-sheet").classList.add("open");
   document.getElementById("sheet-overlay").classList.add("open");
   document.body.style.overflow = "hidden";
@@ -21165,146 +20661,6 @@ function toggleDesktopMenu() {
 function closeDesktopMenu() {
   document.getElementById("desktop-menu").classList.remove("open");
   document.getElementById("desktop-menu-overlay").classList.remove("open");
-  // Reset settings dropdown state
-  desktopSettingsDropdownOpen = false;
-  const dd = document.getElementById("dmenu-settings-dropdown");
-  const arrow = document.getElementById("dmenu-settings-arrow");
-  if (dd) dd.classList.remove("open");
-  if (arrow) arrow.style.transform = "";
-}
-
-// ─── mobile year picker sheet ──────────────────────────────────────────────────
-
-// Open the mobile year picker sheet and render its content
-
-// Build the mobile year picker: one row per year with an expandable month sub-list.
-// Mirrors the desktop sidebar behaviour but in a full-height slide-up sheet.
-function renderYearSheet() {
-  const years = Object.keys(data).sort();
-  const list = document.getElementById("ysheet-year-list");
-  list.innerHTML = "";
-
-  // Update "All" button active state and net total
-  const allBtn = document.querySelector(".ysheet-all-btn");
-  if (allBtn) {
-    allBtn.classList.toggle("active", activeYear === "all-years");
-    const _defId2 = getDefaultAccountId();
-    const _sG2 = (arr) => arr.reduce((s, tx) => s + convertToGlobal(tx[1], getAccountCurrency(tx[6] || _defId2)), 0);
-    const allNet = Object.values(data).reduce((s,y) => s + _sG2(y.saved) - _sG2(y.removed), 0);
-    const netEl = document.getElementById("ysheet-all-net");
-    if (netEl) { netEl.textContent = aud(allNet); netEl.style.color = allNet >= 0 ? "var(--green)" : "var(--red)"; }
-  }
-
-  years.forEach(y => {
-    const si = _sG2(data[y].saved), so = _sG2(data[y].removed), n = si - so;
-    const isExpanded = expandedYears.has(y);
-    const isActiveYear = isListTab() && activeYear === y && !activeMonth;
-
-    // Gather months with transactions
-    const monthSet = new Set();
-    [...data[y].saved, ...data[y].removed].forEach(([d]) => monthSet.add(d.substring(0, 7)));
-    const months = Array.from(monthSet).sort();
-
-    const wrap = document.createElement("div");
-
-    // Year row
-    const btn = document.createElement("div");
-    btn.className = "ysheet-btn" + (isActiveYear ? " active" : "") + (isExpanded ? " expanded" : "");
-    btn.innerHTML = `
-      <div class="ysheet-btn-label">
-        <div style="flex:1">
-          <span class="yb-label">${yearLabel(y)}</span>
-          <span class="yb-net ${n>=0?"pos":"neg"}" style="margin-left:8px;">${aud(n)}</span>
-        </div>
-        <span class="ysheet-chevron">›</span>
-      </div>`;
-
-    // Label click — select year and close
-    btn.querySelector(".ysheet-btn-label").onclick = (e) => {
-      if (e.target.closest(".ysheet-chevron")) return;
-      setActiveYear(y);
-      closeSheets();
-    };
-
-    // Chevron click — toggle months without closing sheet
-    btn.querySelector(".ysheet-chevron").onclick = (e) => {
-      e.stopPropagation();
-      const wasExpanded = expandedYears.has(y);
-      expandedYears.clear();
-      if (!wasExpanded) expandedYears.add(y);
-        if (activeYear !== y) {
-        activeYear = y;
-        activeMonth = null;
-        _currentPage = 1;
-        if (activeTab === "report" || activeTab === "charts" || activeTab === "home") switchTab("all");
-      }
-      renderYearSheet(); // re-render sheet in place
-      render();          // update main view
-    };
-
-    wrap.appendChild(btn);
-
-    // Month sub-list
-    if (isExpanded && months.length) {
-      const mList = document.createElement("div");
-      mList.className = "ysheet-month-list open";
-      months.forEach(m => {
-        const isActiveMonth = isListTab() && activeYear === y && activeMonth === m;
-        const [my, mm] = m.split("-");
-        const label = new Date(+my, +mm - 1, 1).toLocaleString("en-AU", { month: "long", year: "numeric" });
-        const mbtn = document.createElement("button");
-        const mSaved3   = data[y].saved.filter(r => r[0].startsWith(m));
-        const mRemoved3 = data[y].removed.filter(r => r[0].startsWith(m));
-        const mNet3 = sumArr(mSaved3) - sumArr(mRemoved3);
-        mbtn.className = "ysheet-month-btn" + (isActiveMonth ? " active" : "");
-        mbtn.innerHTML = `<div style="font-weight:400">${label}</div><div style="font-size:12px; font-weight:300; margin-top:2px; color:${mNet3>=0?"var(--green)":"var(--red)"}">${aud(mNet3)}</div>`;
-        mbtn.onclick = () => {
-          activeYear = y;
-          activeMonth = m;
-          _currentPage = 1;
-          if (activeTab === "report" || activeTab === "charts" || activeTab === "home") switchTab("all");
-          closeSheets();
-          render();
-        };
-        mList.appendChild(mbtn);
-      });
-      wrap.appendChild(mList);
-    }
-
-    list.appendChild(wrap);
-  });
-}
-
-// Show the "add new year" inline form in the mobile year sheet
-function showYsheetNewForm() {
-  document.getElementById("ysheet-new-btn").style.display = "none";
-  document.getElementById("ysheet-new-form").classList.add("show");
-  const inp = document.getElementById("ysheet-new-input");
-  inp.value = nextYear();
-  inp.placeholder = yearKeyPlaceholder();
-  inp.maxLength = yearKeyMaxLength();
-  inp.focus();
-}
-
-// Hide the "add new year" form and restore the button
-function hideYsheetNewForm() {
-  document.getElementById("ysheet-new-btn").style.display = "";
-  document.getElementById("ysheet-new-form").classList.remove("show");
-}
-
-// Confirm creation of a new year from the mobile year sheet input
-function confirmYsheetYear() {
-  const label = document.getElementById("ysheet-new-input").value.trim();
-  if (!isValidYearKey(label)) { toast(`Format: ${yearKeyPlaceholder()}`, "#c0392b"); return; }
-  if (data[label]) { toast("Year already exists", "#c0392b"); return; }
-  data[label] = { saved: [], removed: [] };
-  keepYear(label);
-  activeYear = label;
-  _currentPage = 1;
-  hideYsheetNewForm();
-  closeSheets();
-  saveAndRender(label);
-  toast(`Year ${yearLabel(label)} added`);
 }
 
 // Close all mobile slide-up sheets and the overlay, and hide the year form
@@ -21391,6 +20747,7 @@ function vaultEscape(e) {
   if (document.querySelector("#add-sheet.open, #menu-sheet.open, #year-sheet.open")) { e.preventDefault(); closeSheets(); return true; }
   const as = document.getElementById("as-sheet");
   if (as && as.classList.contains("open") && typeof asCloseSheet === "function") { e.preventDefault(); asCloseSheet(); return true; }
+  if (settingsPageOpen()) { e.preventDefault(); closeSettingsPage(); return true; }
   return false;
 }
 
@@ -21400,7 +20757,6 @@ function closeSheets() {
   document.getElementById("menu-sheet").classList.remove("open");
   document.getElementById("sheet-overlay").classList.remove("open");
   document.body.style.overflow = "";
-  hideYsheetNewForm();
 }
 
 // ─── app initialisation ────────────────────────────────────────────────────────
@@ -22656,6 +22012,91 @@ function addRecurringRule() {
 
 // Delete a recurring rule by index and refresh the list
 
+// ─── Phone tab bar, period picker and Settings page (v6.14.0) ─────────────────
+let _lastListTab = "all";
+// A tab: go there, or scroll to the top if you're already on it.
+function navTab(t) {
+  const target = t === "list" ? (isListTab() ? activeTab : _lastListTab) : t;
+  const here = t === "list" ? isListTab() : activeTab === t;
+  closeSheets();
+  try { vhSearchClose(); } catch {}
+  if (here) { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+  switchTab(target);
+  window.scrollTo(0, 0);
+}
+
+// Period picker (N5): quick picks, then every year with its months.
+let _psExpanded = null;
+function openPeriodSheet() {
+  if (window.innerWidth > 640) return;          // desktop picks periods in the sidebar
+  const years = Object.keys(data).sort();
+  _psExpanded = activeYear !== "all-years" && data[activeYear] ? activeYear : (years[years.length - 1] || null);
+  closeSheets();
+  renderPeriodSheet();
+  document.getElementById("year-sheet").classList.add("open");
+  document.getElementById("sheet-overlay").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+function renderPeriodSheet() {
+  const body = document.getElementById("ps-body");
+  if (!body) return;
+  const years = Object.keys(data).sort().reverse();
+  const today = todayISO();
+  const lastD = new Date(); lastD.setDate(1); lastD.setMonth(lastD.getMonth() - 1);
+  const lastISO = isoDate(lastD);
+  const here = (y, m) => isListTab() && activeYear === y && (activeMonth || null) === (m || null);
+  const chip = (label, y, m) => (y === "all-years" || data[y])
+    ? `<button class="ps-chip${here(y, m) ? " on" : ""}" type="button" data-y="${escapeHTML(y)}" data-m="${m || ""}">${label}</button>` : "";
+  const thisKey = fyKeyForDate(today), lastKey = fyKeyForDate(lastISO);
+  let gi = 0, go = 0;
+  years.forEach(y => { const t = _yearTotals(y); gi += t.savedTotal; go += t.removedTotal; });
+  let h = `<div class="ps-quick">${chip("This month", thisKey, today.slice(0, 7))}${chip("Last month", lastKey, lastISO.slice(0, 7))}${chip("This year", thisKey, null)}${chip("All", "all-years", null)}</div>`;
+  h += `<button class="ps-row${here("all-years", null) ? " on" : ""}" type="button" data-y="all-years" data-m=""><span>All transactions</span><span class="ps-net" style="color:${netColor(gi - go)}">${aud(gi - go)}</span></button>`;
+  years.forEach(y => {
+    const t = _yearTotals(y), n = t.savedTotal - t.removedTotal, open = _psExpanded === y;
+    h += `<div class="ps-year"><button class="ps-row${here(y, null) ? " on" : ""}" type="button" data-y="${escapeHTML(y)}" data-m=""><span>${escapeHTML(yearLabel(y))}</span><span class="ps-net" style="color:${netColor(n)}">${aud(n)}</span></button>`
+       + `<button class="ps-exp" type="button" data-exp="${escapeHTML(y)}" aria-expanded="${open}" aria-label="${open ? "Hide" : "Show"} months of ${escapeHTML(yearLabel(y))}">${open ? "▴" : "▾"}</button></div>`;
+    if (open) {
+      const months = [...new Set([...data[y].saved, ...data[y].removed].map(r => r[0].slice(0, 7)))].sort();
+      h += `<div class="ps-months">` + months.map(m => {
+        const [yy, mm] = m.split("-").map(Number);
+        return `<button type="button" class="${here(y, m) ? "on" : ""}" data-y="${escapeHTML(y)}" data-m="${m}">${monShort(new Date(yy, mm - 1, 1))}</button>`;
+      }).join("") + `</div>`;
+    }
+  });
+  body.innerHTML = h;
+  body.querySelectorAll("[data-y]").forEach(b => b.onclick = () => psPick(b.dataset.y, b.dataset.m || null));
+  body.querySelectorAll("[data-exp]").forEach(b => b.onclick = () => { _psExpanded = _psExpanded === b.dataset.exp ? null : b.dataset.exp; renderPeriodSheet(); });
+}
+// Choosing a period keeps the account and tab you were looking at.
+function psPick(y, m) {
+  activeYear = y === "all-years" || data[y] ? y : "all-years";
+  activeMonth = activeYear === "all-years" ? null : (m || null);
+  _currentPage = 1;
+  closeSheets();
+  if (!isListTab()) switchTab(_lastListTab || "all"); else render();
+  window.scrollTo(0, 0);
+}
+
+// Settings page (N6)
+function openSettingsPage() {
+  const p = document.getElementById("settings-page");
+  if (!p) return;
+  closeSheets();
+  p.classList.add("open"); p.setAttribute("aria-hidden", "false");
+  document.getElementById("settings-scrim")?.classList.add("open");
+  document.documentElement.classList.add("sp-lock");
+}
+function closeSettingsPage(backToMenu) {
+  const p = document.getElementById("settings-page");
+  if (!p) return;
+  p.classList.remove("open"); p.setAttribute("aria-hidden", "true");
+  document.getElementById("settings-scrim")?.classList.remove("open");
+  document.documentElement.classList.remove("sp-lock");
+  if (backToMenu && window.innerWidth <= 640) openMenuSheet();
+}
+function settingsPageOpen() { return !!document.querySelector("#settings-page.open"); }
+
 // ─── Back button and current view (N2, N4 — v6.13.0) ──────────────────────────
 // Each move between Home, the list, Advanced Search and Charts — and between
 // years and months on the list — gets its own history entry, so Back (and
@@ -22737,6 +22178,7 @@ function navCloseTop() {
   if (document.querySelector("#add-sheet.open, #menu-sheet.open, #year-sheet.open")) { closeSheets(); return true; }
   const as = document.getElementById("as-sheet");
   if (as && as.classList.contains("open") && typeof asCloseSheet === "function") { asCloseSheet(); return true; }
+  if (settingsPageOpen()) { closeSettingsPage(); return true; }
   const vs = document.getElementById("vh-search-corner");
   if (vs && vs.classList.contains("open")) { vhSearchClose(); return true; }
   return false;
@@ -22759,7 +22201,8 @@ function navMarkCurrent() {
   const cur = isListTab() ? "list" : activeTab;
   document.querySelectorAll("[data-nav]").forEach(b => {
     const on = b.dataset.nav === cur;
-    b.classList.toggle(b.classList.contains("dmenu-btn") ? "dmenu-current" : "menu-item-active", on);
+    const cls = b.classList.contains("dmenu-btn") ? "dmenu-current" : b.classList.contains("menu-item-btn") ? "menu-item-active" : "nav-on";
+    b.classList.toggle(cls, on);
     if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
   });
 }
@@ -22994,7 +22437,7 @@ navInit();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.13.0</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.14.0</div>
         </div>
 
         <div class="pp-cards">
@@ -23104,7 +22547,7 @@ navInit();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v6.13.0</div>
+  <div id="version-footer">v6.14.0</div>
 
 </body>
 </html>

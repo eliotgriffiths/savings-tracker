@@ -109,24 +109,25 @@ setTimeout(async () => {
   E(`openAbout()`); E(`closeAbout()`); await sleep(60);
   ok(tab() === "all" && w.location.hash === "", "closing About with ✕ stays on the list");
 
-  // ── N4: where you are ────────────────────────────────────────────────────
-  const cur = () => [...d.querySelectorAll("#menu-sheet [data-nav].menu-item-active")].map(b => b.dataset.nav).join(",");
-  const dcur = () => [...d.querySelectorAll("#desktop-menu [data-nav].dmenu-current")].map(b => b.dataset.nav).join(",");
+  // ── N4: where you are (tab bar, Menu and sidebar since v6.14.0) ────────
+  const on = sel => [...d.querySelectorAll(sel)].map(b => b.dataset.nav).join(",");
+  const bar = () => on("#tabbar [data-nav].nav-on"), side = () => on(".side-nav [data-nav].nav-on");
+  const menu = () => on("#menu-sheet [data-nav].menu-item-active");
   E(`activeYear = "all-years"; activeMonth = null; switchTab("home")`);
-  ok(cur() === "home" && dcur() === "home", "on Home, Home is highlighted in both menus");
+  ok(bar() === "home" && side() === "home" && menu() === "", "on Home, Home is highlighted in the bar and sidebar");
   ok(!d.getElementById("sidebar-allyears-btn").classList.contains("active"), "on Home, the sidebar's All isn't highlighted");
-  E(`renderMenuTxDropdown()`);
-  ok(!d.querySelector("#menu-tx-dropdown .menu-tx-dropdown-item.active"), "on Home, nothing in Transactions is highlighted");
+  E(`renderPeriodSheet()`);
+  ok(!d.querySelector("#ps-body .on"), "on Home, nothing in the period picker is highlighted");
   E(`switchTab("all")`);
-  ok(cur() === "list" && dcur() === "", "on the list, Transactions is highlighted");
+  ok(bar() === "list" && side() === "", "on the list, Transactions is highlighted in the bar");
   ok(d.getElementById("sidebar-allyears-btn").classList.contains("active"), "on the list, the sidebar's All is highlighted");
-  E(`renderMenuTxDropdown()`);
-  ok(!!d.querySelector("#menu-tx-dropdown .menu-tx-dropdown-item.active"), "on the list, All is highlighted in Transactions");
+  E(`renderPeriodSheet()`);
+  ok(!!d.querySelector('#ps-body .ps-row.on[data-y="all-years"]'), "on the list, All is highlighted in the period picker");
   E(`switchTab("report")`);
-  ok(cur() === "report" && dcur() === "report", "on Search, Search is highlighted");
-  ok(d.querySelector('#menu-sheet [data-nav="report"]').getAttribute("aria-current") === "page", "aria-current marks it");
+  ok(bar() === "report" && side() === "report", "on Search, Search is highlighted");
+  ok(d.querySelector('#tabbar [data-nav="report"]').getAttribute("aria-current") === "page", "aria-current marks it");
   E(`switchTab("charts")`);
-  ok(cur() === "charts" && dcur() === "charts", "on Charts, Charts is highlighted");
+  ok(bar() === "" && side() === "charts" && menu() === "charts", "on Charts, Charts is highlighted in the Menu and sidebar");
 
   // ── N7: backup status ───────────────────────────────────────────────────
   const btns = () => [...d.querySelectorAll("#ss-now-btns button")].map(b => b.textContent);
@@ -177,7 +178,7 @@ setTimeout(async () => {
   E(`switchTab("charts")`);
   ok(d.getElementById("mob-print-sub").textContent === "These charts" && d.getElementById("mob-export-sub").textContent === "All transactions as XLSX", "Charts labels");
   E(`switchTab("report")`);
-  ok(d.getElementById("mob-export-sub").textContent === "Advanced Search results as XLSX", "Search labels");
+  ok(d.getElementById("mob-export-sub").textContent === "Search results as XLSX", "Search labels");
 
   // ── version ─────────────────────────────────────────────────────────────
   const vf = d.getElementById("version-footer").textContent.trim();

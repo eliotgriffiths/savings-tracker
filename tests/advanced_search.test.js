@@ -28,9 +28,10 @@ setTimeout(() => {
   reset();
 
   // ── page basics ──
-  ok(E(`document.querySelector(".as-title").textContent`) === "Advanced Search", "page title");
-  ok(/Advanced Search/.test(E(`document.querySelector(".dmenu-btn-label") && [...document.querySelectorAll(".dmenu-btn-label")].map(e=>e.textContent).join("|")`)), "desktop menu label");
-  ok([...w.document.querySelectorAll(".menu-item-label")].some(e => e.textContent === "Advanced Search"), "mobile menu label");
+  // Called "Search" again since v6.14.0 (it has a tab of its own on the phone).
+  ok(E(`document.querySelector(".as-title").textContent`) === "Search", "page title");
+  ok([...w.document.querySelectorAll(".side-nav-btn")].some(e => e.textContent.trim() === "Search"), "desktop sidebar label");
+  ok([...w.document.querySelectorAll("#tabbar .tb-btn")].some(e => e.textContent.trim() === "Search"), "phone tab label");
   ok(E(`document.querySelectorAll("#as-body tr").length`) === total, "everything shows with no search");
   ok(!w.document.getElementById("report-from") && !w.document.getElementById("report-table"), "old Search controls are gone");
 
@@ -154,18 +155,18 @@ setTimeout(() => {
   // ── print + export use exactly what's shown ──
   reset(); E(`asF.accs = ["ub"]; asF.types = ["int"]; sortKey = "amount"; sortDir = "desc"; asRender(); printSearchResults();`);
   const pdf = E(`window.__pdf`);
-  ok(pdf.title === "Advanced Search" && pdf.rows.length === E(`_asRows.length`), "print: same rows");
+  ok(pdf.title === "Search" && pdf.rows.length === E(`_asRows.length`), "print: same rows");
   ok(JSON.stringify(pdf.rows.map(r => r.amt)) === JSON.stringify(E(`_asRows.map(t => t.amt)`)), "print: same order");
   ok(/UBank/.test(pdf.subLine) && /Interest/.test(pdf.subLine) && /amount, largest first/.test(pdf.subLine), "print subtitle names filters + sort: " + pdf.subLine);
   ok(pdf.filter === "saved", "print shows deposit cards for interest-only");
-  E(`menuPrint();`); ok(E(`window.__pdf.title`) === "Advanced Search", "menu Print / Ctrl+P on this page prints Advanced Search");
+  E(`menuPrint();`); ok(E(`window.__pdf.title`) === "Search", "menu Print / Ctrl+P on this page prints the search");
   E(`menuExportXLSX();`);
   const x = E(`window.__xlsx`);
   ok(/^vault-search-\d{4}-\d{2}-\d{2}\.xlsx$/.test(x.f), "export filename " + x.f);
   const txSheet = x.wb.s.find(s => s[0] === "Transactions")[1];
   ok(txSheet.length - 1 - 4 === E(`_asRows.length`), "export: same number of rows");
   ok(/UBank/.test(x.wb.s.find(s => s[0] === "Summary")[1].find(r => r[0] === "Covers")[1]), "export summary says what it covers");
-  ok(E(`document.getElementById("dmenu-export-sub")?.textContent || "Advanced Search results as XLSX"`) === "Advanced Search results as XLSX", "menu sub-label on this page");
+  ok(E(`document.getElementById("dmenu-export-sub")?.textContent`) === "Search results as XLSX", "menu sub-label on this page");
   E(`switchTab("all"); menuExportXLSX();`);
   ok(/^vault-all-transactions-/.test(E(`window.__xlsx.f`)) && E(`window.__xlsx.wb.s.find(s => s[0] === "Transactions")[1].length`) - 5 === total, "export elsewhere = all transactions");
 
@@ -183,7 +184,7 @@ setTimeout(() => {
 
   // ── empty vault ──
   E(`data = {}; _dataVersion++; switchTab("report");`);
-  ok(E(`document.getElementById("as-empty").textContent`) === "No transactions yet. Tap Add New to record your first one.", "empty vault message");
+  ok(E(`document.getElementById("as-empty").textContent`) === "No transactions yet. Add your first one with the + button.", "empty vault message");
 
   console.log(`${pass} passed, ${fail} failed; page errors: ${errors.length}`);
   errors.slice(0, 5).forEach(e => console.log("  err:", e.slice(0, 200)));
