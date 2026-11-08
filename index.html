@@ -620,6 +620,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .popup-scope-btn:hover { background: var(--bg4); color: var(--text-1); }
   .popup-scope-btn.active { background: var(--gold); color: var(--accent-ink); font-weight: 700; }
   .popup-scope-btn.active:hover { opacity: 0.9; }
+  #popup-type-row .popup-scope-btn.active[data-ptype="deposit"]  { background: var(--in);       color: var(--fill-ink); }
+  #popup-type-row .popup-scope-btn.active[data-ptype="interest"] { background: var(--interest); color: var(--fill-ink); }
+  #popup-type-row .popup-scope-btn.active[data-ptype="withdraw"] { background: var(--out);      color: var(--fill-ink); }
 
   /* Delete menu — expands in-place */
   .popup-delete-menu {
@@ -1233,13 +1236,14 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   /* Filters sheet — above the tab bar and the other sheets */
   .as-scrim { position:fixed; inset:0; z-index:399; background:rgba(0,0,0,0.55); opacity:0; pointer-events:none; transition:opacity 0.22s ease; }
   .as-scrim.open { opacity:1; pointer-events:auto; }
-  .as-sheet { position:fixed; left:0; right:0; bottom:0; z-index:400; max-width:560px; margin:0 auto; max-height:88vh; display:flex; flex-direction:column; background:var(--bg1); border:1px solid var(--border-hi); border-bottom:none; border-radius:18px 18px 0 0; transform:translateY(100%); transition:transform 0.28s cubic-bezier(.2,.8,.2,1); visibility:hidden; }
+  .as-sheet { position:fixed; left:0; right:0; bottom:0; z-index:400; max-width:560px; margin:0 auto; max-height:90vh; display:flex; flex-direction:column; background:var(--bg2); border:1px solid var(--border-hi); border-bottom:none; border-radius:18px 18px 0 0; transform:translateY(100%); transition:transform 0.28s cubic-bezier(.2,.8,.2,1); visibility:hidden; }
   .as-sheet.open { transform:translateY(0); visibility:visible; }
   .as-sheet.dragging { transition:none; }
   html.as-locked, html.as-locked body { overflow:hidden; }
   .as-sh-drag { touch-action:none; cursor:grab; }
-  .as-grab { width:38px; height:4px; border-radius:2px; background:var(--border-hi); margin:9px auto 2px; }
-  .as-sh-head { display:flex; justify-content:space-between; align-items:center; padding:8px 18px 10px; }
+  .as-grab { width:36px; height:4px; border-radius:2px; background:var(--border-hi); margin:9px auto 9px; }
+  .as-sh-head { display:flex; gap:10px; align-items:flex-start; padding:0 14px 12px 20px; }
+  .as-sh-head h3 { flex:1; }
   .as-sh-head h3 { font-family:'DM Serif Display',serif; font-weight:400; font-size:20px; margin:0; color:var(--text-1); }
   .as-sh-head button { background:none; border:none; color:var(--text-3); font-size:13px; cursor:pointer; font-family:'DM Sans',sans-serif; }
   .as-sh-body { overflow-y:auto; padding:0 18px 8px; overscroll-behavior:contain; }
@@ -1809,40 +1813,53 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     body.multi-account #table-wrap { padding: 16px 0 24px; }
 
     /* slide-up sheets */
+    /* Trays slide up (v6.16.0) and can be swiped down from the handle or head */
     #menu-sheet, #year-sheet, #add-sheet {
-      display: none;
+      display: block;
       position: fixed; bottom: 0; left: 0; right: 0;
       background: var(--bg2);
       border-top: 1px solid var(--border-hi);
       border-radius: 18px 18px 0 0;
       z-index: 150;
+      max-height: 90vh; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain;
+      transform: translateY(100%); visibility: hidden;
+      transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear 0.26s;
     }
-    #menu-sheet.open, #year-sheet.open, #add-sheet.open { display: block; }
+    #menu-sheet.open, #year-sheet.open, #add-sheet.open { transform: translateY(0); visibility: visible;
+      transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); }
 
-    #year-sheet { padding: 0 0 12px; max-height: 70vh; overflow-y: auto; }
-    #menu-sheet { max-height: 80vh; overflow-y: auto; overflow-x: hidden; }
-    #add-sheet  { padding: 0 20px calc(32px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box; }
+    #year-sheet { padding: 0 0 12px; }
+    #add-sheet  { padding: 0 20px calc(16px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box; }
+    #add-sheet .sheet-foot { position: sticky; bottom: calc(-16px - env(safe-area-inset-bottom, 0px)); z-index: 2; display: flex; gap: 8px;
+      background: var(--bg2); border-top: 1px solid var(--border);
+      margin: 12px -20px calc(-16px - env(safe-area-inset-bottom, 0px)); padding: 12px 20px calc(16px + env(safe-area-inset-bottom, 0px)); }
+    #add-sheet .sheet-foot .pbtn-secondary { width: auto !important; margin-top: 0 !important; }
     #add-sheet *, #add-sheet *::before, #add-sheet *::after { box-sizing: border-box; }
 
     .sheet-handle {
-      width: 32px; height: 3px;
+      position: relative;
+      width: 36px; height: 4px;
       background: var(--border-hi);
       border-radius: 2px;
-      margin: 14px auto 12px;
+      margin: 9px auto 9px;
+      touch-action: none;
     }
     .sheet-title {
       font-family: 'DM Serif Display', serif;
-      font-size: 17px; font-weight: 400;
+      font-size: 20px; font-weight: 400;
       padding: 0;
       color: var(--text-1);
       flex: 1;
     }
     .sheet-header {
       display: flex;
-      align-items: center;
-      padding: 0 16px 10px;
-      gap: 4px;
+      align-items: flex-start;
+      padding: 0 14px 12px 20px;
+      gap: 10px;
+      touch-action: none;
     }
+    .ps-head { flex: 1; min-width: 0; }
+    .ps-head .ps-quick { padding: 0; }
     .sheet-close-btn {
       background: transparent; border: none;
       color: var(--text-2); font-size: 18px;
@@ -1981,19 +1998,14 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     .add-type-btn.active-interest { background: var(--interest); color: var(--fill-ink); }
     .add-type-btn.active-withdraw { background: var(--out);      color: var(--fill-ink); }
 
-    #mob-add-btn {
-      width: 100%; border: none; border-radius: 12px;
-      padding: 15px 0; color: var(--fill-ink); font-weight: 600; font-size: 16px;
-      font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 4px;
-      transition: background 0.2s, opacity 0.15s; letter-spacing: 0.02em;
-    }
-    #mob-add-btn:hover { opacity: 0.88; }
+    #mob-add-btn { flex: 1; }
 
     #sheet-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.5); z-index: 140;
+      display: block; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55); z-index: 140;
+      opacity: 0; pointer-events: none; transition: opacity 0.26s ease;
     }
-    #sheet-overlay.open { display: block; }
+    #sheet-overlay.open { opacity: 1; pointer-events: auto; }
   }
 
   @media (max-height: 500px) {
@@ -2430,19 +2442,6 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     #yfmt-fy-config p {
       text-align: center;
     }
-    #year-format-popup .info-popup-close-btn {
-      padding: 16px 0 !important;
-      font-size: 15px !important;
-      font-weight: 600 !important;
-      margin-top: 16px !important;
-      background: var(--gold) !important;
-      color: var(--fill-ink) !important;
-      border-color: var(--gold) !important;
-    }
-    #year-format-popup .modal-close {
-      font-size: 22px;
-      padding: 6px 8px;
-    }
   }
   /* ── info popup ── */
   .info-popup-box {
@@ -2757,6 +2756,82 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     .year-btn .fy-chevron:hover { color: var(--text-2); background: transparent; }
 
   }
+
+  /* ════ One overlay system (v6.16.0, menus sweep) ════════════════════════════
+     Every popup is a .vp overlay holding a .vp-panel (vpInit() adds the classes).
+     Phone (≤640px): a tray from the bottom with a handle; swipe it down to close.
+     Wide: a 460px centred card. .vp-alert: a short yes/no, small and centred on
+     every screen. Head: .vp-head (title, optional subtitle, ✕). Actions: .vp-foot,
+     pinned to the bottom of the panel. Closing follows design-rules §4. */
+  .vp { background: rgba(0,0,0,0.55) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+        display: flex !important; align-items: center !important; justify-content: center !important; padding: 20px !important; }
+  .pop-anim.vp .vp-panel { --vp-px: 24px; --vp-pb: 20px;
+    width: 100%; max-width: 460px !important; max-height: 84vh !important; overflow-y: auto !important; overscroll-behavior: contain;
+    background: var(--bg2); border: 1px solid var(--border-hi); border-radius: 16px !important; text-align: left;
+    padding: 22px var(--vp-px) var(--vp-pb) !important; box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+    transition: transform 0.22s ease-out, opacity 0.2s ease-out !important; }
+  .pop-anim.vp.hidden .vp-panel { transform: translateY(8px) scale(0.99) !important; opacity: 0 !important; }
+  .pop-anim.vp:not(.hidden) .vp-panel { animation: vpRise 0.22s ease-out !important; }
+  @keyframes vpRise { from { opacity: 0; transform: translateY(8px) scale(0.99); } to { opacity: 1; transform: none; } }
+  @keyframes vpUp { from { transform: translateY(100%); } to { transform: none; } }
+  .vp-panel.vp-drag, .vp-drag { transition: none !important; animation: none !important; }
+
+  .vp-head { display: flex !important; align-items: flex-start !important; gap: 10px !important; margin: 0 0 14px !important; padding: 0 !important; }
+  .vp-head > .vp-head-text, .vp-head > .vp-title { flex: 1; min-width: 0; }
+  .vp-panel .vp-title { font-family: 'DM Serif Display', serif !important; font-size: 20px !important; font-weight: 400 !important;
+    line-height: 1.25 !important; color: var(--text-1) !important; margin: 0 !important; padding: 0 !important; }
+  .vp-head-text > p, .vp-head > p { font-size: 13px !important; color: var(--text-3) !important; line-height: 1.45 !important; margin: 4px 0 0 !important; font-weight: 400 !important; }
+  .vp .modal-close, .sheet-close-btn, .as-x { position: static !important; width: 34px; height: 34px; flex: 0 0 auto; display: inline-flex;
+    align-items: center; justify-content: center; padding: 0 !important; margin: -5px -6px 0 0 !important; border: 0; border-radius: 9px;
+    background: transparent; color: var(--text-2) !important; font-size: 18px !important; line-height: 1; cursor: pointer; }
+  .pop-anim.vp .vp-foot { position: sticky; bottom: calc(-1 * var(--vp-pb)); z-index: 2; background: var(--bg2);
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin: 16px calc(-1 * var(--vp-px)) calc(-1 * var(--vp-pb)) !important; padding: 12px var(--vp-px) var(--vp-pb) !important;
+    border-top: 1px solid var(--border) !important; }
+  .vp-foot > .pbtn-primary, .vp-foot > .pbtn-danger { flex: 1; }
+  .vp-foot > .info-popup-close-btn { flex: 1; width: auto !important; margin: 0 !important; }
+  .vp-grab { display: none; }
+  .vp .tx-popup-field input, .vp .tx-popup-field select { min-height: 48px; font-size: 16px; }
+  /* Option cards inside a panel (Currency mismatch) */
+  .vp-opt { width: 100%; text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border-hi);
+    background: var(--bg3); color: var(--text-1); cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .vp-opt:disabled { opacity: 0.4; cursor: default; }
+  /* Alerts: a short yes/no */
+  .pop-anim.vp.vp-alert .vp-panel { max-width: 360px !important; text-align: center; padding: 22px 20px 20px !important; }
+  .vp-alert .vp-head { display: block !important; margin-bottom: 8px !important; }
+  .vp-alert .modal-close { display: none !important; }
+  .vp-alert .vd-msg, .vp-alert .vp-panel > p { color: var(--text-2); margin: 0 0 18px; }
+  .vp-alert .pbtn-row, .vp-alert .vp-panel > div:last-child { justify-content: center; }
+  .pop-anim.vp.vp-alert.hidden .vp-panel { transform: scale(0.96) !important; }
+  html.vp-lock, html.vp-lock body { overflow: hidden; }
+  /* The handle's touch area is much bigger than the bar you see */
+  .sheet-handle::after { content: ""; position: absolute; left: -80px; right: -80px; top: -10px; bottom: -10px; }
+  .sheet-header, .vp-grab, .as-sh-drag { -webkit-user-select: none; user-select: none; }
+
+  @media (max-width: 640px) {
+    .vp:not(.vp-alert) { align-items: flex-end !important; padding: 0 !important; }
+    .pop-anim.vp:not(.vp-alert) .vp-panel { --vp-px: 20px; --vp-pb: calc(16px + env(safe-area-inset-bottom, 0px));
+      max-width: none !important; max-height: 90vh !important; border-radius: 18px 18px 0 0 !important; border-bottom: 0 !important;
+      box-shadow: none; padding-top: 0 !important; }
+    .pop-anim.vp:not(.vp-alert).hidden .vp-panel { transform: translateY(100%) !important; opacity: 1 !important;
+      transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) !important; }
+    .pop-anim.vp:not(.vp-alert):not(.hidden) .vp-panel { animation: vpUp 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) !important; }
+    .vp:not(.vp-alert) .vp-grab { display: block; position: sticky; top: 0; z-index: 3; height: 20px; margin: 0 calc(-1 * var(--vp-px)) 6px;
+      background: var(--bg2); touch-action: none; cursor: grab; }
+    .vp-grab::before { content: ""; position: absolute; left: 50%; top: 9px; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--border-hi); }
+    .vp:not(.vp-alert) .vp-head { touch-action: none; }
+    .pop-anim.vp.vp-alert .vp-panel { max-width: 300px !important; }
+  }
+  /* Panels that lay themselves out edge to edge (Save & backup, Currency) */
+  .pop-anim.vp .vp-panel.vp-flush { padding: 0 !important; --vp-px: 0px; --vp-pb: 0px; }
+  .vp-flush .vp-head { margin: 0 !important; padding: 22px 16px 12px 24px !important; }
+  @media (max-width: 640px) { .vp-flush .vp-head { padding: 0 14px 12px 20px !important; } }
+
+  /* About and Privacy slide in from the right, like Settings */
+  #privacy-overlay, #about-overlay { display: flex !important; transform: translateX(100%); visibility: hidden;
+    transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear 0.26s; }
+  #privacy-overlay.open, #about-overlay.open { transform: none; visibility: visible; transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  #privacy-header h2, #about-header h2 { font-size: 22px !important; }
 </style>
 <style id="vh-home-styles">
 #home-panel { -webkit-font-smoothing:antialiased; }
@@ -4056,8 +4131,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     </div>
 
     <div class="tx-popup-actions">
-      <button class="btn-save" id="desk-add-btn" onclick="desktopAddTransaction()" style="background:var(--green);">Add deposit</button>
-      <button class="btn-popup-cancel" onclick="closeDesktopAddSheet()">Cancel</button>
+      <button class="pbtn pbtn-primary" id="desk-add-btn" onclick="desktopAddTransaction()">Add deposit</button>
+      <button class="pbtn pbtn-secondary" onclick="closeDesktopAddSheet()">Cancel</button>
     </div>
   </div>
 </div>
@@ -4510,7 +4585,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       <div class="as-sheet" id="as-sheet" role="dialog" aria-label="Filters">
         <div class="as-sh-drag" id="as-sh-drag">
           <div class="as-grab"></div>
-          <div class="as-sh-head"><h3>Filters</h3><button type="button" id="as-reset">Reset all</button></div>
+          <div class="as-sh-head"><h3>Filters</h3><button type="button" id="as-reset">Reset all</button><button type="button" class="as-x" aria-label="Close" onclick="asCloseSheet(false)">✕</button></div>
         </div>
         <div class="as-sh-body">
           <div class="as-sec" style="border-top:none">
@@ -4807,8 +4882,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 <div id="year-sheet" role="dialog" aria-label="Choose a period">
   <div class="sheet-handle"></div>
   <div class="sheet-header">
-    <div class="sheet-title">Show</div>
-    <button class="sheet-close-btn" onclick="closeSheets();">✕</button>
+    <div class="ps-head" id="ps-head"></div>
+    <button class="sheet-close-btn" onclick="closeSheets();" aria-label="Close">✕</button>
   </div>
   <div id="ps-body"></div>
 </div>
@@ -4947,8 +5022,10 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <div style="font-size:12px; color:var(--text-3); line-height:1.6;">The date above is the start date. Future occurrences are added automatically when each date arrives.</div>
   </div>
 
-  <button id="mob-add-btn" onclick="mobileAddTransaction()">Add deposit</button>
-  <button class="pbtn pbtn-secondary" onclick="closeSheets()" style="width:100%; margin-top:8px;">Cancel</button>
+  <div class="sheet-foot">
+    <button id="mob-add-btn" class="pbtn pbtn-primary" onclick="mobileAddTransaction()">Add deposit</button>
+    <button class="pbtn pbtn-secondary" onclick="closeSheets()">Cancel</button>
+  </div>
 </div>
 
 <!-- Transaction edit/delete popup -->
@@ -5700,27 +5777,28 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   <div class="modal-box" style="max-width:420px;">
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
       <h2 style="margin:0; flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400;">Currency mismatch</h2>
+      <button class="modal-close" onclick="dismissPopup(document.getElementById('currency-mismatch-popup'))" title="Close" aria-label="Close">✕</button>
     </div>
     <p id="cm-desc" style="font-size:13px; color:var(--text-2); margin-bottom:16px; line-height:1.6; font-weight:300;"></p>
 
     <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
 
-      <button id="cm-opt-keep-local" class="btn-local" style="text-align:left; padding:12px 14px;" onclick="resolveCurrencyMismatch('keep-local')">
+      <button id="cm-opt-keep-local" class="vp-opt" onclick="resolveCurrencyMismatch('keep-local')">
         <div style="font-size:13px; font-weight:600; color:var(--text-1); margin-bottom:2px;">Keep local currency</div>
         <div id="cm-desc-keep-local" style="font-size:11px; color:var(--text-3); line-height:1.4;"></div>
       </button>
 
-      <button id="cm-opt-keep-remote" class="btn-local" style="text-align:left; padding:12px 14px;" onclick="resolveCurrencyMismatch('keep-remote')">
+      <button id="cm-opt-keep-remote" class="vp-opt" onclick="resolveCurrencyMismatch('keep-remote')">
         <div style="font-size:13px; font-weight:600; color:var(--text-1); margin-bottom:2px;">Keep backup currency</div>
         <div id="cm-desc-keep-remote" style="font-size:11px; color:var(--text-3); line-height:1.4;"></div>
       </button>
 
-      <button id="cm-opt-convert-local" class="btn-local" style="text-align:left; padding:12px 14px;" onclick="resolveCurrencyMismatch('convert-local')">
+      <button id="cm-opt-convert-local" class="vp-opt" onclick="resolveCurrencyMismatch('convert-local')">
         <div style="font-size:13px; font-weight:600; color:var(--text-1); margin-bottom:2px;">Convert my transactions to backup currency</div>
         <div id="cm-desc-convert-local" style="font-size:11px; color:var(--text-3); line-height:1.4;"></div>
       </button>
 
-      <button id="cm-opt-convert-remote" class="btn-local" style="text-align:left; padding:12px 14px;" onclick="resolveCurrencyMismatch('convert-remote')">
+      <button id="cm-opt-convert-remote" class="vp-opt" onclick="resolveCurrencyMismatch('convert-remote')">
         <div style="font-size:13px; font-weight:600; color:var(--text-1); margin-bottom:2px;">Convert backup transactions to my currency</div>
         <div id="cm-desc-convert-remote" style="font-size:11px; color:var(--text-3); line-height:1.4;"></div>
       </button>
@@ -5732,7 +5810,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     </div>
 
     <div style="display:flex; gap:8px;">
-      <button class="btn-local" style="flex:1;" onclick="dismissCurrencyMismatch()">Decide later</button>
+      <button class="pbtn pbtn-secondary" style="flex:1;" onclick="dismissCurrencyMismatch()">Decide later</button>
     </div>
   </div>
 </div>
@@ -5746,8 +5824,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     </div>
     <div id="enc-status-row" style="font-size:13px; color:var(--text-2); margin-bottom:16px; line-height:1.7; font-weight:300;"></div>
     <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
-      <button id="btn-enc-set" class="btn-primary" onclick="openEncPasswordPopup()">Set password</button>
-      <button id="btn-enc-disable" class="btn-local" style="display:none; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="confirmDisableEnc()">Remove encryption</button>
+      <button id="btn-enc-set" class="pbtn pbtn-primary" onclick="openEncPasswordPopup()">Set password</button>
+      <button id="btn-enc-disable" class="pbtn pbtn-secondary" style="display:none; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="confirmDisableEnc()">Remove encryption</button>
     </div>
     <div id="enc-section" style="padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text-3); line-height:1.7;">
       Password-encrypts your backup files using AES-256. A recovery key file is downloaded when you set a password — keep it safe. Without it, a forgotten password means your data cannot be recovered.
@@ -5782,8 +5860,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       A <strong style="color:var(--text-2);">vault-recovery.json</strong> file will be downloaded automatically. Store it somewhere safe — it can unlock your backup if you forget your password.
     </div>
     <div class="modal-actions" style="gap:8px;">
-      <button class="btn-primary" style="flex:2;" onclick="encSetSubmit()">Encrypt &amp; download recovery key</button>
-      <button class="btn-local" style="flex:1;" onclick="document.getElementById('enc-set-popup').classList.add('hidden')">Cancel</button>
+      <button class="pbtn pbtn-primary" style="flex:2;" onclick="encSetSubmit()">Encrypt &amp; download recovery key</button>
+      <button class="pbtn pbtn-secondary" style="flex:1;" onclick="document.getElementById('enc-set-popup').classList.add('hidden')">Cancel</button>
     </div>
   </div>
 </div>
@@ -5793,6 +5871,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   <div class="modal-box" style="max-width:420px;">
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
       <h2 style="margin:0; flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400;">Encrypted backup</h2>
+      <button class="modal-close" onclick="dismissPopup(document.getElementById('enc-decrypt-popup'))" title="Close" aria-label="Close">✕</button>
     </div>
     <p style="margin-bottom:20px; font-size:13px; color:var(--text-2); line-height:1.7; font-weight:300;">Your backup file is password-protected. Enter your password to load your data.</p>
     <div class="tx-popup-field" style="margin-bottom:16px;">
@@ -5801,14 +5880,14 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     </div>
     <div id="enc-decrypt-error" style="display:none; font-size:12px; color:var(--red); margin-bottom:12px;"></div>
     <div class="modal-actions" style="gap:8px; margin-bottom:16px;">
-      <button class="btn-primary" style="flex:2;" id="enc-decrypt-btn">Unlock</button>
-      <button class="btn-local" style="flex:1;" id="enc-decrypt-cancel">Cancel</button>
+      <button class="pbtn pbtn-primary" style="flex:2;" id="enc-decrypt-btn">Unlock</button>
+      <button class="pbtn pbtn-secondary" style="flex:1;" id="enc-decrypt-cancel">Cancel</button>
     </div>
     <div style="border-top:1px solid var(--border); padding-top:14px;">
       <div style="font-size:11px; color:var(--text-3); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.06em; font-weight:600;">Forgot your password?</div>
       <p style="font-size:12px; color:var(--text-2); margin-bottom:10px;">Use your <code>vault-recovery.json</code> file to unlock. Encryption will be disabled so you can set a new password.</p>
       <input type="file" id="enc-recovery-file" accept=".json" style="display:none">
-      <button id="enc-recovery-btn" class="btn-local" style="width:100%;" onclick="document.getElementById('enc-recovery-file').click()">Use recovery key file</button>
+      <button id="enc-recovery-btn" class="pbtn pbtn-secondary" style="width:100%;" onclick="document.getElementById('enc-recovery-file').click()">Use recovery key file</button>
     </div>
   </div>
 </div>
@@ -5818,6 +5897,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   <div class="modal-box" style="max-width:440px;">
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
       <h2 style="margin:0; flex:1; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400;">Encrypt your backup?</h2>
+      <button class="modal-close" onclick="dismissPopup(document.getElementById('enc-choice-popup'))" title="Close" aria-label="Close">✕</button>
     </div>
     <p style="font-size:13px; color:var(--text-2); line-height:1.7; margin-bottom:20px; font-weight:300;">Choose whether to password-protect your backup file. You can change this at any time from <strong style="color:var(--text-1);">Menu → Settings → Encryption</strong>.</p>
 
@@ -5871,6 +5951,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <div style="margin-bottom:16px;">
       <h2 style="margin:0 0 8px; font-family:'DM Serif Display',serif; font-size:20px; font-weight:400;" id="merge-dialog-title">Existing Vault file found</h2>
       <p style="font-size:13px; color:var(--text-2); line-height:1.7; font-weight:300;" id="merge-dialog-desc">A Vault file already exists in your Google Drive. How would you like to proceed?</p>
+      <button class="modal-close" onclick="dismissPopup(document.getElementById('drive-merge-popup'))" title="Close" aria-label="Close">✕</button>
     </div>
 
     <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:8px;">
@@ -9751,6 +9832,7 @@ async function loadFromLocalFile() {
       "Existing Vault file found",
       "A Vault file was found at this location. How would you like to proceed?"
     );
+    if (choice === "cancel") { setLocalFileStatus("Cancelled. Nothing was loaded.", "var(--text-3)"); return; }
     if (choice === "merge") {
       autoMerge(safe, remoteTombstones);
       applyPayloadSettings(settings, false);
@@ -10430,6 +10512,7 @@ async function loadFromNAS() {
       "Existing Vault file found on server",
       "A Vault file already exists on your network location. How would you like to proceed?"
     );
+    if (choice === "cancel") { if (!nasLinked) nasConfig = null; setNASStatus("Cancelled. Nothing was changed.", "var(--text-3)"); return; }
     if (choice === "merge") {
       autoMerge(safe, remoteTombstones);
       applyPayloadSettings(settings, false);
@@ -10708,6 +10791,7 @@ async function gdHandleRedirect() {
               "Existing Vault file found in Google Drive",
               "A Vault file already exists in your Google Drive. How would you like to proceed?"
             );
+            if (choice === "cancel") { unlinkGoogleDrive(); setGDStatus("Cancelled. Google Drive wasn't connected.", "var(--text-3)"); return; }
             if (choice === "merge") {
               autoMerge(safe, remoteTombstones);
               applyPayloadSettings(settings, false);
@@ -16759,16 +16843,7 @@ function asInit() {
     document.getElementById("as-" + k).addEventListener(ev, e => { asD[k] = e.target.value; asDrawSheet(); })));
   document.querySelectorAll("#as-table th[data-as-sort]").forEach(th => th.addEventListener("click", () => { asPage = 1; setSort(th.dataset.asSort); }));
   // Swipe the handle or title down to dismiss (same as tapping outside: draft dropped).
-  const sh = document.getElementById("as-sheet"), h = document.getElementById("as-sh-drag");
-  let y0 = null, dy = 0;
-  h.addEventListener("pointerdown", e => {
-    if (e.target.closest("button")) return;
-    y0 = e.clientY; dy = 0; sh.classList.add("dragging");
-    try { h.setPointerCapture(e.pointerId); } catch {}
-  });
-  h.addEventListener("pointermove", e => { if (y0 === null) return; dy = Math.max(0, e.clientY - y0); sh.style.transform = `translateY(${dy}px)`; });
-  const end = () => { if (y0 === null) return; y0 = null; sh.classList.remove("dragging"); if (dy > 80) asCloseSheet(false); else sh.style.transform = ""; };
-  h.addEventListener("pointerup", end); h.addEventListener("pointercancel", end);
+  vpSwipe(document.getElementById("as-sheet"), [document.getElementById("as-sh-drag")], () => { asCloseSheet(false); return true; });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && asSheetOpen()) asCloseSheet(false); });
   _bindRowHold(document.getElementById("as-body"), () => asRemember());
   window.addEventListener("scroll", asQueuePin, { passive: true });
@@ -20441,13 +20516,11 @@ function setDeskType(type) {
   if (type === "deposit") {
     depBtn.style.background = "var(--green)"; depBtn.style.color = "var(--fill-ink)"; depBtn.style.borderColor = "var(--green)";
     saveBtn.textContent     = deskRecurOn ? "Schedule recurring deposit"  : "Add deposit";
-    saveBtn.style.background = "var(--green)";
     const recurToggleD = document.getElementById("desk-recur-toggle");
     if (recurToggleD) recurToggleD.style.display = "";
   } else if (type === "interest") {
     intBtn.style.background = "var(--interest)"; intBtn.style.color = "var(--fill-ink)"; intBtn.style.borderColor = "var(--interest)";
     saveBtn.textContent      = "Add interest";
-    saveBtn.style.background = "var(--interest)";
     // Interest can't be recurring — hide the toggle and reset if it was on
     const recurToggle = document.getElementById("desk-recur-toggle");
     const recurFields = document.getElementById("desk-recur-fields");
@@ -20460,7 +20533,6 @@ function setDeskType(type) {
   } else {
     witBtn.style.background = "var(--red)"; witBtn.style.color = "var(--fill-ink)"; witBtn.style.borderColor = "var(--red)";
     saveBtn.textContent     = deskRecurOn ? "Schedule recurring withdrawal" : "Add withdrawal";
-    saveBtn.style.background = "var(--red)";
     const recurToggleW = document.getElementById("desk-recur-toggle");
     if (recurToggleW) recurToggleW.style.display = "";
   }
@@ -20570,7 +20642,6 @@ function setMobType(type) {
     : type === "interest"
     ? "Add interest"
     : (mobRecurOn ? "Schedule recurring withdrawal" : "Add withdrawal");
-  addBtn.style.background = type === "deposit" ? "var(--green)" : type === "interest" ? "var(--interest)" : "var(--red)";
 
   // Interest can't be recurring — hide the toggle when interest is selected
   const mobRecurToggle = document.getElementById("mob-recur-toggle");
@@ -20700,10 +20771,13 @@ function closeDesktopMenu() {
 // Close all mobile slide-up sheets and the overlay, and hide the year form
 // Tapping outside a sheet closes it, except the Add sheet once something has been
 // typed into it (design-rules §4: typed input is never lost to a stray tap).
-function sheetOverlayTap() {
+function sheetOverlayTap() { sheetTryClose(); }
+// Outside tap or swipe on a tray: the Add tray keeps typed input (design-rules §4).
+function sheetTryClose() {
   const add = document.getElementById("add-sheet");
-  if (add && add.classList.contains("open") && add.dataset.dirty === "1") return;
+  if (add && add.classList.contains("open") && add.dataset.dirty === "1") { toast("Tap Cancel to leave without saving", "notice"); return false; }
   closeSheets();
+  return true;
 }
 
 // ── Popups: one policy for outside taps and Escape (unification U11–U12) ─────
@@ -20713,8 +20787,7 @@ function sheetOverlayTap() {
 const POPUP_FORMS = new Set(["desktop-add-popup", "tx-popup", "add-recurring-popup", "recur-edit-popup",
   "goals-modal", "accounts-modal", "layout-modal", "ai-provider-popup", "import-preview-popup",
   "import-tx-review-popup", "enc-set-popup", "vault-prompt-popup"]);
-const POPUP_DECISIONS = new Set(["currency-mismatch-popup", "enc-decrypt-popup", "enc-choice-popup",
-  "drive-merge-popup", "welcome-modal", "import-progress-popup", "lock-screen"]);
+const POPUP_DECISIONS = new Set(["welcome-modal", "import-progress-popup", "lock-screen"]);
 const POPUP_CLOSE = {
   "desktop-add-popup": () => closeDesktopAddSheet(), "import-popup": () => closeImportPopup(),
   "import-preview-popup": () => closeImportPreview(), "import-tx-review-popup": () => closeImportTxReview(),
@@ -20732,6 +20805,11 @@ const POPUP_CLOSE = {
   "enc-set-popup": () => document.getElementById("enc-set-popup").classList.add("hidden"),
   "backup-switch-popup": () => resolveBackupSwitch(false),
   "vault-confirm-popup": () => vaultDialogResolve(false), "vault-prompt-popup": () => vaultDialogResolve(null),
+  // Decisions that can be closed: closing runs their skip (v6.16.0, decisions 4 and 6)
+  "currency-mismatch-popup": () => dismissCurrencyMismatch(),
+  "enc-decrypt-popup": () => document.getElementById("enc-decrypt-cancel")?.click(),
+  "enc-choice-popup": () => { encChoiceResolve("skip"); toast("Saved without a password. You can add one in Settings › Encryption", "notice"); },
+  "drive-merge-popup": () => resolveDriveMerge("cancel"),
 };
 function popupIsOpen(el) { return !!el && !el.classList.contains("hidden") && getComputedStyle(el).display !== "none"; }
 function dismissPopup(el) {
@@ -20751,10 +20829,14 @@ function topOpenPopup() {
 document.addEventListener("click", e => {
   const el = e.target;
   if (!el || !el.id || !/-(popup|modal)$/.test(el.id) || !popupIsOpen(el)) return;
-  if (POPUP_DECISIONS.has(el.id)) return;
-  if (POPUP_FORMS.has(el.id) && el.dataset.dirty === "1") return;
-  dismissPopup(el);
+  vpTryDismiss(el);
 });
+// Outside tap, swipe down and Back share one rule (design-rules §4).
+function vpTryDismiss(el) {
+  if (POPUP_DECISIONS.has(el.id)) return false;
+  if (POPUP_FORMS.has(el.id) && el.dataset.dirty === "1") { toast("Tap Cancel to leave without saving", "notice"); return false; }
+  return dismissPopup(el);
+}
 // A form counts as touched once anything in it is typed into or changed.
 ["input", "change"].forEach(t => document.addEventListener(t, e => {
   const p = e.target && e.target.closest && e.target.closest('[id$="-popup"], [id$="-modal"], #add-sheet');
@@ -20771,6 +20853,142 @@ document.addEventListener("click", e => {
   document.querySelectorAll('[id$="-popup"], [id$="-modal"], #add-sheet').forEach(el =>
     mo.observe(el, { attributes: true, attributeFilter: ["class"], attributeOldValue: true }));
 });
+
+// ─── One overlay system (v6.16.0) ─────────────────────────────────────────────
+// vpInit() gives every popup the shared panel: a handle, one head (title,
+// subtitle, ✕) and a pinned footer for its actions. CSS turns it into a tray on a
+// phone and a centred card on a wide screen. Alerts (a short yes/no) stay small and
+// centred everywhere. Popups not listed in VP_SKIP are all covered.
+const VP_SKIP = new Set(["welcome-modal", "pdf-preview-modal", "lock-screen"]);
+const VP_ALERTS = new Set(["vault-confirm-popup", "vh-reset-popup", "import-progress-popup"]);
+const VP_FLUSH = new Set(["setup-modal", "currency-popup"]);
+const VP_NO_FOOT = new Set(["setup-modal", "cloud-picker-popup", "currency-popup", "import-popup", "import-progress-popup",
+  "recurring-modal", "goals-modal", "accounts-modal", "drive-merge-popup", "enc-choice-popup", "ai-provider-popup"]);
+const VP_FOOT = { "tx-popup": "#popup-standard-actions", "enc-decrypt-popup": ".modal-actions", "add-recurring-popup": "#recur-add-form > :last-child" };
+const VP_BTN = /\b(pbtn|btn-primary|btn-local|btn-save|btn-popup-cancel|info-popup-close-btn)\b/;
+function vpPopups() {
+  return [...document.querySelectorAll('[id$="-popup"], [id$="-modal"]')]
+    .filter(el => el.classList.contains("pop-anim") && !VP_SKIP.has(el.id) && !/^popup-/.test(el.id) && el.firstElementChild);
+}
+function vpInit() {
+  vpPopups().forEach(el => {
+    if (el.classList.contains("vp")) return;
+    const panel = el.firstElementChild;
+    el.classList.add("vp");
+    panel.classList.add("vp-panel");
+    if (VP_ALERTS.has(el.id)) el.classList.add("vp-alert");
+    if (VP_FLUSH.has(el.id)) panel.classList.add("vp-flush");
+    // Head: the title's row, with the ✕ moved into it and anything else stacked beside
+    const title = [...panel.querySelectorAll("h2, h3")].find(t => !t.closest("#recur-history-panel"));
+    if (title) {
+      title.classList.add("vp-title");
+      let head = title.parentElement;
+      if (head !== panel && !head.querySelector(":scope > .modal-close") && head.parentElement !== panel
+          && head.parentElement.querySelector(":scope > .modal-close")) head = head.parentElement;
+      if (head !== panel && !head.querySelector(".smod-back")) {
+        const x = head.querySelector(":scope > .modal-close") || panel.querySelector(":scope > .modal-close");
+        const rest = [...head.children].filter(c => c !== x);
+        if (!(rest.length === 1 && rest[0] === title)) {
+          const text = document.createElement("div");
+          text.className = "vp-head-text";
+          rest.forEach(c => text.appendChild(c));
+          head.insertBefore(text, head.firstChild);
+        }
+        if (x) { x.removeAttribute("style"); head.appendChild(x); }
+        head.classList.add("vp-head");
+      }
+    }
+    // Footer: the last row of action buttons (or the one named in VP_FOOT)
+    if (!VP_NO_FOOT.has(el.id) && !VP_ALERTS.has(el.id)) {
+      let foot = VP_FOOT[el.id] ? panel.querySelector(VP_FOOT[el.id]) : null;
+      if (!foot) {
+        foot = [...panel.children].reverse().find(c =>
+          (c.tagName === "BUTTON" && VP_BTN.test(c.className)) ||
+          (c.tagName === "DIV" && !c.querySelector("input, select, textarea") && c.querySelectorAll("button").length <= 3
+           && [...c.querySelectorAll("button")].some(b => VP_BTN.test(b.className))));
+      }
+      if (foot && foot.tagName === "BUTTON") {
+        const wrap = document.createElement("div");
+        foot.parentElement.insertBefore(wrap, foot);
+        wrap.appendChild(foot);
+        foot = wrap;
+      }
+      if (foot) foot.classList.add("vp-foot");
+    }
+    // Handle (shown on a phone only) and swipe down to close
+    const grab = document.createElement("div");
+    grab.className = "vp-grab";
+    grab.setAttribute("aria-hidden", "true");
+    panel.insertBefore(grab, panel.firstChild);
+    vpSwipe(panel, [grab, panel.querySelector(".vp-head")].filter(Boolean), () => vpTryDismiss(el));
+    vpLockObserver.observe(el, { attributes: true, attributeFilter: ["class"] });
+  });
+  // Trays
+  ["menu-sheet", "year-sheet", "add-sheet"].forEach(id => {
+    const sh = document.getElementById(id);
+    if (!sh || sh.dataset.vp) return;
+    sh.dataset.vp = "1";
+    vpSwipe(sh, [sh.querySelector(".sheet-handle"), sh.querySelector(".sheet-header")].filter(Boolean), () => sheetTryClose());
+    vpLockObserver.observe(sh, { attributes: true, attributeFilter: ["class"] });
+  });
+  vpSyncLock();
+}
+// Swipe down on the handle or head. Past 90px it tries to close, under the same
+// rules as an outside tap; otherwise (or if refused) the panel springs back.
+// Touch uses touch events, not pointer events: iOS cancels a pointer drag as soon
+// as it decides the gesture is a scroll, so the swipe never arrived. touchmove
+// calls preventDefault (passive: false) to keep the drag in the panel. Mouse and
+// pen (a narrow desktop window) use pointer events.
+function vpSwipe(panel, handles, tryClose) {
+  let y0 = null, dy = 0;
+  const can = (target, h) => window.innerWidth <= 640
+    && !target.closest("button, input, select, textarea, a, label, .ps-chip")
+    && !(panel.scrollTop > 0 && !h.classList.contains("vp-grab") && !h.classList.contains("sheet-handle") && !h.classList.contains("as-sh-drag"));
+  const start = y => { y0 = y; dy = 0; panel.classList.add("vp-drag"); };
+  const move = y => {
+    if (y0 === null) return;
+    dy = Math.max(0, y - y0);
+    panel.style.transform = `translateY(${dy}px)`;
+  };
+  const end = () => {
+    if (y0 === null) return;
+    y0 = null;
+    panel.classList.remove("vp-drag");
+    if (dy > 80) tryClose();
+    panel.style.transform = "";      // animates to closed, or springs back
+    dy = 0;
+  };
+  handles.forEach(h => {
+    h.addEventListener("touchstart", e => {
+      if (e.touches.length !== 1 || !can(e.target, h)) return;
+      start(e.touches[0].clientY);
+    }, { passive: true });
+    h.addEventListener("touchmove", e => {
+      if (y0 === null) return;
+      if (e.cancelable) e.preventDefault();
+      move(e.touches[0].clientY);
+    }, { passive: false });
+    h.addEventListener("touchend", end);
+    h.addEventListener("touchcancel", end);
+    h.addEventListener("pointerdown", e => {
+      if (e.pointerType === "touch" || (e.button && e.button !== 0) || !can(e.target, h)) return;
+      start(e.clientY);
+      try { h.setPointerCapture(e.pointerId); } catch {}
+    });
+    h.addEventListener("pointermove", e => { if (e.pointerType !== "touch") move(e.clientY); });
+    h.addEventListener("pointerup", e => { if (e.pointerType !== "touch") end(); });
+    h.addEventListener("pointercancel", e => { if (e.pointerType !== "touch") end(); });
+  });
+}
+// While a popup or tray is open, the page behind can't scroll (rules §8: a class on <html>).
+function vpSyncLock() {
+  const open = vpPopups().some(el => el.classList.contains("vp") && !el.classList.contains("hidden"))
+    || !!document.querySelector("#add-sheet.open, #menu-sheet.open, #year-sheet.open");
+  document.documentElement.classList.toggle("vp-lock", open);
+}
+const vpLockObserver = new MutationObserver(() => vpSyncLock());
+(document.readyState === "loading" ? (f => document.addEventListener("DOMContentLoaded", f)) : (f => f()))(() => vpInit());
+
 // Escape closes the top popup (or an open sheet), except a required decision.
 function vaultEscape(e) {
   const top = topOpenPopup();
@@ -20823,7 +21041,9 @@ function showDriveMergeDialog(title, desc) {
   document.body.style.overflow = "hidden";
   return new Promise(resolve => { _driveMergeResolve = resolve; });
 }
-// Called by the drive-merge-popup buttons. choice is "merge" | "overwrite-drive" | "overwrite-app".
+// Called by the drive-merge-popup buttons. choice is "merge" | "overwrite-drive" | "overwrite-app",
+// or "cancel" when the popup is closed (✕, swipe, outside tap, Escape, Back): callers stop
+// without merging or overwriting anything. applyOldBackupMergeChoice treats it as "leave it".
 function resolveDriveMerge(choice) {
   document.getElementById("drive-merge-popup").classList.add("hidden");
   document.body.style.overflow = "";
@@ -22083,7 +22303,11 @@ function renderPeriodSheet() {
   const thisKey = fyKeyForDate(today), lastKey = fyKeyForDate(lastISO);
   let gi = 0, go = 0;
   years.forEach(y => { const t = _yearTotals(y); gi += t.savedTotal; go += t.removedTotal; });
-  let h = `<div class="ps-quick">${chip("This month", thisKey, today.slice(0, 7))}${chip("Last month", lastKey, lastISO.slice(0, 7))}${chip("This year", thisKey, null)}${chip("All", "all-years", null)}</div>`;
+  const quick = `<div class="ps-quick">${chip("This month", thisKey, today.slice(0, 7))}${chip("Last month", lastKey, lastISO.slice(0, 7))}${chip("This year", thisKey, null)}${chip("All", "all-years", null)}</div>`;
+  // No title (v6.16.0): the quick chips are the head, beside the ✕.
+  const psHead = document.getElementById("ps-head");
+  if (psHead) psHead.innerHTML = quick;
+  let h = psHead ? "" : quick;
   h += `<button class="ps-row${here("all-years", null) ? " on" : ""}" type="button" data-y="all-years" data-m=""><span>All transactions</span><span class="ps-net" style="color:${netColor(gi - go)}">${aud(gi - go)}</span></button>`;
   years.forEach(y => {
     const t = _yearTotals(y), n = t.savedTotal - t.removedTotal, open = _psExpanded === y;
@@ -22098,7 +22322,7 @@ function renderPeriodSheet() {
     }
   });
   body.innerHTML = h;
-  body.querySelectorAll("[data-y]").forEach(b => b.onclick = () => psPick(b.dataset.y, b.dataset.m || null));
+  (document.getElementById("year-sheet") || body).querySelectorAll("[data-y]").forEach(b => b.onclick = () => psPick(b.dataset.y, b.dataset.m || null));
   body.querySelectorAll("[data-exp]").forEach(b => b.onclick = () => { _psExpanded = _psExpanded === b.dataset.exp ? null : b.dataset.exp; renderPeriodSheet(); });
 }
 // Choosing a period keeps the account and tab you were looking at.
@@ -22207,7 +22431,7 @@ function navCloseTop() {
     dismissPopup(top); return true;
   }
   const add = document.getElementById("add-sheet");
-  if (add && add.classList.contains("open") && add.dataset.dirty === "1") { toast("Tap ✕ to leave without saving", "notice"); return true; }
+  if (add && add.classList.contains("open") && add.dataset.dirty === "1") { toast("Tap Cancel to leave without saving", "notice"); return true; }
   if (document.querySelector("#add-sheet.open, #menu-sheet.open, #year-sheet.open")) { closeSheets(); return true; }
   const as = document.getElementById("as-sheet");
   if (as && as.classList.contains("open") && typeof asCloseSheet === "function") { asCloseSheet(); return true; }
@@ -22470,7 +22694,7 @@ navInit();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.15.2</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.16.0</div>
         </div>
 
         <div class="pp-cards">
@@ -22580,7 +22804,7 @@ navInit();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v6.15.2</div>
+  <div id="version-footer">v6.16.0</div>
 
 </body>
 </html>

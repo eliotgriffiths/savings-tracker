@@ -93,7 +93,7 @@ const txt = el => (el ? el.textContent.replace(/\s+/g, " ").trim() : "");
   ok(/padding: 6px 4px max\((\d+)px, env\(safe-area-inset-bottom/.test(tb) && +tb.match(/max\((\d+)px/)[1] >= 12, "tab bar leaves at least 12px under the labels, or the home indicator's inset");
   ok(/#header \{ padding: env\(safe-area-inset-top, 0px\) 16px 0; height: calc\(52px \+ env\(safe-area-inset-top, 0px\)\); \}/.test(html), "phone header clears the status bar");
   ok(/body \{ padding-left: env\(safe-area-inset-left, 0px\); padding-right: env\(safe-area-inset-right, 0px\); \}/.test(html), "landscape content clears the notch");
-  ok(/#add-sheet  \{ padding: 0 20px calc\(32px \+ env\(safe-area-inset-bottom/.test(html), "the Add sheet clears the home indicator");
+  ok(/#add-sheet  \{ padding: 0 20px calc\(\d+px \+ env\(safe-area-inset-bottom/.test(html), "the Add sheet clears the home indicator");
 
   console.log(`v6.15.2: ${pass} passed, ${fail} failed, ${errors.length} page errors`);
   if (errors.length) console.log(errors.slice(0, 5));
