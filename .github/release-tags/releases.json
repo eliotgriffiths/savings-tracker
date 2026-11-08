@@ -1499,5 +1499,21 @@
       "Easier to read: all text meets the 4.5:1 contrast guideline, and text on coloured buttons and messages is dark",
       "Charts and the Safari toolbar follow the new colours; printouts keep their paper colours"
     ]
+  },
+  {
+    "tag": "v6.15.1",
+    "sha": "58fbe7f852d4ca6cf5f5d1ea9481be95a584088b",
+    "date": "2026-11-09",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "versioned_at_release": true,
+    "commits": [
+      "58fbe7f"
+    ],
+    "notes": [
+      "Numbers are easier to read: amounts and figures on Home, in Search and in chart pop-ups use a clearer, bolder font with evenly spaced digits",
+      "Your Home balance and the titles keep the serif look"
+    ]
   }
 ]
