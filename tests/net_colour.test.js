@@ -75,8 +75,10 @@ setTimeout(() => {
      _dataVersion++; _invalidateYearCache(); activeYear = "all-years"; activeAccountFilter = "us"; renderMain();`);
   ok(color(d.getElementById("stat-net")) === RED, "single foreign account: deficit Net is red");
 
-  ok(d.getElementById("version-footer").textContent.trim() === "v6.12.1", "footer version");
-  ok(/Version v6\.12\.1/.test(html), "About version");
+  // v6.12.1 or later, with About matching the footer.
+  const vf = d.getElementById("version-footer").textContent.trim();
+  ok(/^v6\.(12\.([1-9]|\d\d)|(1[3-9]|[2-9]\d)\.\d+)$/.test(vf), "footer version is v6.12.1 or later: " + vf);
+  ok(html.includes(`Version ${vf}<`), "About matches the footer");
   ok(!/\.net[^{]*\{[^}]*var\(--gold\)/.test(html.replace(/\.vh-heat[^{]*\{[^}]*\}/g, "")), "no Net rule left in gold");
 
   console.log(`net_colour: ${pass} passed, ${fail} failed, ${errors.length} page errors`);

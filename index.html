@@ -180,6 +180,23 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   }
   #save-status.ss-err::before  { background: #e07a75; }
   #save-status.ss-none { display: none; }
+  /* Backup status popup: the status you're in now (N7, v6.13.0) */
+  .ss-now { border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; border: 1px solid var(--border); background: var(--bg3); }
+  .ss-now-label { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; color: var(--text-1); }
+  .ss-now-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+  .ss-now-text { font-size: 13px; color: var(--text-2); line-height: 1.5; margin-top: 6px; }
+  .ss-now-ok   { border-color: rgba(61,158,110,0.3); background: rgba(61,158,110,0.07); }   .ss-now-ok .ss-now-dot { background: #5ec497; }
+  .ss-now-warn { border-color: rgba(200,146,58,0.35); background: rgba(200,146,58,0.07); }  .ss-now-warn .ss-now-dot { background: #c8923a; }
+  .ss-now-err  { border-color: rgba(207,95,87,0.35); background: rgba(207,95,87,0.07); }    .ss-now-err .ss-now-dot { background: #e07a75; }
+  .ss-now-busy .ss-now-dot { animation: ss-pulse-dot 1.4s ease-in-out infinite; }
+  #ss-now-btns { flex-wrap: wrap; }
+  #ss-now-btns .pbtn { flex: 1 1 0; white-space: nowrap; padding-left: 10px; padding-right: 10px; }
+  #ss-now-btns .pbtn-primary { flex: 1 1 100%; }   /* the fix gets the full width; Done and alternatives share the row below */
+  .ss-legend-fold summary { cursor: pointer; font-size: 12px; color: var(--text-3); padding: 4px 2px; list-style: none; }
+  .ss-legend-fold summary::-webkit-details-marker { display: none; }
+  .ss-legend-fold summary::after { content: " ›"; }
+  .ss-legend-fold[open] summary::after { content: " ⌄"; }
+  .ss-legend-fold[open] summary { margin-bottom: 6px; }
   @keyframes ss-pulse-dot {
     0%,100% { opacity: 1; transform: scale(1); }
     50%      { opacity: 0.4; transform: scale(0.75); }
@@ -2405,6 +2422,10 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     text-align: left;
   }
   @media (hover: hover) { .dmenu-btn:hover { background: var(--bg3); } .dmenu-btn:hover .dmenu-btn-icon { color: var(--text-1); background: var(--bg3); } }
+  /* The view you're on (N4, v6.13.0) */
+  .dmenu-btn.dmenu-current { box-shadow: inset 3px 0 0 var(--gold); background: rgba(201,168,76,0.05); }
+  .dmenu-btn.dmenu-current .dmenu-btn-label { color: var(--gold); }
+  .dmenu-btn.dmenu-current .dmenu-btn-icon { color: var(--gold); }
   .dmenu-btn-icon {
     width: 30px;
     height: 30px;
@@ -4144,7 +4165,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <!-- Section: View -->
     <div class="dmenu-section-label">View</div>
 
-    <button class="dmenu-btn" onclick="closeDesktopMenu(); switchTab('home');">
+    <button class="dmenu-btn" data-nav="home" onclick="closeDesktopMenu(); switchTab('home');">
       <span class="dmenu-btn-icon">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M2.5 7.5 L8 2.5 L13.5 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -4155,7 +4176,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       <div><div class="dmenu-btn-label">Home</div><div class="dmenu-btn-sub">Overview, trends &amp; recent activity</div></div>
     </button>
 
-    <button class="dmenu-btn" onclick="closeDesktopMenu(); switchTab('report');">
+    <button class="dmenu-btn" data-nav="report" onclick="closeDesktopMenu(); switchTab('report');">
       <span class="dmenu-btn-icon">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="6.5" cy="6.5" r="4.25" stroke="currentColor" stroke-width="1.5"/>
@@ -4165,7 +4186,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       <div><div class="dmenu-btn-label">Advanced Search</div><div class="dmenu-btn-sub">Search and filter your transactions</div></div>
     </button>
 
-    <button class="dmenu-btn" onclick="closeDesktopMenu(); switchTab('charts');">
+    <button class="dmenu-btn" data-nav="charts" onclick="closeDesktopMenu(); switchTab('charts');">
       <span class="dmenu-btn-icon">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M1.5 13.5 L1.5 2" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" opacity="0.35"/>
@@ -4249,7 +4270,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <circle cx="12.5" cy="7" r="0.75" fill="currentColor" opacity="0.6"/>
         </svg>
       </span>
-      <div><div class="dmenu-btn-label">Print</div><div class="dmenu-btn-sub" id="dmenu-print-sub">Print current view</div></div>
+      <div><div class="dmenu-btn-label">Print</div><div class="dmenu-btn-sub" id="dmenu-print-sub">All transactions</div></div>
     </button>
 
     <!-- Section: Settings (collapsible) -->
@@ -4499,7 +4520,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="8" cy="13" r="1.5"/></svg>
           </button>
           <div class="vh-menu-drop" id="vh-home-menu-drop" role="menu">
-            <button class="vh-menu-item" type="button" role="menuitem" onclick="vhHomeMenuEdit()">Edit</button>
+            <button class="vh-menu-item" type="button" role="menuitem" onclick="vhHomeMenuEdit()">Customise Home</button>
             <button class="vh-menu-item" type="button" role="menuitem" onclick="vhHomeMenuReset()">Reset to default</button>
           </div>
         </div>
@@ -4823,7 +4844,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   <!-- Section: View -->
   <div class="menu-section-label">View</div>
 
-  <button class="menu-item-btn" onclick="closeSheets(); mobileTab('home');">
+  <button class="menu-item-btn" data-nav="home" onclick="closeSheets(); mobileTab('home');">
     <span class="menu-item-icon">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M2.5 7.5 L8 2.5 L13.5 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -4837,7 +4858,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     </span>
   </button>
 
-  <button class="menu-item-btn" id="menu-tx-toggle-btn" onclick="toggleMenuTxDropdown()">
+  <button class="menu-item-btn" id="menu-tx-toggle-btn" data-nav="list" onclick="toggleMenuTxDropdown()">
     <span class="menu-item-icon">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="3.5" cy="4.5" r="1.25" fill="currentColor" opacity="0.5"/>
@@ -4858,7 +4879,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <!-- populated by renderMenuTxDropdown() -->
   </div>
 
-  <button class="menu-item-btn" onclick="closeSheets(); mobileTab('report');">
+  <button class="menu-item-btn" data-nav="report" onclick="closeSheets(); mobileTab('report');">
     <span class="menu-item-icon">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="6.5" cy="6.5" r="4.25" stroke="currentColor" stroke-width="1.5"/>
@@ -4871,7 +4892,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     </span>
   </button>
 
-  <button class="menu-item-btn" onclick="closeSheets(); mobileTab('charts');">
+  <button class="menu-item-btn" data-nav="charts" onclick="closeSheets(); mobileTab('charts');">
     <span class="menu-item-icon">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M1.5 13.5 L1.5 2" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" opacity="0.35"/>
@@ -4969,7 +4990,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     </span>
     <span class="menu-item-body">
       <span class="menu-item-label">Print</span>
-      <span class="menu-item-sub">Print-ready layout</span>
+      <span class="menu-item-sub" id="mob-print-sub">All transactions</span>
     </span>
   </button>
 
@@ -5861,6 +5882,10 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       <button class="modal-close" onclick="closeSaveStatusLegend()" title="Close">✕</button>
     </div>
 
+    <div id="ss-now" class="ss-now"></div>
+
+    <details class="ss-legend-fold" id="ss-legend-fold">
+    <summary>What each status means</summary>
     <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:6px;">
       <div style="font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#5ec497; padding:6px 2px 4px;">All good</div>
       <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:rgba(61,158,110,0.06); border:1px solid rgba(61,158,110,0.15); border-radius:8px;">
@@ -5898,14 +5923,14 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <span style="width:5px;height:5px;border-radius:50%;background:#c8923a;flex-shrink:0;display:inline-block;"></span>
           <span style="font-size:10px; font-weight:600; color:#c8923a; white-space:nowrap;">No backup</span>
         </div>
-        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Data is in browser storage only — set up a backup in Menu → Save &amp; backup.</span>
+        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Data is in browser storage only — set up a backup in Menu → Settings → Save &amp; backup.</span>
       </div>
       <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:rgba(200,146,58,0.06); border:1px solid rgba(200,146,58,0.15); border-radius:8px;">
         <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:rgba(200,146,58,0.12); border:1px solid rgba(200,146,58,0.25); flex-shrink:0;">
           <span style="width:5px;height:5px;border-radius:50%;background:#c8923a;flex-shrink:0;display:inline-block;"></span>
           <span style="font-size:10px; font-weight:600; color:#c8923a; white-space:nowrap;">Permission needed</span>
         </div>
-        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">File access was lost after a restart. Go to Menu → Save &amp; backup → Local file.</span>
+        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">File access was lost after a restart. Go to Menu → Settings → Save &amp; backup → Local file.</span>
       </div>
       <div style="font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#e07a75; padding:10px 2px 4px;">Error</div>
       <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:rgba(192,80,74,0.06); border:1px solid rgba(192,80,74,0.15); border-radius:8px;">
@@ -5913,11 +5938,12 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <span style="width:5px;height:5px;border-radius:50%;background:#e07a75;flex-shrink:0;display:inline-block;"></span>
           <span style="font-size:10px; font-weight:600; color:#e07a75; white-space:nowrap;">Sync failed</span>
         </div>
-        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Backup write failed. Check your backup source in Menu → Save &amp; backup.</span>
+        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Backup write failed. Check your backup source in Menu → Settings → Save &amp; backup.</span>
       </div>
     </div>
+    </details>
 
-    <button class="info-popup-close-btn" style="margin-top:10px;" onclick="closeSaveStatusLegend()">Done</button>
+    <div class="pbtn-row" id="ss-now-btns" style="margin-top:14px;"></div>
   </div>
 </div>
 
@@ -6234,7 +6260,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
     </div>
 
-    <p style="font-size:11px; color:var(--text-3); line-height:1.6;">You can change this at any time from <strong style="color:var(--text-2);">Menu → Save &amp; backup</strong>.</p>
+    <p style="font-size:11px; color:var(--text-3); line-height:1.6;">You can change this at any time from <strong style="color:var(--text-2);">Menu → Settings → Save &amp; backup</strong>.</p>
   </div>
 </div>
 
@@ -6745,6 +6771,8 @@ function aud(n) { n = _z(n); return fixMinus(currencyFormatter(currencyCode).for
 // A net is red only when it prints as a negative; anything that rounds to zero
 // shows as zero and counts as a surplus (green). design-rules §1.
 function netNeg(n) { return _z(n) < 0; }
+// The transaction list is showing (as opposed to Home, Advanced Search or Charts).
+function isListTab(t = activeTab) { return t === "all" || t === "saved" || t === "removed"; }
 function netColor(n) { return netNeg(n) ? "var(--red)" : "var(--green)"; }
 // Whole-currency figure, for tight spots like the month deltas where cents cost
 // more width than they add meaning.
@@ -9433,7 +9461,47 @@ function onSaveStatusClick() {
   openSaveStatusLegend();
 }
 
+// The pill opens on the status you're in now, with the button that fixes it.
+// The full list of statuses sits behind "What each status means" (N7, v6.13.0).
+const SS_NOW = {
+  "Backed up":         { tone: "ok",   text: "Every change has been saved to your backup." },
+  "Syncing…":          { tone: "busy", text: "Writing a change to your backup now. It usually takes a moment." },
+  "Reconnecting…":     { tone: "busy", text: "Restoring your backup connection after opening Vault." },
+  "Fetching rates…":   { tone: "busy", text: "Getting today's exchange rates." },
+  "No backup":         { tone: "warn", text: "Your data is only in this browser. If its storage is cleared, it's gone.",
+                         btn: ["Set up backup", () => { closeSaveStatusLegend(); setTimeout(openSetup, 50); }] },
+  "Permission needed": { tone: "warn", text: "Vault lost access to your backup file after a restart.",
+                         btn: ["Reconnect file", () => { closeSaveStatusLegend(); reauthoriseLocalFile(); }] },
+  "Sync failed":       { tone: "err",  text: "The last change couldn't be written to your backup.",
+                         btn: ["Try again", () => { closeSaveStatusLegend(); triggerCloudSync(); }],
+                         alt: ["Backup settings", () => { closeSaveStatusLegend(); setTimeout(openSetup, 50); }] },
+};
+function ssNowInfo() {
+  const pill = document.getElementById("save-status");
+  const label = (pill && pill.textContent || "").trim();
+  const enc = / · encrypted$/.test(label);
+  const key = label.replace(/ · encrypted$/, "");
+  const info = SS_NOW[key] || { tone: "busy", text: "" };
+  return { label: label || "No backup", enc, ...info,
+           text: enc ? info.text + " It's encrypted with AES-256 before saving." : info.text };
+}
+function renderSaveStatusNow() {
+  const box = document.getElementById("ss-now"), btns = document.getElementById("ss-now-btns");
+  if (!box || !btns) return;
+  const n = ssNowInfo();
+  box.className = "ss-now ss-now-" + n.tone;
+  box.innerHTML = `<div class="ss-now-label"><span class="ss-now-dot"></span>${escapeHTML(n.label)}</div>`
+    + (n.text ? `<div class="ss-now-text">${escapeHTML(n.text)}</div>` : "");
+  btns.innerHTML = "";
+  const add = (cls, [label, fn]) => { const b = document.createElement("button"); b.className = "pbtn " + cls; b.textContent = label; b.onclick = fn; btns.appendChild(b); };
+  if (n.btn) add("pbtn-primary", n.btn);
+  if (n.alt) add("pbtn-secondary", n.alt);
+  add("pbtn-secondary", ["Done", closeSaveStatusLegend]);
+  const fold = document.getElementById("ss-legend-fold");
+  if (fold) fold.open = false;
+}
 function openSaveStatusLegend() {
+  renderSaveStatusNow();
   document.getElementById("save-status-legend-popup").classList.remove("hidden");
   document.body.style.overflow = "hidden";
 }
@@ -10235,7 +10303,7 @@ function hideLockScreen() {
     // Gate 1 of 2: a fresh load past the 6-hour window re-ranks BEFORE the first
     // Home paint, so the new order is simply what the user arrives to.
     vhLoadPrefs(); vhMaybeReorder("page load");
-    if (!_didHomeLanding) { _didHomeLanding = true; switchTab("home"); }
+    if (!_didHomeLanding) { _didHomeLanding = true; _navReplaceNext = true; switchTab("home"); }
   }
 }
 
@@ -11440,7 +11508,7 @@ function saveLocal() {
       // Only toast once per session to avoid spam
       if (!sessionStorage.getItem(LOCAL_QUOTA_WARN_KEY)) {
         sessionStorage.setItem(LOCAL_QUOTA_WARN_KEY, "1");
-        toast("Browser storage is full, so your latest changes may not be saved. Back up now from Menu → Save & backup", "error");
+        toast("Browser storage is full, so your latest changes may not be saved. Back up now from Menu → Settings → Save & backup", "error");
         dbg("saveLocal: QuotaExceededError — data may not be saved");
       }
     }
@@ -11575,6 +11643,7 @@ function saveAndRender(year) {
 // Note: does NOT call saveLocal() — mutation sites must route through saveAndRender.
 function render() {
   tickCompatExportCount();
+  try { navMarkCurrent(); updateExportMenuSub(); } catch (e) { dbg("navMarkCurrent: " + e.message); }
   try {
     renderSidebar();
   } catch(e) {
@@ -11589,6 +11658,7 @@ function render() {
     // Show error toast so user sees something went wrong
     toast("Something went wrong showing this screen. Details are in the debug log", "error");
   }
+  navSync();
 }
 
 // Select a year (or "all-years") and re-render.
@@ -11620,7 +11690,7 @@ function renderSidebar() {
 
   // All Years button highlight and net value
   const ayBtn = document.getElementById("sidebar-allyears-btn");
-  if (ayBtn) ayBtn.className = "year-btn" + (activeYear === "all-years" ? " active" : "");
+  if (ayBtn) ayBtn.className = "year-btn" + (isListTab() && activeYear === "all-years" ? " active" : "");
   const allNetEl = document.getElementById("sidebar-all-net");
   if (allNetEl) { allNetEl.textContent = aud(gn); allNetEl.style.color = netColor(gn); }
 
@@ -11638,7 +11708,7 @@ function renderSidebar() {
     const so = yt.removedTotal;
     const n  = si - so;
     const isExpanded = expandedYears.has(y);
-    const isActiveYear = activeYear === y && !activeMonth;
+    const isActiveYear = isListTab() && activeYear === y && !activeMonth;
 
     // ── year row wrapper ──
     const wrap = document.createElement("div");
@@ -11695,7 +11765,7 @@ function renderSidebar() {
     const months = Array.from(monthSet).sort();
 
     months.forEach(m => {
-      const isActiveMonth = activeYear === y && activeMonth === m;
+      const isActiveMonth = isListTab() && activeYear === y && activeMonth === m;
       const [my, mm] = m.split("-");
       const label = new Date(+my, +mm - 1, 1).toLocaleString("en-AU", { month: "long", year: "numeric" });
       const mbtn = document.createElement("button");
@@ -16526,6 +16596,7 @@ function vhApplyLayout() {
 }
 
 function switchTab(t) {
+  if (_navLeaveY == null) _navLeaveY = window.scrollY || 0;   // where you were, for Back
   const _prevTab = _asPrevTab; _asPrevTab = t;
   activeTab = t;
   _currentPage = 1;
@@ -18177,6 +18248,11 @@ function menuExportXLSX() {
   if (activeTab === "report") {
     asRender();
     exportRowsXLSX(asPrintRows(), asDescribe(), `vault-search-${todayLocal()}.xlsx`);
+  } else if (isListTab()) {
+    // The list on screen: its period, tab, account and order, like Print (N9).
+    const v = currentViewRows(false);
+    const slug = viewScopeLabel().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    exportRowsXLSX(v.rows, viewScopeLabel(), `vault-${slug}-${todayLocal()}.xlsx`);
   } else {
     const all = vhAllTx().sort((a, b) => a.date.localeCompare(b.date) || (a.ts - b.ts)).map(t => ({
       date: t.date, amt: t.amt, accId: t.accId, accName: getAccountName(t.accId), accCur: t.cur,
@@ -18189,11 +18265,12 @@ function menuExportXLSX() {
 
 // The Export Spreadsheet sub-label in both menus says what it will export.
 function updateExportMenuSub() {
-  const label = activeTab === "report" ? "Advanced Search results as XLSX" : "All transactions as XLSX";
-  const d = document.getElementById("dmenu-export-sub");
-  const m = document.getElementById("mob-export-sub");
-  if (d) d.textContent = label;
-  if (m) m.textContent = label;
+  const scope = viewScopeLabel();
+  const label = scope + " as XLSX";
+  const print = activeTab === "charts" ? "These charts" : scope;
+  [["dmenu-export-sub", label], ["mob-export-sub", label], ["dmenu-print-sub", print], ["mob-print-sub", print]].forEach(([id, t]) => {
+    const el = document.getElementById(id); if (el) el.textContent = t;
+  });
 }
 
 // Print from the menu — triggers the browser print dialog.
@@ -18315,22 +18392,25 @@ function printSearchResults() {
   });
 }
 
-function printCurrentView() {
-  const isAllYears  = activeYear === "all-years";
-  const isMonthView = !!activeMonth;
+// The rows the transaction list shows, in its order. With all = true (Home and
+// Charts, where there's no list on screen) it's every transaction.
+function currentViewRows(all = false) {
+  const isAllYears  = all || activeYear === "all-years";
+  const isMonthView = !all && !!activeMonth;
+  const tab = all ? "all" : activeTab;
   const years       = Object.keys(data).sort();
 
   let rows = [];
   let viewTitle = "", viewSub = "";
 
-  const tabLabel = activeTab === "saved" ? "Deposits only" : activeTab === "removed" ? "Withdrawals only" : "All transactions";
-  const addDep = activeTab !== "removed";
-  const addWit = activeTab !== "saved";
+  const tabLabel = tab === "saved" ? "Deposits only" : tab === "removed" ? "Withdrawals only" : "All transactions";
+  const addDep = tab !== "removed";
+  const addWit = tab !== "saved";
 
   const defaultAccId = getDefaultAccountId();
   // Respect the currently-selected account pill so the print matches what the
   // user sees on-screen. Predicate mirrors the one in renderMain.
-  const accFilter = activeAccountFilter;
+  const accFilter = all ? "all" : activeAccountFilter;
   const accMatch  = tx => accFilter === "all" || (tx[6] || defaultAccId) === accFilter;
   // Subtitle picks up the account name so the reader can see the filter at a glance
   const accSuffix = accFilter === "all" ? "" : " · " + getAccountName(accFilter);
@@ -18397,7 +18477,25 @@ function printCurrentView() {
   rows.sort(txSortComparator(r => ({ date: r.date, amt: r.amt, acc: r.accName, type: r.type })));
   const sortDesc = txSortDescription();
   if (sortDesc) viewSub += " · " + sortDesc;
-  openPdfWindow({ title: viewTitle, subLine: viewSub, rows, filter: activeTab, oneAccount: accFilter !== "all" });
+  return { title: viewTitle, sub: viewSub, rows, filter: tab, oneAccount: accFilter !== "all" };
+}
+function printCurrentView() {
+  const v = currentViewRows(!isListTab());
+  openPdfWindow({ title: v.title, subLine: v.sub, rows: v.rows, filter: v.filter, oneAccount: v.oneAccount });
+}
+// What Print and Export will cover from here, for the menu labels (N9).
+function viewScopeLabel() {
+  if (activeTab === "report") return "Advanced Search results";
+  if (!isListTab()) return "All transactions";
+  let label = "All transactions";
+  if (activeYear !== "all-years") {
+    if (activeMonth) { const [y, m] = activeMonth.split("-"); label = `${monLong(new Date(+y, +m - 1, 1))} ${y} transactions`; }
+    else label = `${yearLabel(activeYear)} transactions`;
+  }
+  if (activeAccountFilter && activeAccountFilter !== "all") label += " · " + getAccountName(activeAccountFilter);
+  if (activeTab === "saved") label += " · deposits only";
+  if (activeTab === "removed") label += " · withdrawals only";
+  return label;
 }
 
 // Build a print-friendly HTML doc from the four SVG charts on the Charts tab.
@@ -20875,7 +20973,7 @@ function renderMenuTxDropdown() {
   const _defAccId = getDefaultAccountId();
   const _sumG = (arr) => arr.reduce((s, tx) => s + convertToGlobal(tx[1], getAccountCurrency(tx[6] || _defAccId)), 0);
   const allBtn = document.createElement("button");
-  allBtn.className = "menu-tx-dropdown-item" + (activeYear === "all-years" ? " active" : "");
+  allBtn.className = "menu-tx-dropdown-item" + (isListTab() && activeYear === "all-years" ? " active" : "");
   const allNet = Object.values(data).reduce((s,y) => s + _sumG(y.saved) - _sumG(y.removed), 0);
   allBtn.innerHTML = `<span style="flex:1">All</span><span class="menu-tx-year-net ${allNet>=0?'pos':'neg'}">${aud(allNet)}</span><span class="menu-tx-all-spacer"></span>`;
   allBtn.style.cssText += '; display:flex; align-items:center; width:100%;';
@@ -20885,7 +20983,7 @@ function renderMenuTxDropdown() {
   // Year items with expandable month sub-lists (sorted so newest year appears last)
   Object.keys(data).sort().forEach(y => {
     const si = _sumG(data[y].saved), so = _sumG(data[y].removed), n = si - so;
-    const isActiveYear = activeYear === y && !activeMonth;
+    const isActiveYear = isListTab() && activeYear === y && !activeMonth;
     const isExpanded   = expandedYears.has(y);
 
     // Gather months
@@ -20948,7 +21046,7 @@ function renderMenuTxDropdown() {
       const mList = document.createElement("div");
       mList.className = "menu-tx-month-list open";
       months.forEach(m => {
-        const isActiveMonth = activeYear === y && activeMonth === m;
+        const isActiveMonth = isListTab() && activeYear === y && activeMonth === m;
         const [my, mm] = m.split("-");
         const label = new Date(+my, +mm - 1, 1).toLocaleString("en-AU", { month: "long", year: "numeric" });
         const mbtn = document.createElement("button");
@@ -21100,7 +21198,7 @@ function renderYearSheet() {
   years.forEach(y => {
     const si = _sG2(data[y].saved), so = _sG2(data[y].removed), n = si - so;
     const isExpanded = expandedYears.has(y);
-    const isActiveYear = activeYear === y && !activeMonth;
+    const isActiveYear = isListTab() && activeYear === y && !activeMonth;
 
     // Gather months with transactions
     const monthSet = new Set();
@@ -21151,7 +21249,7 @@ function renderYearSheet() {
       const mList = document.createElement("div");
       mList.className = "ysheet-month-list open";
       months.forEach(m => {
-        const isActiveMonth = activeYear === y && activeMonth === m;
+        const isActiveMonth = isListTab() && activeYear === y && activeMonth === m;
         const [my, mm] = m.split("-");
         const label = new Date(+my, +mm - 1, 1).toLocaleString("en-AU", { month: "long", year: "numeric" });
         const mbtn = document.createElement("button");
@@ -21502,7 +21600,7 @@ function tickCompatExportCount() {
     const count = parseInt(localStorage.getItem(COMPAT_REMINDER_KEY) || "0", 10) + 1;
     localStorage.setItem(COMPAT_REMINDER_KEY, count.toString());
     if (count > 0 && count % COMPAT_REMINDER_EVERY === 0) {
-      toast(`${count} change${count !== 1 ? "s" : ""} since your last backup. Back up from Menu → Save & backup`, "notice");
+      toast(`${count} change${count !== 1 ? "s" : ""} since your last backup. Back up from Menu → Settings → Save & backup`, "notice");
       dbg("Compat reminder: " + count + " tx since last export");
     }
   } catch {}
@@ -21550,7 +21648,7 @@ function welcomeUseBrowser() {
   document.getElementById("welcome-modal").classList.add("hidden");
   // Save an empty data marker so we don't show welcome next time
   saveLocal();
-  toast("Using browser storage — you can change this in Menu → Save & backup");
+  toast("Using browser storage — you can change this in Menu → Settings → Save & backup");
 }
 
 function initApp() {
@@ -21620,7 +21718,7 @@ function initApp() {
   // Gate 1 of 2 — see the note in hideLockScreen(). vhLoadPrefs() is safe to call
   // twice; vhInit() calls it again and it is a pure read of localStorage.
   vhLoadPrefs(); vhMaybeReorder("page load");
-  if (!_didHomeLanding) { _didHomeLanding = true; switchTab("home"); }
+  if (!_didHomeLanding) { _didHomeLanding = true; _navReplaceNext = true; switchTab("home"); }
   bindHourlyTick();
 }
 
@@ -22558,6 +22656,114 @@ function addRecurringRule() {
 
 // Delete a recurring rule by index and refresh the list
 
+// ─── Back button and current view (N2, N4 — v6.13.0) ──────────────────────────
+// Each move between Home, the list, Advanced Search and Charts — and between
+// years and months on the list — gets its own history entry, so Back (and
+// swipe-back on iPhone) returns to the previous screen instead of leaving Vault.
+// Back first closes whatever is open on top: a menu, sheet or popup. A required
+// decision stays, and so does a form with typed input (design-rules §4).
+// About and Privacy keep their own #about / #privacy entries.
+let _navReady = false, _navReplaceNext = false, _navRestoring = false, _navCur = null, _navLeaveY = null;
+const NAV_TABS = ["home", "all", "saved", "removed", "report", "charts"];
+function navState() {
+  return { vault: "view", tab: activeTab, year: activeYear || "all-years", month: activeMonth || null, acc: activeAccountFilter || "all" };
+}
+function navKey(st) { return st ? [st.tab, st.year, st.month].join("|") : ""; }
+// Called at the end of every render(): a new view pushes an entry; anything else
+// (a re-render, a different account pill) updates the current one.
+function navSync() {
+  if (!_navReady) { _navLeaveY = null; return; }
+  const st = navState();
+  try {
+    if (_navReplaceNext || _navRestoring || navKey(st) === navKey(_navCur)) {
+      history.replaceState(Object.assign({}, st, { y: _navCur && navKey(st) === navKey(_navCur) ? (_navCur.y || 0) : 0 }), "");
+    } else {
+      const y = _navLeaveY != null ? _navLeaveY : (window.scrollY || 0);
+      history.replaceState(Object.assign({}, _navCur, { y }), "");
+      history.pushState(st, "");
+    }
+    _navCur = st;
+  } catch (e) { dbg("navSync: " + e.message); }
+  _navReplaceNext = false;
+  _navLeaveY = null;
+}
+function navInit() {
+  if (_navReady) return;
+  try {
+    const hash = location.hash;
+    const base = location.pathname + location.search;
+    const st = navState();
+    history.replaceState({ vault: "root" }, "", base);
+    history.pushState(st, "", base);
+    _navCur = st; _navReady = true; _navReplaceNext = false;
+    if (hash === "#privacy") history.pushState(null, "", base + "#privacy");
+  } catch (e) { dbg("navInit: " + e.message); }
+}
+function navRestore(st) {
+  _navRestoring = true;
+  try {
+    activeYear = (st.year === "all-years" || data[st.year]) ? st.year : "all-years";
+    activeMonth = (st.month && activeYear !== "all-years") ? st.month : null;
+    activeAccountFilter = (st.acc === "all" || getAccountById(st.acc)) ? st.acc : "all";
+    _currentPage = 1;
+    const tab = NAV_TABS.includes(st.tab) ? st.tab : "home";
+    if (tab === "report") _asFromHome = true;   // come back to the last search, not a blank one
+    _navLeaveY = 0;
+    switchTab(tab);
+  } finally { _navRestoring = false; }
+  const y = st.y || 0;
+  requestAnimationFrame(() => window.scrollTo(0, y));
+}
+// Close the top thing that's open. True if Back should stay on this screen
+// (something closed, or something that can't be closed by Back is showing).
+function navCloseTop() {
+  const lock = document.getElementById("vault-lock-screen");
+  if (lock && !lock.classList.contains("hidden")) return true;
+  if (typeof _colorStripOpenId !== "undefined" && _colorStripOpenId) { closeColorStrip(); return true; }
+  const pdf = document.getElementById("pdf-preview-overlay");
+  if (pdf && !pdf.classList.contains("hidden")) { closePdfPreview(); return true; }
+  const hm = document.getElementById("vh-home-menu");
+  if (hm && hm.classList.contains("open")) { vhHomeMenuClose(); return true; }
+  const dm = document.getElementById("desktop-menu");
+  if (dm && dm.classList.contains("open")) { closeDesktopMenu(); return true; }
+  const top = topOpenPopup();
+  if (top) {
+    if (POPUP_DECISIONS.has(top.id)) return true;
+    if (POPUP_FORMS.has(top.id) && top.dataset.dirty === "1") { toast("Tap Cancel to leave without saving", "notice"); return true; }
+    dismissPopup(top); return true;
+  }
+  const add = document.getElementById("add-sheet");
+  if (add && add.classList.contains("open") && add.dataset.dirty === "1") { toast("Tap ✕ to leave without saving", "notice"); return true; }
+  if (document.querySelector("#add-sheet.open, #menu-sheet.open, #year-sheet.open")) { closeSheets(); return true; }
+  const as = document.getElementById("as-sheet");
+  if (as && as.classList.contains("open") && typeof asCloseSheet === "function") { asCloseSheet(); return true; }
+  const vs = document.getElementById("vh-search-corner");
+  if (vs && vs.classList.contains("open")) { vhSearchClose(); return true; }
+  return false;
+}
+window.addEventListener("popstate", e => {
+  if (!_navReady) return;
+  const h = location.hash;
+  if (h === "#privacy" || h === "#about") return;          // those overlays own their entries
+  const priv = document.getElementById("privacy-overlay");
+  if (priv && priv.classList.contains("open")) return;     // checkPrivacyHash closes it
+  const about = document.getElementById("about-overlay");
+  if (about && about.classList.contains("open")) { about.classList.remove("open"); about.classList.add("hidden"); return; }
+  if (navCloseTop()) { try { history.pushState(_navCur, ""); } catch {} return; }
+  const st = e.state;
+  if (st && st.vault === "view") { navRestore(st); return; }
+  if (st && st.vault === "root") { try { history.back(); } catch {} }   // Back from the first screen leaves Vault
+});
+// Highlight the view you're on in both menus.
+function navMarkCurrent() {
+  const cur = isListTab() ? "list" : activeTab;
+  document.querySelectorAll("[data-nav]").forEach(b => {
+    const on = b.dataset.nav === cur;
+    b.classList.toggle(b.classList.contains("dmenu-btn") ? "dmenu-current" : "menu-item-active", on);
+    if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+  });
+}
+
 // ─── privacy policy overlay ────────────────────────────────────────────────────
 // Accessible at vaultsavings.app/#privacy — hash routing opens/closes it.
 
@@ -22609,6 +22815,7 @@ try { window.addEventListener("load", checkPrivacyHash); } catch {}
 // ─── bootstrap ────────────────────────────────────────────────────────────────
 // Launch immediately — no login gate needed; data security is handled by file encryption.
 initApp();
+navInit();
 </script>
 
   <!-- ── Privacy Policy overlay ── -->
@@ -22787,7 +22994,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.12.1</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.13.0</div>
         </div>
 
         <div class="pp-cards">
@@ -22897,7 +23104,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v6.12.1</div>
+  <div id="version-footer">v6.13.0</div>
 
 </body>
 </html>
