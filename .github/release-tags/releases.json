@@ -1462,5 +1462,24 @@
       "Export on the transaction list covers what's on screen (period, tab and account), the same as Print, and both menu items say what they'll cover",
       "Home's ⋮ menu says \"Customise Home\" instead of \"Edit\", and help text points to Menu → Settings → Save & backup"
     ]
+  },
+  {
+    "tag": "v6.14.0",
+    "sha": "1ed33b74746c69bc034220e194011c0a744c3fd9",
+    "date": "2026-11-09",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": null,
+    "versioned_at_release": true,
+    "commits": [
+      "1ed33b7"
+    ],
+    "notes": [
+      "On a phone, a tab bar at the bottom (Home, Transactions, Add, Search and Menu) replaces the floating Menu and Add New buttons, so they no longer cover your amounts. Tap the tab you're on to jump back to the top",
+      "Tap the title of the transaction list to pick a month or year, with quick picks for this month, last month and this year. It keeps the account you're looking at",
+      "The Menu fits on one screen: Recurring, Accounts and Goals are together under Manage, and Settings has its own page",
+      "On a computer, Home, Search and Charts are in the sidebar above your years, and the Menu keeps Manage, Data and Settings",
+      "Advanced Search is called Search again"
+    ]
   }
 ]
