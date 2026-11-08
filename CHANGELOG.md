@@ -10,6 +10,15 @@ Version numbers follow [Semantic Versioning](https://semver.org/) and were assig
 
 The first release is v1.0.0. A major bump resets minor and patch to 0, a minor bump resets patch to 0, and patch rolls over into the next minor after .99. Types marked \* are judgement calls, explained in [Notes](#notes) at the end.
 
+## v6.15.0 — 2026-11-09
+
+Minor · `765261d`
+
+- A new look: a deeper black, a richer gold with a gradient on your balance, and brighter greens, reds and blues
+- Warnings and notices are orange, so gold only marks your own actions and what's selected
+- Easier to read: all text meets the 4.5:1 contrast guideline, and text on coloured buttons and messages is dark
+- Charts and the Safari toolbar follow the new colours; printouts keep their paper colours
+
 ## v6.14.0 — 2026-11-09
 
 Minor · `1ed33b7`

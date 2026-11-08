@@ -1481,5 +1481,23 @@
       "On a computer, Home, Search and Charts are in the sidebar above your years, and the Menu keeps Manage, Data and Settings",
       "Advanced Search is called Search again"
     ]
+  },
+  {
+    "tag": "v6.15.0",
+    "sha": "765261d9e94f8a485a75710187a8fed07fd77f9d",
+    "date": "2026-11-09",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": null,
+    "versioned_at_release": true,
+    "commits": [
+      "765261d"
+    ],
+    "notes": [
+      "A new look: a deeper black, a richer gold with a gradient on your balance, and brighter greens, reds and blues",
+      "Warnings and notices are orange, so gold only marks your own actions and what's selected",
+      "Easier to read: all text meets the 4.5:1 contrast guideline, and text on coloured buttons and messages is dark",
+      "Charts and the Safari toolbar follow the new colours; printouts keep their paper colours"
+    ]
   }
 ]
