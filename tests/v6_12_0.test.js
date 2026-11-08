@@ -143,7 +143,7 @@ setTimeout(async () => {
   ok(!!E(`document.querySelector("#toast .toast-undo")`), "a plain toast doesn't wipe the Undo");
   E(`_toastHide();`);
   ok(/Recurring deposit scheduled/.test(E(`document.getElementById("toast").textContent`)), "…and shows next");
-  E(`toast("x", "#c0392b")`); ok(E(`document.getElementById("toast").dataset.kind`) === "error", "legacy red maps to error");
+  E(`toast("x", "var(--red)")`); ok(E(`document.getElementById("toast").dataset.kind`) === "error", "legacy red maps to error");
   E(`toast("x", "var(--gold-dim)")`); ok(E(`document.getElementById("toast").dataset.kind`) === "notice", "legacy gold maps to notice");
   ok(/white-space:\s*normal/.test(html.slice(html.indexOf("#toast {"), html.indexOf("#toast {") + 600)), "toasts wrap");
   ok(E(`recurScheduledMsg("withdraw", 0)`) === "Recurring withdrawal scheduled", "no 'withdraw scheduled'");
@@ -170,7 +170,9 @@ setTimeout(async () => {
   ok(!/monthly or custom/.test(html) && /monthly, quarterly or yearly/.test(html), "About lists the real frequencies");
   ok(!/Open source &amp; independent/.test(html), "no 'open source' claim");
   ok(!/Sync to Google Drive, OneDrive, or Dropbox/.test(html), "OneDrive/Dropbox not presented as available");
-  ok(E(`document.getElementById("version-footer").textContent`) === "v6.12.0", "version v6.12.0");
+  // Version: v6.12.0 or later, and the About panel matches the footer.
+  const vf = E(`document.getElementById("version-footer").textContent.trim()`);
+  ok(/^v6\.(1[2-9]|[2-9]\d)\.\d+$/.test(vf) && html.includes(`Version ${vf}<`), "version is v6.12.0 or later, About matches footer: " + vf);
 
   console.log(`${pass} passed, ${fail} failed; page errors: ${errors.length}`);
   errors.slice(0, 5).forEach(e => console.log("  err:", e.slice(0, 200)));

@@ -10,6 +10,41 @@ Version numbers follow [Semantic Versioning](https://semver.org/) and were assig
 
 The first release is v1.0.0. A major bump resets minor and patch to 0, a minor bump resets patch to 0, and patch rolls over into the next minor after .99. Types marked \* are judgement calls, explained in [Notes](#notes) at the end.
 
+## v6.15.0 — 2026-11-09
+
+Minor · `765261d`
+
+- A new look: a deeper black, a richer gold with a gradient on your balance, and brighter greens, reds and blues
+- Warnings and notices are orange, so gold only marks your own actions and what's selected
+- Easier to read: all text meets the 4.5:1 contrast guideline, and text on coloured buttons and messages is dark
+- Charts and the Safari toolbar follow the new colours; printouts keep their paper colours
+
+## v6.14.0 — 2026-11-09
+
+Minor · `1ed33b7`
+
+- On a phone, a tab bar at the bottom (Home, Transactions, Add, Search and Menu) replaces the floating Menu and Add New buttons, so they no longer cover your amounts. Tap the tab you're on to jump back to the top
+- Tap the title of the transaction list to pick a month or year, with quick picks for this month, last month and this year. It keeps the account you're looking at
+- The Menu fits on one screen: Recurring, Accounts and Goals are together under Manage, and Settings has its own page
+- On a computer, Home, Search and Charts are in the sidebar above your years, and the Menu keeps Manage, Data and Settings
+- Advanced Search is called Search again
+
+## v6.13.0 — 2026-11-09
+
+Minor · `ba625ed`
+
+- Back and swipe-back now take you to the previous screen, and close an open menu, sheet or popup first, instead of leaving Vault. A form you've typed into stays open
+- The menu highlights the screen you're on, and a year or month only looks selected while the transaction list is showing
+- Tapping the backup status shows where your backup stands now and the button that fixes it (Set up backup, Reconnect file or Try again). The full list of statuses is folded underneath
+- Export on the transaction list covers what's on screen (period, tab and account), the same as Print, and both menu items say what they'll cover
+- Home's ⋮ menu says "Customise Home" instead of "Edit", and help text points to Menu → Settings → Save & backup
+
+## v6.12.1 — 2026-11-09
+
+Patch · `bc47c56`
+
+- Net is green when you're ahead and red when you're behind, everywhere it's shown. The header, Advanced Search, Home's This Month card and Print showed it in gold
+
 ## v6.12.0 — 2026-11-08
 
 Minor · `a216136`

@@ -1428,5 +1428,76 @@
       "Privacy policy and About corrected: the real backup file name, every outside service Vault uses (including the Google sign-in relay and AI providers), and a working contact email",
       "Wording fixes across the app: sentence case, clearer errors, and nothing promised that isn't available yet"
     ]
+  },
+  {
+    "tag": "v6.12.1",
+    "sha": "bc47c569c0f16b74732e04875c5926e9e53bdeeb",
+    "date": "2026-11-09",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "versioned_at_release": true,
+    "commits": [
+      "bc47c56"
+    ],
+    "notes": [
+      "Net is green when you're ahead and red when you're behind, everywhere it's shown. The header, Advanced Search, Home's This Month card and Print showed it in gold"
+    ]
+  },
+  {
+    "tag": "v6.13.0",
+    "sha": "ba625ed8826fff825c0a91280e6ab729d1bba66c",
+    "date": "2026-11-09",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": null,
+    "versioned_at_release": true,
+    "commits": [
+      "ba625ed"
+    ],
+    "notes": [
+      "Back and swipe-back now take you to the previous screen, and close an open menu, sheet or popup first, instead of leaving Vault. A form you've typed into stays open",
+      "The menu highlights the screen you're on, and a year or month only looks selected while the transaction list is showing",
+      "Tapping the backup status shows where your backup stands now and the button that fixes it (Set up backup, Reconnect file or Try again). The full list of statuses is folded underneath",
+      "Export on the transaction list covers what's on screen (period, tab and account), the same as Print, and both menu items say what they'll cover",
+      "Home's ⋮ menu says \"Customise Home\" instead of \"Edit\", and help text points to Menu → Settings → Save & backup"
+    ]
+  },
+  {
+    "tag": "v6.14.0",
+    "sha": "1ed33b74746c69bc034220e194011c0a744c3fd9",
+    "date": "2026-11-09",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": null,
+    "versioned_at_release": true,
+    "commits": [
+      "1ed33b7"
+    ],
+    "notes": [
+      "On a phone, a tab bar at the bottom (Home, Transactions, Add, Search and Menu) replaces the floating Menu and Add New buttons, so they no longer cover your amounts. Tap the tab you're on to jump back to the top",
+      "Tap the title of the transaction list to pick a month or year, with quick picks for this month, last month and this year. It keeps the account you're looking at",
+      "The Menu fits on one screen: Recurring, Accounts and Goals are together under Manage, and Settings has its own page",
+      "On a computer, Home, Search and Charts are in the sidebar above your years, and the Menu keeps Manage, Data and Settings",
+      "Advanced Search is called Search again"
+    ]
+  },
+  {
+    "tag": "v6.15.0",
+    "sha": "765261d9e94f8a485a75710187a8fed07fd77f9d",
+    "date": "2026-11-09",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": null,
+    "versioned_at_release": true,
+    "commits": [
+      "765261d"
+    ],
+    "notes": [
+      "A new look: a deeper black, a richer gold with a gradient on your balance, and brighter greens, reds and blues",
+      "Warnings and notices are orange, so gold only marks your own actions and what's selected",
+      "Easier to read: all text meets the 4.5:1 contrast guideline, and text on coloured buttons and messages is dark",
+      "Charts and the Safari toolbar follow the new colours; printouts keep their paper colours"
+    ]
   }
 ]
