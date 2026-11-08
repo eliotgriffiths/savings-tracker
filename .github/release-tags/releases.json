@@ -1443,5 +1443,24 @@
     "notes": [
       "Net is green when you're ahead and red when you're behind, everywhere it's shown. The header, Advanced Search, Home's This Month card and Print showed it in gold"
     ]
+  },
+  {
+    "tag": "v6.13.0",
+    "sha": "ba625ed8826fff825c0a91280e6ab729d1bba66c",
+    "date": "2026-11-09",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": null,
+    "versioned_at_release": true,
+    "commits": [
+      "ba625ed"
+    ],
+    "notes": [
+      "Back and swipe-back now take you to the previous screen, and close an open menu, sheet or popup first, instead of leaving Vault. A form you've typed into stays open",
+      "The menu highlights the screen you're on, and a year or month only looks selected while the transaction list is showing",
+      "Tapping the backup status shows where your backup stands now and the button that fixes it (Set up backup, Reconnect file or Try again). The full list of statuses is folded underneath",
+      "Export on the transaction list covers what's on screen (period, tab and account), the same as Print, and both menu items say what they'll cover",
+      "Home's ⋮ menu says \"Customise Home\" instead of \"Edit\", and help text points to Menu → Settings → Save & backup"
+    ]
   }
 ]
