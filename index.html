@@ -100,7 +100,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     color: var(--text-1);
   }
   #header .sub { font-size: 12px; color: var(--text-3); font-weight: 300; }
-  #grand-net { color: var(--gold); font-weight: 500; }
+  #grand-net { color: var(--green); font-weight: 500; }
   #grand-net.neg { color: var(--red); }
 
   .header-btns { display: flex; gap: 6px; align-items: center; }
@@ -1168,7 +1168,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .as-sum .l { font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-3); font-weight:600; }
   .as-sum .v { font-family:'DM Serif Display',serif; font-size:19px; margin-top:3px; font-variant-numeric:tabular-nums; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .as-sum .c { font-size:11px; color:var(--text-3); margin-top:1px; }
-  .as-sum.in .v { color:var(--green); } .as-sum.out .v { color:var(--red); } .as-sum.net .v { color:var(--gold); }
+  .as-sum.in .v { color:var(--green); } .as-sum.out .v { color:var(--red); } .as-sum.net .v { color:var(--green); } .as-sum.net.neg .v { color:var(--red); }
   .as-results { margin-top:14px; }
   .as-rank-note { font-size:11.5px; color:var(--text-3); padding:0 0 6px; }
   #as-table th[data-as-sort] { cursor:pointer; }
@@ -3283,7 +3283,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 #home-panel .vh-month-card-val { font-family:'DM Serif Display',serif; font-size:22px; margin-top:4px; font-variant-numeric:tabular-nums; color:var(--text-1); white-space:nowrap; }
 #home-panel .vh-month-card.saved .vh-month-card-val { color:var(--green); }
 #home-panel .vh-month-card.wit .vh-month-card-val { color:var(--red); }
-#home-panel .vh-month-card.net .vh-month-card-val { color:var(--gold); }
+#home-panel .vh-month-card.net .vh-month-card-val { color:var(--green); }
+#home-panel .vh-month-card.net.neg .vh-month-card-val { color:var(--red); }
 #home-panel .vh-month-delta { font-size:11px; margin-top:4px; font-variant-numeric:tabular-nums; }
 #home-panel .vh-month-delta.good { color:var(--green); }
 #home-panel .vh-month-delta.bad { color:var(--red); }
@@ -6741,6 +6742,10 @@ function currencyFormatter(code, whole) {
 // Amounts that round to zero print as zero, never "-$0.00".
 function _z(n) { return (typeof n === "number" && Math.abs(n) < 0.005) ? 0 : n; }
 function aud(n) { n = _z(n); return fixMinus(currencyFormatter(currencyCode).format(n), n); }
+// A net is red only when it prints as a negative; anything that rounds to zero
+// shows as zero and counts as a surplus (green). design-rules §1.
+function netNeg(n) { return _z(n) < 0; }
+function netColor(n) { return netNeg(n) ? "var(--red)" : "var(--green)"; }
 // Whole-currency figure, for tight spots like the month deltas where cents cost
 // more width than they add meaning.
 function audWhole(n) { n = (typeof n === "number" && Math.abs(n) < 0.5) ? 0 : n; return fixMinus(currencyFormatter(currencyCode, true).format(n), n); }
@@ -11611,13 +11616,13 @@ function renderSidebar() {
   const gn = gi - go;
   const gEl = document.getElementById("grand-net");
   gEl.textContent = aud(gn);
-  gEl.className = gn >= 0 ? '' : 'neg';
+  gEl.className = netNeg(gn) ? 'neg' : '';
 
   // All Years button highlight and net value
   const ayBtn = document.getElementById("sidebar-allyears-btn");
   if (ayBtn) ayBtn.className = "year-btn" + (activeYear === "all-years" ? " active" : "");
   const allNetEl = document.getElementById("sidebar-all-net");
-  if (allNetEl) { allNetEl.textContent = aud(gn); allNetEl.style.color = gn >= 0 ? "var(--green)" : "var(--red)"; }
+  if (allNetEl) { allNetEl.textContent = aud(gn); allNetEl.style.color = netColor(gn); }
 
   const list = document.getElementById("year-list");
   const addArea    = document.getElementById("add-year-area");
@@ -11698,7 +11703,7 @@ function renderSidebar() {
       const mRemoved1 = data[y].removed.filter(r => r[0].startsWith(m));
       const mNet1 = sumArr(mSaved1) - sumArr(mRemoved1);
       mbtn.className = "month-btn" + (isActiveMonth ? " active" : "");
-      mbtn.innerHTML = `<div style="font-weight:400">${label}</div><div style="font-size:11px; font-weight:300; margin-top:2px; color:${mNet1>=0?"var(--green)":"var(--red)"}">${aud(mNet1)}</div>`;
+      mbtn.innerHTML = `<div style="font-weight:400">${label}</div><div style="font-size:11px; font-weight:300; margin-top:2px; color:${netColor(mNet1)}">${aud(mNet1)}</div>`;
       mbtn.onclick = (e) => {
         e.stopPropagation();
         activeYear = y;
@@ -11774,7 +11779,7 @@ function renderMain() {
   document.getElementById("stat-in").textContent  = aud(ti);
   document.getElementById("stat-out").textContent = aud(to);
   const sn = document.getElementById("stat-net");
-  sn.textContent = aud(tn); sn.style.color = tn>=0 ? 'var(--green)' : 'var(--red)';
+  sn.textContent = aud(tn); sn.style.color = netColor(tn);
   // Reset stat labels to defaults (renderMain row section may override these)
   const sil = document.getElementById("stat-in-label");  if (sil) sil.textContent = "Saved";
   const sol = document.getElementById("stat-out-label"); if (sol) sol.textContent = "Withdrawn";
@@ -11952,12 +11957,12 @@ function renderMain() {
       document.getElementById("stat-out").textContent = fmtCurrency(nativeOut, singleAccCurrency);
       const sn2 = document.getElementById("stat-net");
       sn2.textContent = fmtCurrency(nativeNet, singleAccCurrency);
-      sn2.style.color = nativeNet >= 0 ? "var(--green)" : "var(--red)";
+      sn2.style.color = netColor(nativeNet);
     } else {
       document.getElementById("stat-in").textContent  = aud(filteredInGlobal);
       document.getElementById("stat-out").textContent = aud(filteredOutGlobal);
       const sn2 = document.getElementById("stat-net");
-      sn2.textContent = aud(filteredNetGlobal); sn2.style.color = filteredNetGlobal>=0 ? "var(--green)" : "var(--red)";
+      sn2.textContent = aud(filteredNetGlobal); sn2.style.color = netColor(filteredNetGlobal);
     }
   }
 
@@ -11994,7 +11999,7 @@ function renderMain() {
   document.getElementById("foot-label").textContent = `Total (${rows.length} entries)`;
   const ft = document.getElementById("foot-total");
   ft.textContent = aud(totalAmt);
-  ft.style.color = activeTab === "all" ? (totalAmt >= 0 ? "var(--green)" : "var(--red)") : (activeTab === "saved" ? "var(--green)" : "var(--red)");
+  ft.style.color = activeTab === "all" ? netColor(totalAmt) : (activeTab === "saved" ? "var(--green)" : "var(--red)");
   updateSortButtons();
 }
 
@@ -12657,7 +12662,7 @@ function vhRenderMonth() {
   body.innerHTML = `<div class="vh-month-cards">`
     + `<div class="vh-month-card saved"><div class="vh-month-card-label">Saved</div><div class="vh-month-card-val">${aud(cur.saved)}</div>${deltaHtml(curTo.saved, pvTo.saved, true)}</div>`
     + `<div class="vh-month-card wit"><div class="vh-month-card-label">Withdrawn</div><div class="vh-month-card-val">${aud(cur.wit)}</div>${deltaHtml(curTo.wit, pvTo.wit, false)}</div>`
-    + `<div class="vh-month-card net"><div class="vh-month-card-label">Net</div><div class="vh-month-card-val">${aud(cur.net)}</div>${deltaHtml(curTo.net, pvTo.net, true)}</div>`
+    + `<div class="vh-month-card net${netNeg(cur.net) ? " neg" : ""}"><div class="vh-month-card-label">Net</div><div class="vh-month-card-val">${aud(cur.net)}</div>${deltaHtml(curTo.net, pvTo.net, true)}</div>`
     + `</div>` + cmpNote + paceHtml;
   const title = document.getElementById("vh-month-title");
   if (title) title.textContent = `This Month · ${monLong(now)} ${now.getFullYear()}`;
@@ -16776,7 +16781,8 @@ function asRender() {
   document.getElementById("as-out").textContent = aud(tout);
   document.getElementById("as-out-c").textContent = plural(out.length);
   document.getElementById("as-net").textContent = aud(net);
-  document.getElementById("as-net-c").textContent = net >= 0 ? "surplus" : "deficit";
+  document.getElementById("as-net").parentElement.classList.toggle("neg", netNeg(net));
+  document.getElementById("as-net-c").textContent = netNeg(net) ? "deficit" : "surplus";
 
   const table = document.getElementById("as-table"), body = document.getElementById("as-body");
   const empty = document.getElementById("as-empty"), note = document.getElementById("as-rank-note");
@@ -16831,7 +16837,7 @@ function asRender() {
   document.getElementById("as-foot-label").textContent = `Total (${rows.length.toLocaleString()} entries)`;
   const ft = document.getElementById("as-foot-total");
   ft.textContent = aud(net);
-  ft.style.color = net >= 0 ? "var(--green)" : "var(--red)";
+  ft.style.color = netColor(net);
   asRenderPagination(rows.length, totalPages);
 }
 
@@ -18535,10 +18541,10 @@ function openPdfWindow({ title, subLine, rows, filter = "all", oneAccount = fals
       <div class="value">${aud(totalWit)}</div>
       <div class="count">${witCount} transaction${witCount !== 1 ? "s" : ""}</div>
     </div>` : ""}
-    ${showNet ? `<div class="summary-card net">
+    ${showNet ? `<div class="summary-card net${netNeg(net) ? " neg" : ""}">
       <div class="label">Net</div>
-      <div class="value" style="color:#7a6020">${aud(net)}</div>
-      <div class="count">${net >= 0 ? "surplus" : "deficit"}</div>
+      <div class="value">${aud(net)}</div>
+      <div class="count">${netNeg(net) ? "deficit" : "surplus"}</div>
     </div>` : ""}`;
 
   // Same rule as the list on screen: with more than one account, every row says
@@ -18601,7 +18607,8 @@ function openPdfWindow({ title, subLine, rows, filter = "all", oneAccount = fals
   .summary-card .value { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
   .summary-card.dep .value { color: #2a7a52; }
   .summary-card.wit .value { color: #a03030; }
-  .summary-card.net .value { color: #7a6020; }
+  .summary-card.net .value { color: #2a7a52; }
+  .summary-card.net.neg .value { color: #a03030; }
   .summary-card .count { font-size: 11px; color: #888; margin-top: 2px; }
   /* Currency conversion callout — soft amber banner, appears above the summary
      cards whenever the printout contains any foreign-currency transactions. */
@@ -22780,7 +22787,7 @@ initApp();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.12.0</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.12.1</div>
         </div>
 
         <div class="pp-cards">
@@ -22890,7 +22897,7 @@ initApp();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v6.12.0</div>
+  <div id="version-footer">v6.12.1</div>
 
 </body>
 </html>
