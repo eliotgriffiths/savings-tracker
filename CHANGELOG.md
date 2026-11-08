@@ -10,6 +10,31 @@ Version numbers follow [Semantic Versioning](https://semver.org/) and were assig
 
 The first release is v1.0.0. A major bump resets minor and patch to 0, a minor bump resets patch to 0, and patch rolls over into the next minor after .99. Types marked \* are judgement calls, explained in [Notes](#notes) at the end.
 
+## v6.12.0 — 2026-11-08
+
+Minor · `a216136`
+
+- Sync no longer duplicates transactions when another device uses a different year format or financial-year start, or when a date is moved into another year
+- Recurring transactions no longer post twice when two devices open on the same day, and existing duplicates are cleaned up
+- Monthly, quarterly and yearly rules starting on the 29th–31st now land on the last day of shorter months instead of drifting to the 3rd
+- The Add form shows today's date before 10 am (it showed yesterday), and rules with an end date finish on time
+- Undo after deleting a transaction or a whole recurring series
+- Change a transaction between deposit, interest and withdrawal from Edit
+- Hold any transaction on Home (Recent Activity and search) to edit it; hold an Upcoming item to edit its rule
+- Charts tab: an account filter, interest shown separately, and rounded axes in dollars
+- Works offline: fonts and spreadsheet export are built in, and the app no longer waits on a download to open
+- Home and search are about 5 times faster on a long history
+- One style for buttons and popups: every popup has a close button, Escape closes popups, and tapping outside never loses what you've typed
+- Vault's own pop-ups replace the browser's alerts and confirmations
+- Toasts fit on a phone screen, errors stay up longer, and an Undo isn't wiped by the next message
+- Withdrawals show a minus sign everywhere, dates read "3 Jan 2025", and currencies without cents (like the won) show none
+- Rates and method notes on Home fold away under "Rates & notes"; Interest footnotes are numbered top to bottom
+- Print shows the Account column whenever you have more than one account, unless the view is filtered to one
+- Home says when a currency has no exchange rate yet, and a new or restored device shows its full Home layout straight away
+- Searching "60" no longer matches $659.96
+- Privacy policy and About corrected: the real backup file name, every outside service Vault uses (including the Google sign-in relay and AI providers), and a working contact email
+- Wording fixes across the app: sentence case, clearer errors, and nothing promised that isn't available yet
+
 ## v6.11.0 — 2026-11-07
 
 Minor · `76b918a`

@@ -1,4 +1,5 @@
-// Interest card: rate caveats are numbered ¹ ² ³ in footnote order (v6.10.1).
+// Interest card: rate caveats are numbered ¹ ² ³ in reading order — the first marker
+// down the list is ¹ — and the notes print in that order (v6.10.1; reading order v6.12.0).
 // Run from the repo root: npm install jsdom && node tests/footnote_marks.test.js
 const { JSDOM, VirtualConsole } = require("jsdom");
 const fs = require("fs");
@@ -39,11 +40,12 @@ setTimeout(() => {
   Y.ub = { ...base, apy: 0.051, stale: true };
   delete Y.new;
   let r = render();
-  ok(r.marks.UBank === "¹", "UBank stale → ¹ got " + r.marks.UBank);
-  ok(r.marks.ING === "²", "ING variable → ² got " + r.marks.ING);
+  // ING is listed above UBank, so ING's marker is ¹ (Eliot, 8 Nov: a ² must never sit above a ¹).
+  ok(r.marks.ING === "¹", "ING variable (first row) → ¹ got " + r.marks.ING);
+  ok(r.marks.UBank === "²", "UBank stale (second row) → ² got " + r.marks.UBank);
   ok(r.fn.join("") === "¹²", "footnote markers ¹² got " + r.fn.join(""));
-  ok(/^¹UBank has paid no interest since Aug 2026/.test(r.foot[0]), "stale note first: " + r.foot[0]);
-  ok(/^²this rate has varied recently/.test(r.foot[1]), "variable note second: " + r.foot[1]);
+  ok(/^¹This rate has varied recently/.test(r.foot[0]), "variable note first: " + r.foot[0]);
+  ok(/^²UBank has paid no interest since Aug 2026\. .*left out of the 12-month projection\./.test(r.foot[1]), "stale note second, no 'below': " + r.foot[1]);
   ok(!/[†*~]/.test(r.text), "no † * ~ left in card");
 
   // 2. Only variable → it becomes ¹
@@ -56,10 +58,10 @@ setTimeout(() => {
   Y.ub = { ...base, apy: 0.051, stale: true };
   Y.new = { ...base, apy: 0.045, payments: 1, low: 0.045, high: 0.045 };
   r = render();
-  ok(r.marks.UBank === "¹" && r.marks.Macquarie === "²" && r.marks.ING === "³", "¹²³ by note order " + JSON.stringify(r.marks));
+  ok(r.marks.ING === "¹" && r.marks.UBank === "²" && r.marks.Macquarie === "³", "¹²³ in row order " + JSON.stringify(r.marks));
   ok(r.fn.join("") === "¹²³", "footnotes ¹²³ got " + r.fn.join(""));
-  ok(/^²based on very little interest history/.test(r.foot[1]), "history note second");
-  ok(r.proj === "²", "projection value carries history mark ² got " + r.proj);
+  ok(/^³Based on very little interest history/.test(r.foot[2]), "history note third, like its row");
+  ok(r.proj === "³", "projection value carries history mark ³ got " + r.proj);
 
   // 4. Nothing to flag
   Y.ing = { ...base, apy: 0.027 }; Y.ub = { ...base, apy: 0.051 }; delete Y.new;

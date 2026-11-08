@@ -183,7 +183,7 @@ setTimeout(() => {
 
   // ── empty vault ──
   E(`data = {}; _dataVersion++; switchTab("report");`);
-  ok(E(`document.getElementById("as-empty").textContent`) === "No transactions yet.", "empty vault message");
+  ok(E(`document.getElementById("as-empty").textContent`) === "No transactions yet. Tap Add New to record your first one.", "empty vault message");
 
   console.log(`${pass} passed, ${fail} failed; page errors: ${errors.length}`);
   errors.slice(0, 5).forEach(e => console.log("  err:", e.slice(0, 200)));
