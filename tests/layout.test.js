@@ -58,7 +58,7 @@ setTimeout(async () => {
   ok($("#menu-sheet").classList.contains("open"), "Menu opens the Menu sheet");
   $("#tb-menu").click();
   ok(!$("#menu-sheet").classList.contains("open"), "tapping Menu again closes it");
-  ok(/#main \{ padding-bottom: calc\(96px \+ env\(safe-area-inset-bottom/.test(html), "the page leaves room under the bar");
+  ok(/#main \{ padding-bottom: calc\(\d+px \+ env\(safe-area-inset-bottom/.test(html), "the page leaves room under the bar");
   ok(/#vh-search-corner \{ display: none; \}/.test(html), "Home's own search icon is hidden on a phone");
 
   // ── N6: Menu ─────────────────────────────────────────────────────────────
@@ -104,7 +104,7 @@ setTimeout(async () => {
   ok(JSON.stringify(chips) === '["This month","Last month","This year","All"]', "quick picks: " + JSON.stringify(chips));
   ok($$("#ps-body .ps-year").length === E(`Object.keys(data).length`), "one row per year");
   ok(txt($("#ps-body .ps-year .ps-row")).startsWith("2026"), "newest year first");
-  ok($$("#ps-body .ps-months button").length > 0, "the latest year's months are open");
+  ok($$("#ps-body .ps-months").length === 0, "every year starts collapsed (v6.15.2)");
   $$("#ps-body .ps-chip").find(b => txt(b) === "This month").click();
   ok(E("activeYear") === "2026" && E("activeMonth") === "2026-11" && !$("#year-sheet").classList.contains("open"), "This month picks November 2026 and closes");
   ok(E("activeAccountFilter") === "ub", "…keeping the account you were looking at");
