@@ -143,7 +143,7 @@ setTimeout(async () => {
   ok(!!E(`document.querySelector("#toast .toast-undo")`), "a plain toast doesn't wipe the Undo");
   E(`_toastHide();`);
   ok(/Recurring deposit scheduled/.test(E(`document.getElementById("toast").textContent`)), "…and shows next");
-  E(`toast("x", "#c0392b")`); ok(E(`document.getElementById("toast").dataset.kind`) === "error", "legacy red maps to error");
+  E(`toast("x", "var(--red)")`); ok(E(`document.getElementById("toast").dataset.kind`) === "error", "legacy red maps to error");
   E(`toast("x", "var(--gold-dim)")`); ok(E(`document.getElementById("toast").dataset.kind`) === "notice", "legacy gold maps to notice");
   ok(/white-space:\s*normal/.test(html.slice(html.indexOf("#toast {"), html.indexOf("#toast {") + 600)), "toasts wrap");
   ok(E(`recurScheduledMsg("withdraw", 0)`) === "Recurring withdrawal scheduled", "no 'withdraw scheduled'");

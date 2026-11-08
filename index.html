@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#07080b">
 <title>Vault</title>
 <!-- Fonts and the spreadsheet library are embedded so Vault works offline and paints
      without waiting on Google Fonts or a CDN. DM Sans and DM Serif Display (Colophon
@@ -32,26 +33,43 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%230f0f11%27%2F%3E%3Crect%20x%3D%273%27%20y%3D%273%27%20width%3D%2726%27%20height%3D%2726%27%20rx%3D%278%27%20fill%3D%27%231a1a1d%27%20stroke%3D%27%23c9a84c%27%20stroke-width%3D%272%27%2F%3E%3Ccircle%20cx%3D%2716%27%20cy%3D%2716%27%20r%3D%279%27%20fill%3D%27none%27%20stroke%3D%27%23c9a84c%27%20stroke-width%3D%272.5%27%2F%3E%3Ccircle%20cx%3D%2716%27%20cy%3D%2716%27%20r%3D%273.5%27%20fill%3D%27%23c9a84c%27%2F%3E%3Cline%20x1%3D%2716%27%20y1%3D%277%27%20x2%3D%2716%27%20y2%3D%2710%27%20stroke%3D%27%23c9a84c%27%20stroke-width%3D%272.5%27%20stroke-linecap%3D%27round%27%2F%3E%3Cline%20x1%3D%2716%27%20y1%3D%2722%27%20x2%3D%2716%27%20y2%3D%2725%27%20stroke%3D%27%23c9a84c%27%20stroke-width%3D%272.5%27%20stroke-linecap%3D%27round%27%2F%3E%3Cline%20x1%3D%277%27%20y1%3D%2716%27%20x2%3D%2710%27%20y2%3D%2716%27%20stroke%3D%27%23c9a84c%27%20stroke-width%3D%272.5%27%20stroke-linecap%3D%27round%27%2F%3E%3Cline%20x1%3D%2722%27%20y1%3D%2716%27%20x2%3D%2725%27%20y2%3D%2716%27%20stroke%3D%27%23c9a84c%27%20stroke-width%3D%272.5%27%20stroke-linecap%3D%27round%27%2F%3E%3Cline%20x1%3D%2716%27%20y1%3D%2712.5%27%20x2%3D%2716%27%20y2%3D%277.5%27%20stroke%3D%27%23c9a84c%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%2F%3E%3Crect%20x%3D%2719%27%20y%3D%2714.5%27%20width%3D%275%27%20height%3D%273%27%20rx%3D%271.5%27%20fill%3D%27%23c9a84c%27%2F%3E%3C%2Fsvg%3E">
 <link rel="apple-touch-icon" href="data:image/png;base64,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">
 <style>
+  /* ── The look: "Brass, punchier" (v6.15.0) ──────────────────────────────────
+     Every colour in the app comes from these roles (design-rules §1). Swapping
+     this block is all a new look, or a light mode, would need. Contrast is at
+     least 4.5:1 for every text role on --bg0, --bg2 and --bg3 (tests/look.test.js). */
   :root {
-    --bg0:       #0f0f11;
-    --bg1:       #161618;
-    --bg2:       #1c1c1f;
-    --bg3:       #242428;
-    --bg4:       #2c2c31;
-    --border:    rgba(255,255,255,0.07);
-    --border-hi: rgba(255,255,255,0.13);
-    --gold:      #c9a84c;
-    --gold-dim:  #8a6f2e;
-    --gold-glow: rgba(201,168,76,0.15);
-    --green:     #3d9e6e;
-    --green-dim: rgba(61,158,110,0.12);
-    --red:       #cf5f57;   /* 4.67:1 on bg1 — #c0504a was 3.86:1, under AA */
-    --red-dim:   rgba(192,80,74,0.12);
-    --text-1:    #f0ede8;
-    --text-2:    #9d9a94;
-    --text-3:    #8a857b;   /* 4.92:1 on bg1, 4.63:1 on bg2 — #5a5854 was 2.55:1 */
-    --radius:    10px;
-    --radius-lg: 16px;
+    --bg0:         #07080b;   /* page */
+    --bg1:         #0e1015;   /* header, tab bar, sheets */
+    --bg2:         #151820;   /* cards, popups */
+    --bg3:         #1d212b;   /* raised: inputs, inner cards */
+    --bg4:         #272c38;   /* tracks, neutral toasts */
+    --border:      rgba(255,255,255,0.075);
+    --border-hi:   rgba(255,255,255,0.15);
+    --text-1:      #f7f3ea;
+    --text-2:      #bdb6a8;   /* 8.0:1 worst */
+    --text-3:      #9a9385;   /* 5.3:1 worst */
+    --accent:      #f2c14e;   /* brand, primary buttons, what's selected */
+    --accent-ink:  #1a1203;   /* text on the accent: 11.1:1 */
+    --accent-dim:  #a5802b;   /* accent borders and "on" switches */
+    --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
+    --hero:        #ffcf5c;   /* the balance on Home */
+    --hero-grad:   linear-gradient(180deg, #ffe08a 0%, #f2c14e 55%, #d99a2b 100%);
+    --in:          #3ddc97;   /* money in, a surplus */
+    --out:         #ff6b62;   /* money out, a deficit, errors, destructive */
+    --interest:    #4cc2ff;   /* interest's pill and chart line */
+    --attention:   #ff9f43;   /* warnings and notices: never the accent */
+    --fill-ink:    #0b0c10;   /* text on a green, red, blue or orange fill */
+    /* Older names, kept so every existing rule follows the look */
+    --gold:        var(--accent);
+    --gold-dim:    var(--accent-dim);
+    --gold-glow:   var(--accent-soft);
+    --green:       var(--in);
+    --green-dim:   color-mix(in srgb, var(--in) 12%, transparent);
+    --red:         var(--out);
+    --red-dim:     color-mix(in srgb, var(--out) 12%, transparent);
+    --vh-blue:     var(--interest);
+    --radius:      10px;
+    --radius-lg:   16px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
@@ -62,7 +80,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     background: var(--border-hi, rgba(255,255,255,0.13));
     border-radius: 99px;
   }
-  ::-webkit-scrollbar-thumb:hover { background: var(--gold-dim, #8a6f2e); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent-dim); }
   ::-webkit-scrollbar-corner { background: transparent; }
   html { scrollbar-width: thin; scrollbar-color: var(--border-hi, rgba(255,255,255,0.13)) transparent; }
   html.sandbox-mode { scrollbar-width: auto; scrollbar-color: auto; }
@@ -107,8 +125,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
   /* ── browser compatibility warning banner ── */
   #compat-banner {
-    background: rgba(192,80,74,0.1);
-    border-bottom: 1px solid rgba(192,80,74,0.25);
+    background: color-mix(in srgb, var(--out) 10%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--out) 25%, transparent);
     flex-shrink: 0;
   }
   #compat-banner-inner {
@@ -119,13 +137,13 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0;
   }
   #compat-banner-text {
-    font-size: 12px; color: #e07a75; font-weight: 400; line-height: 1.55;
+    font-size: 12px; color: var(--out); font-weight: 400; line-height: 1.55;
   }
   #compat-banner-learn {
     align-self: flex-start;
   }
   #compat-banner-dismiss {
-    background: none; border: none; color: #e07a75; font-size: 16px;
+    background: none; border: none; color: var(--out); font-size: 16px;
     cursor: pointer; padding: 0 2px; flex-shrink: 0; opacity: 0.6;
     line-height: 1; margin-top: 1px;
     -webkit-tap-highlight-color: transparent; min-width: 24px; min-height: 24px;
@@ -134,12 +152,12 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   @media (hover: hover) { #compat-banner-dismiss:hover { opacity: 1; } }
   /* Tab conflict banner — amber instead of red */
   #compat-banner.tab-conflict {
-    background: rgba(201,140,40,0.1);
-    border-bottom-color: rgba(201,140,40,0.25);
+    background: color-mix(in srgb, var(--attention) 10%, transparent);
+    border-bottom-color: color-mix(in srgb, var(--attention) 25%, transparent);
   }
-  #compat-banner.tab-conflict #compat-banner-text { color: #c8923a; }
-  #compat-banner.tab-conflict #compat-banner-learn { color: #c8923a; }
-  #compat-banner.tab-conflict #compat-banner-dismiss { color: #c8923a; }
+  #compat-banner.tab-conflict #compat-banner-text { color: var(--attention); }
+  #compat-banner.tab-conflict #compat-banner-learn { color: var(--attention); }
+  #compat-banner.tab-conflict #compat-banner-dismiss { color: var(--attention); }
 
   /* ── local save status pill ── */
   #save-status {
@@ -159,35 +177,35 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
   }
   #save-status.ss-ok {
-    background: rgba(61,158,110,0.10); color: #5ec497;
-    border-color: rgba(61,158,110,0.20); cursor: pointer;
+    background: color-mix(in srgb, var(--in) 10%, transparent); color: var(--in);
+    border-color: color-mix(in srgb, var(--in) 20%, transparent); cursor: pointer;
   }
-  #save-status.ss-ok::before   { background: #5ec497; }
+  #save-status.ss-ok::before   { background: var(--in); }
   #save-status.ss-busy {
-    background: rgba(201,168,76,0.10); color: var(--gold);
-    border-color: rgba(201,168,76,0.20);
+    background: color-mix(in srgb, var(--accent) 10%, transparent); color: var(--gold);
+    border-color: color-mix(in srgb, var(--accent) 20%, transparent);
     animation: ss-pulse 1.4s ease-in-out infinite; cursor: pointer;
   }
   #save-status.ss-busy::before { background: var(--gold); animation: ss-pulse-dot 1.4s ease-in-out infinite; }
   #save-status.ss-warn {
-    background: rgba(201,140,40,0.08); color: #c8923a;
-    border-color: rgba(201,140,40,0.18); cursor: pointer;
+    background: color-mix(in srgb, var(--attention) 8%, transparent); color: var(--attention);
+    border-color: color-mix(in srgb, var(--attention) 18%, transparent); cursor: pointer;
   }
-  #save-status.ss-warn::before { background: #c8923a; }
+  #save-status.ss-warn::before { background: var(--attention); }
   #save-status.ss-err {
-    background: rgba(192,80,74,0.10); color: #e07a75;
-    border-color: rgba(192,80,74,0.20); cursor: pointer;
+    background: color-mix(in srgb, var(--out) 10%, transparent); color: var(--out);
+    border-color: color-mix(in srgb, var(--out) 20%, transparent); cursor: pointer;
   }
-  #save-status.ss-err::before  { background: #e07a75; }
+  #save-status.ss-err::before  { background: var(--out); }
   #save-status.ss-none { display: none; }
   /* Backup status popup: the status you're in now (N7, v6.13.0) */
   .ss-now { border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; border: 1px solid var(--border); background: var(--bg3); }
   .ss-now-label { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; color: var(--text-1); }
   .ss-now-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
   .ss-now-text { font-size: 13px; color: var(--text-2); line-height: 1.5; margin-top: 6px; }
-  .ss-now-ok   { border-color: rgba(61,158,110,0.3); background: rgba(61,158,110,0.07); }   .ss-now-ok .ss-now-dot { background: #5ec497; }
-  .ss-now-warn { border-color: rgba(200,146,58,0.35); background: rgba(200,146,58,0.07); }  .ss-now-warn .ss-now-dot { background: #c8923a; }
-  .ss-now-err  { border-color: rgba(207,95,87,0.35); background: rgba(207,95,87,0.07); }    .ss-now-err .ss-now-dot { background: #e07a75; }
+  .ss-now-ok   { border-color: color-mix(in srgb, var(--in) 30%, transparent); background: color-mix(in srgb, var(--in) 7%, transparent); }   .ss-now-ok .ss-now-dot { background: var(--in); }
+  .ss-now-warn { border-color: color-mix(in srgb, var(--attention) 35%, transparent); background: color-mix(in srgb, var(--attention) 7%, transparent); }  .ss-now-warn .ss-now-dot { background: var(--attention); }
+  .ss-now-err  { border-color: color-mix(in srgb, var(--out) 35%, transparent); background: color-mix(in srgb, var(--out) 7%, transparent); }    .ss-now-err .ss-now-dot { background: var(--out); }
   .ss-now-busy .ss-now-dot { animation: ss-pulse-dot 1.4s ease-in-out infinite; }
   #ss-now-btns { flex-wrap: wrap; }
   #ss-now-btns .pbtn { flex: 1 1 0; white-space: nowrap; padding-left: 10px; padding-right: 10px; }
@@ -210,10 +228,10 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     cursor: pointer; transition: opacity 0.15s, border-color 0.15s, color 0.15s, background 0.15s;
     -webkit-tap-highlight-color: transparent; text-align: center;
   }
-  .pbtn-primary { background: var(--gold); color: #0f0f11; border: 1px solid var(--gold); }
+  .pbtn-primary { background: var(--accent); color: var(--accent-ink); border: 1px solid var(--accent); box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 25%, transparent); }
   .pbtn-secondary { background: transparent; color: var(--text-2); border: 1px solid var(--border-hi); font-weight: 500; }
-  .pbtn-danger { background: var(--red); color: #fff; border: 1px solid var(--red); }
-  .pbtn-danger-quiet { background: transparent; color: var(--red); border: 1px solid rgba(207,95,87,0.45); font-weight: 500; }
+  .pbtn-danger { background: var(--out); color: var(--fill-ink); border: 1px solid var(--out); }
+  .pbtn-danger-quiet { background: transparent; color: var(--red); border: 1px solid color-mix(in srgb, var(--out) 45%, transparent); font-weight: 500; }
   .pbtn:disabled { opacity: 0.45; cursor: default; }
   @media (hover: hover) {
     .pbtn-primary:hover, .pbtn-danger:hover { opacity: 0.88; }
@@ -228,7 +246,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .popup-head h2, .popup-head h3 { flex: 1; min-width: 0; }
   /* "Soon" badge for unfinished features (design-rules §3). */
   .soon-badge { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.04em; color: var(--gold);
-    background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.3); border-radius: 10px; padding: 1px 7px; vertical-align: 1px; }
+    background: color-mix(in srgb, var(--accent) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); border-radius: 10px; padding: 1px 7px; vertical-align: 1px; }
   .vd-msg { font-size: 13px; color: var(--text-2); line-height: 1.6; margin: 10px 0 20px; white-space: pre-line; }
   .vd-input { width: 100%; background: var(--bg3); border: 1px solid var(--border-hi); border-radius: var(--radius);
     padding: 12px 14px; color: var(--text-1); font-size: 16px; font-family: 'DM Sans', sans-serif; outline: none; margin: 4px 0 18px; }
@@ -256,7 +274,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
   .btn-gold {
     background: var(--gold);
-    color: #0f0f11;
+    color: var(--fill-ink);
     border: none;
     border-radius: var(--radius);
     padding: 7px 14px;
@@ -370,7 +388,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .add-year-btns { display: flex; gap: 5px; }
   .btn-confirm {
     flex: 1; background: var(--gold); border: none; border-radius: 7px;
-    padding: 7px 0; color: #0f0f11; font-weight: 600; font-size: 12px;
+    padding: 7px 0; color: var(--fill-ink); font-weight: 600; font-size: 12px;
     font-family: 'DM Sans', sans-serif; cursor: pointer;
   }
   .btn-cancel {
@@ -493,7 +511,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
      spirit as the .acc-pill.holding animation but table-safe (no transform,
      no outer box-shadow that would conflict with cell borders). */
   #tx-body tr.holding, #as-body tr.holding {
-    background: rgba(201,168,76,0.12);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
     transition: background 0.5s ease-out;
   }
   #tx-body tr.holding td, #as-body tr.holding td { color: var(--gold); }
@@ -547,7 +565,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .tx-popup-actions { display: flex; gap: 8px; margin-top: 22px; }
   .btn-save {
     flex: 1; background: var(--gold); border: none; border-radius: var(--radius);
-    padding: 11px 0; color: #0f0f11; font-weight: 700; font-size: 14px;
+    padding: 11px 0; color: var(--fill-ink); font-weight: 700; font-size: 14px;
     font-family: 'DM Sans', sans-serif; cursor: pointer; transition: opacity 0.15s;
   }
   .btn-save:hover { opacity: 0.88; }
@@ -567,12 +585,12 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   /* ── recurring pill + scoped actions inside edit popup ── */
   .popup-recur-pill {
     display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(212,175,55,0.08); border: 1px solid rgba(212,175,55,0.22);
+    background: color-mix(in srgb, var(--accent) 8%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
     border-radius: 20px; padding: 4px 10px 4px 7px;
     margin-bottom: 18px; cursor: pointer; transition: background 0.15s;
     -webkit-tap-highlight-color: transparent;
   }
-  .popup-recur-pill:hover { background: rgba(212,175,55,0.14); }
+  .popup-recur-pill:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); }
   .popup-recur-pill-icon { color: var(--gold); display: flex; align-items: center; }
   .popup-recur-pill-text { font-size: 12px; color: var(--gold); font-weight: 500; }
   .popup-recur-pill-arrow { font-size: 10px; color: var(--gold); opacity: 0.6; margin-left: 1px; }
@@ -596,7 +614,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   }
   .popup-scope-btn:last-child { border-right: none; }
   .popup-scope-btn:hover { background: var(--bg4); color: var(--text-1); }
-  .popup-scope-btn.active { background: var(--gold); color: #0f0f11; font-weight: 700; }
+  .popup-scope-btn.active { background: var(--gold); color: var(--accent-ink); font-weight: 700; }
   .popup-scope-btn.active:hover { opacity: 0.9; }
 
   /* Delete menu — expands in-place */
@@ -640,7 +658,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     text-align: center;
     z-index: 999;
     display: none;
-    color: #fff;
+    color: var(--text-1);
     white-space: normal;
     overflow-wrap: anywhere;
     letter-spacing: 0.02em;
@@ -650,8 +668,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     box-shadow: 0 8px 24px rgba(0,0,0,0.45);
   }
   #toast[data-kind="done"]   { background: var(--bg4); color: var(--text-1); }
-  #toast[data-kind="notice"] { background: var(--gold-dim); border-color: rgba(201,168,76,0.45); color: #fff; }
-  #toast[data-kind="error"]  { background: var(--red); border-color: rgba(255,255,255,0.18); color: #fff; }
+  /* Notices are orange (attention), never the accent; both fills take dark ink */
+  #toast[data-kind="notice"] { background: var(--attention); border-color: transparent; color: var(--fill-ink); }
+  #toast[data-kind="error"]  { background: var(--out); border-color: transparent; color: var(--fill-ink); }
   #toast .toast-undo { margin-left: 12px; background: none; border: none; color: inherit; font: inherit;
     font-weight: 700; text-decoration: underline; cursor: pointer; padding: 0; }
 
@@ -712,7 +731,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .modal-actions { display: flex; gap: 10px; }
   .btn-primary {
     flex: 1; background: var(--gold); border: none; border-radius: var(--radius);
-    padding: 12px 0; color: #0f0f11; font-weight: 700; font-size: 14px;
+    padding: 12px 0; color: var(--fill-ink); font-weight: 700; font-size: 14px;
     font-family: 'DM Sans', sans-serif; cursor: pointer; transition: opacity 0.15s;
   }
   .btn-primary:hover { opacity: 0.88; }
@@ -734,17 +753,17 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     text-align: left;
   }
   .smod-card:hover { border-color: var(--border-hi); background: var(--bg2); }
-  .smod-card.smod-card-warn { border-color: rgba(192,80,74,0.2); }
-  .smod-card.smod-card-warn:hover { border-color: rgba(192,80,74,0.45); }
+  .smod-card.smod-card-warn { border-color: color-mix(in srgb, var(--out) 20%, transparent); }
+  .smod-card.smod-card-warn:hover { border-color: color-mix(in srgb, var(--out) 45%, transparent); }
   .smod-card-icon { width: 28px; text-align: center; flex-shrink: 0; color: var(--text-3); display: flex; align-items: center; justify-content: center; }
   .smod-card:hover .smod-card-icon { color: var(--text-2); }
   .smod-card-body { flex: 1; }
   .smod-card-title { font-size: 13px; font-weight: 600; color: var(--text-1); margin-bottom: 2px; }
   .smod-card-sub { font-size: 11px; color: var(--text-3); font-weight: 400; }
   .smod-card-chevron { font-size: 20px; color: var(--text-3); flex-shrink: 0; line-height: 1; }
-  .smod-card.active-card { border-color: var(--gold-dim); background: rgba(201,168,76,0.06); }
+  .smod-card.active-card { border-color: var(--gold-dim); background: color-mix(in srgb, var(--accent) 6%, transparent); }
   .smod-card.active-card .smod-card-title { color: var(--gold); }
-  .smod-card.pending-card { border-color: rgba(201,168,76,0.2); background: rgba(201,168,76,0.04); }
+  .smod-card.pending-card { border-color: color-mix(in srgb, var(--accent) 20%, transparent); background: color-mix(in srgb, var(--accent) 4%, transparent); }
   .smod-card.pending-card .smod-card-title { color: var(--gold); }
   .smod-card.pending-card .smod-card-sub { color: var(--gold-dim); }
   .smod-panel {
@@ -814,7 +833,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .layout-list::-webkit-scrollbar { width: 5px; }
   .layout-list::-webkit-scrollbar-track { background: transparent; }
   .layout-list::-webkit-scrollbar-thumb { background: var(--border-hi, rgba(255,255,255,0.13)); border-radius: 3px; }
-  .layout-list::-webkit-scrollbar-thumb:hover { background: var(--gold-dim, #8a6f2e); }
+  .layout-list::-webkit-scrollbar-thumb:hover { background: var(--accent-dim); }
   /* No touch-action:none on the row — that blocked scrolling and let the page move.
      Only the drag handle suppresses touch scrolling, so dragging anywhere else on
      the row (or the list) still scrolls normally. */
@@ -825,7 +844,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .layout-row.floating { position: fixed; z-index: 400; box-shadow: 0 14px 34px rgba(0,0,0,0.5);
     border-color: var(--gold-dim); pointer-events: none; opacity: 0.96; margin: 0; }
   .layout-placeholder { border: 1px dashed var(--gold-dim); border-radius: var(--radius);
-    background: rgba(201,168,76,0.06); box-sizing: border-box; }
+    background: color-mix(in srgb, var(--accent) 6%, transparent); box-sizing: border-box; }
   .layout-row.off { opacity: 0.5; }
   .layout-handle { display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     width: 24px; color: var(--text-3); cursor: grab; touch-action: none; }
@@ -835,12 +854,12 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .layout-row.off .layout-row-name { color: var(--text-3); }
   /* toggle switch */
   .layout-toggle { position: relative; width: 40px; height: 23px; flex-shrink: 0; cursor: pointer;
-    background: var(--bg4, #2a2a2e); border: 1px solid var(--border-hi); border-radius: 12px;
+    background: var(--bg4); border: 1px solid var(--border-hi); border-radius: 12px;
     transition: background 0.18s, border-color 0.18s; }
   .layout-toggle.on { background: var(--gold-dim); border-color: var(--gold-dim); }
   .layout-toggle::after { content: ""; position: absolute; top: 2px; left: 2px; width: 17px; height: 17px;
     border-radius: 50%; background: var(--text-2); transition: transform 0.18s, background 0.18s; }
-  .layout-toggle.on::after { transform: translateX(17px); background: #0f0f11; }
+  .layout-toggle.on::after { transform: translateX(17px); background: var(--bg0); }
   .layout-info-btn { display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     width: 26px; height: 26px; background: none; border: none; color: var(--text-3); cursor: pointer;
     -webkit-tap-highlight-color: transparent; border-radius: 50%; }
@@ -856,7 +875,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
      width:100%) can't add padding on top of 100% and overflow the card. */
   #goal-add-btn {
     width: 100%; background: var(--gold); border: none; border-radius: var(--radius);
-    padding: 12px 0; color: #0f0f11; font-weight: 700; font-size: 14px;
+    padding: 12px 0; color: var(--fill-ink); font-weight: 700; font-size: 14px;
     font-family: 'DM Sans', sans-serif; cursor: pointer; transition: opacity 0.15s;
   }
   #goal-add-btn:hover { opacity: 0.88; }
@@ -880,7 +899,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   /* Invalid fields keep their own margin so the message drops into the existing
      gap rather than shifting every field below it down the form. */
   #goal-form .goal-input.invalid,
-  #goal-form .goal-date-wrap.invalid #goal-deadline { border-color: var(--red); background: rgba(192,80,74,0.07); }
+  #goal-form .goal-date-wrap.invalid #goal-deadline { border-color: var(--red); background: color-mix(in srgb, var(--out) 7%, transparent); }
   #goal-form .goal-input.invalid:focus,
   #goal-form .goal-date-wrap.invalid #goal-deadline:focus { border-color: var(--red); }
   .goal-field-err { display: none; font-size: 11.5px; color: var(--red); line-height: 1.4; margin: -10px 0 12px; }
@@ -910,7 +929,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .goal-form-actions { display: flex; gap: 8px; }
   .goal-btn-save {
     flex: 1; background: var(--gold); border: none; border-radius: var(--radius);
-    padding: 12px 0; color: #0f0f11; font-weight: 700; font-size: 14px;
+    padding: 12px 0; color: var(--fill-ink); font-weight: 700; font-size: 14px;
     font-family: 'DM Sans', sans-serif; cursor: pointer; transition: opacity 0.15s;
   }
   .goal-btn-save:hover { opacity: 0.88; }
@@ -936,7 +955,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   #goals-list .goal-row-del { background: none; border: none; color: var(--text-3);
     font-size: 17px; padding: 4px 7px; cursor: pointer; flex-shrink: 0; line-height: 1; }
   #goals-list .goal-row-del:hover { color: var(--red); }
-  #goals-list .goal-row-btn.danger { background: var(--red); border-color: var(--red); color: #fff; font-weight: 600; }
+  #goals-list .goal-row-btn.danger { background: var(--out); border-color: var(--out); color: var(--fill-ink); font-weight: 600; }
   #goals-list .goal-empty { color: var(--text-3); font-size: 13px; padding: 12px 2px; }
   #tx-currency-change-popup {
     position: fixed; inset: 0;
@@ -999,14 +1018,14 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     cursor: pointer; padding: 7px 11px; border-radius: 5px; line-height: 1; flex-shrink: 0;
     transition: color 0.15s, background 0.15s; font-family: 'DM Sans', sans-serif;
   }
-  .recur-edit-btn:hover { color: var(--gold); background: rgba(201,168,76,0.1); }
+  .recur-edit-btn:hover { color: var(--gold); background: color-mix(in srgb, var(--accent) 10%, transparent); }
   #recur-empty { text-align: center; padding: 32px 0; color: var(--text-3); font-size: 13px; font-weight: 300; }
   .recur-history-btn {
     background: transparent; border: none; color: var(--text-3); font-size: 13px;
     cursor: pointer; padding: 7px 11px; border-radius: 5px; line-height: 1; flex-shrink: 0;
     transition: color 0.15s, background 0.15s; font-family: 'DM Sans', sans-serif;
   }
-  .recur-history-btn:hover { color: var(--gold); background: rgba(201,168,76,0.1); }
+  .recur-history-btn:hover { color: var(--gold); background: color-mix(in srgb, var(--accent) 10%, transparent); }
 
   /* Rule history slide-in panel */
   #recur-history-panel {
@@ -1055,12 +1074,12 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .recur-history-skipped { font-size: 11px; color: var(--text-3); font-style: italic; flex-shrink: 0; }
   .recur-history-readd {
     font-size: 11px; font-weight: 600; color: var(--gold); flex-shrink: 0;
-    background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.25);
+    background: color-mix(in srgb, var(--accent) 10%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
     border-radius: 10px; padding: 2px 8px; font-family: 'DM Sans', sans-serif;
     cursor: pointer; transition: background 0.12s;
     -webkit-tap-highlight-color: transparent;
   }
-  .recur-history-readd:hover { background: rgba(212,175,55,0.2); }
+  .recur-history-readd:hover { background: color-mix(in srgb, var(--accent) 20%, transparent); }
   .recur-history-row-tap { transition: background 0.12s; border-radius: 6px; margin: 0 -8px; padding-left: 8px; padding-right: 8px; }
   .recur-history-row-tap:hover { background: var(--bg3); }
   .recur-history-row-tap:active { background: var(--bg4); }
@@ -1083,19 +1102,19 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .recur-form-row .field input:focus { border-color: var(--gold-dim); }
   #recur-add-btn {
     width: 100%; background: var(--gold); border: none; border-radius: var(--radius);
-    padding: 11px 0; color: #0f0f11; font-weight: 700; font-size: 14px;
+    padding: 11px 0; color: var(--fill-ink); font-weight: 700; font-size: 14px;
     font-family: 'DM Sans', sans-serif; cursor: pointer; transition: opacity 0.15s;
   }
   #recur-add-btn:hover { opacity: 0.88; }
   #account-add-btn {
     width: 100%; background: var(--gold); border: none; border-radius: var(--radius);
-    padding: 11px 0; color: #0f0f11; font-weight: 700; font-size: 14px;
+    padding: 11px 0; color: var(--fill-ink); font-weight: 700; font-size: 14px;
     font-family: 'DM Sans', sans-serif; cursor: pointer; transition: opacity 0.15s;
   }
   #account-add-btn:hover { opacity: 0.88; }
   #recur-submit-btn {
     background: var(--gold); border: none; border-radius: var(--radius);
-    padding: 11px 0; color: #0f0f11; font-weight: 700; font-size: 14px;
+    padding: 11px 0; color: var(--fill-ink); font-weight: 700; font-size: 14px;
     font-family: 'DM Sans', sans-serif; cursor: pointer; transition: opacity 0.15s;
   }
   #recur-submit-btn:hover { opacity: 0.88; }
@@ -1171,11 +1190,11 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .as-field.has .as-x { display:block; }
   .as-fbtn { flex-shrink:0; position:relative; display:flex; align-items:center; gap:6px; height:42px; padding:0 14px; background:var(--bg1); border:1px solid var(--border-hi); border-radius:var(--radius); color:var(--text-2); font-size:14px; font-weight:500; font-family:'DM Sans',sans-serif; cursor:pointer; -webkit-tap-highlight-color:transparent; }
   .as-fbtn.on { color:var(--gold); border-color:var(--gold-dim); }
-  .as-badge { min-width:18px; height:18px; padding:0 5px; border-radius:9px; background:var(--gold); color:#111; font-size:11px; font-weight:600; display:none; align-items:center; justify-content:center; }
+  .as-badge { min-width:18px; height:18px; padding:0 5px; border-radius:9px; background:var(--accent); color:var(--accent-ink); font-size:11px; font-weight:600; display:none; align-items:center; justify-content:center; }
   .as-fbtn.on .as-badge { display:inline-flex; }
   .as-chips { display:flex; gap:6px; overflow-x:auto; padding:10px 0 2px; scrollbar-width:none; }
   .as-chips::-webkit-scrollbar { display:none; }
-  .as-chip { flex-shrink:0; display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 6px 0 11px; border-radius:15px; background:rgba(201,168,76,0.1); border:1px solid var(--gold-dim); color:var(--gold); font-size:12.5px; font-weight:500; white-space:nowrap; }
+  .as-chip { flex-shrink:0; display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 6px 0 11px; border-radius:15px; background:color-mix(in srgb, var(--accent) 10%, transparent); border:1px solid var(--gold-dim); color:var(--gold); font-size:12.5px; font-weight:500; white-space:nowrap; }
   .as-chip.from-q { border-style:dashed; padding-right:11px; }
   .as-chip button { background:none; border:none; color:var(--gold); opacity:0.75; font-size:15px; line-height:1; padding:2px 4px; cursor:pointer; }
   .as-chip-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; display:inline-block; }
@@ -1224,7 +1243,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .as-sec h4 { margin:0 0 10px; font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-3); }
   .as-opts { display:flex; flex-wrap:wrap; gap:6px; }
   .as-opt { height:34px; padding:0 13px; border-radius:17px; background:var(--bg3); border:1px solid var(--border); color:var(--text-2); font-size:13px; font-family:'DM Sans',sans-serif; display:inline-flex; align-items:center; gap:7px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
-  .as-opt.active { background:rgba(201,168,76,0.1); border-color:var(--gold-dim); color:var(--gold); }
+  .as-opt.active { background:color-mix(in srgb, var(--accent) 10%, transparent); border-color:var(--gold-dim); color:var(--gold); }
   .as-range { display:none; gap:10px; margin-top:12px; }
   .as-range.show { display:flex; }
   .as-amt-row { display:flex; gap:10px; margin-top:12px; }
@@ -1238,7 +1257,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .as-inp input[type=date] { -webkit-appearance:none; appearance:none; line-height:48px; }
   .as-note { font-size:11px; color:var(--text-3); margin-top:8px; line-height:1.5; }
   .as-sh-foot { padding:12px 18px calc(14px + env(safe-area-inset-bottom)); border-top:1px solid var(--border); }
-  .as-show { width:100%; height:46px; border-radius:var(--radius); background:var(--gold); border:none; color:#15120a; font-size:15px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; }
+  .as-show { width:100%; height:46px; border-radius:var(--radius); background:var(--accent); border:none; color:var(--accent-ink); font-size:15px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; }
   @media (max-width: 640px) {
     /* Full-bleed results like the transaction list. #main already leaves room
        for the tab bar, so only a little extra here. */
@@ -1257,7 +1276,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   }
   .type-pill.dep { background: var(--green-dim); color: var(--green); }
   .type-pill.wit { background: var(--red-dim);   color: var(--red); }
-  .type-pill.int { background: rgba(91,166,211,0.12); color: #5ba6d3; }
+  .type-pill.int { background: color-mix(in srgb, var(--interest) 12%, transparent); color: var(--interest); }
 
   /* ── Account pills (filter strip) ── */
   /* Global button press feedback. Triggered via a JS-added .btn-press class
@@ -1374,7 +1393,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     .acc-pill:hover { color: var(--text-1); border-color: var(--border-hi); }
   }
   .acc-pill.active {
-    background: rgba(201,168,76,0.08);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
     border-color: var(--gold);
     color: var(--gold);
     font-weight: 600;
@@ -1384,7 +1403,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
      the animation completes exactly when the long-press fires. */
   .acc-pill.holding {
     transform: scale(1.06);
-    box-shadow: 0 0 0 3px rgba(201,168,76,0.35);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
     border-color: var(--gold);
     transition: transform 0.5s ease-out, box-shadow 0.5s ease-out, border-color 0.3s ease-out;
   }
@@ -1471,7 +1490,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   }
   @media (hover: hover) {
     .acc-manager-rename-btn:hover { color: var(--gold); border-color: var(--gold-dim); }
-    .acc-manager-delete-btn:hover { color: var(--red);  border-color: rgba(192,80,74,0.4); }
+    .acc-manager-delete-btn:hover { color: var(--red);  border-color: color-mix(in srgb, var(--out) 40%, transparent); }
     .acc-manager-color-btn:hover  { border-color: var(--gold-dim); }
   }
   /* Colour button — the "icon" is a filled circle in the account's current colour */
@@ -1488,9 +1507,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     /* Fades from strong gold through mid gold to fully transparent. Theme-
        agnostic — no hardcoded --bg3 / --border at the end state, so the row's
        actual background and border show through as the pulse resolves. */
-    0%   { background: rgba(201,168,76,0.28); box-shadow: inset 0 0 0 1px var(--gold); }
-    60%  { background: rgba(201,168,76,0.12); box-shadow: inset 0 0 0 1px var(--gold-dim); }
-    100% { background: rgba(201,168,76,0);    box-shadow: inset 0 0 0 1px rgba(201,168,76,0); }
+    0%   { background: color-mix(in srgb, var(--accent) 28%, transparent); box-shadow: inset 0 0 0 1px var(--gold); }
+    60%  { background: color-mix(in srgb, var(--accent) 12%, transparent); box-shadow: inset 0 0 0 1px var(--gold-dim); }
+    100% { background: color-mix(in srgb, var(--accent) 0%, transparent);    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 0%, transparent); }
   }
   .acc-manager-color-btn-dot {
     width: 14px; height: 14px; border-radius: 50%;
@@ -1560,11 +1579,11 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   }
   .tx-page-btn:hover:not(:disabled) {
     color: var(--gold);
-    background: rgba(201,168,76, 0.06);
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
   }
   .tx-page-btn.active {
     color: var(--gold);
-    background: rgba(201,168,76, 0.08);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
     border-color: var(--gold-dim);
     font-weight: 600;
   }
@@ -1641,19 +1660,19 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .import-ai-status { font-size: 12px; color: var(--text-3); margin-top: 6px; min-height: 18px; }
   .import-ai-status.connected { color: var(--green); }
   .import-ai-status.warning { color: var(--gold); }
-  .import-primary-btn { background: var(--gold); border: none; border-radius: var(--radius); padding: 10px 16px; color: #0f0f11; font-weight: 700; font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; white-space: nowrap; }
+  .import-primary-btn { background: var(--gold); border: none; border-radius: var(--radius); padding: 10px 16px; color: var(--fill-ink); font-weight: 700; font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; white-space: nowrap; }
   .import-secondary-btn { background: var(--bg2); border: 1px solid var(--border-hi); border-radius: var(--radius); padding: 10px 14px; color: var(--text-2); font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; }
   .import-tx-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 13px; cursor: pointer; transition: background 0.1s; }
   .import-tx-row:last-child { border-bottom: none; }
   .import-tx-row:hover { background: var(--bg3); }
-  .import-tx-row.flagged { background: rgba(201,168,76,0.04); }
+  .import-tx-row.flagged { background: color-mix(in srgb, var(--accent) 4%, transparent); }
   .import-tx-row.skipped { opacity: 0.4; text-decoration: line-through; cursor: default; }
   .import-tx-date { color: var(--text-3); font-size: 12px; min-width: 90px; }
   .import-tx-type { flex: 1; }
   .import-tx-amount { font-weight: 600; font-variant-numeric: tabular-nums; }
   .import-tx-amount.dep { color: var(--green); }
   .import-tx-amount.wit { color: var(--red); }
-  .import-tx-amount.int { color: #5ba6d3; }
+  .import-tx-amount.int { color: var(--interest); }
   .import-tx-flag { font-size: 14px; flex-shrink: 0; }
   .import-progress-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-2); padding: 4px 0; }
   .import-progress-item .ipi-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
@@ -1665,21 +1684,21 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .import-progress-item.error .ipi-status { color: var(--red); }
   .ai-provider-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; transition: border-color 0.2s, background 0.2s; }
   .ai-provider-card:hover { border-color: var(--border-hi); }
-  .ai-provider-card.active { border-color: var(--gold-dim); background: rgba(201,168,76,0.06); }
+  .ai-provider-card.active { border-color: var(--gold-dim); background: color-mix(in srgb, var(--accent) 6%, transparent); }
   .ai-provider-card.active .ai-provider-name { color: var(--gold); }
-  .ai-provider-card.saved { border-color: rgba(201,168,76,0.2); background: rgba(201,168,76,0.03); }
+  .ai-provider-card.saved { border-color: color-mix(in srgb, var(--accent) 20%, transparent); background: color-mix(in srgb, var(--accent) 3%, transparent); }
   .ai-provider-card.saved .ai-provider-name { color: var(--text-1); }
   .ai-provider-name { font-size: 14px; font-weight: 600; color: var(--text-1); flex: 1; }
   .ai-provider-badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; letter-spacing: 0.05em; text-transform: uppercase; }
   .ai-provider-badge.free { background: rgba(46,158,168,0.15); color: #2E9EA8; }
-  .ai-provider-badge.paid { background: rgba(201,168,76,0.12); color: var(--gold); }
+  .ai-provider-badge.paid { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--gold); }
   .ai-provider-badge.default-badge { background: rgba(46,158,168,0.15); color: var(--green); }
   .ai-provider-key-input { flex: 1; background: var(--bg2); border: 1px solid var(--border-hi); border-radius: var(--radius); padding: 8px 10px; color: var(--text-1); font-size: 16px; font-family: 'DM Sans', sans-serif; outline: none; transition: all 0.2s; }
   .ai-provider-key-input.collapsed { padding: 5px 10px; font-size: 12px; color: var(--text-3); letter-spacing: 2px; cursor: pointer; }
   .ai-provider-key-input.collapsed:hover { border-color: var(--gold); color: var(--text-2); }
   .ai-provider-btn { font-size: 11px; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border-hi); background: var(--bg2); color: var(--text-2); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: color 0.15s, border-color 0.15s; }
   .ai-provider-btn:hover { color: var(--gold); border-color: var(--gold-dim); }
-  .ai-provider-btn.primary { background: var(--gold); color: #0f0f11; border-color: var(--gold); font-weight: 600; }
+  .ai-provider-btn.primary { background: var(--gold); color: var(--accent-ink); border-color: var(--gold); font-weight: 600; }
   .ai-privacy-provider-item { background: var(--bg3); border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.6; }
   .ai-privacy-provider-name { font-weight: 600; color: var(--text-1); margin-bottom: 2px; }
 
@@ -1898,10 +1917,10 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     .menu-item-btn.menu-item-active {
       border-left: 3px solid var(--gold);
       padding-left: 17px;
-      background: rgba(201,168,76,0.05);
+      background: color-mix(in srgb, var(--accent) 5%, transparent);
     }
     .menu-item-btn.menu-item-active .menu-item-icon {
-      background: rgba(201,168,76,0.12);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
       border-color: var(--gold-dim);
       color: var(--gold);
     }
@@ -1954,13 +1973,13 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       transition: background 0.15s, color 0.15s;
       background: transparent; color: var(--text-3);
     }
-    .add-type-btn.active-deposit  { background: var(--green); color: #fff; }
-    .add-type-btn.active-interest { background: #5ba6d3;      color: #fff; }
-    .add-type-btn.active-withdraw { background: var(--red);   color: #fff; }
+    .add-type-btn.active-deposit  { background: var(--in);       color: var(--fill-ink); }
+    .add-type-btn.active-interest { background: var(--interest); color: var(--fill-ink); }
+    .add-type-btn.active-withdraw { background: var(--out);      color: var(--fill-ink); }
 
     #mob-add-btn {
       width: 100%; border: none; border-radius: 12px;
-      padding: 15px 0; color: #fff; font-weight: 600; font-size: 16px;
+      padding: 15px 0; color: var(--fill-ink); font-weight: 600; font-size: 16px;
       font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 4px;
       transition: background 0.2s, opacity 0.15s; letter-spacing: 0.02em;
     }
@@ -2099,7 +2118,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .currency-list-item:last-child { border-bottom: none; }
   @media (hover: hover) { .currency-list-item:hover { background: var(--bg3); } }
   .currency-list-item:active { background: var(--bg3); }
-  .currency-list-item.selected { background: rgba(201,168,76,0.06); }
+  .currency-list-item.selected { background: color-mix(in srgb, var(--accent) 6%, transparent); }
   .currency-list-item.selected .cli-code { color: var(--gold); }
   .cli-code {
     font-size: 13px; font-weight: 700; color: var(--text-1);
@@ -2136,13 +2155,14 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       color: var(--text-3); font: 500 10.5px 'DM Sans', sans-serif; cursor: pointer;
     }
     .tb-btn svg { width: 22px; height: 22px; }
-    .tb-btn.nav-on, body:has(#menu-sheet.open) #tb-menu { color: var(--gold); }
+    .tb-btn.nav-on, body:has(#menu-sheet.open) #tb-menu { color: var(--accent); }
+    .tb-btn.nav-on svg { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 45%, transparent)); }
     .tb-add-wrap { display: flex; justify-content: center; }
     #tb-add {
       width: 52px; height: 52px; border-radius: 50%; border: none; cursor: pointer;
       background: var(--gold); color: var(--bg0); font-size: 28px; line-height: 1;
       display: flex; align-items: center; justify-content: center; margin-top: -22px;
-      box-shadow: 0 6px 18px var(--gold-glow), 0 0 0 5px var(--bg0);
+      box-shadow: 0 0 0 5px var(--bg0), 0 6px 22px color-mix(in srgb, var(--accent) 38%, transparent);
     }
     #tb-add:active { transform: scale(0.95); }
     .menu-version { text-align: center; font-size: 11px; color: var(--text-3); padding: 14px 0 calc(10px + env(safe-area-inset-bottom, 0px)); letter-spacing: 0.04em; }
@@ -2256,7 +2276,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   #desktop-menu.open { animation: _menuOpen 0.18s cubic-bezier(0.4,0,0.2,1) forwards; }
   @keyframes _recurHighlight {
     0%   { border-color: var(--border); }
-    15%  { border-color: rgba(212,175,55,0.8); }
+    15%  { border-color: color-mix(in srgb, var(--accent) 80%, transparent); }
     100% { border-color: var(--border); }
   }
   .recur-item-highlight {
@@ -2326,7 +2346,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   }
   @media (hover: hover) { .dmenu-btn:hover { background: var(--bg3); } .dmenu-btn:hover .dmenu-btn-icon { color: var(--text-1); background: var(--bg3); } }
   /* The view you're on (N4, v6.13.0) */
-  .dmenu-btn.dmenu-current { box-shadow: inset 3px 0 0 var(--gold); background: rgba(201,168,76,0.05); }
+  .dmenu-btn.dmenu-current { box-shadow: inset 3px 0 0 var(--gold); background: color-mix(in srgb, var(--accent) 5%, transparent); }
   .dmenu-btn.dmenu-current .dmenu-btn-label { color: var(--gold); }
   .dmenu-btn.dmenu-current .dmenu-btn-icon { color: var(--gold); }
   .dmenu-btn-icon {
@@ -2412,7 +2432,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       font-weight: 600 !important;
       margin-top: 16px !important;
       background: var(--gold) !important;
-      color: #0f0f11 !important;
+      color: var(--fill-ink) !important;
       border-color: var(--gold) !important;
     }
     #year-format-popup .modal-close {
@@ -2475,7 +2495,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   #sidebar-addnew-btn {
     width: 100%; background: var(--gold); border: none;
     border-radius: var(--radius); padding: 9px 0;
-    color: #0f0f11; font-weight: 700; font-size: 13px;
+    color: var(--fill-ink); font-weight: 700; font-size: 13px;
     font-family: 'DM Sans', sans-serif; cursor: pointer;
     transition: opacity 0.15s; letter-spacing: 0.02em;
   }
@@ -2601,7 +2621,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     border-radius: 10px; padding: 14px 16px;
   }
   #privacy-body .pp-card-icon,
-  #about-body .pp-card-icon { width: 32px; height: 32px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; background: rgba(201,168,76,0.08); border-radius: 8px; color: var(--gold); flex-shrink: 0; }
+  #about-body .pp-card-icon { width: 32px; height: 32px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--accent) 8%, transparent); border-radius: 8px; color: var(--gold); flex-shrink: 0; }
   #privacy-body .pp-card-title,
   #about-body .pp-card-title { font-size: 12px; font-weight: 600; color: var(--text-1); margin-bottom: 3px; }
   #privacy-body .pp-card-body,
@@ -2639,8 +2659,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   }
   #privacy-body .pp-highlight,
   #about-body .pp-highlight {
-    background: rgba(201,168,76,0.05);
-    border: 1px solid rgba(201,168,76,0.2);
+    background: color-mix(in srgb, var(--accent) 5%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
     border-radius: 8px; padding: 14px 18px;
     margin: 16px 0; font-size: 12px;
     color: var(--text-2); line-height: 1.7;
@@ -2693,7 +2713,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     .info-popup-close-btn:hover { border-color: var(--border-hi); color: var(--text-2); }
 
     /* Recurring rule popup elements */
-    .popup-recur-pill:hover { background: rgba(212,175,55,0.08); }
+    .popup-recur-pill:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
     .popup-scope-btn:hover { background: none; color: var(--text-2); }
     .popup-scope-btn.active:hover { opacity: 1; }
     .popup-delete-menu-item:hover { background: none; }
@@ -2701,7 +2721,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     /* Recurring rule list row buttons */
     .recur-delete-btn:hover { background: transparent; }
     .recur-edit-btn:hover, .recur-history-btn:hover { color: var(--text-3); background: transparent; }
-    .recur-history-readd:hover { background: rgba(212,175,55,0.1); }
+    .recur-history-readd:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); }
     .recur-history-row-tap:hover, .recur-history-row-skip:hover { background: transparent; }
     .recur-history-back:hover { color: var(--text-2); }
 
@@ -2713,7 +2733,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
     /* Setup modal cards */
     .smod-card:hover { border-color: var(--border); background: var(--bg3); }
-    .smod-card.smod-card-warn:hover { border-color: rgba(192,80,74,0.2); }
+    .smod-card.smod-card-warn:hover { border-color: color-mix(in srgb, var(--out) 20%, transparent); }
     .smod-card:hover .smod-card-icon { color: var(--text-3); }
     .smod-back:hover { color: var(--gold); }
 
@@ -2735,7 +2755,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   }
 </style>
 <style id="vh-home-styles">
-#home-panel { --vh-blue:#5ba6d3; -webkit-font-smoothing:antialiased; }
+#home-panel { -webkit-font-smoothing:antialiased; }
 #home-panel .vh-section { margin-bottom:24px; }
 #home-panel .vh-section:last-child { margin-bottom:0; }
 /* A real <button>, so the 18 collapse controls are reachable by keyboard, by
@@ -2778,6 +2798,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
    The borders go too: zeroing only the padding left the box's own top and bottom
    border stacked on a filled background, so a collapsed boxed section sat under its
    header as a 2px hairline that the unboxed sections don't have. */
+#home-panel .vh-section.vh-boxed > .vh-section-body { border-color: color-mix(in srgb, var(--accent) 10%, var(--border)); }
 #home-panel .vh-section.vh-boxed.collapsed > .vh-section-body { padding-top:0; padding-bottom:0; border-width:0; }
 #home-panel .vh-rate-note { font-size:10.5px; color:var(--text-3); margin-top:6px; font-style:italic; line-height:1.5; }
 #home-panel .vh-rate-note strong { color:var(--text-2); font-style:normal; font-weight:600; text-transform:uppercase; font-size:9.5px; letter-spacing:0.06em; margin-right:6px; }
@@ -2840,7 +2861,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 #home-panel .vh-recap-empty { color:var(--text-3); font-size:13px; padding:14px 2px; text-align:center; }
 #home-panel .vh-hero { padding:6px 2px 16px; border-bottom:1px solid var(--border); margin-bottom:8px; }
 #home-panel .vh-hero-greet { font-size:12.5px; color:var(--text-2); font-weight:500; }
-#home-panel .vh-hero-total { font-family:'DM Serif Display',serif; font-size:46px; line-height:1.02; color:var(--gold); margin-top:6px; font-variant-numeric:tabular-nums; letter-spacing:-0.01em; }
+#home-panel .vh-hero-total { font-family:'DM Serif Display',serif; font-size:46px; line-height:1.02; color:var(--hero); margin-top:6px; font-variant-numeric:tabular-nums; letter-spacing:-0.01em;
+  background:var(--hero-grad); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
 #home-panel .vh-hero-mom { display:flex; align-items:center; flex-wrap:wrap; gap:6px 14px; margin-top:11px; font-size:13px; font-variant-numeric:tabular-nums; }
 #home-panel .vh-hero-note { margin-top:10px; font-size:11px; font-style:italic; color:var(--gold); line-height:1.45; }
 #home-panel .vh-hero-chip { display:inline-flex; align-items:center; gap:5px; font-weight:600; }
@@ -3088,9 +3110,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   text-align:center; white-space:nowrap; font-variant-numeric:tabular-nums; }
 #home-panel .vh-heat-scalenote { font-size:9.5px; color:var(--text-3); text-align:right; margin-top:5px; font-style:italic; }
 #home-panel .vh-heat-cell.b0 { background:var(--bg3); }
-#home-panel .vh-heat-cell.b1 { background:rgba(201,168,76,0.28); }
-#home-panel .vh-heat-cell.b2 { background:rgba(201,168,76,0.5); }
-#home-panel .vh-heat-cell.b3 { background:rgba(201,168,76,0.75); }
+#home-panel .vh-heat-cell.b1 { background:color-mix(in srgb, var(--accent) 28%, transparent); }
+#home-panel .vh-heat-cell.b2 { background:color-mix(in srgb, var(--accent) 50%, transparent); }
+#home-panel .vh-heat-cell.b3 { background:color-mix(in srgb, var(--accent) 75%, transparent); }
 #home-panel .vh-heat-cell.b4 { background:var(--gold); }
 #home-panel .vh-heat-legend { display:flex; align-items:center; justify-content:flex-end; gap:4px; margin-top:12px; font-size:10px; color:var(--text-3); }
 #home-panel .vh-heat-legend .vh-heat-cell { flex:0 0 11px; width:11px; height:11px; aspect-ratio:auto; }
@@ -3105,21 +3127,21 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 /* Per-metric cell theming. Deposits stay gold (default). Interest = blue,
    withdrawals = red — so the meaning reads at a glance. Legend swatches inside
    the themed card inherit the same ramp. */
-#home-panel .vh-heat-int .vh-heat-cell.b1 { background:rgba(91,166,211,0.28); }
-#home-panel .vh-heat-int .vh-heat-cell.b2 { background:rgba(91,166,211,0.5); }
-#home-panel .vh-heat-int .vh-heat-cell.b3 { background:rgba(91,166,211,0.75); }
+#home-panel .vh-heat-int .vh-heat-cell.b1 { background:color-mix(in srgb, var(--interest) 28%, transparent); }
+#home-panel .vh-heat-int .vh-heat-cell.b2 { background:color-mix(in srgb, var(--interest) 50%, transparent); }
+#home-panel .vh-heat-int .vh-heat-cell.b3 { background:color-mix(in srgb, var(--interest) 75%, transparent); }
 #home-panel .vh-heat-int .vh-heat-cell.b4 { background:var(--vh-blue); }
-#home-panel .vh-heat-wit .vh-heat-cell.b1 { background:rgba(192,80,74,0.28); }
-#home-panel .vh-heat-wit .vh-heat-cell.b2 { background:rgba(192,80,74,0.5); }
-#home-panel .vh-heat-wit .vh-heat-cell.b3 { background:rgba(192,80,74,0.78); }
+#home-panel .vh-heat-wit .vh-heat-cell.b1 { background:color-mix(in srgb, var(--out) 28%, transparent); }
+#home-panel .vh-heat-wit .vh-heat-cell.b2 { background:color-mix(in srgb, var(--out) 50%, transparent); }
+#home-panel .vh-heat-wit .vh-heat-cell.b3 { background:color-mix(in srgb, var(--out) 78%, transparent); }
 #home-panel .vh-heat-wit .vh-heat-cell.b4 { background:var(--red); }
-#home-panel .vh-heat-net .vh-heat-cell.b1 { background:rgba(61,158,110,0.28); }
-#home-panel .vh-heat-net .vh-heat-cell.b2 { background:rgba(61,158,110,0.5); }
-#home-panel .vh-heat-net .vh-heat-cell.b3 { background:rgba(61,158,110,0.75); }
+#home-panel .vh-heat-net .vh-heat-cell.b1 { background:color-mix(in srgb, var(--in) 28%, transparent); }
+#home-panel .vh-heat-net .vh-heat-cell.b2 { background:color-mix(in srgb, var(--in) 50%, transparent); }
+#home-panel .vh-heat-net .vh-heat-cell.b3 { background:color-mix(in srgb, var(--in) 75%, transparent); }
 #home-panel .vh-heat-net .vh-heat-cell.b4 { background:var(--green); }
-#home-panel .vh-heat-net .vh-heat-cell.neg.b1 { background:rgba(192,80,74,0.28); }
-#home-panel .vh-heat-net .vh-heat-cell.neg.b2 { background:rgba(192,80,74,0.5); }
-#home-panel .vh-heat-net .vh-heat-cell.neg.b3 { background:rgba(192,80,74,0.78); }
+#home-panel .vh-heat-net .vh-heat-cell.neg.b1 { background:color-mix(in srgb, var(--out) 28%, transparent); }
+#home-panel .vh-heat-net .vh-heat-cell.neg.b2 { background:color-mix(in srgb, var(--out) 50%, transparent); }
+#home-panel .vh-heat-net .vh-heat-cell.neg.b3 { background:color-mix(in srgb, var(--out) 78%, transparent); }
 #home-panel .vh-heat-net .vh-heat-cell.neg.b4 { background:var(--red); }
   #home-panel .vh-heat-cells .vh-heat-cell { cursor:pointer; -webkit-tap-highlight-color:transparent; }
   #home-panel .vh-heat-cell.sel { outline:2px solid var(--text-1); outline-offset:1px; }
@@ -3262,7 +3284,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 .vh-filter-row::-webkit-scrollbar { display:none; }
 .vh-filter-pill { display:inline-flex; align-items:center; gap:7px; background:var(--bg3); border:1.5px solid var(--border); border-radius:10px; padding:7px 14px; font-size:13px; font-weight:500; color:var(--text-2); font-family:'DM Sans',sans-serif; cursor:pointer; white-space:nowrap; flex-shrink:0; -webkit-tap-highlight-color:transparent; user-select:none; }
 .vh-filter-pill .vh-fp-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
-.vh-filter-pill.active { background:rgba(201,168,76,0.08); border-color:var(--gold); color:var(--gold); font-weight:600; }
+.vh-filter-pill.active { background:color-mix(in srgb, var(--accent) 8%, transparent); border-color:var(--gold); color:var(--gold); font-weight:600; }
 @media (hover:hover) { .vh-filter-pill:not(.active):hover { color:var(--text-1); border-color:var(--border-hi); } }
 #home-panel .vh-compare-pager { display:none; align-items:center; justify-content:space-between; gap:12px; padding:0 2px 12px; }
 #home-panel .vh-pager-btn { background:var(--bg3); border:1px solid var(--border); color:var(--text-2); width:36px; height:36px; border-radius:8px; font-size:17px; line-height:1; display:flex; align-items:center; justify-content:center; cursor:pointer; -webkit-tap-highlight-color:transparent; flex-shrink:0; padding:0; }
@@ -3277,7 +3299,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 #home-panel .vh-compare-bar-wrap { height:8px; background:var(--bg3); border-radius:4px; position:relative; }
 /* Absolutely placed in both layouts so the split view can anchor a bar to the
    zero line from either side. min-width keeps a small month from vanishing. */
-#home-panel .vh-compare-bar { position:absolute; top:0; bottom:0; background:#2c6b4a; border-radius:4px; transition:width 0.4s ease-out; }
+#home-panel .vh-compare-bar { position:absolute; top:0; bottom:0; background:color-mix(in srgb, var(--in) 45%, var(--bg3)); border-radius:4px; transition:width 0.4s ease-out; }
 #home-panel .vh-compare-bar.current { background:var(--green); }
 #home-panel .vh-compare-bar.neg { background:var(--red); }
 #home-panel .vh-compare-bar.tiny { min-width:3px; }
@@ -3308,7 +3330,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 .recur-item.vh-recur-flash { box-shadow:0 0 0 1.5px var(--gold); }
 #home-panel .vh-upcoming-row:last-child { border-bottom:none; }
 #home-panel .vh-recent-row, #home-panel .vh-upcoming-row { -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; transition:background 0.5s ease-out; }
-#home-panel .vh-recent-row.holding, #home-panel .vh-upcoming-row.holding { background:rgba(201,168,76,0.12); }
+#home-panel .vh-recent-row.holding, #home-panel .vh-upcoming-row.holding { background:color-mix(in srgb, var(--accent) 12%, transparent); }
 #home-panel .vh-up-mid { display:flex; align-items:center; gap:10px; min-width:0; }
 #home-panel .vh-up-when { font-size:10.5px; color:var(--text-3); white-space:nowrap; }
 #home-panel .vh-recent-list { display:flex; flex-direction:column; background:var(--bg1); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
@@ -3346,9 +3368,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
    of the row. Inside Recent's flex .vh-recent-who it's simply ignored. */
 #home-panel .vh-recent-type { font-size:11px; padding:2px 8px; border-radius:10px; font-weight:500;
   flex-shrink:0; justify-self:start; }
-#home-panel .vh-recent-type.dep { background:rgba(61,158,110,0.12); color:var(--green); }
-#home-panel .vh-recent-type.wit { background:rgba(192,80,74,0.12); color:var(--red); }
-#home-panel .vh-recent-type.int { background:rgba(91,166,211,0.12); color:var(--vh-blue); }
+#home-panel .vh-recent-type.dep { background:color-mix(in srgb, var(--in) 12%, transparent); color:var(--green); }
+#home-panel .vh-recent-type.wit { background:color-mix(in srgb, var(--out) 12%, transparent); color:var(--red); }
+#home-panel .vh-recent-type.int { background:color-mix(in srgb, var(--interest) 12%, transparent); color:var(--vh-blue); }
 #home-panel .vh-recent-amt { text-align:right; font-size:13.5px; font-weight:500; font-variant-numeric:tabular-nums; color:var(--text-1); }
 #home-panel .vh-recent-amt-conv { font-size:10.5px; color:var(--text-3); margin-top:1px; font-variant-numeric:tabular-nums; }
 #home-panel .vh-chart-card { background:var(--bg1); border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; }
@@ -3361,7 +3383,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 #home-panel .vh-chart-range .vh-opt { padding:5px 4px; font-size:11px; }
 #home-panel .vh-proj-toggle { display:inline-flex; align-items:center; justify-content:center; gap:5px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); color:var(--text-3); font-size:10.5px; font-weight:500; padding:0 11px; cursor:pointer; -webkit-tap-highlight-color:transparent; white-space:nowrap; }
 #home-panel .vh-proj-toggle .vh-proj-dash { width:12px; height:0; border-top:2px dashed currentColor; opacity:0.85; }
-#home-panel .vh-proj-toggle.on { color:var(--gold); border-color:var(--gold-dim); background:rgba(201,168,76,0.08); }
+#home-panel .vh-proj-toggle.on { color:var(--gold); border-color:var(--gold-dim); background:color-mix(in srgb, var(--accent) 8%, transparent); }
 /* The explainer used to be reachable only by a 450ms long-press, advertised in a
    title attribute that never appears on touch — so on a phone it was unreachable.
    Its own button, beside the toggle. The long-press still works. */
@@ -3543,10 +3565,10 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       <div class="smod-panel-body">
 
         <!-- Connected state -->
-        <div id="gd-linked-info" style="display:none; background:var(--green-dim); border:1px solid rgba(61,158,110,0.2); border-radius:var(--radius); padding:10px 14px; margin-bottom:14px; align-items:center; gap:8px;">
-          <span style="font-size:14px; line-height:1; color:#5ec497;"></span>
+        <div id="gd-linked-info" style="display:none; background:var(--green-dim); border:1px solid color-mix(in srgb, var(--in) 20%, transparent); border-radius:var(--radius); padding:10px 14px; margin-bottom:14px; align-items:center; gap:8px;">
+          <span style="font-size:14px; line-height:1; color:var(--in);"></span>
           <div style="flex:1;">
-            <div style="font-size:13px; color:#5ec497; font-weight:500;">Connected — auto-saving active</div>
+            <div style="font-size:13px; color:var(--in); font-weight:500;">Connected — auto-saving active</div>
           </div>
         </div>
 
@@ -3555,7 +3577,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
             <svg width="14" height="14" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px; margin-right:6px;"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>
             Sign in with Google
           </button>
-          <button class="btn-local" id="btn-gd-unlink" style="display:none; color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="unlinkGoogleDrive()">Disconnect</button>
+          <button class="btn-local" id="btn-gd-unlink" style="display:none; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="unlinkGoogleDrive()">Disconnect</button>
         </div>
 
         <div id="gd-status" style="display:none; font-size:12px; text-align:center; padding:4px 0; margin-bottom:8px;"></div>
@@ -3581,9 +3603,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       <div class="smod-panel-body">
 
         <!-- Connected state -->
-        <div id="nas-linked-info" style="display:none; background:var(--green-dim); border:1px solid rgba(61,158,110,0.2); border-radius:var(--radius); padding:10px 14px; margin-bottom:14px; align-items:center; gap:8px;">
-          <span style="font-size:14px; line-height:1; color:#5ec497;"></span>
-          <span style="font-size:13px; color:#5ec497; font-weight:500;">Connected — auto-saving active</span>
+        <div id="nas-linked-info" style="display:none; background:var(--green-dim); border:1px solid color-mix(in srgb, var(--in) 20%, transparent); border-radius:var(--radius); padding:10px 14px; margin-bottom:14px; align-items:center; gap:8px;">
+          <span style="font-size:14px; line-height:1; color:var(--in);"></span>
+          <span style="font-size:13px; color:var(--in); font-weight:500;">Connected — auto-saving active</span>
         </div>
 
         <!-- Credentials form -->
@@ -3610,7 +3632,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
             <button class="btn-local" style="flex:1;" id="btn-nas-save-now" onclick="saveToNAS(true)">Save now</button>
             <button class="btn-local" style="flex:1; background:var(--bg3);" onclick="loadFromNAS()">Load from server</button>
           </div>
-          <button class="btn-local" id="btn-nas-unlink" style="display:none; color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="unlinkNAS()">Disconnect</button>
+          <button class="btn-local" id="btn-nas-unlink" style="display:none; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="unlinkNAS()">Disconnect</button>
         </div>
 
         <div id="nas-status" style="display:none; font-size:12px; text-align:center; padding:4px 0; margin-bottom:8px;"></div>
@@ -3639,18 +3661,18 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       </div>
       <div class="smod-panel-body">
 
-        <div id="local-linked-info" style="display:none; background:var(--green-dim); border:1px solid rgba(61,158,110,0.2); border-radius:var(--radius); padding:10px 14px; margin-bottom:14px;">
-          <span style="font-size:13px; color:#5ec497; font-weight:500;">File linked — auto-saving active</span>
+        <div id="local-linked-info" style="display:none; background:var(--green-dim); border:1px solid color-mix(in srgb, var(--in) 20%, transparent); border-radius:var(--radius); padding:10px 14px; margin-bottom:14px;">
+          <span style="font-size:13px; color:var(--in); font-weight:500;">File linked — auto-saving active</span>
         </div>
 
-        <div id="local-unsupported-info" style="display:none; background:rgba(192,80,74,0.07); border:1px solid rgba(192,80,74,0.25); border-radius:var(--radius); padding:12px 14px; margin-bottom:14px;">
+        <div id="local-unsupported-info" style="display:none; background:color-mix(in srgb, var(--out) 7%, transparent); border:1px solid color-mix(in srgb, var(--out) 25%, transparent); border-radius:var(--radius); padding:12px 14px; margin-bottom:14px;">
           <div style="font-size:11px; font-weight:600; color:var(--red); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;"><span id="local-unsupported-title">Auto-save not available</span></div>
           <div id="local-unsupported-text" style="font-size:12px; color:var(--text-3); line-height:1.7;"></div>
           <div style="margin-top:8px; font-size:12px; color:var(--text-3); line-height:1.7;">For auto-save, use <strong style="color:var(--text-2);">Network location / NAS</strong> or a <strong style="color:var(--text-2);">cloud service</strong> instead.</div>
-          <button onclick="openCompatInfo()" style="margin-top:10px; background:none; border:1px solid rgba(192,80,74,0.3); border-radius:6px; color:var(--red); font-size:11px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; padding:5px 10px;">Learn more</button>
+          <button onclick="openCompatInfo()" style="margin-top:10px; background:none; border:1px solid color-mix(in srgb, var(--out) 30%, transparent); border-radius:6px; color:var(--red); font-size:11px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; padding:5px 10px;">Learn more</button>
         </div>
 
-        <div id="local-permission-info" style="display:none; background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.25); border-radius:var(--radius); padding:12px 14px; margin-bottom:14px;">
+        <div id="local-permission-info" style="display:none; background:color-mix(in srgb, var(--attention) 8%, transparent); border:1px solid color-mix(in srgb, var(--attention) 25%, transparent); border-radius:var(--radius); padding:12px 14px; margin-bottom:14px;">
           <div style="font-size:11px; font-weight:700; color:var(--gold); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;">Permission needed</div>
           <div id="local-permission-info-body" style="font-size:12px; color:var(--text-3); line-height:1.6; margin-bottom:10px;">Your linked backup file lost write access — this usually happens after the browser restarts. Reconnect to resume auto-saving.</div>
           <button class="btn-gold" style="font-size:12px; padding:6px 14px;" onclick="reauthoriseLocalFile()">Reconnect file</button>
@@ -3662,7 +3684,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
             <button class="btn-local" style="flex:1;" id="btn-local-save-now" onclick="saveToLocalFile(true)">Save now</button>
             <button class="btn-local" style="flex:1; background:var(--bg3);" onclick="loadFromLocalFile()">Load file</button>
           </div>
-          <button class="btn-local" id="btn-local-unlink" style="display:none; color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="unlinkLocalFile()">Unlink file location</button>
+          <button class="btn-local" id="btn-local-unlink" style="display:none; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="unlinkLocalFile()">Unlink file location</button>
         </div>
 
         <div id="local-file-status" style="display:none; font-size:12px; text-align:center; padding:4px 0; margin-bottom:8px;"></div>
@@ -3675,7 +3697,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
         </div>
 
         <div id="local-clear-section" style="display:none; margin-top:12px; border-top:1px solid var(--border); padding-top:12px;">
-          <button class="btn-local" style="width:100%; color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="clearBrowserData()">Clear browser data</button>
+          <button class="btn-local" style="width:100%; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="clearBrowserData()">Clear browser data</button>
         </div>
 
         <button class="info-popup-close-btn" style="margin-top:12px;" onclick="closeSetup()">Done</button>
@@ -3697,14 +3719,14 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <button class="btn-local" style="width:100%;" onclick="useLocal(); closeSmodPanel();">Continue with browser storage</button>
         </div>
 
-        <div style="padding:14px 16px; background:rgba(192,80,74,0.07); border:1px solid rgba(192,80,74,0.25); border-radius:var(--radius); margin-bottom:12px;">
+        <div style="padding:14px 16px; background:color-mix(in srgb, var(--out) 7%, transparent); border:1px solid color-mix(in srgb, var(--out) 25%, transparent); border-radius:var(--radius); margin-bottom:12px;">
           <div style="font-size:11px; font-weight:600; color:var(--red); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">No backup</div>
           <div style="font-size:12px; color:var(--text-3); line-height:1.8;">Your data exists only in this browser. It will be <strong style="color:var(--text-2);">permanently lost</strong> if you clear your browser data, uninstall the browser, or switch to another device or browser.</div>
           <div style="margin-top:10px; font-size:12px; color:var(--text-3); line-height:1.8;">For a recoverable backup, use <strong style="color:var(--text-2);">Local file</strong> instead — it saves to a file you control.</div>
         </div>
 
         <div style="display:flex; flex-direction:column; gap:8px;">
-          <button class="btn-local" style="width:100%; color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="clearBrowserData()">Clear browser data</button>
+          <button class="btn-local" style="width:100%; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="clearBrowserData()">Clear browser data</button>
           <button class="info-popup-close-btn" onclick="closeSetup()">Done</button>
         </div>
 
@@ -3839,12 +3861,12 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
         <span style="color:var(--green); font-weight:500;">✓ Yes</span>
         <span style="color:var(--red);">✗ No</span>
       </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; padding:9px 12px; border-bottom:1px solid var(--border); background:rgba(192,80,74,0.04);">
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; padding:9px 12px; border-bottom:1px solid var(--border); background:color-mix(in srgb, var(--out) 4%, transparent);">
         <span style="color:var(--text-2); font-weight:500;">iOS</span>
         <span style="color:var(--red);">✗ No</span>
         <span style="color:var(--red);">✗ No</span>
       </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; padding:9px 12px; background:rgba(192,80,74,0.04);">
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; padding:9px 12px; background:color-mix(in srgb, var(--out) 4%, transparent);">
         <span style="color:var(--text-2); font-weight:500;">iPadOS</span>
         <span style="color:var(--red);">✗ No</span>
         <span style="color:var(--red);">✗ No</span>
@@ -3856,7 +3878,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       <div style="padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:10px; font-size:12px; color:var(--text-3); line-height:1.7;">
         <strong style="color:var(--text-2);">Why iOS and iPadOS can't support this:</strong> Apple requires all browsers on iOS and iPadOS to use Safari's engine. Even Chrome or Edge on these devices run on top of Safari underneath — and Safari doesn't support the File System Access API.
       </div>
-      <div style="padding:12px 14px; background:rgba(201,168,76,0.05); border:1px solid rgba(201,168,76,0.2); border-radius:10px; font-size:12px; color:var(--text-3); line-height:1.7;">
+      <div style="padding:12px 14px; background:color-mix(in srgb, var(--accent) 5%, transparent); border:1px solid color-mix(in srgb, var(--accent) 20%, transparent); border-radius:10px; font-size:12px; color:var(--text-3); line-height:1.7;">
         <strong style="color:var(--gold);">Alternatives that work everywhere:</strong> Use <strong style="color:var(--text-2);">Google Drive</strong> or <strong style="color:var(--text-2);">Network location / NAS</strong> — both use standard web requests and work on every browser and device.
       </div>
     </div>
@@ -3970,7 +3992,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <!-- Type toggle -->
     <div style="display:flex; gap:8px; margin-bottom:22px;">
       <button id="desk-type-deposit" onclick="setDeskType('deposit')"
-        style="flex:1; border:1px solid var(--border-hi); border-radius:var(--radius); padding:10px 0; font-size:13px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; transition:background 0.15s,color 0.15s,border-color 0.15s; background:var(--green); color:#fff; border-color:var(--green);">
+        style="flex:1; border:1px solid var(--border-hi); border-radius:var(--radius); padding:10px 0; font-size:13px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; transition:background 0.15s,color 0.15s,border-color 0.15s; background:var(--green); color:var(--fill-ink); border-color:var(--green);">
         Deposit
       </button>
       <button id="desk-type-interest" onclick="setDeskType('interest')"
@@ -4004,7 +4026,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
         Make this a recurring transaction
       </button>
       <button id="desk-manage-recur-btn" onclick="closeDesktopAddSheet(); openRecurringModal();"
-        style="display:none; margin-top:8px; width:100%; font-size:12px; color:var(--gold); background:rgba(201,168,76,0.06); border:1px solid var(--gold-dim); border-radius:var(--radius); padding:8px 14px; cursor:pointer; font-family:'DM Sans',sans-serif; text-align:left; transition:opacity 0.15s;"></button>
+        style="display:none; margin-top:8px; width:100%; font-size:12px; color:var(--gold); background:color-mix(in srgb, var(--accent) 6%, transparent); border:1px solid var(--gold-dim); border-radius:var(--radius); padding:8px 14px; cursor:pointer; font-family:'DM Sans',sans-serif; text-align:left; transition:opacity 0.15s;"></button>
     </div>
 
     <!-- Recurring options (hidden until toggled) -->
@@ -4052,7 +4074,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   <div id="compat-banner-inner">
     <div id="compat-banner-content">
       <span id="compat-banner-text"></span>
-      <button onclick="openCompatInfo()" id="compat-banner-learn" style="background:none; border:none; color:#e07a75; font-size:11px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; text-decoration:underline; padding:0; opacity:0.85; text-align:left; -webkit-tap-highlight-color:transparent;">Learn more</button>
+      <button onclick="openCompatInfo()" id="compat-banner-learn" style="background:none; border:none; color:var(--out); font-size:11px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; text-decoration:underline; padding:0; opacity:0.85; text-align:left; -webkit-tap-highlight-color:transparent;">Learn more</button>
     </div>
     <button onclick="dismissCompatBanner()" id="compat-banner-dismiss">✕</button>
   </div>
@@ -4899,7 +4921,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     Make this a recurring transaction
   </button>
   <button id="mob-manage-recur-btn" onclick="closeSheets(); openRecurringModal();"
-    style="display:none; width:100%; font-size:13px; color:var(--gold); background:rgba(201,168,76,0.06); border:1px solid var(--gold-dim); border-radius:var(--radius); padding:10px 14px; cursor:pointer; font-family:'DM Sans',sans-serif; text-align:left; margin-bottom:12px; -webkit-tap-highlight-color:transparent;"></button>
+    style="display:none; width:100%; font-size:13px; color:var(--gold); background:color-mix(in srgb, var(--accent) 6%, transparent); border:1px solid var(--gold-dim); border-radius:var(--radius); padding:10px 14px; cursor:pointer; font-family:'DM Sans',sans-serif; text-align:left; margin-bottom:12px; -webkit-tap-highlight-color:transparent;"></button>
 
   <!-- Recurring options -->
   <div id="mob-recur-fields" style="display:none; margin-bottom:12px; padding:14px; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius);">
@@ -5131,7 +5153,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   <div class="modal-box" style="max-width:380px; position:relative;">
     <button class="modal-close" onclick="closeImportTxReview()" style="position:absolute;top:14px;right:14px;">✕</button>
     <div class="modal-header" style="padding-right:32px;"><h2 id="import-review-title">Review transaction</h2></div>
-    <p id="import-review-problem" style="font-size:12px; color:var(--gold); background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.2); border-radius:8px; padding:10px 12px; margin-bottom:16px; line-height:1.6;"></p>
+    <p id="import-review-problem" style="font-size:12px; color:var(--attention); background:color-mix(in srgb, var(--attention) 8%, transparent); border:1px solid color-mix(in srgb, var(--attention) 20%, transparent); border-radius:8px; padding:10px 12px; margin-bottom:16px; line-height:1.6;"></p>
     <div class="tx-popup-field">
       <label>Date</label>
       <input type="date" id="import-review-date" style="color-scheme:dark; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; width:100%; box-sizing:border-box;">
@@ -5160,7 +5182,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   <div class="modal-box" style="max-width:500px; position:relative; max-height:90vh; display:flex; flex-direction:column;">
     <button class="modal-close" onclick="closeAIProviderSettings()" style="position:absolute;top:14px;right:14px;">✕</button>
     <div class="modal-header" style="padding-right:32px; flex-shrink:0;"><h2>AI provider settings</h2></div>
-    <div id="ai-enc-warning" style="display:none; font-size:12px; color:var(--gold); background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.2); border-radius:8px; padding:10px 12px; margin-bottom:14px; line-height:1.6; flex-shrink:0;">
+    <div id="ai-enc-warning" style="display:none; font-size:12px; color:var(--attention); background:color-mix(in srgb, var(--attention) 8%, transparent); border:1px solid color-mix(in srgb, var(--attention) 20%, transparent); border-radius:8px; padding:10px 12px; margin-bottom:14px; line-height:1.6; flex-shrink:0;">
       ⚠ API keys are stored unencrypted in your backup file. <span style="text-decoration:underline; cursor:pointer;" onclick="closeAIProviderSettings(); setTimeout(openSetup,50);">Enable encryption →</span>
     </div>
     <div id="ai-enc-ok" style="display:none; font-size:12px; color:var(--green); background:rgba(46,158,168,0.08); border:1px solid rgba(46,158,168,0.2); border-radius:8px; padding:10px 12px; margin-bottom:14px; line-height:1.6; flex-shrink:0;">
@@ -5372,7 +5394,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       <label id="rdel-keep-label" style="display:flex; align-items:center; gap:12px; font-size:13px; color:var(--text-1); cursor:pointer; padding:12px 14px; background:var(--bg3); border:2px solid var(--gold); border-radius:var(--radius); transition:border-color 0.15s, background 0.15s;" onclick="rdel_select('keep')">
         <input type="radio" name="rdel-mode" id="rdel-keep" value="keep" checked style="display:none;">
         <span style="width:18px; height:18px; border-radius:50%; border:2px solid var(--gold); background:var(--gold); flex-shrink:0; display:flex; align-items:center; justify-content:center;" id="rdel-keep-dot">
-          <span style="width:8px; height:8px; border-radius:50%; background:#0f0f11; display:block;"></span>
+          <span style="width:8px; height:8px; border-radius:50%; background:var(--bg0); display:block;"></span>
         </span>
         Keep all previously added transactions
       </label>
@@ -5496,7 +5518,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <p style="font-size:11px; color:var(--text-3); margin-bottom:16px; line-height:1.6;">Today's exchange rate is used. If this transaction occurred at a different rate, delete it and re-add it to the new account.</p>
     <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;">
       <label id="tx-cc-reformat-label" style="display:flex; align-items:flex-start; gap:12px; font-size:13px; color:var(--text-1); cursor:pointer; padding:12px 14px; background:var(--bg3); border:2px solid var(--gold); border-radius:var(--radius);" onclick="txCcSelect('reformat')">
-        <span style="width:18px;height:18px;border-radius:50%;border:2px solid var(--gold);background:var(--gold);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;" id="tx-cc-reformat-dot"><span style="width:8px;height:8px;border-radius:50%;background:#0f0f11;display:block;"></span></span>
+        <span style="width:18px;height:18px;border-radius:50%;border:2px solid var(--gold);background:var(--gold);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;" id="tx-cc-reformat-dot"><span style="width:8px;height:8px;border-radius:50%;background:var(--bg0);display:block;"></span></span>
         <span><strong>Reformat only</strong><br><span id="tx-cc-reformat-desc" style="font-size:11px;color:var(--text-3);"></span></span>
       </label>
       <label id="tx-cc-convert-label" style="display:flex; align-items:flex-start; gap:12px; font-size:13px; color:var(--text-2); cursor:pointer; padding:12px 14px; background:var(--bg3); border:2px solid var(--border); border-radius:var(--radius);" onclick="txCcSelect('convert')">
@@ -5533,7 +5555,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
         <input type="radio" name="acc-del-mode" value="wipe" onchange="updateAccountDeleteMode()">
         <span class="acc-del-choice-label">Delete transactions with the account</span>
       </label>
-      <div id="account-delete-wipe-warning" style="display:none; margin:8px 0 0 26px; padding:10px 12px; background:rgba(192,80,74,0.08); border:1px solid rgba(192,80,74,0.28); border-radius:var(--radius); font-size:12px; color:var(--red); line-height:1.5;">
+      <div id="account-delete-wipe-warning" style="display:none; margin:8px 0 0 26px; padding:10px 12px; background:color-mix(in srgb, var(--out) 8%, transparent); border:1px solid color-mix(in srgb, var(--out) 28%, transparent); border-radius:var(--radius); font-size:12px; color:var(--red); line-height:1.5;">
         <span id="account-delete-wipe-warning-text"></span>
       </div>
     </div>
@@ -5559,56 +5581,56 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <details class="ss-legend-fold" id="ss-legend-fold">
     <summary>What each status means</summary>
     <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:6px;">
-      <div style="font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#5ec497; padding:6px 2px 4px;">All good</div>
-      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:rgba(61,158,110,0.06); border:1px solid rgba(61,158,110,0.15); border-radius:8px;">
-        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:rgba(61,158,110,0.12); border:1px solid rgba(61,158,110,0.25); flex-shrink:0;">
-          <span style="width:5px;height:5px;border-radius:50%;background:#5ec497;flex-shrink:0;display:inline-block;"></span>
-          <span style="font-size:10px; font-weight:600; color:#5ec497; white-space:nowrap;">Backed up</span>
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--in); padding:6px 2px 4px;">All good</div>
+      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:color-mix(in srgb, var(--in) 6%, transparent); border:1px solid color-mix(in srgb, var(--in) 15%, transparent); border-radius:8px;">
+        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:color-mix(in srgb, var(--in) 12%, transparent); border:1px solid color-mix(in srgb, var(--in) 25%, transparent); flex-shrink:0;">
+          <span style="width:5px;height:5px;border-radius:50%;background:var(--in);flex-shrink:0;display:inline-block;"></span>
+          <span style="font-size:10px; font-weight:600; color:var(--in); white-space:nowrap;">Backed up</span>
         </div>
         <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Every change has been saved to your backup.</span>
       </div>
-      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:rgba(61,158,110,0.06); border:1px solid rgba(61,158,110,0.15); border-radius:8px;">
-        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:rgba(61,158,110,0.12); border:1px solid rgba(61,158,110,0.25); flex-shrink:0;">
-          <span style="width:5px;height:5px;border-radius:50%;background:#5ec497;flex-shrink:0;display:inline-block;"></span>
-          <span style="font-size:10px; font-weight:600; color:#5ec497; white-space:nowrap;">Backed up · encrypted</span>
+      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:color-mix(in srgb, var(--in) 6%, transparent); border:1px solid color-mix(in srgb, var(--in) 15%, transparent); border-radius:8px;">
+        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:color-mix(in srgb, var(--in) 12%, transparent); border:1px solid color-mix(in srgb, var(--in) 25%, transparent); flex-shrink:0;">
+          <span style="width:5px;height:5px;border-radius:50%;background:var(--in);flex-shrink:0;display:inline-block;"></span>
+          <span style="font-size:10px; font-weight:600; color:var(--in); white-space:nowrap;">Backed up · encrypted</span>
         </div>
         <span style="font-size:11px; color:var(--text-3); line-height:1.5;">As above, with AES-256 encryption applied before saving.</span>
       </div>
       <div style="font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--gold); padding:10px 2px 4px;">In progress</div>
-      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:rgba(201,168,76,0.06); border:1px solid rgba(201,168,76,0.15); border-radius:8px;">
-        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:rgba(201,168,76,0.12); border:1px solid rgba(201,168,76,0.25); flex-shrink:0;">
+      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:color-mix(in srgb, var(--accent) 6%, transparent); border:1px solid color-mix(in srgb, var(--accent) 15%, transparent); border-radius:8px;">
+        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:color-mix(in srgb, var(--accent) 12%, transparent); border:1px solid color-mix(in srgb, var(--accent) 25%, transparent); flex-shrink:0;">
           <span style="width:5px;height:5px;border-radius:50%;background:var(--gold);flex-shrink:0;display:inline-block;"></span>
           <span style="font-size:10px; font-weight:600; color:var(--gold); white-space:nowrap;">Syncing…</span>
         </div>
         <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Writing a change to your backup now. Usually takes a moment.</span>
       </div>
-      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:rgba(201,168,76,0.06); border:1px solid rgba(201,168,76,0.15); border-radius:8px;">
-        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:rgba(201,168,76,0.12); border:1px solid rgba(201,168,76,0.25); flex-shrink:0;">
+      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:color-mix(in srgb, var(--accent) 6%, transparent); border:1px solid color-mix(in srgb, var(--accent) 15%, transparent); border-radius:8px;">
+        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:color-mix(in srgb, var(--accent) 12%, transparent); border:1px solid color-mix(in srgb, var(--accent) 25%, transparent); flex-shrink:0;">
           <span style="width:5px;height:5px;border-radius:50%;background:var(--gold);flex-shrink:0;display:inline-block;"></span>
           <span style="font-size:10px; font-weight:600; color:var(--gold); white-space:nowrap;">Reconnecting…</span>
         </div>
         <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Restoring your backup connection on startup.</span>
       </div>
-      <div style="font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#c8923a; padding:10px 2px 4px;">Needs attention</div>
-      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:rgba(200,146,58,0.06); border:1px solid rgba(200,146,58,0.15); border-radius:8px;">
-        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:rgba(200,146,58,0.12); border:1px solid rgba(200,146,58,0.25); flex-shrink:0;">
-          <span style="width:5px;height:5px;border-radius:50%;background:#c8923a;flex-shrink:0;display:inline-block;"></span>
-          <span style="font-size:10px; font-weight:600; color:#c8923a; white-space:nowrap;">No backup</span>
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--attention); padding:10px 2px 4px;">Needs attention</div>
+      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:color-mix(in srgb, var(--attention) 6%, transparent); border:1px solid color-mix(in srgb, var(--attention) 15%, transparent); border-radius:8px;">
+        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:color-mix(in srgb, var(--attention) 12%, transparent); border:1px solid color-mix(in srgb, var(--attention) 25%, transparent); flex-shrink:0;">
+          <span style="width:5px;height:5px;border-radius:50%;background:var(--attention);flex-shrink:0;display:inline-block;"></span>
+          <span style="font-size:10px; font-weight:600; color:var(--attention); white-space:nowrap;">No backup</span>
         </div>
         <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Data is in browser storage only — set up a backup in Menu → Settings → Save &amp; backup.</span>
       </div>
-      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:rgba(200,146,58,0.06); border:1px solid rgba(200,146,58,0.15); border-radius:8px;">
-        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:rgba(200,146,58,0.12); border:1px solid rgba(200,146,58,0.25); flex-shrink:0;">
-          <span style="width:5px;height:5px;border-radius:50%;background:#c8923a;flex-shrink:0;display:inline-block;"></span>
-          <span style="font-size:10px; font-weight:600; color:#c8923a; white-space:nowrap;">Permission needed</span>
+      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:color-mix(in srgb, var(--attention) 6%, transparent); border:1px solid color-mix(in srgb, var(--attention) 15%, transparent); border-radius:8px;">
+        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:color-mix(in srgb, var(--attention) 12%, transparent); border:1px solid color-mix(in srgb, var(--attention) 25%, transparent); flex-shrink:0;">
+          <span style="width:5px;height:5px;border-radius:50%;background:var(--attention);flex-shrink:0;display:inline-block;"></span>
+          <span style="font-size:10px; font-weight:600; color:var(--attention); white-space:nowrap;">Permission needed</span>
         </div>
         <span style="font-size:11px; color:var(--text-3); line-height:1.5;">File access was lost after a restart. Go to Menu → Settings → Save &amp; backup → Local file.</span>
       </div>
-      <div style="font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#e07a75; padding:10px 2px 4px;">Error</div>
-      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:rgba(192,80,74,0.06); border:1px solid rgba(192,80,74,0.15); border-radius:8px;">
-        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:rgba(192,80,74,0.12); border:1px solid rgba(192,80,74,0.25); flex-shrink:0;">
-          <span style="width:5px;height:5px;border-radius:50%;background:#e07a75;flex-shrink:0;display:inline-block;"></span>
-          <span style="font-size:10px; font-weight:600; color:#e07a75; white-space:nowrap;">Sync failed</span>
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--out); padding:10px 2px 4px;">Error</div>
+      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:color-mix(in srgb, var(--out) 6%, transparent); border:1px solid color-mix(in srgb, var(--out) 15%, transparent); border-radius:8px;">
+        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:color-mix(in srgb, var(--out) 12%, transparent); border:1px solid color-mix(in srgb, var(--out) 25%, transparent); flex-shrink:0;">
+          <span style="width:5px;height:5px;border-radius:50%;background:var(--out);flex-shrink:0;display:inline-block;"></span>
+          <span style="font-size:10px; font-weight:600; color:var(--out); white-space:nowrap;">Sync failed</span>
         </div>
         <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Backup write failed. Check your backup source in Menu → Settings → Save &amp; backup.</span>
       </div>
@@ -5653,12 +5675,12 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       <p style="font-size:12px; color:var(--text-3); line-height:1.6; margin:0 0 0 26px;">
         Multiply every transaction by today's exchange rate (<span id="cc-rate-label" style="color:var(--text-2);"></span>). Use this if your amounts are in <span id="cc-from-label-2" style="color:var(--text-2);"></span> and you want them expressed in <span id="cc-to-label-3" style="color:var(--text-2);"></span>.
       </p>
-      <div id="cc-convert-warn" style="display:none; margin:10px 0 0 26px; padding:8px 12px; background:rgba(192,80,74,0.08); border:1px solid rgba(192,80,74,0.2); border-radius:6px; font-size:11px; color:var(--red); line-height:1.5;">
+      <div id="cc-convert-warn" style="display:none; margin:10px 0 0 26px; padding:8px 12px; background:color-mix(in srgb, var(--out) 8%, transparent); border:1px solid color-mix(in srgb, var(--out) 20%, transparent); border-radius:6px; font-size:11px; color:var(--red); line-height:1.5;">
         This permanently changes all transaction amounts and cannot be undone. Make sure you have a backup before proceeding.
       </div>
     </div>
 
-    <div id="cc-no-rates-warn" style="display:none; padding:10px 14px; background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.2); border-radius:8px; font-size:12px; color:#c8923a; line-height:1.5; margin-bottom:16px;">
+    <div id="cc-no-rates-warn" style="display:none; padding:10px 14px; background:color-mix(in srgb, var(--attention) 8%, transparent); border:1px solid color-mix(in srgb, var(--attention) 20%, transparent); border-radius:8px; font-size:12px; color:var(--attention); line-height:1.5; margin-bottom:16px;">
       Exchange rates are not available right now. Only reformat is available until rates are loaded.
     </div>
 
@@ -5701,7 +5723,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
     </div>
 
-    <div id="cm-rates-warn" style="display:none; padding:10px 14px; background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.2); border-radius:8px; font-size:12px; color:#c8923a; line-height:1.5; margin-bottom:14px;">
+    <div id="cm-rates-warn" style="display:none; padding:10px 14px; background:color-mix(in srgb, var(--attention) 8%, transparent); border:1px solid color-mix(in srgb, var(--attention) 20%, transparent); border-radius:8px; font-size:12px; color:var(--attention); line-height:1.5; margin-bottom:14px;">
       Exchange rates are unavailable — conversion options are disabled. Connect to the internet and try again, or choose a keep option.
     </div>
 
@@ -5721,7 +5743,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <div id="enc-status-row" style="font-size:13px; color:var(--text-2); margin-bottom:16px; line-height:1.7; font-weight:300;"></div>
     <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
       <button id="btn-enc-set" class="btn-primary" onclick="openEncPasswordPopup()">Set password</button>
-      <button id="btn-enc-disable" class="btn-local" style="display:none; color:var(--red); border-color:rgba(192,80,74,0.3);" onclick="confirmDisableEnc()">Remove encryption</button>
+      <button id="btn-enc-disable" class="btn-local" style="display:none; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="confirmDisableEnc()">Remove encryption</button>
     </div>
     <div id="enc-section" style="padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text-3); line-height:1.7;">
       Password-encrypts your backup files using AES-256. A recovery key file is downloaded when you set a password — keep it safe. Without it, a forgotten password means your data cannot be recovered.
@@ -5738,7 +5760,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       <button class="modal-close" onclick="document.getElementById('enc-set-popup').classList.add('hidden')" title="Close">✕</button>
     </div>
     <p style="margin-bottom:8px; font-size:13px; color:var(--text-2); line-height:1.7; font-weight:300;">Your backup files will be encrypted with this password.</p>
-    <div style="background:rgba(192,80,74,0.08); border:1px solid rgba(192,80,74,0.25); border-radius:var(--radius); padding:12px 14px; margin-bottom:16px; font-size:12px; color:var(--red); line-height:1.6;">
+    <div style="background:color-mix(in srgb, var(--out) 8%, transparent); border:1px solid color-mix(in srgb, var(--out) 25%, transparent); border-radius:var(--radius); padding:12px 14px; margin-bottom:16px; font-size:12px; color:var(--red); line-height:1.6;">
       <strong>Important:</strong> If you forget this password and lose your recovery key, your data cannot be recovered. There is no reset option.
     </div>
     <div class="tx-popup-field">
@@ -5904,10 +5926,10 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <div style="display:flex; flex-direction:column; gap:10px; text-align:left; margin-bottom:20px;">
 
       <!-- Local file option — sub text updated by JS based on browser support -->
-      <button class="smod-card" id="welcome-file-card" onclick="welcomeChooseFile()" style="border-color:var(--gold-dim); background:rgba(201,168,76,0.05);">
+      <button class="smod-card" id="welcome-file-card" onclick="welcomeChooseFile()" style="border-color:var(--gold-dim); background:color-mix(in srgb, var(--accent) 5%, transparent);">
         <div class="smod-card-icon"></div>
         <div class="smod-card-body">
-          <div class="smod-card-title" id="welcome-file-title" style="color:var(--gold);">Save to a file <span id="welcome-file-rec" style="font-size:10px; font-weight:500; background:rgba(201,168,76,0.15); color:var(--gold); padding:2px 7px; border-radius:10px; margin-left:6px; letter-spacing:0.04em;">RECOMMENDED</span></div>
+          <div class="smod-card-title" id="welcome-file-title" style="color:var(--gold);">Save to a file <span id="welcome-file-rec" style="font-size:10px; font-weight:500; background:color-mix(in srgb, var(--accent) 15%, transparent); color:var(--gold); padding:2px 7px; border-radius:10px; margin-left:6px; letter-spacing:0.04em;">RECOMMENDED</span></div>
           <div class="smod-card-sub" id="welcome-file-sub">Choose a location on your device — USB, NAS, or any folder. Auto-saves every change.</div>
         </div>
       </button>
@@ -5922,7 +5944,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       </button>
 
       <!-- Browser storage -->
-      <button class="smod-card" onclick="welcomeUseBrowser()" style="border-color:rgba(192,80,74,0.2);">
+      <button class="smod-card" onclick="welcomeUseBrowser()" style="border-color:color-mix(in srgb, var(--out) 20%, transparent);">
         <div class="smod-card-icon"></div>
         <div class="smod-card-body">
           <div class="smod-card-title">Browser storage only</div>
@@ -7154,7 +7176,7 @@ function selectCurrencyOption(option) {
   const convertWarn   = document.getElementById("cc-convert-warn");
   const gold = "var(--gold)";
   const neutral = "var(--border-hi)";
-  const goldBg = "rgba(201,168,76,0.06)";
+  const goldBg = "color-mix(in srgb, var(--accent) 6%, transparent)";
   const goldBorder = "var(--gold-dim)";
 
   if (option === "reformat") {
@@ -7284,7 +7306,7 @@ function confirmCurrencyChange() {
 
   if (_selectedCurrencyOption === "convert") {
     const rate = getRate(newCode);
-    if (rate === null) { toast("Exchange rate unavailable — cannot convert", "var(--red)"); return; }
+    if (rate === null) { toast("Exchange rate unavailable — cannot convert", "error"); return; }
 
     // Multiply every transaction amount by the rate
     Object.keys(data).forEach(fy => {
@@ -7339,7 +7361,7 @@ function _confirmAccountCurrencyChange() {
     const rateF = getRate(oldCur);
     const rateT = getRate(newCode);
     if (rateF === null || rateT === null || rateF === 0) {
-      toast("Exchange rate unavailable — cannot convert", "var(--red)");
+      toast("Exchange rate unavailable — cannot convert", "error");
       return;
     }
     // Multiply every transaction belonging to this account by rateT / rateF
@@ -7815,7 +7837,7 @@ function updateYearFormatPopup() {
 
   if (calBox) calBox.style.borderColor = !isFY ? "var(--gold)" : "var(--border)";
   if (fyBox)  fyBox.style.borderColor  =  isFY ? "var(--gold)" : "var(--border)";
-  if (calBadge) { calBadge.style.background = !isFY ? "rgba(201,168,76,0.15)" : "var(--bg4)"; calBadge.style.color = !isFY ? "var(--gold)" : "var(--text-3)"; }
+  if (calBadge) { calBadge.style.background = !isFY ? "color-mix(in srgb, var(--accent) 15%, transparent)" : "var(--bg4)"; calBadge.style.color = !isFY ? "var(--gold)" : "var(--text-3)"; }
 
   // Build start/end label, including day if not the 1st
   const startMon  = MONTH_NAMES_SHORT[fyStartMonth - 1];
@@ -7825,7 +7847,7 @@ function updateYearFormatPopup() {
 
   if (fyBadge) {
     fyBadge.textContent = `${startName} – ${endName}`;
-    fyBadge.style.background = isFY ? "rgba(201,168,76,0.15)" : "var(--bg4)";
+    fyBadge.style.background = isFY ? "color-mix(in srgb, var(--accent) 15%, transparent)" : "var(--bg4)";
     fyBadge.style.color      = isFY ? "var(--gold)" : "var(--text-3)";
   }
 
@@ -8063,7 +8085,7 @@ function populateCustomAccountPicker(selectedId) {
     item.style.cssText = "width:100%; background:none; border:none; border-bottom:1px solid var(--border); padding:10px 12px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer; display:flex; align-items:center; gap:10px; text-align:left;";
     item.innerHTML = `<span style="width:10px;height:10px;border-radius:50%;background:${acc.color};flex-shrink:0;"></span><span style="flex:1;">${escapeHTML(acc.name)}</span><span style="font-size:11px;color:var(--text-3);font-weight:600;">${cur}</span>`;
     if (acc.id === selectedId) {
-      item.style.background = "rgba(201,168,76,0.08)";
+      item.style.background = "color-mix(in srgb, var(--accent) 8%, transparent)";
     }
     item.onclick = (e) => {
       e.stopPropagation();
@@ -8593,7 +8615,7 @@ function buildColorPicker() {
 
 function confirmAddAccount() {
   const name = document.getElementById("account-new-name")?.value.trim();
-  if (!name) { toast("Enter an account name", "#c0392b"); return; }
+  if (!name) { toast("Enter an account name", "error"); return; }
   const id = "acc_" + Date.now().toString(36);
   accounts.push({ id, name, color: _accountNewColor, ts: Date.now() });
   saveAccounts();
@@ -8702,7 +8724,7 @@ function confirmDeleteAccount() {
       dbg(`confirmDeleteAccount: wiped ${wipedTxCount} transaction(s) for account ${id}`);
     } else {
       const toId = document.getElementById("account-delete-reassign").value;
-      if (!toId) { toast("Select an account to move transactions to", "#c0392b"); return; }
+      if (!toId) { toast("Select an account to move transactions to", "error"); return; }
       reassignTransactions(id, toId);
       reassignTarget = toId;
     }
@@ -8976,7 +8998,7 @@ async function linkLocalFile() {
     if (oldSnapshot) await applyOldBackupMergeChoice(oldSnapshot);
   } catch (e) {
     if (e.name !== "AbortError") {
-      setLocalFileStatus("Couldn't link the file. Try again.", "var(--red)");
+      setLocalFileStatus("Couldn't link the file. Try again.", "error");
       dbg("Local file: link failed: " + e.message);
     }
   }
@@ -9010,11 +9032,11 @@ async function reauthoriseLocalFile() {
       dbg("Local file: permission re-granted");
     } else {
       setSaveStatus("warn", "Permission needed");
-      setLocalFileStatus("Permission denied — try again.", "var(--red)");
+      setLocalFileStatus("Permission denied — try again.", "error");
       dbg("Local file: permission re-prompt denied");
     }
   } catch (e) {
-    setLocalFileStatus("Couldn't reconnect the file. Try again.", "var(--red)");
+    setLocalFileStatus("Couldn't reconnect the file. Try again.", "error");
     dbg("Local file: reauthorise error: " + e.message);
   }
 }
@@ -9096,7 +9118,7 @@ function promptAndDecrypt(encryptedText) {
         disablePasswordEncryption();
         popup.classList.add("hidden");
         cleanup();
-        toast("Recovery successful — encryption disabled. Re-enable with a new password from Menu → Settings → Encryption", "var(--gold-dim)");
+        toast("Recovery successful — encryption disabled. Re-enable with a new password from Menu → Settings → Encryption", "notice");
         resolve(result);
       } catch (e) {
         errEl.textContent = "That recovery file didn't work. Check it's the right vault-recovery.json.";
@@ -9395,7 +9417,7 @@ async function saveToLocalFile(showPicker = false) {
       resetCompatExportCount();
       dbg("Local save: one-off save via picker");
     } catch (e) {
-      if (e.name !== "AbortError") setLocalFileStatus("Couldn't save the file. Try again.", "var(--red)");
+      if (e.name !== "AbortError") setLocalFileStatus("Couldn't save the file. Try again.", "error");
     }
     return;
   }
@@ -9584,7 +9606,7 @@ function applyPayloadSettings({ recurring, recurDeleted: remoteRecurDeleted, acc
     dbg(`applyPayloadSettings: merged recurring rules, total=${recurRules.length}, skips merged=${mergedSkipCount}, moves merged=${mergedMoveCount}`);
     // Run check immediately so any overdue rules post right away after sync
     const _rPosted = processRecurring();
-    if (_rPosted > 0) { saveAndRender(null); toast(`${_rPosted} recurring transaction${_rPosted > 1 ? "s" : ""} added`, "var(--gold-dim)"); }
+    if (_rPosted > 0) { saveAndRender(null); toast(`${_rPosted} recurring transaction${_rPosted > 1 ? "s" : ""} added`, "notice"); }
   }
 
   // ── Currency ──────────────────────────────────────────────────────────────
@@ -9708,17 +9730,17 @@ async function loadFromLocalFile() {
         try { loaded = await decryptDataObj(text, vaultEncKey); } catch { loaded = null; }
       }
       if (!loaded) loaded = await promptAndDecrypt(text);
-      if (!loaded) { setLocalFileStatus("Decryption cancelled or failed.", "var(--red)"); return; }
+      if (!loaded) { setLocalFileStatus("Decryption cancelled or failed.", "error"); return; }
     } else {
       try { loaded = JSON.parse(text); } catch {
-        setLocalFileStatus("Invalid file — not a Vault backup.", "var(--red)"); return;
+        setLocalFileStatus("Invalid file — not a Vault backup.", "error"); return;
       }
     }
 
     const { data: rawData, tombstones: remoteTombstones, ...settings } = unwrapPayload(loaded);
     const safe = sanitiseData(rawData);
     if (!safe || !Object.keys(safe).length) {
-      setLocalFileStatus("File appears empty or invalid.", "var(--red)"); return;
+      setLocalFileStatus("File appears empty or invalid.", "error"); return;
     }
 
     const choice = await showDriveMergeDialog(
@@ -9772,7 +9794,7 @@ async function loadFromLocalFile() {
     // ── end auto-link ────────────────────────────────────────────────────────
 
   } catch (e) {
-    setLocalFileStatus("Couldn't load that file. Check it's a Vault backup.", "var(--red)");
+    setLocalFileStatus("Couldn't load that file. Check it's a Vault backup.", "error");
     dbg("Local load error: " + e.message);
   }
 }
@@ -10338,8 +10360,8 @@ async function connectNAS() {
   const url  = (document.getElementById("nas-url")  || {}).value?.trim();
   const user = (document.getElementById("nas-user") || {}).value?.trim();
   const pass = (document.getElementById("nas-pass") || {}).value || "";
-  if (!url)  { setNASStatus("Please enter a server URL.", "var(--red)"); return; }
-  if (!user) { setNASStatus("Please enter a username.", "var(--red)"); return; }
+  if (!url)  { setNASStatus("Please enter a server URL.", "error"); return; }
+  if (!user) { setNASStatus("Please enter a username.", "error"); return; }
   setNASStatus("Connecting…", "var(--gold)");
   const cfg = { url, user, pass };
   try {
@@ -10349,12 +10371,12 @@ async function connectNAS() {
       headers: { "Content-Type": "application/json", "Authorization": nasAuthHeader(cfg) },
       body: payload,
     });
-    if (res.status === 401) { setNASStatus("Wrong username or password.", "var(--red)"); return; }
+    if (res.status === 401) { setNASStatus("Wrong username or password.", "error"); return; }
     if (!res.ok && res.status !== 404 && res.status !== 405) {
-      setNASStatus("Server error: HTTP " + res.status, "var(--red)"); return;
+      setNASStatus("Server error: HTTP " + res.status, "error"); return;
     }
   } catch (e) {
-    setNASStatus("Could not reach server. Check the URL and that CORS is enabled on your server.", "var(--red)"); return;
+    setNASStatus("Could not reach server. Check the URL and that CORS is enabled on your server.", "error"); return;
   }
   nasConfig = cfg;
   nasLinked = true;
@@ -10389,17 +10411,17 @@ async function loadFromNAS() {
     const url  = (document.getElementById("nas-url")  || {}).value?.trim();
     const user = (document.getElementById("nas-user") || {}).value?.trim();
     const pass = (document.getElementById("nas-pass") || {}).value || "";
-    if (!url || !user) { setNASStatus("Enter server URL and username first.", "var(--red)"); return; }
+    if (!url || !user) { setNASStatus("Enter server URL and username first.", "error"); return; }
     nasConfig = { url, user, pass };
   }
   setNASStatus("Loading…", "var(--gold)");
   const raw = await readFromNAS();
-  if (!raw) { setNASStatus("Could not load — check connection and credentials.", "var(--red)"); nasConfig = null; return; }
+  if (!raw) { setNASStatus("Could not load — check connection and credentials.", "error"); nasConfig = null; return; }
   try {
     const parsed = JSON.parse(raw);
     const { data: rawData, tombstones: remoteTombstones, ...settings } = unwrapPayload(parsed);
     const safe = sanitiseData(rawData);
-    if (!safe || !Object.keys(safe).length) { setNASStatus("Server file appears empty or invalid.", "var(--red)"); return; }
+    if (!safe || !Object.keys(safe).length) { setNASStatus("Server file appears empty or invalid.", "error"); return; }
     const choice = await showDriveMergeDialog(
       "Existing Vault file found on server",
       "A Vault file already exists on your network location. How would you like to proceed?"
@@ -10423,7 +10445,7 @@ async function loadFromNAS() {
     setNASStatus("Connected.", "var(--green)");
     if (oldSnapshot) await applyOldBackupMergeChoice(oldSnapshot);
   } catch (e) {
-    setNASStatus("Could not parse server data.", "var(--red)");
+    setNASStatus("Could not parse server data.", "error");
     dbg("NAS load parse error: " + e.message);
   }
 }
@@ -10670,7 +10692,7 @@ async function gdHandleRedirect() {
         if (isEncryptedEnvelope(raw)) {
           setGDStatus("Drive file is encrypted — enter password…", "var(--gold)");
           loaded = await promptAndDecrypt(raw);
-          if (!loaded) { setGDStatus("Decryption cancelled.", "var(--red)"); return; }
+          if (!loaded) { setGDStatus("Decryption cancelled.", "error"); return; }
         } else {
           try { loaded = JSON.parse(raw); } catch { loaded = null; }
         }
@@ -10744,7 +10766,7 @@ async function gdHandleRedirect() {
     }
 
   } catch (e) {
-    setGDStatus("Couldn't connect to Google Drive. Try again.", "var(--red)");
+    setGDStatus("Couldn't connect to Google Drive. Try again.", "error");
     dbg("GD: auth error: " + e.message);
   } finally {
     // Always clear the redirect flag when done — whether success or failure
@@ -14278,7 +14300,7 @@ function vhRenderChart() {
     dots += `<circle cx="${X(N - 1)}" cy="${Y(pe.val)}" r="3.5" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-opacity="0.5" pointer-events="none"/>`;
   }
   container.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${yLabels}`
-    + `<defs><linearGradient id="vhChartGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c9a84c" stop-opacity="0.28"/><stop offset="100%" stop-color="#c9a84c" stop-opacity="0.02"/></linearGradient></defs>`
+    + `<defs><linearGradient id="vhChartGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--accent)" stop-opacity="0.28"/><stop offset="100%" stop-color="var(--accent)" stop-opacity="0.02"/></linearGradient></defs>`
     + todayLine
     + `<path d="${area}" fill="url(#vhChartGrad)"/>`
     + (band ? `<path d="${band}" fill="var(--gold)" fill-opacity="0.06" stroke="none"/>` : "")
@@ -15449,7 +15471,7 @@ const VH_CX_SHOCK = 5; // sensitivity scenario, in percent
 function vhCxColors(codes) {
   const taken = new Set(), out = {};
   codes.slice().sort().forEach(c => {
-    if (c === currencyCode) { out[c] = "#c9a84c"; return; }
+    if (c === currencyCode) { out[c] = "var(--accent)"; return; }   // your own currency wears the accent
     let h = 0;
     for (let i = 0; i < c.length; i++) h = (h * 31 + c.charCodeAt(i)) >>> 0;
     const start = h % VH_CX_PALETTE.length;
@@ -16853,9 +16875,9 @@ function fmtMonth(ym) {
 
 // ── SVG chart builders ────────────────────────────────────────────────────────
 
-const C_GREEN = "#3d9e6e";
-const C_RED   = "#cf5f57";   // the palette red (was the old #c0504a)
-const C_BLUE  = "#5ba6d3";
+const C_GREEN = "var(--in)";
+const C_RED   = "var(--out)";
+const C_BLUE  = "var(--interest)";
 // Round-number gridlines labelled in the vault's currency ("$2k", "−$4k"), the
 // same scale Home's Trend chart uses. These charts used to label raw values like
 // 2763.20 and −1633.19 (bug sweep 10).
@@ -16874,7 +16896,7 @@ function chartGridSvg(scale, toY, PL, W, PR) {
       + `<text x="${PL - 4}" y="${y + 3.5}" text-anchor="end" class="chart-axis-label">${lbl}</text>`;
   }).join("");
 }
-const C_GOLD  = "#c9a84c";
+const C_GOLD  = "var(--accent)";
 const C_GRID  = "rgba(255,255,255,0.06)";
 const C_AXIS  = "rgba(255,255,255,0.15)";
 
@@ -17193,7 +17215,7 @@ let ensureFYSilent = false;
 function ensureFY(key) {
   if (!data[key]) {
     data[key] = { saved: [], removed: [] };
-    if (!ensureFYSilent) toast(`Year ${yearLabel(key)} added`, "var(--gold-dim)");
+    if (!ensureFYSilent) toast(`Year ${yearLabel(key)} added`, "notice");
   }
   return key;
 }
@@ -17465,12 +17487,12 @@ function txCcSelect(option) {
   const gold = "var(--gold)", neutral = "var(--border)";
   if (option === "reformat") {
     reformatLabel.style.borderColor = gold; reformatDot.style.borderColor = gold; reformatDot.style.background = gold;
-    reformatDot.innerHTML = "<span style='width:8px;height:8px;border-radius:50%;background:#0f0f11;display:block;'></span>";
+    reformatDot.innerHTML = "<span style='width:8px;height:8px;border-radius:50%;background:var(--bg0);display:block;'></span>";
     convertLabel.style.borderColor = neutral; convertDot.style.borderColor = neutral; convertDot.style.background = "transparent";
     convertDot.innerHTML = "<span style='width:8px;height:8px;border-radius:50%;background:transparent;display:block;'></span>";
   } else {
     convertLabel.style.borderColor = gold; convertDot.style.borderColor = gold; convertDot.style.background = gold;
-    convertDot.innerHTML = "<span style='width:8px;height:8px;border-radius:50%;background:#0f0f11;display:block;'></span>";
+    convertDot.innerHTML = "<span style='width:8px;height:8px;border-radius:50%;background:var(--bg0);display:block;'></span>";
     reformatLabel.style.borderColor = neutral; reformatDot.style.borderColor = neutral; reformatDot.style.background = "transparent";
     reformatDot.innerHTML = "<span style='width:8px;height:8px;border-radius:50%;background:transparent;display:block;'></span>";
   }
@@ -17529,7 +17551,7 @@ function savePopup() {
   if (popupIdx === null || !popupYear) return;
   const dateVal = document.getElementById("popup-date").value;
   const amtVal  = parseFloat(document.getElementById("popup-amount").value);
-  if (!dateVal || isNaN(amtVal) || amtVal <= 0) { toast("Enter a valid date and amount", "#c0392b"); return; }
+  if (!dateVal || isNaN(amtVal) || amtVal <= 0) { toast("Enter a valid date and amount", "error"); return; }
 
   const newAccountId  = document.getElementById("popup-account")?.value || getDefaultAccountId();
   const origAccountId = document.getElementById("tx-popup")?.dataset.origAccount || newAccountId;
@@ -17736,7 +17758,7 @@ function savePopupAll() {
   const recurId = document.getElementById("tx-popup").dataset.recurId;
   if (!recurId) return;
   const amtVal = parseFloat(document.getElementById("popup-amount").value);
-  if (isNaN(amtVal) || amtVal <= 0) { toast("Enter a valid amount", "#c0392b"); return; }
+  if (isNaN(amtVal) || amtVal <= 0) { toast("Enter a valid amount", "error"); return; }
   const amt = parseFloat(amtVal.toFixed(2));
 
   const newAccountId  = document.getElementById("popup-account")?.value || getDefaultAccountId();
@@ -17878,7 +17900,7 @@ function deleteRuleAndAllFromPopup() {
   closePopup();
   saveAndRender(null);
   triggerCloudSync();
-  toast(`Rule and ${matches.length} transaction${matches.length !== 1 ? "s" : ""} deleted`, "var(--red)");
+  toast(`Rule and ${matches.length} transaction${matches.length !== 1 ? "s" : ""} deleted`, "error");
 }
 
 // close popup on backdrop click
@@ -17901,8 +17923,8 @@ function hideAddYear() {
 }
 function confirmAddYear() {
   const label = document.getElementById("new-year-input").value.trim();
-  if (!isValidYearKey(label)) { toast(`Format: ${yearKeyPlaceholder()}`, "#c0392b"); return; }
-  if (data[label]) { toast("Year already exists", "#c0392b"); return; }
+  if (!isValidYearKey(label)) { toast(`Format: ${yearKeyPlaceholder()}`, "error"); return; }
+  if (data[label]) { toast("Year already exists", "error"); return; }
   data[label]={saved:[],removed:[]};
   keepYear(label);
   activeYear=label;
@@ -18178,7 +18200,7 @@ function viewScopeLabel() {
 // light-mode equivalents before the SVG is embedded in the print doc.
 function printCharts() {
   const cards = document.querySelectorAll("#charts-panel .chart-card");
-  if (!cards.length) { toast("No charts to print", "#c0392b"); return; }
+  if (!cards.length) { toast("No charts to print", "error"); return; }
 
   // View-context label for the header, mirrors printCurrentView's choices
   const isAllYears  = activeYear === "all-years";
@@ -18210,6 +18232,11 @@ function printCharts() {
     .replace(/var\(--green\)/g,   "#2a7a52")
     .replace(/var\(--red\)/g,     "#a03030")
     .replace(/var\(--gold\)/g,    "#8a7530")
+    .replace(/var\(--accent\)/g,  "#8a7530")
+    .replace(/var\(--in\)/g,      "#2a7a52")
+    .replace(/var\(--out\)/g,     "#a03030")
+    .replace(/var\(--interest\)/g,"#4a92c0")
+    .replace(/var\(--attention\)/g,"#9a5b00")
     .replace(/var\(--border\)/g,  "#dddddd")
     .replace(/\son(mouseenter|mouseleave|click)="[^"]*"/g, "")
     // Also strip single-quoted variants in case chart code evolves to emit them
@@ -18452,7 +18479,7 @@ ${rateNotes ? `<div class="rate-banner">
 // rows: [{ date, amt, accName, accCur, gAmt, type }]
 function exportRowsXLSX(rows, coverage, fname) {
   if (typeof XLSX === "undefined") { toast("The spreadsheet library didn't load. Reload Vault and try again", "error"); return; }
-  if (!rows.length) { toast("Nothing to export", "#c0392b"); return; }
+  if (!rows.length) { toast("Nothing to export", "error"); return; }
   const r2 = n => parseFloat(n.toFixed(2));
   const all = rows.map(r => {
     const rate = getRate(r.accCur);
@@ -18501,7 +18528,7 @@ function exportRowsXLSX(rows, coverage, fname) {
 
 // ─── toast notifications ───────────────────────────────────────────────────────
 // Show a brief status message at the top of the screen.
-// color defaults to the app's teal accent; use "#c0392b" for errors.
+// kind is "done", "notice" or "error" (design-rules §7).
 const _toastQueue = [];
 // ═══════════════════════════════════════════════════════════════════════════
 // ── IMPORT SYSTEM ──────────────────────────────────────────────────────────
@@ -19194,7 +19221,7 @@ let _importTxReviewResolve = null;
 async function runImportPipeline(files) {
   const enabledProviders = getEnabledProviders();
   if (!enabledProviders.length) {
-    toast("No AI provider configured — set up in AI Provider Settings", "#c0392b");
+    toast("No AI provider configured — set up in AI Provider Settings", "error");
     openImportPopup();
     return;
   }
@@ -19375,7 +19402,7 @@ function renderImportFailures() {
   const el = document.getElementById("import-preview-failures");
   if (_importFailures.length === 0) { el.style.display = "none"; return; }
   el.style.display = "";
-  el.innerHTML = `<div style="font-size:12px;color:var(--red);background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.2);border-radius:8px;padding:10px 12px;">
+  el.innerHTML = `<div style="font-size:12px;color:var(--red);background:color-mix(in srgb, var(--out) 8%, transparent);border:1px solid color-mix(in srgb, var(--out) 20%, transparent);border-radius:8px;padding:10px 12px;">
     <strong>${_importFailures.length} file${_importFailures.length>1?"s":""} could not be processed:</strong>
     ${_importFailures.map(f=>`<div style="margin-top:4px;color:var(--text-3);">✗ ${escapeHTML(f.name)} — ${escapeHTML(f.reason)}</div>`).join("")}
   </div>`;
@@ -19477,7 +19504,7 @@ function toggleImportAccountPicker() {
       const cur = acc.currency || currencyCode;
       const item = document.createElement("button");
       item.style.cssText = "width:100%;background:none;border:none;border-bottom:1px solid var(--border);padding:10px 12px;color:var(--text-1);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;gap:10px;text-align:left;";
-      if (acc.id === _importTargetAccountId) item.style.background = "rgba(201,168,76,0.08)";
+      if (acc.id === _importTargetAccountId) item.style.background = "color-mix(in srgb, var(--accent) 8%, transparent)";
       item.innerHTML = `<span style="width:10px;height:10px;border-radius:50%;background:${acc.color};flex-shrink:0;"></span><span style="flex:1;">${escapeHTML(acc.name)}</span><span style="font-size:11px;color:var(--text-3);font-weight:600;">${cur}</span>`;
       item.onclick = () => { _importTargetAccountId = acc.id; dd.style.display = "none"; renderImportAccountPicker(); };
       dd.appendChild(item);
@@ -19554,7 +19581,7 @@ function skipImportTxReview() {
 // ── Confirm import ────────────────────────────────────────────────────────
 function confirmImport() {
   const toImport = _importResults.filter(r => !r.skip);
-  if (!toImport.length) { toast("No transactions to import", "#c0392b"); return; }
+  if (!toImport.length) { toast("No transactions to import", "error"); return; }
 
   const accountId   = _importTargetAccountId || getDefaultAccountId();
   const importedIds = [];
@@ -19646,7 +19673,7 @@ function toastKind(k) {
   if (k === "done" || k === "notice" || k === "error") return k;
   if (!k) return "done";
   const c = String(k).toLowerCase();
-  if (c.includes("red") || c === "#c0392b") return "error";
+  if (c.includes("red")) return "error";
   if (c.includes("gold")) return "notice";
   return "done";
 }
@@ -19792,7 +19819,7 @@ async function saveAIKey(providerId) {
   const input = document.getElementById("aikey-" + providerId);
   if (!input) return;
   const key = input.value.trim();
-  if (!key) { toast("Enter an API key", "#c0392b"); return; }
+  if (!key) { toast("Enter an API key", "error"); return; }
 
   // Show privacy notice on first save ever
   const privacyAgreed = localStorage.getItem(AI_PRIVACY_KEY);
@@ -19849,7 +19876,7 @@ function setDefaultAIProvider(providerId) {
 
 async function testAIConnection(providerId) {
   const key = getAIKey(providerId) || document.getElementById("aikey-" + providerId)?.value.trim();
-  if (!key) { toast("Enter an API key first", "#c0392b"); return; }
+  if (!key) { toast("Enter an API key first", "error"); return; }
   const provider = AI_PROVIDERS.find(p => p.id === providerId);
   if (!provider) return;
   toast(`Testing ${provider.name}…`);
@@ -20065,8 +20092,8 @@ async function showCurrencyMismatchDialog(remoteData, remoteTombstones, remoteCu
     const rate = getRate(remote); // rate from local base to remote
     const rateDisplay = rate ? `1 ${local} = ${rate.toFixed(4)} ${remote}` : "rate unavailable";
     ratesWarn.style.display = "";
-    ratesWarn.style.background = "rgba(61,158,110,0.06)";
-    ratesWarn.style.borderColor = "rgba(61,158,110,0.2)";
+    ratesWarn.style.background = "color-mix(in srgb, var(--in) 6%, transparent)";
+    ratesWarn.style.borderColor = "color-mix(in srgb, var(--in) 20%, transparent)";
     ratesWarn.style.color = "var(--green)";
     ratesWarn.textContent = `Rate: ${rateDisplay} (today's rate from ExchangeRate-API)`;
     convertLocal.disabled  = false; convertLocal.style.opacity  = "";
@@ -20098,7 +20125,7 @@ async function resolveCurrencyMismatch(choice) {
   } else if (choice === "convert-local") {
     // Convert ALL local transactions (local → remote currency), then merge
     const rate = getRate(remote);
-    if (!rate) { toast("Exchange rate unavailable — cannot convert", "var(--red)"); return; }
+    if (!rate) { toast("Exchange rate unavailable — cannot convert", "error"); return; }
     // Convert every local transaction
     Object.keys(data).forEach(y => {
       ["saved", "removed"].forEach(bucket => {
@@ -20124,7 +20151,7 @@ async function resolveCurrencyMismatch(choice) {
   } else if (choice === "convert-remote") {
     // Convert incoming remote transactions (remote → local currency), then merge
     const rate = getRate(remote); // 1 local = rate remote, so 1 remote = 1/rate local
-    if (!rate) { toast("Exchange rate unavailable — cannot convert", "var(--red)"); return; }
+    if (!rate) { toast("Exchange rate unavailable — cannot convert", "error"); return; }
     const inverseRate = 1 / rate;
     // Convert all remote transactions
     const convertedRemote = {};
@@ -20154,7 +20181,7 @@ async function resolveCurrencyMismatch(choice) {
 function dismissCurrencyMismatch() {
   // Leave local data untouched — show a warning pill
   closeCurrencyMismatchDialog();
-  toast("Merge skipped — currency mismatch unresolved. Backup not updated", "var(--red)");
+  toast("Merge skipped — currency mismatch unresolved. Backup not updated", "error");
 }
 
 function closeCurrencyMismatchDialog() {
@@ -20325,7 +20352,7 @@ function toggleDeskRecur() {
   const addBtn  = document.getElementById("desk-add-btn");
   fields.style.display = deskRecurOn ? "block" : "none";
   if (deskRecurOn) {
-    btn.style.background  = "rgba(201,168,76,0.12)";
+    btn.style.background  = "color-mix(in srgb, var(--accent) 12%, transparent)";
     btn.style.color       = "var(--gold)";
     btn.style.borderColor = "var(--gold-dim)";
     btn.innerHTML = 'Recurring — tap to cancel';
@@ -20358,7 +20385,7 @@ function toggleMobRecur() {
   const addBtn = document.getElementById("mob-add-btn");
   fields.style.display = mobRecurOn ? "block" : "none";
   if (mobRecurOn) {
-    btn.style.background  = "rgba(201,168,76,0.12)";
+    btn.style.background  = "color-mix(in srgb, var(--accent) 12%, transparent)";
     btn.style.color       = "var(--gold)";
     btn.style.borderColor = "var(--gold-dim)";
     btn.innerHTML = 'Recurring — tap to cancel';
@@ -20405,15 +20432,15 @@ function setDeskType(type) {
   });
 
   if (type === "deposit") {
-    depBtn.style.background = "var(--green)"; depBtn.style.color = "#fff"; depBtn.style.borderColor = "var(--green)";
+    depBtn.style.background = "var(--green)"; depBtn.style.color = "var(--fill-ink)"; depBtn.style.borderColor = "var(--green)";
     saveBtn.textContent     = deskRecurOn ? "Schedule recurring deposit"  : "Add deposit";
     saveBtn.style.background = "var(--green)";
     const recurToggleD = document.getElementById("desk-recur-toggle");
     if (recurToggleD) recurToggleD.style.display = "";
   } else if (type === "interest") {
-    intBtn.style.background = "#5ba6d3"; intBtn.style.color = "#fff"; intBtn.style.borderColor = "#4a95c2";
+    intBtn.style.background = "var(--interest)"; intBtn.style.color = "var(--fill-ink)"; intBtn.style.borderColor = "var(--interest)";
     saveBtn.textContent      = "Add interest";
-    saveBtn.style.background = "#5ba6d3";
+    saveBtn.style.background = "var(--interest)";
     // Interest can't be recurring — hide the toggle and reset if it was on
     const recurToggle = document.getElementById("desk-recur-toggle");
     const recurFields = document.getElementById("desk-recur-fields");
@@ -20424,7 +20451,7 @@ function setDeskType(type) {
       resetRecurToggleLook(recurToggle);   // G1: it kept saying "Recurring — tap to cancel"
     }
   } else {
-    witBtn.style.background = "var(--red)"; witBtn.style.color = "#fff"; witBtn.style.borderColor = "var(--red)";
+    witBtn.style.background = "var(--red)"; witBtn.style.color = "var(--fill-ink)"; witBtn.style.borderColor = "var(--red)";
     saveBtn.textContent     = deskRecurOn ? "Schedule recurring withdrawal" : "Add withdrawal";
     saveBtn.style.background = "var(--red)";
     const recurToggleW = document.getElementById("desk-recur-toggle");
@@ -20466,7 +20493,7 @@ function closeDesktopAddSheet() {
 function desktopAddTransaction() {
   const dv  = document.getElementById("desk-inp-date").value;
   const av  = parseFloat(document.getElementById("desk-inp-amount").value);
-  if (!dv || isNaN(av) || av <= 0) { toast("Enter a valid date and amount", "#c0392b"); return; }
+  if (!dv || isNaN(av) || av <= 0) { toast("Enter a valid date and amount", "error"); return; }
   const amt = parseFloat(av.toFixed(2));
   const tab = deskTxType === "withdraw" ? "removed" : "saved";
   const subtype = deskTxType === "interest" ? "interest" : null;
@@ -20536,7 +20563,7 @@ function setMobType(type) {
     : type === "interest"
     ? "Add interest"
     : (mobRecurOn ? "Schedule recurring withdrawal" : "Add withdrawal");
-  addBtn.style.background = type === "deposit" ? "var(--green)" : type === "interest" ? "#5ba6d3" : "var(--red)";
+  addBtn.style.background = type === "deposit" ? "var(--green)" : type === "interest" ? "var(--interest)" : "var(--red)";
 
   // Interest can't be recurring — hide the toggle when interest is selected
   const mobRecurToggle = document.getElementById("mob-recur-toggle");
@@ -20584,7 +20611,7 @@ function openAddSheet() {
 // Submit the mobile add sheet — either a one-off transaction or a recurring rule
 function mobileAddTransaction() {
   const av = parseFloat(document.getElementById("mob-inp-amount").value);
-  if (isNaN(av) || av <= 0) { toast("Enter a valid amount", "#c0392b"); return; }
+  if (isNaN(av) || av <= 0) { toast("Enter a valid amount", "error"); return; }
   const amt = parseFloat(av.toFixed(2));
   const accountId = document.getElementById("mob-inp-account")?.value || getDefaultAccountId();
 
@@ -20592,7 +20619,7 @@ function mobileAddTransaction() {
     const dv   = document.getElementById("mob-inp-date").value;
     const freq = document.getElementById("mob-recur-freq").value;
     const end  = document.getElementById("mob-recur-end")?.value || null;
-    if (!dv) { toast("Enter a date", "#c0392b"); return; }
+    if (!dv) { toast("Enter a date", "error"); return; }
     const startDow = new Date(dv + "T00:00:00").getDay();
     const rule = {
       id: Date.now(), type: mobTxType === "withdraw" ? "withdrawal" : mobTxType,
@@ -20610,7 +20637,7 @@ function mobileAddTransaction() {
     toast(recurScheduledMsg(mobTxType, posted));
   } else {
     const dv = document.getElementById("mob-inp-date").value;
-    if (!dv) { toast("Enter a date", "#c0392b"); return; }
+    if (!dv) { toast("Enter a date", "error"); return; }
     const tab     = mobTxType === "withdraw" ? "removed" : "saved";
     const subtype = mobTxType === "interest" ? "interest" : null;
     // View stays put (v6.10.0) — see desktopAddTransaction.
@@ -20841,14 +20868,14 @@ function compatMessages() {
       banner: "Local file auto-save isn't supported on iOS or iPadOS. Use Google Drive or NAS instead.",
       panelTitle: "Not available on this device",
       panelBody: "iOS and iPadOS require all browsers to use Safari's engine, which doesn't support local file auto-save. This applies to Chrome, Edge, and every other browser on this device.",
-      deviceBanner: { text: "You are on iOS or iPadOS — local file auto-save cannot be enabled on this device regardless of which browser you use.", color: "rgba(192,80,74,0.08)", border: "rgba(192,80,74,0.25)", textColor: "var(--red)" },
+      deviceBanner: { text: "You are on iOS or iPadOS — local file auto-save cannot be enabled on this device regardless of which browser you use.", color: "color-mix(in srgb, var(--out) 8%, transparent)", border: "color-mix(in srgb, var(--out) 25%, transparent)", textColor: "var(--red)" },
     };
   }
   return {
     banner: "Local file auto-save needs Chrome or Edge — switch browsers to enable it.",
     panelTitle: "Switch browser to enable auto-save",
     panelBody: "Your current browser doesn't support the File System Access API needed for local file auto-save. On this device, switching to Chrome or Edge will enable it.",
-    deviceBanner: { text: "You are on a supported device — switching to Chrome or Edge will enable local file auto-save.", color: "rgba(201,168,76,0.06)", border: "rgba(201,168,76,0.25)", textColor: "var(--gold)" },
+    deviceBanner: { text: "You are on a supported device — switching to Chrome or Edge will enable local file auto-save.", color: "color-mix(in srgb, var(--accent) 6%, transparent)", border: "color-mix(in srgb, var(--accent) 25%, transparent)", textColor: "var(--gold)" },
   };
 }
 
@@ -21459,7 +21486,7 @@ function runRecurringCheck() {
     saveAndRender(null);
     updateRecurMenuSub();
     triggerCloudSync();
-    toast(`${posted} recurring transaction${posted > 1 ? "s" : ""} added`, "var(--gold-dim)");
+    toast(`${posted} recurring transaction${posted > 1 ? "s" : ""} added`, "notice");
   }
 }
 
@@ -21527,7 +21554,7 @@ function rdel_select(val) {
     keepLabel.style.color         = "var(--text-1)";
     keepDot.style.borderColor     = "var(--gold)";
     keepDot.style.background      = "var(--gold)";
-    keepDot.firstElementChild.style.background = "#0f0f11";
+    keepDot.firstElementChild.style.background = "var(--accent-ink)";
     removeLabel.style.borderColor = "var(--border)";
     removeLabel.style.color       = "var(--text-2)";
     removeDot.style.borderColor   = "var(--border)";
@@ -21775,7 +21802,7 @@ function readdSkippedOccurrence(rule, date, histIdx) {
   saveRecurring();
   saveAndRender(fyKey);
   triggerCloudSync();
-  toast(`Transaction re-added for ${fmtDate(date)}`, "var(--gold-dim)");
+  toast(`Transaction re-added for ${fmtDate(date)}`, "notice");
 
   // Refresh the history panel in place
   openRecurHistory(histIdx);
@@ -21837,7 +21864,7 @@ function saveRecurEditPopup() {
   const end  = document.getElementById("rep-end").value || null;
   const newAcct = document.getElementById("rep-account")?.value || rule.account || getDefaultAccountId();
   const oldAcct = rule.account || getDefaultAccountId();
-  if (isNaN(amt) || amt <= 0) { toast("Enter a valid amount", "#c0392b"); return; }
+  if (isNaN(amt) || amt <= 0) { toast("Enter a valid amount", "error"); return; }
 
   // If frequency changed, stamp freqChangedAt so the audit generates the new
   // cadence going forward without trying to re-post or alter past transactions.
@@ -21906,7 +21933,7 @@ function _commitRecurEdit(applyToPast) {
   // Re-run the audit so that any rule edits affecting the schedule (un-completing,
   // extending endDate, changing freq, etc.) post any newly-due occurrences immediately.
   const _posted = processRecurring();
-  if (_posted > 0) toast(`${_posted} transaction${_posted > 1 ? "s" : ""} added`, "var(--gold-dim)");
+  if (_posted > 0) toast(`${_posted} transaction${_posted > 1 ? "s" : ""} added`, "notice");
   triggerCloudSync();
   updateRecurMenuSub();
   closeRecurEditPopup();
@@ -21972,9 +21999,9 @@ function addRecurringRule() {
   const end    = document.getElementById("recur-end")?.value || null;
   const accountId = document.getElementById("recur-account")?.value || getDefaultAccountId();
 
-  if (!start)                        { toast("Enter a start date", "#c0392b"); return; }
-  if (isNaN(amount) || amount <= 0)  { toast("Enter a valid amount", "#c0392b"); return; }
-  if (end && end <= start)           { toast("End date must be after start date", "#c0392b"); return; }
+  if (!start)                        { toast("Enter a start date", "error"); return; }
+  if (isNaN(amount) || amount <= 0)  { toast("Enter a valid amount", "error"); return; }
+  if (end && end <= start)           { toast("End date must be after start date", "error"); return; }
 
   const startDow = new Date(start + "T00:00:00").getDay();
 
@@ -21995,7 +22022,7 @@ function addRecurringRule() {
   saveRecurring();
 
   const posted = processRecurring();
-  if (posted > 0) { saveAndRender(null); toast(`${posted} transaction${posted > 1 ? "s" : ""} added`, "var(--gold-dim)"); }
+  if (posted > 0) { saveAndRender(null); toast(`${posted} transaction${posted > 1 ? "s" : ""} added`, "notice"); }
 
   // Always sync the new rule to cloud, even when no transactions were posted (e.g. future start date).
   // Without this, a rule with a future start date lives only in localStorage until something else triggers a sync.
@@ -22007,7 +22034,7 @@ function addRecurringRule() {
   closeAddRecurringPopup();
   updateRecurMenuSub();
   renderRecurList();
-  if (posted === 0) toast("Recurring transaction scheduled", "var(--gold-dim)");
+  if (posted === 0) toast("Recurring transaction scheduled", "notice");
 }
 
 // Delete a recurring rule by index and refresh the list
@@ -22437,7 +22464,7 @@ navInit();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.14.0</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.15.0</div>
         </div>
 
         <div class="pp-cards">
@@ -22547,7 +22574,7 @@ navInit();
 
   </div><!-- /app root -->
 
-  <div id="version-footer">v6.14.0</div>
+  <div id="version-footer">v6.15.0</div>
 
 </body>
 </html>

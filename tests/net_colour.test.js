@@ -22,7 +22,9 @@ let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
 const E = s => w.eval(s);
 const color = el => w.getComputedStyle(el).color;
-const GREEN = "rgb(61, 158, 110)", RED = "rgb(207, 95, 87)", GOLD = "rgb(201, 168, 76)";
+// The look's roles, read from the page so a new look doesn't break this test.
+let GREEN, RED, GOLD;
+const roleColor = role => { const el = d.createElement("span"); el.style.color = `var(${role})`; d.body.appendChild(el); const c = w.getComputedStyle(el).color; el.remove(); return c; };
 
 // net = in - out, all in November 2026 so Home's This Month sees them.
 const load = (dep, wit) => E(`triggerCloudSync = () => {}; tombstones = new Set(); yearMode = "calendar";
@@ -32,6 +34,8 @@ const load = (dep, wit) => E(`triggerCloudSync = () => {}; tombstones = new Set(
   renderSidebar(); renderMain(); vhRenderMonth(); asRender();`);
 
 setTimeout(() => {
+  GREEN = roleColor("--in"); RED = roleColor("--out"); GOLD = roleColor("--accent");
+  ok(GREEN !== RED && GREEN !== GOLD && /^rgb/.test(GREEN), "roles resolve: " + [GREEN, RED, GOLD].join(" / "));
   ok(E(`typeof netNeg`) === "function" && E(`typeof netColor`) === "function", "shared net helpers exist");
   ok(E(`netNeg(-0.004)`) === false && E(`netNeg(0)`) === false && E(`netNeg(-0.01)`) === true, "rounds-to-zero counts as a surplus");
   E(`showPdfPreview = h => { window.__pdf = h; };`);
