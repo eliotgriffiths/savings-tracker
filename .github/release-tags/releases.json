@@ -1554,5 +1554,25 @@
       "You can now close Currency mismatch, Encrypted backup, Encrypt your backup? and Existing Vault file found. Closing skips safely, so nothing is merged, overwritten or loaded",
       "About and Privacy slide in like Settings"
     ]
+  },
+  {
+    "tag": "v6.16.1",
+    "sha": "90522451277dd927fc27f31675af843bb0339d29",
+    "date": "2026-11-09",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "versioned_at_release": true,
+    "commits": [
+      "9052245"
+    ],
+    "notes": [
+      "Settings, About and Privacy open as trays on a phone, and as the same card as other popups on a computer",
+      "Save & backup is in the Menu, and shows how your backup is doing",
+      "Google Drive stays connected when the connection drops. If Google signs Vault out, the status says Reconnect Drive, and one tap reconnects to the same backup without asking how to merge",
+      "If your browser clears Vault, the backup status offers Restore from Google Drive, which brings everything back in one step",
+      "Vault asks the browser to keep its data, and opens as its own app from a Home Screen icon",
+      "The arrow that opens the period picker on Transactions is bigger"
+    ]
   }
 ]
