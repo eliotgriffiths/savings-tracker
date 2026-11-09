@@ -1045,11 +1045,22 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   #recur-history-panel {
     position: absolute; inset: 0; background: var(--bg2);
     border-radius: inherit; display: flex; flex-direction: column;
-    transform: translateX(100%); transition: transform 0.22s ease;
     z-index: 2;
     clip-path: inset(0 round var(--radius-lg));
+    /* v6.17.0: History comes in from the right with the trays' fade-through */
+    transform: translateX(28%); opacity: 0; visibility: hidden;
+    transition: transform var(--nav-dur) var(--nav-ease), opacity var(--nav-out) ease-in, visibility 0s linear var(--nav-dur);
   }
-  #recur-history-panel.open { transform: translateX(0); }
+  #recur-history-panel.open { transform: none; opacity: 1; visibility: visible;
+    transition: transform var(--nav-dur) var(--nav-ease), opacity var(--nav-in) ease-out var(--nav-out), visibility 0s; }
+  /* …and the list under it moves the other way and fades out */
+  #recurring-modal .modal-box > :not(#recur-history-panel):not(.vp-grab) {
+    transition: transform var(--nav-dur) var(--nav-ease), opacity var(--nav-in) ease-out var(--nav-out); }
+  #recurring-modal .modal-box.rh-on > :not(#recur-history-panel):not(.vp-grab) {
+    transform: translateX(-10%); opacity: 0; pointer-events: none;
+    transition: transform var(--nav-dur) var(--nav-ease), opacity var(--nav-out) ease-in; }
+  .recur-history-back.vp-back { padding: 0; font-size: 0; margin: 0 -2px 0 -10px; color: var(--text-2); }
+  .recur-history-header .rh-close { margin-left: auto; }
   .recur-history-header {
     display: flex; align-items: center; gap: 10px;
     padding: 22px 24px 14px; flex-shrink: 0;
@@ -2845,6 +2856,21 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .smod-back.vp-back { color: var(--text-2); font-size: 0; padding: 0; margin: 0 -2px 0 -10px; }   /* these heads centre their row */
   @media (hover: hover) { .smod-back.vp-back:hover { color: var(--text-1); background: var(--bg3); } }
 
+  /* v6.17.0: moving between trays (and panels inside one) on a phone: sideways, with a
+     fade-through. Opening the first tray and closing the stack still move up and down. */
+  :root { --nav-dur: 0.36s; --nav-ease: cubic-bezier(0.4, 0, 0.2, 1); --nav-out: 0.11s; --nav-in: 0.25s; }
+  @media (prefers-reduced-motion: reduce) { :root { --nav-dur: 0s; --nav-out: 0s; --nav-in: 0s; } }
+  /* One dim and one sheet edge for the whole move, under both trays */
+  #vp-dim { position: fixed; inset: 0; display: none; pointer-events: none; background: rgba(0,0,0,0.55); }
+  #vp-ghost { position: fixed; left: 0; right: 0; bottom: 0; display: none; pointer-events: none;
+    background: var(--bg2); border: 1px solid var(--border-hi); border-bottom: 0; border-radius: 18px 18px 0 0;
+    transition: height var(--nav-dur) var(--nav-ease); }
+  #vp-ghost::before { content: ""; position: absolute; left: 50%; top: 9px; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--border-hi); }
+  /* While moving, the edge carries the only handle */
+  .vp-nav .vp-grab::before, .vp-nav > .sheet-handle { visibility: hidden; }
+  /* …and the sheet itself: the moving trays are just content over it, no card edges */
+  .vp-nav { background: transparent !important; border-color: transparent !important; box-shadow: none !important; }
+
   /* Panels that lay themselves out edge to edge (Save & backup, Currency) */
   .pop-anim.vp .vp-panel.vp-flush { padding: 0 !important; --vp-px: 0px; --vp-pb: 0px; }
   .vp-flush .vp-head { margin: 0 !important; padding: 22px 16px 12px 24px !important; }
@@ -3870,7 +3896,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <div style="display:flex; align-items:center; margin-bottom:6px;">
       <button class="smod-back vp-back" type="button" onclick="closeCloudPicker()" aria-label="Back to Save &amp; backup" title="Back to Save &amp; backup"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <h3 style="flex:1; margin:0;">Cloud service</h3>
-      <button class="modal-close" onclick="closeCloudPicker()" title="Close" aria-label="Close">✕</button>
+      <button class="modal-close" onclick="closeCloudPicker(false)" title="Close" aria-label="Close">✕</button>
     </div>
     <p style="font-size:12px; color:var(--text-3); margin:0 0 20px; line-height:1.6;">Choose a cloud service to sync your Vault data. Auto-saves every change and works on all browsers and devices.</p>
 
@@ -4797,7 +4823,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       <span class="menu-item-sub" id="mob-recur-manage-sub">None active</span>
     </span>
   </button>
-  <button class="menu-item-btn" onclick="closeSheets(); setTimeout(openAccountsModal,50);">
+  <button class="menu-item-btn" onclick="closeSheets(); openAccountsModal();">
       <span class="menu-item-icon">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect x="1.5" y="3.5" width="13" height="9" rx="1.75" stroke="currentColor" stroke-width="1.25" fill="none"/>
@@ -4817,7 +4843,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
         <span class="menu-item-sub" id="mob-accounts-sub">1 account</span>
       </span>
     </button>
-  <button class="menu-item-btn" onclick="closeSheets(); setTimeout(openGoalsModal,50);">
+  <button class="menu-item-btn" onclick="closeSheets(); openGoalsModal();">
       <span class="menu-item-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.25" fill="none"/><circle cx="8" cy="8" r="3.25" stroke="currentColor" stroke-width="1.1" fill="none" opacity="0.6"/><circle cx="8" cy="8" r="1" fill="currentColor"/></svg></span>
       <span class="menu-item-body">
         <span class="menu-item-label">Goals</span>
@@ -5347,11 +5373,12 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <!-- Rule history slide-in panel -->
     <div id="recur-history-panel">
       <div class="recur-history-header">
-        <button class="recur-history-back" onclick="closeRecurHistory()">‹</button>
+        <button class="recur-history-back vp-back" type="button" onclick="closeRecurHistory()" aria-label="Back to Recurring transactions" title="Back to Recurring transactions"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <div class="recur-history-title">
           <h3 id="recur-history-rule-title">Transaction history</h3>
           <p id="recur-history-rule-meta"></p>
         </div>
+        <button class="modal-close rh-close" type="button" onclick="closeRecurringModal()" title="Close" aria-label="Close">✕</button>
       </div>
       <div class="recur-history-body" id="recur-history-body"></div>
     </div>
@@ -10334,30 +10361,37 @@ function _smodTriggerFade(el) {
 }
 
 function openSmodPanel(name) {
-  document.getElementById("smod-main").style.display = "none";
-  document.querySelectorAll(".smod-panel").forEach(p => {
-    p.classList.remove("open");
-    p.classList.remove("smod-fade-in");
-  });
+  const main = document.getElementById("smod-main");
   const panel = document.getElementById("smod-panel-" + name);
-  if (panel) {
-    panel.classList.add("open");
-    _smodTriggerFade(panel);
-  }
+  const swap = () => {
+    main.style.display = "none";
+    document.querySelectorAll(".smod-panel").forEach(p => {
+      p.classList.remove("open");
+      p.classList.remove("smod-fade-in");
+    });
+    if (panel) panel.classList.add("open");
+  };
+  // v6.17.0: on a phone, sideways like the trays; elsewhere the old fade
+  if (panel && main && main.style.display !== "none" && vpInnerSwap(main, panel, "push", swap)) return;
+  swap();
+  if (panel) _smodTriggerFade(panel);
 }
 
 // Return to the main card view from a panel
 // Return from a sub-panel back to the Save & Backup main card view.
 function closeSmodPanel() {
-  document.querySelectorAll(".smod-panel").forEach(p => {
-    p.classList.remove("open");
-    p.classList.remove("smod-fade-in");
-  });
   const main = document.getElementById("smod-main");
-  if (main) {
-    main.style.display = "";
-    _smodTriggerFade(main);
-  }
+  const open = document.querySelector(".smod-panel.open");
+  const swap = () => {
+    document.querySelectorAll(".smod-panel").forEach(p => {
+      p.classList.remove("open");
+      p.classList.remove("smod-fade-in");
+    });
+    if (main) main.style.display = "";
+  };
+  if (open && main && vpInnerSwap(open, main, "pop", swap)) return;
+  swap();
+  if (main) _smodTriggerFade(main);
 }
 
 // Refresh the Save & Backup modal — updates enc UI and local file UI.
@@ -10677,9 +10711,13 @@ function openCloudPicker() {
   document.body.style.overflow = "hidden";
 }
 
-function closeCloudPicker() {
-  document.getElementById("cloud-picker-popup").classList.add("hidden");
-  openSetup();
+// ‹ returns to Save & backup (sideways on a phone); ✕ passes false and just closes.
+function closeCloudPicker(back) {
+  const cp = document.getElementById("cloud-picker-popup");
+  cp.classList.add("hidden");
+  if (back === false) return;
+  if (vpIsPhone() && cp._vpParent && cp._vpParent.id === "setup-modal") vpShowParent(cp, cp._vpParent);
+  else openSetup();
 }
 
 
@@ -17573,13 +17611,19 @@ function closePopup() {
   popupType = null;
   popupYear = null;
 
-  // If opened from a history panel, slide back into it
+  // If opened from a history panel, go back to it. v6.17.0: History is usually still open
+  // under Edit, so it's just refreshed in place; ✕ (close everything) goes nowhere.
   if (_popupFromHistoryIdx !== null) {
     const histIdx = _popupFromHistoryIdx;
     _popupFromHistoryIdx = null;
-    openRecurringModal();
-    // Small delay to let the modal appear before sliding the panel in
-    setTimeout(() => openRecurHistory(histIdx), 50);
+    if (_vpClosingAll) return;
+    if (popupIsOpen(document.getElementById("recurring-modal")) && document.getElementById("recur-history-panel").classList.contains("open")) {
+      openRecurHistory(histIdx);
+    } else {
+      openRecurringModal();
+      // Small delay to let the modal appear before sliding the panel in
+      setTimeout(() => openRecurHistory(histIdx), 50);
+    }
   }
 }
 
@@ -20994,7 +21038,7 @@ function topOpenPopup() {
 document.addEventListener("click", e => {
   const el = e.target;
   if (!el || !el.id || !/-(popup|modal)$/.test(el.id) || !popupIsOpen(el)) return;
-  vpTryDismiss(el);
+  vpCloseAll(el);
 });
 // Outside tap, swipe down and Back share one rule (design-rules §4).
 function vpTryDismiss(el) {
@@ -21085,7 +21129,7 @@ function vpInit() {
     grab.className = "vp-grab";
     grab.setAttribute("aria-hidden", "true");
     panel.insertBefore(grab, panel.firstChild);
-    vpSwipe(panel, [grab, panel.querySelector(".vp-head")].filter(Boolean), () => vpTryDismiss(el));
+    vpSwipe(panel, [grab, panel.querySelector(".vp-head")].filter(Boolean), () => vpCloseAll(el));
     vpLockObserver.observe(el, { attributes: true, attributeFilter: ["class"] });
     vpNavObserver.observe(el, { attributes: true, attributeFilter: ["class"], attributeOldValue: true });
   });
@@ -21168,11 +21212,18 @@ const vpNavObserver = new MutationObserver(list => list.forEach(m => {
     return;
   }
   const was = /\bhidden\b/.test(old), now = el.classList.contains("hidden");
-  if (!was && now) _vpLastClosed = { el, at: performance.now() };
+  if (!was && now) {
+    _vpLastClosed = { el, at: performance.now() };
+    // v6.17.0: closed by its own buttons (Save, a choice) while its parent waits under it:
+    // slide back to the parent, as ‹ would. Not when everything is closing.
+    const p = el._vpParent;
+    if (p && !_vpClosingAll && vpIsPhone() && p.dataset.vpUnder === "1" && vpTrayOpen(p)) vpSlide(el, p, "pop");
+  }
   else if (was && !now) vpSetParent(el);
 }));
 function vpSetParent(el) {
   if (_vpRestoring === el) { _vpRestoring = null; vpShowBack(el); return; }
+  vpClearNav(el);   // leftovers from the last time it was under another tray
   const zi = e => parseInt(getComputedStyle(e).zIndex, 10) || 0;
   const under = vpPopups().filter(p => p !== el && p.classList.contains("vp") && !p.classList.contains("hidden") && !p.classList.contains("vp-alert"))
     .filter(p => popupIsOpen(p) && zi(p) <= zi(el));
@@ -21181,6 +21232,7 @@ function vpSetParent(el) {
   if (!parent && lc && lc.el !== el && performance.now() - lc.at < 700 && VP_REOPEN[lc.el.id]) parent = lc.el;
   el._vpParent = parent;
   vpShowBack(el);
+  if (parent && vpIsPhone()) vpSlide(parent, el, "push");   // v6.17.0: sideways in
 }
 function vpTrayOpen(t) { return VP_SHEET_IDS.includes(t.id) ? t.classList.contains("open") : popupIsOpen(t); }
 function vpTrayName(t) {
@@ -21207,10 +21259,156 @@ function vpShowBack(el) {
 function vpBack(el) {
   const p = el._vpParent;
   if (!vpTryDismiss(el)) return false;
-  if (p && !vpTrayOpen(p) && VP_REOPEN[p.id]) {
+  if (p) vpShowParent(el, p);
+  return true;
+}
+// Show the tray under (or before) this one: reopen it if it closed, then slide back to it.
+function vpShowParent(child, p) {
+  if (!vpTrayOpen(p) && VP_REOPEN[p.id]) {
     if (!VP_SHEET_IDS.includes(p.id)) _vpRestoring = p;
     try { VP_REOPEN[p.id](); } catch (e) { _vpRestoring = null; dbg("vpBack " + p.id + ": " + e.message); }
   }
+  if (vpTrayOpen(p)) vpSlide(child, p, "pop");
+}
+
+// ── Moving between trays (v6.17.0, spec-tray-navigation) ───────────────────────
+// Phone only. push: from a tray to one opened from it; pop: back. The leaving tray moves 10 %
+// and fades out fast, the arriving one comes in from 28 % and fades in after it (a
+// fade-through, never both see-through at once). #vp-ghost, a stand-in sheet edge with the
+// handle, glides between the two heights over #vp-dim, one dim for both; each tray's own dim
+// is off until the move ends. A tray still open under the new one stays faded out
+// (data-vp-under) until you come back to it; the one over it keeps its own dim off.
+const VP_NAV_MS = 360;
+const VP_NAV_PROPS = ["transform", "opacity", "transition", "clip-path"];
+let _vpNavEnd = null;
+let _vpClosingAll = false;
+function vpIsPhone() { return window.innerWidth <= 640; }
+function vpBox(t) { return VP_SHEET_IDS.includes(t.id) ? t : t.querySelector(".vp-panel"); }
+function vpZ(t) { return parseInt(getComputedStyle(t).zIndex, 10) || 0; }
+function vpNavLayer(id) {
+  let e = document.getElementById(id);
+  if (!e) { e = document.createElement("div"); e.id = id; e.setAttribute("aria-hidden", "true"); document.body.appendChild(e); }
+  return e;
+}
+function vpSet(el, props) { Object.entries(props).forEach(([k, v]) => el.style.setProperty(k, v, "important")); }
+function vpUnset(el, keys) { keys.forEach(k => el.style.removeProperty(k)); }
+function vpClearNav(t) {
+  const b = vpBox(t);
+  if (b) { vpUnset(b, VP_NAV_PROPS); b.classList.remove("vp-nav"); }
+  if (!VP_SHEET_IDS.includes(t.id)) vpUnset(t, ["background", "transition"]);
+  delete t.dataset.vpUnder;
+}
+function vpSlide(from, to, dir) {
+  if (!from || !to || !vpIsPhone()) return;
+  if (_vpNavEnd) _vpNavEnd();              // a tap mid-move finishes the last move first
+  const fb = vpBox(from), tb = vpBox(to);
+  if (!fb || !tb) return;
+  const push = dir === "push";
+  const isSheet = t => VP_SHEET_IDS.includes(t.id);
+  const H = window.innerHeight, fromTop = H - fb.offsetHeight, toTop = H - tb.offsetHeight;
+  const z = Math.min(vpZ(from), vpZ(to));
+  const dim = vpNavLayer("vp-dim"), ghost = vpNavLayer("vp-ghost"), sov = document.getElementById("sheet-overlay");
+  const pops = [from, to].filter(t => !isSheet(t));
+  const stayUnder = push && vpTrayOpen(from);
+  delete to.dataset.vpUnder;
+  // One dim for the move
+  dim.style.zIndex = z - 2; ghost.style.zIndex = z - 1; dim.style.display = "block";
+  pops.forEach(t => vpSet(t, { background: "transparent" }));
+  if (sov) sov.style.visibility = "hidden";
+  if (!isSheet(from) && !stayUnder) vpSet(from, { transition: "opacity 0s linear var(--nav-out), visibility 0s linear var(--nav-out)" });
+  if (!isSheet(to)) vpSet(to, { transition: "none" });
+  fb.classList.add("vp-nav"); tb.classList.add("vp-nav");
+  // The edge starts at the leaving tray's height…
+  ghost.style.transition = "none"; ghost.style.height = (H - fromTop) + "px"; ghost.style.display = "block";
+  // …and the arriving tray starts off to the side. Whichever tray is taller is clipped to
+  // the edge as it moves, so nothing shows above it.
+  const clip = toTop < fromTop, clipFrom = fromTop < toTop;
+  vpSet(tb, { transition: "none", transform: `translateX(${push ? "28%" : "-10%"})`, opacity: "0" });
+  if (clip) vpSet(tb, { "clip-path": `inset(${Math.round(fromTop - toTop)}px 0 0 0)` });
+  if (clipFrom) vpSet(fb, { "clip-path": "inset(0px 0 0 0)" });
+  void tb.offsetHeight; void ghost.offsetHeight;
+  ghost.style.transition = ""; ghost.style.height = (H - toTop) + "px";
+  vpSet(fb, { transition: "transform var(--nav-dur) var(--nav-ease), opacity var(--nav-out) ease-in, visibility 0s linear var(--nav-out), clip-path var(--nav-dur) var(--nav-ease)",
+              transform: `translateX(${push ? "-10%" : "28%"})`, opacity: "0" });
+  if (clipFrom) vpSet(fb, { "clip-path": `inset(${Math.round(toTop - fromTop)}px 0 0 0)` });
+  vpSet(tb, { transition: "transform var(--nav-dur) var(--nav-ease), opacity var(--nav-in) ease-out var(--nav-out), clip-path var(--nav-dur) var(--nav-ease)",
+              transform: "none", opacity: "1" });
+  if (clip) vpSet(tb, { "clip-path": "inset(0px 0 0 0)" });
+  let done = false;
+  const end = () => {
+    if (done) return; done = true; clearTimeout(timer); _vpNavEnd = null;
+    vpUnset(tb, VP_NAV_PROPS); tb.classList.remove("vp-nav"); fb.classList.remove("vp-nav");
+    if (stayUnder) { vpUnset(fb, ["transition", "clip-path"]); from.dataset.vpUnder = "1"; }
+    else vpUnset(fb, VP_NAV_PROPS);
+    pops.forEach(t => vpUnset(t, ["background", "transition"]));
+    if (stayUnder) vpSet(to, { background: "transparent" });   // the tray under it already dims the page
+    ghost.style.display = "none"; dim.style.display = "none";
+    if (sov) sov.style.visibility = "";
+  };
+  const timer = setTimeout(end, VP_NAV_MS + 40);
+  _vpNavEnd = end;
+}
+
+// ✕, swipe down and an outside tap close every open layer (spec decision 1).
+function vpOpenAncestors(el) {
+  const out = [], seen = new Set([el]);
+  for (let p = el._vpParent; p && !seen.has(p); p = p._vpParent) {
+    seen.add(p);
+    if (!VP_SHEET_IDS.includes(p.id) && popupIsOpen(p)) out.push(p);
+  }
+  return out;
+}
+function vpCloseAll(el) {
+  const anc = vpIsPhone() ? vpOpenAncestors(el) : [];
+  _vpClosingAll = true;
+  try {
+    if (!vpTryDismiss(el)) return false;
+    for (const a of anc) if (!vpTryDismiss(a)) break;
+    return true;
+  } finally { setTimeout(() => { _vpClosingAll = false; }, 0); }
+}
+// ✕ buttons call their own close function; close the layers under it too, after it.
+document.addEventListener("click", e => {
+  const x = e.target && e.target.closest && e.target.closest(".modal-close");
+  const el = x && x.closest(".vp");
+  if (!el || !vpIsPhone()) return;
+  const anc = vpOpenAncestors(el);
+  if (!anc.length) return;
+  _vpClosingAll = true;
+  setTimeout(() => {
+    if (!popupIsOpen(el)) for (const a of anc) if (!vpTryDismiss(a)) break;
+    _vpClosingAll = false;
+  }, 0);
+}, true);
+
+// A panel inside a tray that Back closes first (sideways, like ‹ inside it).
+const VP_INNER_BACK = {
+  "recurring-modal": () => { const h = document.getElementById("recur-history-panel"); if (!h || !h.classList.contains("open")) return false; closeRecurHistory(); return true; },
+  "setup-modal": () => { if (!document.querySelector(".smod-panel.open")) return false; closeSmodPanel(); return true; },
+};
+// Swap two panels inside one tray, sideways with the fade-through; the tray's height glides.
+// Returns false (and does nothing) when it doesn't apply, so the caller swaps them itself.
+let _vpInnerBusy = false;
+function vpInnerSwap(outEl, inEl, dir, swap) {
+  const panel = outEl.closest(".vp-panel");
+  if (!vpIsPhone() || !panel || _vpInnerBusy || !popupIsOpen(panel.closest(".vp"))) return false;
+  let reduced = false; try { reduced = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch {}
+  if (reduced) return false;
+  _vpInnerBusy = true;
+  const push = dir === "push", h0 = panel.offsetHeight;
+  vpSet(outEl, { transition: "transform var(--nav-out) ease-in, opacity var(--nav-out) ease-in", transform: `translateX(${push ? "-10%" : "28%"})`, opacity: "0" });
+  setTimeout(() => {
+    vpUnset(outEl, VP_NAV_PROPS);
+    swap();
+    const h1 = panel.offsetHeight;
+    vpSet(inEl, { transition: "none", transform: `translateX(${push ? "28%" : "-10%"})`, opacity: "0" });
+    // The panel's own transition rule is !important, so the glide must be too
+    vpSet(panel, { transition: "none", height: h0 + "px" });
+    void panel.offsetHeight;
+    vpSet(panel, { transition: "height var(--nav-in) var(--nav-ease)", height: h1 + "px" });
+    vpSet(inEl, { transition: "transform var(--nav-in) var(--nav-ease), opacity var(--nav-in) ease-out", transform: "none", opacity: "1" });
+    setTimeout(() => { vpUnset(inEl, VP_NAV_PROPS); vpUnset(panel, ["height", "transition"]); _vpInnerBusy = false; }, 270);
+  }, 110);
   return true;
 }
 
@@ -22233,11 +22431,8 @@ function openRecurHistory(idx) {
           // Mark that this popup was opened from history so closePopup returns here
           _popupFromHistoryIdx  = idx;
           _openPopupFromHistory = true; // latch: tells openPopup not to clear the origin
-          closeRecurHistory();
-          // Delay so panel slides out before edit popup appears
-          setTimeout(() => {
-            openPopup(txEntry.date, txEntry.amt, txEntry.bucket, txEntry.yearKey, txEntry.txId);
-          }, 200);
+          // v6.17.0: Edit opens over History, which stays put, so ‹ comes straight back to it
+          openPopup(txEntry.date, txEntry.amt, txEntry.bucket, txEntry.yearKey, txEntry.txId);
         });
       }
 
@@ -22245,12 +22440,14 @@ function openRecurHistory(idx) {
     });
   }
 
-  // Slide in
+  // Slide in (v6.17.0: the list moves the other way)
   document.getElementById("recur-history-panel").classList.add("open");
+  document.querySelector("#recurring-modal .modal-box")?.classList.add("rh-on");
 }
 
 function closeRecurHistory() {
   document.getElementById("recur-history-panel").classList.remove("open");
+  document.querySelector("#recurring-modal .modal-box")?.classList.remove("rh-on");
 }
 
 // Remove a date from a rule's skippedDates, re-post the transaction, and refresh history
@@ -22671,6 +22868,7 @@ function navCloseTop() {
   if (top) {
     if (POPUP_DECISIONS.has(top.id)) return true;
     if (POPUP_FORMS.has(top.id) && top.dataset.dirty === "1") { toast("Tap Cancel to leave without saving", "notice"); return true; }
+    if (VP_INNER_BACK[top.id] && VP_INNER_BACK[top.id]()) return true;           // v6.17.0: a panel inside the tray
     if (top._vpParent && window.innerWidth <= 640) { vpBack(top); return true; }   // v6.16.5: one layer back
     dismissPopup(top); return true;
   }
@@ -22937,7 +23135,7 @@ navInit();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.16.5</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.17.0</div>
         </div>
 
         <div class="pp-cards">
@@ -23049,7 +23247,7 @@ navInit();
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v6.16.5</div>
+  <div id="version-footer">v6.17.0</div>
 
 </body>
 </html>
