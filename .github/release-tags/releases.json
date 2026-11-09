@@ -1574,5 +1574,20 @@
       "Vault asks the browser to keep its data, and opens as its own app from a Home Screen icon",
       "The arrow that opens the period picker on Transactions is bigger"
     ]
+  },
+  {
+    "tag": "v6.16.2",
+    "sha": "20d5907c764bb39582516b6318bebb78d11bd174",
+    "date": "2026-11-09",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "versioned_at_release": true,
+    "commits": [
+      "20d5907"
+    ],
+    "notes": [
+      "A new app icon: a bolder vault door in rich gold that fills the Home Screen tile. The browser tab shows the same icon"
+    ]
   }
 ]
