@@ -108,7 +108,7 @@ setTimeout(async () => {
   E(`openAbout()`);
   ok(w.location.hash === "#about", "About has its own entry");
   await back();
-  ok(d.getElementById("about-overlay").classList.contains("hidden"), "Back closes About");
+  ok(d.getElementById("about-popup").classList.contains("hidden"), "Back closes About");
   ok(tab() === "all", "…and stays on the list");
   E(`openAbout()`); E(`closeAbout()`); await sleep(60);
   ok(tab() === "all" && w.location.hash === "", "closing About with ✕ stays on the list");
@@ -137,7 +137,7 @@ setTimeout(async () => {
   const btns = () => [...d.querySelectorAll("#ss-now-btns button")].map(b => b.textContent);
   E(`setSaveStatus("warn", "No backup"); openSaveStatusLegend()`);
   ok(/No backup/.test(d.getElementById("ss-now").textContent), "the popup leads with the current status");
-  ok(JSON.stringify(btns()) === '["Set up backup","Done"]', "No backup offers Set up backup: " + btns());
+  ok(JSON.stringify(btns()) === '["Set up backup","Use Google Drive","Done"]', "No backup offers Set up backup, then Google Drive (v6.16.1): " + btns());
   ok(d.querySelector("#ss-now-btns .pbtn-primary").textContent === "Set up backup", "…as the primary button");
   ok(d.getElementById("ss-legend-fold").open === false, "the full legend is folded away");
   E(`closeSaveStatusLegend(); setSaveStatus("err", "Sync failed"); openSaveStatusLegend()`);
@@ -153,8 +153,9 @@ setTimeout(async () => {
   d.querySelector("#ss-now-btns .pbtn-primary").click(); await sleep(80);
   ok(!isOpen("save-status-legend-popup") && E("window.__setup") === 1, "Set up backup closes the popup and opens Save & backup");
   E(`openSetup = window.__os`);
-  ok(!/Menu → Save &amp; backup|Menu → Save & backup/.test(html), "no wording points at Menu → Save & backup any more");
-  ok((html.match(/Menu → Settings → Save (&amp;|&) backup/g) || []).length === 7, "every pointer says Menu → Settings → Save & backup");
+  // v6.16.1: Save & backup moved back to the Menu
+  ok(!/Menu → Settings → Save (&amp;|&) backup/.test(html), "no wording points at Menu → Settings → Save & backup any more");
+  ok((html.match(/Menu → Save (&amp;|&) backup/g) || []).length === 7, "every pointer says Menu → Save & backup");
 
   // ── N8 ──────────────────────────────────────────────────────────────────
   ok(d.querySelector("#vh-home-menu-drop .vh-menu-item").textContent === "Customise Home", "Home's ⋮ says Customise Home");

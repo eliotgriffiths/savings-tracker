@@ -65,36 +65,34 @@ setTimeout(async () => {
   const sections = $$("#menu-sheet .menu-section-label").map(txt);
   ok(JSON.stringify(sections) === '["View","Manage","Data","Settings"]', "Menu sections: " + JSON.stringify(sections));
   const items = $$("#menu-sheet .menu-item-label").map(txt);
-  ok(JSON.stringify(items) === '["Charts","Recurring","Accounts","Goals","Import","Export spreadsheet","Print","Settings","Holdings Soon"]', "Menu items: " + JSON.stringify(items));
+  ok(JSON.stringify(items) === '["Charts","Recurring","Accounts","Goals","Save & backup","Import","Export spreadsheet","Print","Settings","Holdings Soon"]', "Menu items: " + JSON.stringify(items));
   ok(!$("#menu-tx-dropdown") && !$("#menu-settings-dropdown"), "no dropdowns inside the Menu");
   ok(["mob-recur-manage-sub", "mob-accounts-sub", "menu-goals-sub", "mob-export-sub", "mob-print-sub"].every(id => d.getElementById(id)), "Menu keeps its live sub-labels");
   ok(d.querySelectorAll('[id="mob-accounts-sub"]').length === 1, "IDs are unique");
 
-  // ── N6: Settings page ────────────────────────────────────────────────────
+  // ── N6: Settings (a panel since v6.16.1: a tray on a phone) ─────────────
   E(`openMenuSheet()`);
-  [...d.querySelectorAll("#menu-sheet .menu-item-btn")].find(b => /Settings/.test(txt(b))).click();
-  ok($("#settings-page").classList.contains("open") && !$("#menu-sheet").classList.contains("open"), "Settings opens its page and closes the Menu");
-  ok(d.documentElement.classList.contains("sp-lock"), "the page behind doesn't scroll");
-  const groups = $$("#settings-page .sp-label").map(txt);
+  [...d.querySelectorAll("#menu-sheet .menu-item-btn")].find(b => /^Settings/.test(txt(b))).click();
+  ok(isOpen("settings-popup") && !$("#menu-sheet").classList.contains("open"), "Settings opens its tray and closes the Menu");
+  await sleep(0);
+  ok(d.documentElement.classList.contains("vp-lock"), "the page behind doesn't scroll");
+  const groups = $$("#settings-popup .sp-label").map(txt);
   ok(JSON.stringify(groups) === '["Backup","Preferences","About"]', "Settings groups: " + JSON.stringify(groups));
-  const sitems = $$("#settings-page .sp-t").map(txt);
-  ok(JSON.stringify(sitems) === '["Save & backup","Encryption","Currency","Year format","Customise Home","AI provider","Privacy policy","About Vault"]', "Settings items: " + JSON.stringify(sitems));
-  ok(["mob-enc-sub", "mob-currency-sub", "mob-yearmode-sub", "mob-ai-sub"].every(id => d.getElementById(id)?.closest("#settings-page")), "live sub-labels moved with them");
+  const sitems = $$("#settings-popup .sp-t").map(txt);
+  ok(JSON.stringify(sitems) === '["Encryption","Currency","Year format","Customise Home","AI provider","Privacy policy","About Vault"]', "Settings items: " + JSON.stringify(sitems));
+  ok(["mob-enc-sub", "mob-currency-sub", "mob-yearmode-sub", "mob-ai-sub"].every(id => d.getElementById(id)?.closest("#settings-popup")), "live sub-labels moved with them");
   E(`updateYearModeUI && updateYearModeUI()`);
   ok(/Calendar year|Financial/.test(txt(d.getElementById("mob-yearmode-sub"))), "year format sub-label still updates");
-  // A setting opens on top of the page; closing it comes back to Settings.
-  [...d.querySelectorAll("#settings-page .sp-item")].find(b => /Currency/.test(txt(b))).click();
-  ok(isOpen("currency-popup") && $("#settings-page").classList.contains("open"), "Currency opens over Settings");
+  // A setting opens on top of Settings; closing it comes back to Settings.
+  [...d.querySelectorAll("#settings-popup .sp-item")].find(b => /Currency/.test(txt(b))).click();
+  ok(isOpen("currency-popup") && isOpen("settings-popup"), "Currency opens over Settings");
   w.history.back(); await sleep(60);
-  ok(!isOpen("currency-popup") && $("#settings-page").classList.contains("open"), "Back closes the popup first");
+  ok(!isOpen("currency-popup") && isOpen("settings-popup"), "Back closes the popup first");
   w.history.back(); await sleep(60);
-  ok(!$("#settings-page").classList.contains("open") && !d.documentElement.classList.contains("sp-lock"), "…then Settings");
-  E(`openSettingsPage()`);
-  $("#settings-page .sp-back").click();
-  ok(!$("#settings-page").classList.contains("open") && $("#menu-sheet").classList.contains("open"), "‹ Back returns to the Menu");
+  ok(!isOpen("settings-popup") && !d.documentElement.classList.contains("vp-lock"), "…then Settings");
   E(`closeSheets(); openSettingsPage()`);
   d.dispatchEvent(new w.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
-  ok(!$("#settings-page").classList.contains("open"), "Escape closes Settings");
+  ok(!isOpen("settings-popup"), "Escape closes Settings");
 
   // ── N5: period picker ────────────────────────────────────────────────────
   E(`switchTab("all"); activeYear = "all-years"; activeMonth = null; activeAccountFilter = "ub"; render();`);
@@ -134,7 +132,7 @@ setTimeout(async () => {
   ok(!$("#desktop-menu [data-nav]"), "the desktop Menu has no screens (they're in the sidebar)");
   E(`toggleDesktopMenu()`);
   [...d.querySelectorAll("#desktop-menu .dmenu-btn")].find(b => /Settings/.test(txt(b))).click();
-  ok($("#settings-page").classList.contains("open") && !$("#desktop-menu").classList.contains("open"), "desktop Settings opens the same page");
+  ok(isOpen("settings-popup") && !$("#desktop-menu").classList.contains("open"), "desktop Settings opens the same panel");
   E(`closeSettingsPage()`);
 
   // ── Nothing still points at the old layout ───────────────────────────────
