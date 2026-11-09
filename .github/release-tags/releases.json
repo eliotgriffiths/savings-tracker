@@ -1589,5 +1589,59 @@
     "notes": [
       "A new app icon: a bolder vault door in rich gold that fills the Home Screen tile. The browser tab shows the same icon"
     ]
+  },
+  {
+    "tag": "v6.16.3",
+    "sha": "269f24f0ef5e476824eca749a01de6f9eab89037",
+    "date": "2026-11-09",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "versioned_at_release": true,
+    "commits": [
+      "269f24f"
+    ],
+    "notes": [
+      "Trays follow your finger when you drag them down, instead of lagging behind",
+      "Settings uses the same rows as the Menu"
+    ]
+  },
+  {
+    "tag": "v6.16.4",
+    "sha": "f38165a013f5a7e57e1508eafc353da7765a9f7b",
+    "date": "2026-11-09",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "versioned_at_release": true,
+    "commits": [
+      "f38165a"
+    ],
+    "notes": [
+      "Switching Add transaction to or from Interest no longer makes the tray jump. The recurring option folds away smoothly",
+      "Years in the period picker fold open and shut",
+      "Home, Transactions and Search titles are the same size on a phone",
+      "The summary cards on Transactions match Search: centred, with how many transactions are behind each total",
+      "Six-figure totals fit on smaller phones"
+    ]
+  },
+  {
+    "tag": "v6.16.5",
+    "sha": "b8610170d04ccb4de1263fd71013fcf26431edd8",
+    "date": "2026-11-09",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "versioned_at_release": true,
+    "commits": [
+      "b861017"
+    ],
+    "notes": [
+      "Trays open in one smooth motion, without the stutter",
+      "A tray opened from another tray has ‹ to go back to it, and the phone's Back gesture steps back one tray at a time",
+      "Back closes the Menu, Add and period trays again",
+      "Closing About or Privacy no longer closes Settings as well",
+      "Save & backup's back buttons match the other trays"
+    ]
   }
 ]

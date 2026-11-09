@@ -70,6 +70,8 @@ setTimeout(async () => {
   ok(["mob-recur-manage-sub", "mob-accounts-sub", "menu-goals-sub", "mob-export-sub", "mob-print-sub"].every(id => d.getElementById(id)), "Menu keeps its live sub-labels");
   ok(d.querySelectorAll('[id="mob-accounts-sub"]').length === 1, "IDs are unique");
 
+  // Back, then wait for the browser's popstate (a fixed 60 ms wait was flaky in jsdom)
+  const goBack = () => new Promise(r => { w.addEventListener("popstate", () => setTimeout(r, 10), { once: true }); w.history.back(); });
   // ── N6: Settings (a panel since v6.16.1: a tray on a phone) ─────────────
   E(`openMenuSheet()`);
   [...d.querySelectorAll("#menu-sheet .menu-item-btn")].find(b => /^Settings/.test(txt(b))).click();
@@ -86,10 +88,12 @@ setTimeout(async () => {
   // A setting opens on top of Settings; closing it comes back to Settings.
   [...d.querySelectorAll("#settings-popup .sp-item")].find(b => /Currency/.test(txt(b))).click();
   ok(isOpen("currency-popup") && isOpen("settings-popup"), "Currency opens over Settings");
-  w.history.back(); await sleep(60);
+  await goBack();
   ok(!isOpen("currency-popup") && isOpen("settings-popup"), "Back closes the popup first");
-  w.history.back(); await sleep(60);
-  ok(!isOpen("settings-popup") && !d.documentElement.classList.contains("vp-lock"), "…then Settings");
+  await goBack();
+  ok(!isOpen("settings-popup") && $("#menu-sheet").classList.contains("open"), "…then Settings, back to the Menu it came from (v6.16.5)");
+  await goBack();
+  ok(!$("#menu-sheet").classList.contains("open") && !d.documentElement.classList.contains("vp-lock"), "…then the Menu");
   E(`closeSheets(); openSettingsPage()`);
   d.dispatchEvent(new w.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
   ok(!isOpen("settings-popup"), "Escape closes Settings");
@@ -102,7 +106,7 @@ setTimeout(async () => {
   ok(JSON.stringify(chips) === '["This month","Last month","This year","All"]', "quick picks: " + JSON.stringify(chips));
   ok($$("#ps-body .ps-year").length === E(`Object.keys(data).length`), "one row per year");
   ok(txt($("#ps-body .ps-year .ps-row")).startsWith("2026"), "newest year first");
-  ok($$("#ps-body .ps-months").length === 0, "every year starts collapsed (v6.15.2)");
+  ok($$("#ps-body .ps-fold:not(.folded) .ps-months").length === 0, "every year starts collapsed (v6.15.2)");
   $$("#year-sheet .ps-chip").find(b => txt(b) === "This month").click();
   ok(E("activeYear") === "2026" && E("activeMonth") === "2026-11" && !$("#year-sheet").classList.contains("open"), "This month picks November 2026 and closes");
   ok(E("activeAccountFilter") === "ub", "…keeping the account you were looking at");
@@ -110,9 +114,9 @@ setTimeout(async () => {
   E(`openPeriodSheet()`);
   ok(!!$('#year-sheet .ps-chip.on'), "the current pick is highlighted");
   $('#ps-body [data-exp="2025"]').click();
-  const m25 = $$("#ps-body .ps-months button").map(txt);
+  const m25 = $$("#ps-body .ps-fold:not(.folded) .ps-months button").map(txt);
   ok(m25[0] === "Nov" && m25.length === 2, "expanding 2025 shows its months: " + JSON.stringify(m25));
-  $$("#ps-body .ps-months button").find(b => txt(b) === "Dec").click();
+  $$("#ps-body .ps-fold:not(.folded) .ps-months button").find(b => txt(b) === "Dec").click();
   ok(E("activeYear") === "2025" && E("activeMonth") === "2025-12", "picking Dec 2025 shows it");
   E(`openPeriodSheet()`); $('#ps-body .ps-row[data-y="all-years"]').click();
   ok(E("activeYear") === "all-years" && E("activeMonth") === null, "All transactions");

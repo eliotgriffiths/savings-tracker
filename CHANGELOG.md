@@ -10,6 +10,33 @@ Version numbers follow [Semantic Versioning](https://semver.org/) and were assig
 
 The first release is v1.0.0. A major bump resets minor and patch to 0, a minor bump resets patch to 0, and patch rolls over into the next minor after .99. Types marked \* are judgement calls, explained in [Notes](#notes) at the end.
 
+## v6.16.5 — 2026-11-09
+
+Patch · `b861017`
+
+- Trays open in one smooth motion, without the stutter
+- A tray opened from another tray has ‹ to go back to it, and the phone's Back gesture steps back one tray at a time
+- Back closes the Menu, Add and period trays again
+- Closing About or Privacy no longer closes Settings as well
+- Save & backup's back buttons match the other trays
+
+## v6.16.4 — 2026-11-09
+
+Patch · `f38165a`
+
+- Switching Add transaction to or from Interest no longer makes the tray jump. The recurring option folds away smoothly
+- Years in the period picker fold open and shut
+- Home, Transactions and Search titles are the same size on a phone
+- The summary cards on Transactions match Search: centred, with how many transactions are behind each total
+- Six-figure totals fit on smaller phones
+
+## v6.16.3 — 2026-11-09
+
+Patch · `269f24f`
+
+- Trays follow your finger when you drag them down, instead of lagging behind
+- Settings uses the same rows as the Menu
+
 ## v6.16.2 — 2026-11-09
 
 Patch · `20d5907`

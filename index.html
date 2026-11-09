@@ -2215,20 +2215,23 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
   /* ── Settings (v6.16.1): a panel; it sits under the popups it opens ── */
   #settings-popup { position: fixed; inset: 0; z-index: 180; }
-  .sp-box .vp-head { margin: 0 !important; padding: 22px 16px 4px 24px !important; }
-  @media (max-width: 640px) { .sp-box .vp-head { padding: 0 14px 4px 20px !important; } }
-  .sp-body { padding: 0 0 calc(22px + env(safe-area-inset-bottom, 0px)); }
-  .sp-label { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); font-weight: 600; padding: 20px 20px 7px; }
-  .sp-group { margin: 0 14px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-  .sp-item { width: 100%; display: flex; align-items: center; gap: 13px; padding: 11px 14px; min-height: 56px; background: none; border: none; border-bottom: 1px solid var(--border); text-align: left; cursor: pointer; color: var(--text-1); font-family: 'DM Sans', sans-serif; }
-  .sp-item:last-child { border-bottom: none; }
-  @media (hover: hover) { .sp-item:hover { background: var(--bg3); } }
-  .sp-item:active { background: var(--bg3); }
-  .sp-ic { width: 32px; height: 32px; border-radius: 9px; background: var(--bg3); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-2); flex: 0 0 auto; }
-  .sp-txt { display: flex; flex-direction: column; min-width: 0; flex: 1; }
-  .sp-t { font-size: 15px; }
-  .sp-s { font-size: 12px; color: var(--text-3); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .sp-arr { color: var(--text-3); font-size: 18px; }
+  /* v6.16.3: Settings rows use the Menu's row look (.menu-item-btn and friends): flat
+     full-width rows with dividers, no boxed groups, no chevrons. Keep the two in step. */
+  .sp-box .vp-head { margin: 0 !important; padding: 22px 16px 12px 20px !important; }
+  @media (max-width: 640px) { .sp-box .vp-head { padding: 0 14px 12px 20px !important; } }
+  .sp-body { padding: 0 0 calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .sp-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); font-weight: 600; padding: 14px 20px 6px; }
+  .sp-body > .sp-label:first-child { padding-top: 8px; }
+  .sp-group { margin: 0; background: none; border: 0; border-radius: 0; }
+  .sp-item { width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px 20px; background: transparent; border: none; border-bottom: 1px solid var(--border); text-align: left; cursor: pointer; color: var(--text-1); font-family: 'DM Sans', sans-serif; transition: background 0.12s; }
+  .sp-group:last-child > .sp-item:last-child { border-bottom: none; }
+  @media (hover: hover) { .sp-item:hover { background: var(--bg3); } .sp-item:hover .sp-ic { background: var(--bg3); color: var(--text-1); } }
+  .sp-item:active { background: var(--bg4); }
+  .sp-ic { width: 34px; height: 34px; border-radius: 9px; background: var(--bg4); border: 1px solid var(--border-hi); display: flex; align-items: center; justify-content: center; color: var(--text-2); flex: 0 0 auto; transition: background 0.12s, color 0.12s; }
+  .sp-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+  .sp-t { font-size: 14px; font-weight: 500; line-height: 1.3; }
+  .sp-s { font-size: 11px; color: var(--text-3); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sp-arr { display: none; }
 
   /* ── Desktop sidebar screens (v6.14.0, N11) ── */
   .side-nav { padding: 10px 0 6px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
@@ -2739,6 +2742,10 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   @keyframes vpRise { from { opacity: 0; transform: translateY(8px) scale(0.99); } to { opacity: 1; transform: none; } }
   @keyframes vpUp { from { transform: translateY(100%); } to { transform: none; } }
   .vp-panel.vp-drag, .vp-drag { transition: none !important; animation: none !important; }
+  /* v6.16.3: must outrank `.pop-anim.vp .vp-panel`, or the transition stays on mid-drag and
+     each touchmove restarts it (the tray lurches behind the finger). Animation is left
+     alone here: removing vpUp and adding it back on release would replay the slide-up. */
+  .pop-anim.vp .vp-panel.vp-drag { transition: none !important; }
 
   .vp-head { display: flex !important; align-items: flex-start !important; gap: 10px !important; margin: 0 0 14px !important; padding: 0 !important; }
   .vp-head > .vp-head-text, .vp-head > .vp-title { flex: 1; min-width: 0; }
@@ -2786,6 +2793,58 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     .vp:not(.vp-alert) .vp-head { touch-action: none; }
     .pop-anim.vp.vp-alert .vp-panel { max-width: 300px !important; }
   }
+  /* v6.16.4: something that appears or disappears inside a tray folds open and shut, so the
+     tray glides instead of jumping. Markup: .vp-fold > .vp-fold-in > content. Toggle with
+     vpFold(el, show). The inner box clips, so the content's own padding and margins fold too. */
+  .vp-fold { display: grid; grid-template-rows: 1fr; opacity: 1; visibility: visible;
+    transition: grid-template-rows 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease-out 0.04s, visibility 0s; }
+  .vp-fold > .vp-fold-in { min-height: 0; overflow: hidden; }
+  .vp-fold.folded { grid-template-rows: 0fr; opacity: 0; visibility: hidden;
+    transition: grid-template-rows 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.14s ease-out, visibility 0s linear 0.26s; }
+  @media (prefers-reduced-motion: reduce) { .vp-fold, .vp-fold.folded { transition: none; } }
+  /* v6.16.4: one title size for the phone's screens (Home, Transactions, Search) */
+  @media (max-width: 640px) {
+    .fy-title, .as-title, #home-panel .vh-home-title { font-size: 22px; line-height: 1.2; }
+  }
+  /* v6.16.4: the list's summary cards use Search's card format (.as-sum: label, figure,
+     count line), and both sets are centred. Keep #year-summary .stat* in step with .as-sum. */
+  .as-sum { text-align: center; }
+  .stat-c { display: none; }
+  @media (max-width: 640px) {
+    #year-summary .stat { flex: 1 1 0; min-width: 0; display: block; text-align: center; background: var(--bg1); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; margin-left: 0; }
+    #year-summary .stat + .stat { margin-left: 8px; }
+    #year-summary .stat-label { display: block; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); font-weight: 600; }
+    #year-summary .stat-val, #year-summary .stat-val.big { display: block; font-family: 'DM Sans', sans-serif; font-weight: 600; letter-spacing: -0.02em; font-size: 17px; margin-top: 3px; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #year-summary .stat-c { display: block; font-size: 11px; color: var(--text-3); margin-top: 1px; }
+  }
+  /* Six-figure amounts need the smaller size below 380 px (iPhone SE / mini), on both screens */
+  @media (max-width: 380px) {
+    .as-summary { gap: 6px; }
+    .as-sum { padding: 9px; }
+    .as-sum .v { font-size: 15px; }
+    #year-summary .stat { padding: 9px; }
+    #year-summary .stat + .stat { margin-left: 6px; }
+    #year-summary .stat-val, #year-summary .stat-val.big { font-size: 15px; }
+  }
+
+  /* v6.16.5: a popup opens with ONE motion, the transition. The open animations (vpUp, vpRise,
+     _popOverlayIn) ran alongside it and, on iPhone, out of step: the tray rose, dropped back and
+     rose again. The drag rule repeats the selector so it still outranks this one. */
+  .pop-anim.vp:not(.hidden), .pop-anim.vp:not(.hidden) .vp-panel { animation: none !important; }
+  @media (max-width: 640px) {
+    .pop-anim.vp:not(.vp-alert):not(.hidden) .vp-panel { animation: none !important;
+      transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) !important; }
+    .pop-anim.vp:not(.vp-alert):not(.hidden) .vp-panel.vp-drag { transition: none !important; }
+  }
+  /* v6.16.5: ‹ back to the tray this one was opened from, left of the title */
+  .vp-back { width: 34px; height: 34px; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+    padding: 0; margin: -5px -2px 0 -10px; border: 0; border-radius: 9px; background: transparent;
+    color: var(--text-2); cursor: pointer; }
+  .vp-back[hidden] { display: none !important; }
+  @media (hover: hover) { .vp-back:hover { color: var(--text-1); background: var(--bg3); } }
+  .smod-back.vp-back { color: var(--text-2); font-size: 0; padding: 0; margin: 0 -2px 0 -10px; }   /* these heads centre their row */
+  @media (hover: hover) { .smod-back.vp-back:hover { color: var(--text-1); background: var(--bg3); } }
+
   /* Panels that lay themselves out edge to edge (Save & backup, Currency) */
   .pop-anim.vp .vp-panel.vp-flush { padding: 0 !important; --vp-px: 0px; --vp-pb: 0px; }
   .vp-flush .vp-head { margin: 0 !important; padding: 22px 16px 12px 24px !important; }
@@ -3593,7 +3652,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <!-- ── Panel: Google Drive ── -->
     <div id="smod-panel-googledrive" class="smod-panel">
       <div class="smod-panel-header">
-        <button class="smod-back" onclick="closeSmodPanel()">‹ Back</button>
+        <button class="smod-back vp-back" type="button" onclick="closeSmodPanel()" aria-label="Back to Save &amp; backup" title="Back to Save &amp; backup"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <span class="smod-panel-title">
           <svg width="16" height="16" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px; margin-right:6px;"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>
           Google Drive
@@ -3634,7 +3693,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <!-- ── Panel: Network Location / NAS ── -->
     <div id="smod-panel-nas" class="smod-panel">
       <div class="smod-panel-header">
-        <button class="smod-back" onclick="closeSmodPanel()">‹ Back</button>
+        <button class="smod-back vp-back" type="button" onclick="closeSmodPanel()" aria-label="Back to Save &amp; backup" title="Back to Save &amp; backup"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <span class="smod-panel-title">Network location / NAS</span>
         <button class="modal-close" onclick="closeSetup()" title="Close">✕</button>
       </div>
@@ -3693,7 +3752,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <!-- ── Panel: Local File ── -->
     <div id="smod-panel-local" class="smod-panel">
       <div class="smod-panel-header">
-        <button class="smod-back" onclick="closeSmodPanel()">‹ Back</button>
+        <button class="smod-back vp-back" type="button" onclick="closeSmodPanel()" aria-label="Back to Save &amp; backup" title="Back to Save &amp; backup"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <span class="smod-panel-title">Local file</span>
         <button class="modal-close" onclick="closeSetup()" title="Close">✕</button>
       </div>
@@ -3745,7 +3804,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <!-- ── Panel: Browser Storage ── -->
     <div id="smod-panel-browser" class="smod-panel">
       <div class="smod-panel-header">
-        <button class="smod-back" onclick="closeSmodPanel()">‹ Back</button>
+        <button class="smod-back vp-back" type="button" onclick="closeSmodPanel()" aria-label="Back to Save &amp; backup" title="Back to Save &amp; backup"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <span class="smod-panel-title">Browser storage</span>
         <button class="modal-close" onclick="closeSetup()" title="Close">✕</button>
       </div>
@@ -3809,7 +3868,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 <div id="cloud-picker-popup" class="hidden pop-anim" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:400; align-items:center; justify-content:center; padding:20px;">
   <div class="info-popup-box" style="max-width:400px; width:100%;">
     <div style="display:flex; align-items:center; margin-bottom:6px;">
-      <button class="smod-back" onclick="closeCloudPicker()" style="font-size:15px; padding:0 10px 0 0;">‹ Back</button>
+      <button class="smod-back vp-back" type="button" onclick="closeCloudPicker()" aria-label="Back to Save &amp; backup" title="Back to Save &amp; backup"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <h3 style="flex:1; margin:0;">Cloud service</h3>
       <button class="modal-close" onclick="closeCloudPicker()" title="Close" aria-label="Close">✕</button>
     </div>
@@ -4059,10 +4118,10 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
     <!-- Recurring toggle -->
     <div style="margin-bottom:18px;">
-      <button id="desk-recur-toggle" onclick="toggleDeskRecur()"
+      <div class="vp-fold" id="desk-recur-fold"><div class="vp-fold-in"><button id="desk-recur-toggle" onclick="toggleDeskRecur()"
         style="width:100%; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 14px; color:var(--text-2); font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer; text-align:left; transition:border-color 0.15s, color 0.15s, background 0.15s;">
         Make this a recurring transaction
-      </button>
+      </button></div></div>
       <button id="desk-manage-recur-btn" onclick="closeDesktopAddSheet(); openRecurringModal();"
         style="display:none; margin-top:8px; width:100%; font-size:12px; color:var(--gold); background:color-mix(in srgb, var(--accent) 6%, transparent); border:1px solid var(--gold-dim); border-radius:var(--radius); padding:8px 14px; cursor:pointer; font-family:'DM Sans',sans-serif; text-align:left; transition:opacity 0.15s;"></button>
     </div>
@@ -4307,9 +4366,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   <div id="main">
     <div id="year-summary">
       <div class="fy-title" id="fy-title" role="button" tabindex="0" aria-label="Choose a period" onclick="openPeriodSheet()">FY 20--</div>
-      <div class="stat"><span class="stat-label" id="stat-in-label">Saved</span>   <span class="stat-val"     id="stat-in"  style="color:var(--green)"></span></div>
-      <div class="stat"><span class="stat-label" id="stat-out-label">Withdrawn</span>  <span class="stat-val"     id="stat-out" style="color:var(--red)"></span></div>
-      <div class="stat"><span class="stat-label" id="stat-net-label">Net</span>         <span class="stat-val big" id="stat-net"></span></div>
+      <div class="stat"><span class="stat-label" id="stat-in-label">Saved</span>   <span class="stat-val"     id="stat-in"  style="color:var(--green)"></span><span class="stat-c" id="stat-in-c"></span></div>
+      <div class="stat"><span class="stat-label" id="stat-out-label">Withdrawn</span>  <span class="stat-val"     id="stat-out" style="color:var(--red)"></span><span class="stat-c" id="stat-out-c"></span></div>
+      <div class="stat"><span class="stat-label" id="stat-net-label">Net</span>         <span class="stat-val big" id="stat-net"></span><span class="stat-c" id="stat-net-c"></span></div>
       <div id="stat-rate-note" style="display:none; font-size:10px; color:var(--text-3); margin-top:4px; width:100%; text-align:right; letter-spacing:0.02em;"></div>
     </div>
 
@@ -4979,10 +5038,10 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   </div>
 
   <!-- Recurring toggle -->
-  <button id="mob-recur-toggle" onclick="toggleMobRecur()"
+  <div class="vp-fold" id="mob-recur-fold"><div class="vp-fold-in"><button id="mob-recur-toggle" onclick="toggleMobRecur()"
     style="width:100%; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); padding:11px 14px; color:var(--text-2); font-size:14px; font-family:'DM Sans',sans-serif; cursor:pointer; text-align:left; margin-bottom:8px; transition:border-color 0.15s, color 0.15s, background 0.15s;">
     Make this a recurring transaction
-  </button>
+  </button></div></div>
   <button id="mob-manage-recur-btn" onclick="closeSheets(); openRecurringModal();"
     style="display:none; width:100%; font-size:13px; color:var(--gold); background:color-mix(in srgb, var(--accent) 6%, transparent); border:1px solid var(--gold-dim); border-radius:var(--radius); padding:10px 14px; cursor:pointer; font-family:'DM Sans',sans-serif; text-align:left; margin-bottom:12px; -webkit-tap-highlight-color:transparent;"></button>
 
@@ -11926,6 +11985,18 @@ function renderMain() {
     if (statOutLabel) statOutLabel.textContent = "WITHDRAWN";
     if (statNetLabel) statNetLabel.textContent = "NET";
     if (rateNote) rateNote.style.display = "none";
+  }
+
+  // v6.16.4: the count lines under the cards (Search's format). With an account picked the
+  // figures come from `rows`, so the counts do too; otherwise from the tab counts.
+  {
+    const picked = accFilter !== "all";
+    const nIn  = picked ? rows.filter(r => r[2] === "saved").length   : allSaved;
+    const nOut = picked ? rows.filter(r => r[2] === "removed").length : allRemoved;
+    const netV = picked ? rows.reduce((s, r) => s + (r[2] === "saved" ? r[1] : -r[1]), 0) : tn;
+    const plural = n => n + " transaction" + (n === 1 ? "" : "s");
+    const put = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };
+    put("stat-in-c", plural(nIn)); put("stat-out-c", plural(nOut)); put("stat-net-c", netNeg(netV) ? "deficit" : "surplus");
   }
 
   // On the All tab the rows are mixed, so the total is the net (deposits less
@@ -20602,15 +20673,14 @@ function setDeskType(type) {
   if (type === "deposit") {
     depBtn.style.background = "var(--green)"; depBtn.style.color = "var(--fill-ink)"; depBtn.style.borderColor = "var(--green)";
     saveBtn.textContent     = deskRecurOn ? "Schedule recurring deposit"  : "Add deposit";
-    const recurToggleD = document.getElementById("desk-recur-toggle");
-    if (recurToggleD) recurToggleD.style.display = "";
+    vpFold("desk-recur-fold", true);
   } else if (type === "interest") {
     intBtn.style.background = "var(--interest)"; intBtn.style.color = "var(--fill-ink)"; intBtn.style.borderColor = "var(--interest)";
     saveBtn.textContent      = "Add interest";
     // Interest can't be recurring — hide the toggle and reset if it was on
     const recurToggle = document.getElementById("desk-recur-toggle");
     const recurFields = document.getElementById("desk-recur-fields");
-    if (recurToggle) recurToggle.style.display = "none";
+    vpFold("desk-recur-fold", false);
     if (deskRecurOn) {
       deskRecurOn = false;
       if (recurFields) recurFields.style.display = "none";
@@ -20619,8 +20689,7 @@ function setDeskType(type) {
   } else {
     witBtn.style.background = "var(--red)"; witBtn.style.color = "var(--fill-ink)"; witBtn.style.borderColor = "var(--red)";
     saveBtn.textContent     = deskRecurOn ? "Schedule recurring withdrawal" : "Add withdrawal";
-    const recurToggleW = document.getElementById("desk-recur-toggle");
-    if (recurToggleW) recurToggleW.style.display = "";
+    vpFold("desk-recur-fold", true);
   }
 }
 
@@ -20630,6 +20699,7 @@ function openDesktopAddSheet() {
   document.getElementById("desk-inp-date").value   = today;
   document.getElementById("desk-inp-amount").value = "";
   setDeskType("deposit");
+  vpFold("desk-recur-fold", true, true);
   // Reset recurring toggle
   deskRecurOn = false;
   document.getElementById("desk-recur-fields").style.display = "none";
@@ -20733,14 +20803,14 @@ function setMobType(type) {
   const mobRecurToggle = document.getElementById("mob-recur-toggle");
   const mobRecurFields = document.getElementById("mob-recur-fields");
   if (type === "interest") {
-    if (mobRecurToggle) mobRecurToggle.style.display = "none";
+    vpFold("mob-recur-fold", false);
     if (mobRecurOn) {
       mobRecurOn = false;
       if (mobRecurFields) mobRecurFields.style.display = "none";
       resetRecurToggleLook(mobRecurToggle);   // G1
     }
   } else {
-    if (mobRecurToggle) mobRecurToggle.style.display = "";
+    vpFold("mob-recur-fold", true);
   }
 }
 
@@ -20751,6 +20821,7 @@ function openAddSheet() {
   document.getElementById("mob-inp-date").value   = today;
   document.getElementById("mob-inp-amount").value = "";
   setMobType("deposit");
+  vpFold("mob-recur-fold", true, true);
   // Reset recurring toggle
   mobRecurOn = false;
   document.getElementById("mob-recur-fields").style.display = "none";
@@ -20898,7 +20969,14 @@ const POPUP_CLOSE = {
   "drive-merge-popup": () => resolveDriveMerge("cancel"),
   "settings-popup": () => closeSettingsPage(), "about-popup": () => closeAbout(), "privacy-popup": () => closePrivacy(),
 };
-function popupIsOpen(el) { return !!el && !el.classList.contains("hidden") && getComputedStyle(el).display !== "none"; }
+// Open = not hidden itself and not inside anything hidden. v6.16.5: #pdf-preview-modal is the
+// box inside the PDF overlay, so on its own it always looked open, and Back "closed" it
+// instead of the Menu, Add or period tray.
+function popupIsOpen(el) {
+  if (!el || el.closest(".hidden")) return false;
+  for (let n = el; n && n !== document.body; n = n.parentElement) if (getComputedStyle(n).display === "none") return false;
+  return true;
+}
 function dismissPopup(el) {
   const fn = POPUP_CLOSE[el.id];
   if (fn) { try { fn(); } catch (e) { dbg("dismissPopup " + el.id + ": " + e.message); } return true; }
@@ -21009,6 +21087,7 @@ function vpInit() {
     panel.insertBefore(grab, panel.firstChild);
     vpSwipe(panel, [grab, panel.querySelector(".vp-head")].filter(Boolean), () => vpTryDismiss(el));
     vpLockObserver.observe(el, { attributes: true, attributeFilter: ["class"] });
+    vpNavObserver.observe(el, { attributes: true, attributeFilter: ["class"], attributeOldValue: true });
   });
   // Trays
   ["menu-sheet", "year-sheet", "add-sheet"].forEach(id => {
@@ -21017,6 +21096,7 @@ function vpInit() {
     sh.dataset.vp = "1";
     vpSwipe(sh, [sh.querySelector(".sheet-handle"), sh.querySelector(".sheet-header")].filter(Boolean), () => sheetTryClose());
     vpLockObserver.observe(sh, { attributes: true, attributeFilter: ["class"] });
+    vpNavObserver.observe(sh, { attributes: true, attributeFilter: ["class"], attributeOldValue: true });
   });
   vpSyncLock();
 }
@@ -21066,6 +21146,81 @@ function vpSwipe(panel, handles, tryClose) {
     h.addEventListener("pointerup", e => { if (e.pointerType !== "touch") end(); });
     h.addEventListener("pointercancel", e => { if (e.pointerType !== "touch") end(); });
   });
+}
+// ── Layers (v6.16.5): ‹ on every tray opened from another tray ─────────────────
+// When a popup opens, its parent is the tray still open under it (Settings under Currency),
+// or else the tray that closed just before to open it (the Menu, Import, Save & backup…).
+// ‹ and Back close it and, if the parent closed, reopen the parent. Phone only.
+const VP_REOPEN = {
+  "menu-sheet": () => openMenuSheet(), "year-sheet": () => openPeriodSheet(),
+  "settings-popup": () => openSettingsPage(), "setup-modal": () => openSetup(), "import-popup": () => openImportPopup(),
+  "recurring-modal": () => openRecurringModal(), "accounts-modal": () => openAccountsModal(), "goals-modal": () => openGoalsModal(),
+  "enc-menu-popup": () => openEncryptionMenu(), "ai-provider-popup": () => openAIProviderSettings(), "layout-modal": () => openLayoutModal(),
+};
+const VP_SHEET_IDS = ["menu-sheet", "year-sheet", "add-sheet"];
+const VP_BACK_SVG = '<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+let _vpLastClosed = null;   // { el, at } — the tray that closed most recently
+let _vpRestoring = null;    // a parent being reopened by ‹ keeps its own parent
+const vpNavObserver = new MutationObserver(list => list.forEach(m => {
+  const el = m.target, old = m.oldValue || "";
+  if (VP_SHEET_IDS.includes(el.id)) {
+    if (/\bopen\b/.test(old) && !el.classList.contains("open")) _vpLastClosed = { el, at: performance.now() };
+    return;
+  }
+  const was = /\bhidden\b/.test(old), now = el.classList.contains("hidden");
+  if (!was && now) _vpLastClosed = { el, at: performance.now() };
+  else if (was && !now) vpSetParent(el);
+}));
+function vpSetParent(el) {
+  if (_vpRestoring === el) { _vpRestoring = null; vpShowBack(el); return; }
+  const zi = e => parseInt(getComputedStyle(e).zIndex, 10) || 0;
+  const under = vpPopups().filter(p => p !== el && p.classList.contains("vp") && !p.classList.contains("hidden") && !p.classList.contains("vp-alert"))
+    .filter(p => popupIsOpen(p) && zi(p) <= zi(el));
+  let parent = under.length ? under.reduce((a, b) => (zi(b) >= zi(a) ? b : a)) : null;
+  const lc = _vpLastClosed;
+  if (!parent && lc && lc.el !== el && performance.now() - lc.at < 700 && VP_REOPEN[lc.el.id]) parent = lc.el;
+  el._vpParent = parent;
+  vpShowBack(el);
+}
+function vpTrayOpen(t) { return VP_SHEET_IDS.includes(t.id) ? t.classList.contains("open") : popupIsOpen(t); }
+function vpTrayName(t) {
+  const h = t.querySelector(".sheet-title, .vp-title");
+  return (h && h.textContent.trim()) || (t.id === "year-sheet" ? "periods" : "previous");
+}
+function vpShowBack(el) {
+  const head = el.querySelector(".vp-panel .vp-head");
+  let b = head && head.querySelector(":scope > .vp-back");
+  const p = el._vpParent;
+  if (!p || !head || window.innerWidth > 640) { if (b) b.hidden = true; return; }
+  if (!b) {
+    b = document.createElement("button");
+    b.type = "button"; b.className = "vp-back"; b.id = el.id + "-back";
+    b.innerHTML = VP_BACK_SVG;
+    b.onclick = () => vpBack(el);
+    head.insertBefore(b, head.firstChild);
+  }
+  const name = vpTrayName(p);
+  b.setAttribute("aria-label", "Back to " + name); b.title = "Back to " + name;
+  b.hidden = false;
+}
+// One layer back: close this tray (a form with typed input refuses), then show its parent.
+function vpBack(el) {
+  const p = el._vpParent;
+  if (!vpTryDismiss(el)) return false;
+  if (p && !vpTrayOpen(p) && VP_REOPEN[p.id]) {
+    if (!VP_SHEET_IDS.includes(p.id)) _vpRestoring = p;
+    try { VP_REOPEN[p.id](); } catch (e) { _vpRestoring = null; dbg("vpBack " + p.id + ": " + e.message); }
+  }
+  return true;
+}
+
+// v6.16.4: fold a .vp-fold open or shut. `instant` skips the animation (while a tray opens).
+function vpFold(el, show, instant) {
+  if (typeof el === "string") el = document.getElementById(el);
+  if (!el) return;
+  if (instant) el.style.transition = "none";
+  el.classList.toggle("folded", !show);
+  if (instant) { void el.offsetHeight; el.style.transition = ""; }
 }
 // While a popup or tray is open, the page behind can't scroll (rules §8: a class on <html>).
 function vpSyncLock() {
@@ -22400,17 +22555,26 @@ function renderPeriodSheet() {
     const t = _yearTotals(y), n = t.savedTotal - t.removedTotal, open = _psExpanded === y;
     h += `<div class="ps-year"><button class="ps-row${here(y, null) ? " on" : ""}" type="button" data-y="${escapeHTML(y)}" data-m=""><span>${escapeHTML(yearLabel(y))}</span><span class="ps-net" style="color:${netColor(n)}">${aud(n)}</span></button>`
        + `<button class="ps-exp" type="button" data-exp="${escapeHTML(y)}" aria-expanded="${open}" aria-label="${open ? "Hide" : "Show"} months of ${escapeHTML(yearLabel(y))}">${open ? "▴" : "▾"}</button></div>`;
-    if (open) {
-      const months = [...new Set([...data[y].saved, ...data[y].removed].map(r => r[0].slice(0, 7)))].sort();
-      h += `<div class="ps-months">` + months.map(m => {
-        const [yy, mm] = m.split("-").map(Number);
-        return `<button type="button" class="${here(y, m) ? "on" : ""}" data-y="${escapeHTML(y)}" data-m="${m}">${monShort(new Date(yy, mm - 1, 1))}</button>`;
-      }).join("") + `</div>`;
-    }
+    // v6.16.4: every year's months are here, folded shut unless open, so ▾ can fold them open
+    const months = [...new Set([...data[y].saved, ...data[y].removed].map(r => r[0].slice(0, 7)))].sort();
+    h += `<div class="vp-fold ps-fold${open ? "" : " folded"}" data-fold="${escapeHTML(y)}"><div class="vp-fold-in"><div class="ps-months">` + months.map(m => {
+      const [yy, mm] = m.split("-").map(Number);
+      return `<button type="button" class="${here(y, m) ? "on" : ""}" data-y="${escapeHTML(y)}" data-m="${m}">${monShort(new Date(yy, mm - 1, 1))}</button>`;
+    }).join("") + `</div></div></div>`;
   });
   body.innerHTML = h;
   (document.getElementById("year-sheet") || body).querySelectorAll("[data-y]").forEach(b => b.onclick = () => psPick(b.dataset.y, b.dataset.m || null));
-  body.querySelectorAll("[data-exp]").forEach(b => b.onclick = () => { _psExpanded = _psExpanded === b.dataset.exp ? null : b.dataset.exp; renderPeriodSheet(); });
+  body.querySelectorAll("[data-exp]").forEach(b => b.onclick = () => { _psExpanded = _psExpanded === b.dataset.exp ? null : b.dataset.exp; psSyncFolds(body); });
+}
+// v6.16.4: open the one expanded year's months and fold the rest, animated (no re-render).
+function psSyncFolds(body) {
+  body.querySelectorAll(".ps-fold").forEach(f => vpFold(f, f.dataset.fold === _psExpanded));
+  body.querySelectorAll("[data-exp]").forEach(b => {
+    const open = b.dataset.exp === _psExpanded;
+    b.setAttribute("aria-expanded", String(open));
+    b.textContent = open ? "▴" : "▾";
+    b.setAttribute("aria-label", `${open ? "Hide" : "Show"} months of ${yearLabel(b.dataset.exp)}`);
+  });
 }
 // Choosing a period keeps the account and tab you were looking at.
 function psPick(y, m) {
@@ -22507,6 +22671,7 @@ function navCloseTop() {
   if (top) {
     if (POPUP_DECISIONS.has(top.id)) return true;
     if (POPUP_FORMS.has(top.id) && top.dataset.dirty === "1") { toast("Tap Cancel to leave without saving", "notice"); return true; }
+    if (top._vpParent && window.innerWidth <= 640) { vpBack(top); return true; }   // v6.16.5: one layer back
     dismissPopup(top); return true;
   }
   const add = document.getElementById("add-sheet");
@@ -22518,8 +22683,11 @@ function navCloseTop() {
   if (vs && vs.classList.contains("open")) { vhSearchClose(); return true; }
   return false;
 }
+// v6.16.5: set when About/Privacy step back to drop their own #hash, so that step isn't a Back press
+let _navEatPop = 0;   // when it was set; it expires, so a missed step can't swallow a later Back
 window.addEventListener("popstate", e => {
   if (!_navReady) return;
+  if (_navEatPop) { const fresh = performance.now() - _navEatPop < 1000; _navEatPop = 0; if (fresh) return; }
   const h = location.hash;
   if (h === "#privacy" || h === "#about") return;          // those overlays own their entries
   const priv = document.getElementById("privacy-popup");
@@ -22558,7 +22726,7 @@ function closeAbout() {
   const el = document.getElementById("about-popup");
   if (el.classList.contains("hidden")) return;
   el.classList.add("hidden");
-  try { if (location.hash === "#about") history.back(); } catch {}
+  try { if (location.hash === "#about") { _navEatPop = performance.now(); history.back(); } } catch {}
 }
 
 function openPrivacy() {
@@ -22570,7 +22738,7 @@ function closePrivacy() {
   const el = document.getElementById("privacy-popup");
   if (el.classList.contains("hidden")) return;
   el.classList.add("hidden");
-  try { if (location.hash === "#privacy") history.back(); } catch {}
+  try { if (location.hash === "#privacy") { _navEatPop = performance.now(); history.back(); } } catch {}
 }
 
 // Handle hash on load and on browser back/forward
@@ -22769,7 +22937,7 @@ navInit();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.16.2</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.16.5</div>
         </div>
 
         <div class="pp-cards">
@@ -22881,7 +23049,7 @@ navInit();
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v6.16.2</div>
+  <div id="version-footer">v6.16.5</div>
 
 </body>
 </html>
