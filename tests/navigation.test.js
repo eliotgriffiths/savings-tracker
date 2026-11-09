@@ -92,10 +92,14 @@ setTimeout(async () => {
   ok(!isOpen("save-status-legend-popup"), "Back closes an info popup");
   ok(tab() === "all", "…without changing screen");
 
+  d.getElementById("import-progress-popup").classList.remove("hidden");
+  await back();
+  ok(isOpen("import-progress-popup"), "Back leaves a required decision open");
+  d.getElementById("import-progress-popup").classList.add("hidden");
+  // v6.16.0: currency mismatch can be closed, and closing it skips the merge
   d.getElementById("currency-mismatch-popup").classList.remove("hidden");
   await back();
-  ok(isOpen("currency-mismatch-popup"), "Back leaves a required decision open");
-  d.getElementById("currency-mismatch-popup").classList.add("hidden");
+  ok(!isOpen("currency-mismatch-popup"), "Back closes currency mismatch (it counts as Decide later)");
 
   E(`vhHomeMenuToggle()`);
   await back();

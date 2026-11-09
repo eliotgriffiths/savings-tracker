@@ -30,7 +30,7 @@ const ruleFor = sel => rules.find(r => norm(r.selectorText) === sel && r.style.f
 // ── the serif is only for titles and the Home balance ───────────────────────
 const SERIF_OK = new Set([
   "#header h1", ".fy-title", ".tx-popup-box h3", ".modal-box h2", ".recur-history-title h3", ".as-title",
-  ".as-sh-head h3", ".sheet-title", ".sp-head h2", ".info-popup-box h3", "#native-print-notice h1",
+  ".as-sh-head h3", ".sheet-title", ".vp-panel .vp-title", ".sp-head h2", ".info-popup-box h3", "#native-print-notice h1",
   "#privacy-header h2, #about-header h2", "#privacy-body .pp-title, #about-body .pp-title",
   "#privacy-body .pp-section-title, #about-body .pp-section-title", "#privacy-body .pp-contact-title, #about-body .pp-contact-title",
   "#home-panel .vh-hero-total", "#home-panel .vh-home-title", "#home-panel .vh-chart-title", "#home-panel .vh-modal-title",

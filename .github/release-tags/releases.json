@@ -1515,5 +1515,44 @@
       "Numbers are easier to read: amounts and figures on Home, in Search and in chart pop-ups use a clearer, bolder font with evenly spaced digits",
       "Your Home balance and the titles keep the serif look"
     ]
+  },
+  {
+    "tag": "v6.15.2",
+    "sha": "3105c24b28314f0f97ae19dd55561534ddde4269",
+    "date": "2026-11-09",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "versioned_at_release": true,
+    "commits": [
+      "3105c24"
+    ],
+    "notes": [
+      "The period picker opens with every year folded, and the button that opens a year is bigger",
+      "This month on Home says which days of last month it's comparing with, such as “1–9 Oct”",
+      "On iPhone, the tab bar sits clear of the home indicator, with room under its labels"
+    ]
+  },
+  {
+    "tag": "v6.16.0",
+    "sha": "7b739d7796f648dbdcbe30e13ba46f8cb1061391",
+    "date": "2026-11-09",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": null,
+    "versioned_at_release": true,
+    "commits": [
+      "7b739d7"
+    ],
+    "notes": [
+      "Popups share one look: on a phone they slide up from the bottom as trays, and on a computer they're the same centred card",
+      "Short yes/no questions are a small box in the middle of the screen",
+      "Swipe a tray down to close it. Anything you've typed is kept, and Vault tells you how to leave without saving",
+      "The Menu, period picker and Add trays slide in and out, and the page behind them stays still",
+      "The period picker has no title; its quick picks sit at the top",
+      "Adding or editing a transaction: the type shows in its colour, and Add and Save are gold",
+      "You can now close Currency mismatch, Encrypted backup, Encrypt your backup? and Existing Vault file found. Closing skips safely, so nothing is merged, overwritten or loaded",
+      "About and Privacy slide in like Settings"
+    ]
   }
 ]
