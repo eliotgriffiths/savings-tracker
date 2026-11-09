@@ -173,7 +173,8 @@ setTimeout(async () => {
   // ── Filters, pages ────────────────────────────────────────────────────────
   ok(!!d.querySelector("#as-sheet .as-sh-head .as-x"), "Filters has a ✕ like every other tray");
   ok(/\.as-sheet \{[^}]*background:var\(--bg2\)/.test(css), "Filters uses the tray background");
-  ok(/#privacy-overlay\.open, #about-overlay\.open \{ transform: none; visibility: visible;/.test(css), "About and Privacy slide in like Settings");
+  // v6.16.1: About and Privacy became panels (tray on a phone); tests/v6_16_1.test.js covers them
+  ok(d.getElementById("about-popup").classList.contains("vp") && d.getElementById("privacy-popup").classList.contains("vp"), "About and Privacy use the shared panel");
 
   // ── Version ──────────────────────────────────────────────────────────────
   const ver = txt(d.getElementById("version-footer"));

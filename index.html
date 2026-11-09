@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#07080b">
+<!-- v6.16.1: a Home Screen icon opens Vault as its own app. Home Screen apps keep
+     their data (Safari clears a site's storage after 7 days without a visit). -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vault">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>Vault</title>
 <!-- Fonts and the spreadsheet library are embedded so Vault works offline and paints
      without waiting on Google Fonts or a CDN. DM Sans and DM Serif Display (Colophon
@@ -2103,8 +2110,6 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   #enc-set-popup.hidden,
   #enc-menu-popup.hidden,
   #save-status-legend-popup.hidden,
-  #privacy-overlay.hidden,
-  #about-overlay.hidden,
   #currency-change-popup.hidden { display: none; }
 
   #year-format-popup {
@@ -2187,8 +2192,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     /* N5: the list title is the period picker */
     #fy-title { cursor: pointer; display: flex; align-items: center; gap: 8px; }
     #fy-title::after {
-      content: "▾"; font-size: 11px; color: var(--gold); background: var(--bg3);
-      border-radius: 7px; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center;
+      content: "▾"; font: 400 19px/1 'DM Sans', sans-serif; color: var(--gold); background: var(--bg3);
+      border: 1px solid var(--border); border-radius: 10px; width: 40px; height: 40px; flex: 0 0 auto;
+      display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
     }
   }
 
@@ -2207,23 +2213,11 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .ps-months button.on { border-color: var(--gold); color: var(--gold); }
   #ps-body { padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
 
-  /* ── Settings page (v6.14.0, N6) ── */
-  #settings-page {
-    position: fixed; top: 0; bottom: 0; right: 0; width: 100%; max-width: 440px; z-index: 160;
-    background: var(--bg0); display: flex; flex-direction: column; border-left: 1px solid var(--border);
-    transform: translateX(100%); visibility: hidden;
-    transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear 0.26s;
-  }
-  #settings-page.open { transform: none; visibility: visible; transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1); }
-  #settings-scrim { position: fixed; inset: 0; z-index: 159; background: rgba(0,0,0,0.5); display: none; }
-  #settings-scrim.open { display: block; }
-  html.sp-lock { overflow: hidden; }
-  .sp-head { display: flex; align-items: center; gap: 8px; padding: calc(12px + env(safe-area-inset-top, 0px)) 14px 12px; background: var(--bg1); border-bottom: 1px solid var(--border); }
-  .sp-head h2 { margin: 0; flex: 1; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 22px; color: var(--text-1); }
-  .sp-back { background: none; border: none; color: var(--gold); font: 500 15px 'DM Sans', sans-serif; cursor: pointer; padding: 8px 6px; min-height: 44px; }
-  @media (min-width: 641px) { .sp-back { display: none; } .sp-head h2 { padding-left: 6px; } }
-  @media (max-width: 640px) { .sp-x { display: none; } #settings-page { border-left: none; } }
-  .sp-body { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 0 0 calc(30px + env(safe-area-inset-bottom, 0px)); }
+  /* ── Settings (v6.16.1): a panel; it sits under the popups it opens ── */
+  #settings-popup { position: fixed; inset: 0; z-index: 180; }
+  .sp-box .vp-head { margin: 0 !important; padding: 22px 16px 4px 24px !important; }
+  @media (max-width: 640px) { .sp-box .vp-head { padding: 0 14px 4px 20px !important; } }
+  .sp-body { padding: 0 0 calc(22px + env(safe-area-inset-bottom, 0px)); }
   .sp-label { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); font-weight: 600; padding: 20px 20px 7px; }
   .sp-group { margin: 0 14px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
   .sp-item { width: 100%; display: flex; align-items: center; gap: 13px; padding: 11px 14px; min-height: 56px; background: none; border: none; border-bottom: 1px solid var(--border); text-align: left; cursor: pointer; color: var(--text-1); font-family: 'DM Sans', sans-serif; }
@@ -2545,40 +2539,10 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   }
 
 
-  /* ── privacy policy overlay ── */
-  #privacy-overlay,
-  #about-overlay {
-    position: fixed; inset: 0; z-index: 600;
-    background: var(--bg0);
-    display: none;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  #privacy-overlay.open, #about-overlay.open { display: flex; }
-  #privacy-header,
-  #about-header {
-    background: var(--bg1);
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
-  }
-  #privacy-header h2,
-  #about-header h2 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 18px;
-    font-weight: 400;
-    color: var(--text-1);
-  }
+  /* ── About and Privacy (v6.16.1): panels; above Welcome so the policy can show over it ── */
+  #privacy-popup, #about-popup { position: fixed; inset: 0; z-index: 610; }
   #privacy-body,
-  #about-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 48px 24px 80px;
-  }
+  #about-body { padding: 2px 0 4px; }
   #privacy-body .pp-inner,
   #about-body .pp-inner {
     max-width: 680px;
@@ -2586,8 +2550,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   }
   #privacy-body .pp-hero,
   #about-body .pp-hero {
-    margin-bottom: 40px;
-    padding-bottom: 40px;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
     border-bottom: 1px solid var(--border);
   }
   #privacy-body .pp-eyebrow,
@@ -2599,7 +2563,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   #privacy-body .pp-title,
   #about-body .pp-title {
     font-family: 'DM Serif Display', serif;
-    font-size: clamp(28px, 5vw, 40px);
+    font-size: 26px;
     font-weight: 400; color: var(--text-1);
     margin-bottom: 14px; line-height: 1.2;
   }
@@ -2630,7 +2594,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   #privacy-body .pp-card-body,
   #about-body .pp-card-body { font-size: 11px; color: var(--text-3); line-height: 1.6; font-weight: 300; }
   #privacy-body .pp-section,
-  #about-body .pp-section { margin-bottom: 40px; }
+  #about-body .pp-section { margin-bottom: 28px; }
   #privacy-body .pp-section-num,
   #about-body .pp-section-num {
     font-size: 10px; font-weight: 700;
@@ -2827,11 +2791,6 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .vp-flush .vp-head { margin: 0 !important; padding: 22px 16px 12px 24px !important; }
   @media (max-width: 640px) { .vp-flush .vp-head { padding: 0 14px 12px 20px !important; } }
 
-  /* About and Privacy slide in from the right, like Settings */
-  #privacy-overlay, #about-overlay { display: flex !important; transform: translateX(100%); visibility: hidden;
-    transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear 0.26s; }
-  #privacy-overlay.open, #about-overlay.open { transform: none; visibility: visible; transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1); }
-  #privacy-header h2, #about-header h2 { font-size: 22px !important; }
 </style>
 <style id="vh-home-styles">
 #home-panel { -webkit-font-smoothing:antialiased; }
@@ -4199,6 +4158,22 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
         <div><div class="dmenu-btn-label">Goals</div><div class="dmenu-btn-sub" id="dmenu-goals-sub">No goals set</div></div>
       </button>
     <div class="dmenu-section-label">Data</div>
+    <button class="dmenu-btn" onclick="closeDesktopMenu(); openSetup();">
+      <span class="dmenu-btn-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 3.5A1.5 1.5 0 0 1 3.5 2h7L13 4.5V12a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 2 12V3.5z" stroke="currentColor" stroke-width="1.25" fill="none"/>
+          <path d="M10.5 2v2.5H13" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+          <rect x="4.5" y="2.25" width="3.75" height="3" rx="0.4" fill="currentColor" opacity="0.15" stroke="currentColor" stroke-width="1.1"/>
+          <line x1="5.25" y1="3.1" x2="7.5" y2="3.1" stroke="currentColor" stroke-width="0.85" stroke-linecap="round" opacity="0.55"/>
+          <line x1="5.25" y1="4.1" x2="7.5" y2="4.1" stroke="currentColor" stroke-width="0.85" stroke-linecap="round" opacity="0.4"/>
+          <rect x="3.5" y="7.5" width="9" height="4.5" rx="0.75" fill="currentColor" opacity="0.08" stroke="currentColor" stroke-width="1.1"/>
+          <line x1="5" y1="9.5" x2="7.5" y2="9.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.55"/>
+          <line x1="5" y1="10.75" x2="9" y2="10.75" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+          <line x1="9.5" y1="9.5" x2="11" y2="9.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.3"/>
+        </svg>
+      </span>
+      <div><div class="dmenu-btn-label">Save &amp; backup</div><div class="dmenu-btn-sub" id="dmenu-save-sub">No backup</div></div>
+    </button>
     <button class="dmenu-btn" onclick="closeDesktopMenu(); openImportPopup();">
       <span class="dmenu-btn-icon">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -4251,7 +4226,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <circle cx="6.5" cy="11.5" r="1.75" fill="var(--bg2)" stroke="currentColor" stroke-width="1.25"/>
         </svg>
       </span>
-      <div style="flex:1"><div class="dmenu-btn-label">Settings</div><div class="dmenu-btn-sub">Backup, currency, year format &amp; more</div></div>
+      <div style="flex:1"><div class="dmenu-btn-label">Settings</div><div class="dmenu-btn-sub">Encryption, currency, year format &amp; more</div></div>
       <span class="menu-item-arrow" style="font-size:16px; color:var(--text-3); flex-shrink:0; transition:transform 0.2s;">›</span>
     </button>
     <button class="dmenu-btn" onclick="toast('Holdings tracking is coming soon','notice')" style="opacity:0.6; cursor:not-allowed;" title="Coming soon">
@@ -4791,6 +4766,25 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       </span>
     </button>
   <div class="menu-section-label">Data</div>
+  <button class="menu-item-btn" onclick="closeSheets(); openSetup();">
+    <span class="menu-item-icon">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 3.5A1.5 1.5 0 0 1 3.5 2h7L13 4.5V12a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 2 12V3.5z" stroke="currentColor" stroke-width="1.25" fill="none"/>
+          <path d="M10.5 2v2.5H13" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+          <rect x="4.5" y="2.25" width="3.75" height="3" rx="0.4" fill="currentColor" opacity="0.15" stroke="currentColor" stroke-width="1.1"/>
+          <line x1="5.25" y1="3.1" x2="7.5" y2="3.1" stroke="currentColor" stroke-width="0.85" stroke-linecap="round" opacity="0.55"/>
+          <line x1="5.25" y1="4.1" x2="7.5" y2="4.1" stroke="currentColor" stroke-width="0.85" stroke-linecap="round" opacity="0.4"/>
+          <rect x="3.5" y="7.5" width="9" height="4.5" rx="0.75" fill="currentColor" opacity="0.08" stroke="currentColor" stroke-width="1.1"/>
+          <line x1="5" y1="9.5" x2="7.5" y2="9.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.55"/>
+          <line x1="5" y1="10.75" x2="9" y2="10.75" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+          <line x1="9.5" y1="9.5" x2="11" y2="9.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.3"/>
+        </svg>
+    </span>
+    <span class="menu-item-body">
+      <span class="menu-item-label">Save &amp; backup</span>
+      <span class="menu-item-sub" id="smod-save-sub">No backup</span>
+    </span>
+  </button>
   <button class="menu-item-btn" onclick="closeSheets(); openImportPopup();">
     <span class="menu-item-icon">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -4854,7 +4848,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     </span>
     <span class="menu-item-body">
       <span class="menu-item-label">Settings</span>
-      <span class="menu-item-sub">Backup, currency, year format &amp; more</span>
+      <span class="menu-item-sub">Encryption, currency, year format &amp; more</span>
     </span>
     <span class="menu-item-arrow">›</span>
   </button>
@@ -4888,29 +4882,18 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   <div id="ps-body"></div>
 </div>
 
-<!-- Settings page (v6.14.0, N6): opened from the Menu. Popups opened from here sit
-     on top of it, so closing one comes back to Settings. -->
-<div id="settings-scrim" onclick="closeSettingsPage()"></div>
-<div id="settings-page" role="dialog" aria-label="Settings" aria-hidden="true">
-  <div class="sp-head">
-    <button class="sp-back" type="button" onclick="closeSettingsPage(true)">‹ Back</button>
-    <h2>Settings</h2>
-    <button class="modal-close sp-x" type="button" onclick="closeSettingsPage()" title="Close">✕</button>
-  </div>
-  <div class="sp-body">
+<!-- Settings (v6.16.1): a panel like every other popup — a tray on a phone, the
+     centred card on a wide screen. Popups opened from here sit on top of it, so
+     closing one comes back to Settings. Save & backup lives in the Menu. -->
+<div id="settings-popup" class="hidden pop-anim" role="dialog" aria-label="Settings">
+  <div class="modal-box sp-box">
+    <div>
+      <h2>Settings</h2>
+      <button class="modal-close" type="button" onclick="closeSettingsPage()" title="Close">✕</button>
+    </div>
+    <div class="sp-body">
     <div class="sp-label">Backup</div>
     <div class="sp-group">
-      <button class="sp-item" type="button" onclick="openSetup()"><span class="sp-ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M2 3.5A1.5 1.5 0 0 1 3.5 2h7L13 4.5V12a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 2 12V3.5z" stroke="currentColor" stroke-width="1.25" fill="none"/>
-          <path d="M10.5 2v2.5H13" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
-          <rect x="4.5" y="2.25" width="3.75" height="3" rx="0.4" fill="currentColor" opacity="0.15" stroke="currentColor" stroke-width="1.1"/>
-          <line x1="5.25" y1="3.1" x2="7.5" y2="3.1" stroke="currentColor" stroke-width="0.85" stroke-linecap="round" opacity="0.55"/>
-          <line x1="5.25" y1="4.1" x2="7.5" y2="4.1" stroke="currentColor" stroke-width="0.85" stroke-linecap="round" opacity="0.4"/>
-          <rect x="3.5" y="7.5" width="9" height="4.5" rx="0.75" fill="currentColor" opacity="0.08" stroke="currentColor" stroke-width="1.1"/>
-          <line x1="5" y1="9.5" x2="7.5" y2="9.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.55"/>
-          <line x1="5" y1="10.75" x2="9" y2="10.75" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
-          <line x1="9.5" y1="9.5" x2="11" y2="9.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.3"/>
-        </svg></span><span class="sp-txt"><span class="sp-t">Save &amp; backup</span><span class="sp-s" id="smod-save-sub">Manage file saves &amp; backup</span></span><span class="sp-arr" aria-hidden="true">›</span></button>
       <button class="sp-item" type="button" onclick="openEncryptionMenu()"><span class="sp-ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect x="3" y="7.5" width="10" height="7" rx="1.75" stroke="currentColor" stroke-width="1.25" fill="none"/>
           <rect x="3" y="7.5" width="10" height="7" rx="1.75" fill="currentColor" opacity="0.06"/>
@@ -4966,6 +4949,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
         <line x1="6.5" y1="11.5" x2="9.5" y2="11.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.5"/>
       </svg></span><span class="sp-txt"><span class="sp-t">About Vault</span><span class="sp-s">Version, credits &amp; attribution</span></span><span class="sp-arr" aria-hidden="true">›</span></button>
     </div>
+  </div>
   </div>
 </div>
 
@@ -5698,14 +5682,21 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <span style="width:5px;height:5px;border-radius:50%;background:var(--attention);flex-shrink:0;display:inline-block;"></span>
           <span style="font-size:10px; font-weight:600; color:var(--attention); white-space:nowrap;">No backup</span>
         </div>
-        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Data is in browser storage only — set up a backup in Menu → Settings → Save &amp; backup.</span>
+        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Data is in browser storage only — set up a backup in Menu → Save &amp; backup.</span>
       </div>
       <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:color-mix(in srgb, var(--attention) 6%, transparent); border:1px solid color-mix(in srgb, var(--attention) 15%, transparent); border-radius:8px;">
         <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:color-mix(in srgb, var(--attention) 12%, transparent); border:1px solid color-mix(in srgb, var(--attention) 25%, transparent); flex-shrink:0;">
           <span style="width:5px;height:5px;border-radius:50%;background:var(--attention);flex-shrink:0;display:inline-block;"></span>
           <span style="font-size:10px; font-weight:600; color:var(--attention); white-space:nowrap;">Permission needed</span>
         </div>
-        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">File access was lost after a restart. Go to Menu → Settings → Save &amp; backup → Local file.</span>
+        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">File access was lost after a restart. Go to Menu → Save &amp; backup → Local file.</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:color-mix(in srgb, var(--attention) 6%, transparent); border:1px solid color-mix(in srgb, var(--attention) 15%, transparent); border-radius:8px;">
+        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:color-mix(in srgb, var(--attention) 12%, transparent); border:1px solid color-mix(in srgb, var(--attention) 25%, transparent); flex-shrink:0;">
+          <span style="width:5px;height:5px;border-radius:50%;background:var(--attention);flex-shrink:0;display:inline-block;"></span>
+          <span style="font-size:10px; font-weight:600; color:var(--attention); white-space:nowrap;">Reconnect Drive</span>
+        </div>
+        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Google ended Vault's sign-in to Drive. Tap the status to reconnect to the same backup.</span>
       </div>
       <div style="font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--out); padding:10px 2px 4px;">Error</div>
       <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:color-mix(in srgb, var(--out) 6%, transparent); border:1px solid color-mix(in srgb, var(--out) 15%, transparent); border-radius:8px;">
@@ -5713,7 +5704,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <span style="width:5px;height:5px;border-radius:50%;background:var(--out);flex-shrink:0;display:inline-block;"></span>
           <span style="font-size:10px; font-weight:600; color:var(--out); white-space:nowrap;">Sync failed</span>
         </div>
-        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Backup write failed. Check your backup source in Menu → Settings → Save &amp; backup.</span>
+        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Backup write failed. Check your backup source in Menu → Save &amp; backup.</span>
       </div>
     </div>
     </details>
@@ -6039,7 +6030,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
     </div>
 
-    <p style="font-size:11px; color:var(--text-3); line-height:1.6;">You can change this at any time from <strong style="color:var(--text-2);">Menu → Settings → Save &amp; backup</strong>.</p>
+    <p style="font-size:11px; color:var(--text-3); line-height:1.6;">You can change this at any time from <strong style="color:var(--text-2);">Menu → Save &amp; backup</strong>.</p>
   </div>
 </div>
 
@@ -9251,6 +9242,8 @@ const SS_NOW = {
                          btn: ["Set up backup", () => { closeSaveStatusLegend(); setTimeout(openSetup, 50); }] },
   "Permission needed": { tone: "warn", text: "Vault lost access to your backup file after a restart.",
                          btn: ["Reconnect file", () => { closeSaveStatusLegend(); reauthoriseLocalFile(); }] },
+  "Reconnect Drive":   { tone: "warn", text: "Google ended Vault's sign-in to your Drive. Your data here is safe. Reconnect to carry on backing up to the same file.",
+                         btn: ["Reconnect Google Drive", () => { closeSaveStatusLegend(); connectGoogleDrive(); }] },
   "Sync failed":       { tone: "err",  text: "The last change couldn't be written to your backup.",
                          btn: ["Try again", () => { closeSaveStatusLegend(); triggerCloudSync(); }],
                          alt: ["Backup settings", () => { closeSaveStatusLegend(); setTimeout(openSetup, 50); }] },
@@ -9260,7 +9253,12 @@ function ssNowInfo() {
   const label = (pill && pill.textContent || "").trim();
   const enc = / · encrypted$/.test(label);
   const key = label.replace(/ · encrypted$/, "");
-  const info = SS_NOW[key] || { tone: "busy", text: "" };
+  const info = Object.assign({}, SS_NOW[key] || { tone: "busy", text: "" });
+  if (key === "No backup" || !key) {
+    // One tap back to a Drive backup — the usual way back after a browser clears Vault
+    info.alt = [vaultIsEmpty() ? "Restore from Google Drive" : "Use Google Drive", () => { closeSaveStatusLegend(); connectGoogleDrive(); }];
+    if (_storagePersisted === false) info.text += " Your browser hasn't agreed to keep Vault's data for good, so it could clear it to free up space.";
+  }
   return { label: label || "No backup", enc, ...info,
            text: enc ? info.text + " It's encrypted with AES-256 before saving." : info.text };
 }
@@ -9301,6 +9299,29 @@ function setSaveStatus(state, msg) {
   if (!el) return;
   el.className = "ss-" + state;
   el.textContent = msg || "";
+  updateSaveMenuSub();
+}
+// Menu › Save & backup: "Google Drive · Backed up", "Reconnect Drive", "No backup"…
+function updateSaveMenuSub() {
+  const pill = document.getElementById("save-status");
+  const st = (pill && pill.textContent || "").trim() || "No backup";
+  let where = null;
+  try { where = activeBackupLabel(); } catch {}
+  const t = where && !/^(No backup|Reconnect Drive)$/.test(st) ? where + " · " + st : st;
+  ["smod-save-sub", "dmenu-save-sub"].forEach(id => { const s = document.getElementById(id); if (s) s.textContent = t; });
+}
+// Ask the browser to keep Vault's data rather than clear it to free space. Safari and
+// Chrome decide quietly; Firefox would show a prompt on every visit, so it's skipped.
+let _storagePersisted = null;
+function vaultAskPersist() {
+  try {
+    const st = navigator.storage;
+    if (!st || !st.persist || /Firefox\//.test(navigator.userAgent || "")) return;
+    Promise.resolve(st.persisted ? st.persisted() : false)
+      .then(p => p || st.persist())
+      .then(ok => { _storagePersisted = !!ok; dbg("Storage persistence " + (ok ? "granted" : "not granted")); })
+      .catch(() => {});
+  } catch {}
 }
 
 // Schedule a debounced auto-save to the linked file.
@@ -9444,7 +9465,10 @@ async function triggerCloudSync() {
     }
   }
 
-  if (ok) {
+  if (!ok && !gdLinked && gdTokens && gdTokens.revoked) {
+    pendingRetry = false;
+    setSaveStatus("warn", "Reconnect Drive");
+  } else if (ok) {
     pendingRetry = false;
     setSaveStatus("ok", "Backed up" + (vaultEncActive ? " · encrypted" : ""));
   } else {
@@ -10664,10 +10688,24 @@ async function gdRefreshAccessToken() {
       headers: { "Content-Type": "application/json" },
       body:    JSON.stringify({ refresh_token: gdTokens.refreshToken }),
     });
-    if (!res.ok) throw new Error("HTTP " + res.status);
+    if (!res.ok) {
+      let err = "";
+      try { err = (await res.json()).error || ""; } catch {}
+      // invalid_grant: Google won't renew this sign-in (expired or revoked). Only a
+      // new sign-in fixes it, so remember that and ask for one. Anything else
+      // (offline, the relay down) is temporary: stay linked and retry.
+      if (err === "invalid_grant") {
+        gdTokens.revoked = true;
+        gdSaveTokens(gdTokens);
+        dbg("GD: Google refused the refresh token (invalid_grant)");
+        return false;
+      }
+      throw new Error("HTTP " + res.status + (err ? " " + err : ""));
+    }
     const json = await res.json();
     gdTokens.accessToken = json.access_token;
     gdTokens.expiresAt   = Date.now() + json.expires_in * 1000;
+    delete gdTokens.revoked;
     gdSaveTokens(gdTokens);
     dbg("GD: token refreshed");
     return true;
@@ -10680,11 +10718,30 @@ async function gdRefreshAccessToken() {
 // Ensure we have a valid access token — refresh if needed
 async function gdEnsureToken() {
   if (!gdTokens) return false;
+  if (gdTokens.revoked) return false;
   if (gdTokenExpired(gdTokens)) {
     const ok = await gdRefreshAccessToken();
-    if (!ok) { gdLinked = false; updateGoogleDriveUI(); return false; }
+    if (!ok) {
+      // Google said no: ask to reconnect. Otherwise stay linked; the sync shows
+      // "Sync failed" and retries (v6.16.1 — it used to unlink Drive for the session).
+      if (gdTokens && gdTokens.revoked) gdSignedOut();
+      return false;
+    }
   }
   return true;
+}
+// Google ended Vault's sign-in. The remembered Drive file is kept, so reconnecting
+// carries on with the same backup (gdHandleRedirect merges without asking).
+function gdSignedOut() {
+  gdLinked = false;
+  setSaveStatus("warn", "Reconnect Drive");
+  updateGoogleDriveUI();
+}
+// True when this device has no transactions at all (a new or cleared browser).
+function vaultIsEmpty() {
+  try {
+    return Object.values(data || {}).every(y => !y || (!(y.saved || []).length && !(y.removed || []).length));
+  } catch { return false; }
 }
 
 // ── OAuth flow ────────────────────────────────────────────────────────────────
@@ -10703,6 +10760,12 @@ async function connectGoogleDrive() {
   const verifier   = gdGenerateCodeVerifier();
   const challenge  = await gdCodeChallenge(verifier);
   sessionStorage.setItem("gd_verifier", verifier);
+  // Remember which Drive file this device used, so a reconnect carries on with it
+  try {
+    const prev = gdLoadTokens();
+    if (prev && prev.fileId) sessionStorage.setItem("gd_reconnect_file", prev.fileId);
+    else sessionStorage.removeItem("gd_reconnect_file");
+  } catch {}
 
   const params = new URLSearchParams({
     client_id:             GD_CLIENT_ID,
@@ -10725,6 +10788,9 @@ async function gdHandleRedirect() {
   const code     = params.get("code");
   const verifier = sessionStorage.getItem("gd_verifier");
   if (!code || !verifier) return;
+  let reconnectId = null;
+  try { reconnectId = sessionStorage.getItem("gd_reconnect_file"); sessionStorage.removeItem("gd_reconnect_file"); } catch {}
+  let quiet = "";   // set when no question was needed: the toast to show instead
 
   // Flag immediately — before any async work — so checkFirstRun skips the welcome screen
   gdRedirectInProgress = true;
@@ -10787,7 +10853,11 @@ async function gdHandleRedirect() {
           const { data: rawData, tombstones: remoteTombstones, ...settings } = unwrapPayload(loaded);
           const safe = sanitiseData(rawData);
           if (safe && Object.keys(safe).length) {
-            const choice = await showDriveMergeDialog(
+            // Nothing here to lose → load it. The same file as before → merge as every sync does.
+            // Only a different file with data on both sides needs the question (v6.16.1).
+            const auto = vaultIsEmpty() ? "overwrite-app" : (reconnectId && reconnectId === existingId ? "merge" : null);
+            if (auto) quiet = auto === "merge" ? "Google Drive reconnected" : "Restored from Google Drive";
+            const choice = auto || await showDriveMergeDialog(
               "Existing Vault file found in Google Drive",
               "A Vault file already exists in your Google Drive. How would you like to proceed?"
             );
@@ -10796,19 +10866,19 @@ async function gdHandleRedirect() {
               autoMerge(safe, remoteTombstones);
               applyPayloadSettings(settings, false);
               saveAndRender(null);
-              toast("Merged with your backup");
+              if (!quiet) toast("Merged with your backup");
             } else if (choice === "overwrite-drive") {
               // Keep local data, write over Drive — do nothing to local data
               toast("Drive file will be overwritten with your current data");
             } else if (choice === "overwrite-app") {
               // Replace local data with Drive data
-              remoteTombstones.forEach(id => tombstones.add(id));
+              (remoteTombstones || []).forEach(id => tombstones.add(id));
               saveTombstones();
               data = safe;
               reconcileYears();
               applyPayloadSettings(settings, true);
               saveAndRender(null);
-              toast("App data replaced with Drive data");
+              if (!quiet) toast("App data replaced with Drive data");
             }
           }
         }
@@ -10837,11 +10907,14 @@ async function gdHandleRedirect() {
     updateGoogleDriveUI();
     updateSetupModal();
     setGDStatus("", "");
-    toast("Google Drive connected — auto-saving active");
-
-    // Open the Google Drive panel
-    document.getElementById("setup-modal").classList.remove("hidden");
-    openSmodPanel("googledrive");
+    if (quiet) {
+      toast(quiet);
+    } else {
+      toast("Google Drive connected — auto-saving active");
+      // Open the Google Drive panel
+      document.getElementById("setup-modal").classList.remove("hidden");
+      openSmodPanel("googledrive");
+    }
 
     // If we switched from another backup location, offer to merge/overwrite
     const preSwitchRaw = sessionStorage.getItem("gd_pre_switch_snapshot");
@@ -10866,7 +10939,7 @@ async function gdHandleRedirect() {
 
 // Search Drive for an existing vault-data.json created by this app
 async function gdSearchForFile() {
-  if (!await gdEnsureToken()) return null;
+  if (!await gdEnsureToken()) return undefined;
   try {
     const q   = encodeURIComponent("name = 'vault-data.json' and mimeType = 'application/json' and trashed = false");
     const res = await fetch("https://www.googleapis.com/drive/v3/files?q=" + q + "&fields=files(id,name,modifiedTime)&pageSize=10", {
@@ -10883,7 +10956,7 @@ async function gdSearchForFile() {
     return null;
   } catch (e) {
     dbg("GD: search failed: " + e.message);
-    return null;
+    return undefined;
   }
 }
 
@@ -10891,7 +10964,13 @@ async function gdWriteFile() {
   if (!await gdEnsureToken()) return false;
   try {
     const payload = await buildVaultPayload(); // respects encryption if active
-    const fileId  = gdTokens.fileId;
+    let fileId    = gdTokens.fileId;
+    if (!fileId) {
+      // No file remembered (a new device, or startup couldn't search): look before creating one
+      const found = await gdSearchForFile();
+      if (found === undefined) return false;
+      if (found) { gdTokens.fileId = fileId = found; gdSaveTokens(gdTokens); }
+    }
 
     if (fileId) {
       // Update existing file
@@ -11147,15 +11226,20 @@ async function initGoogleDrive() {
   }
 
   gdTokens = saved;
+  if (gdTokens.revoked) { dbg("GD: sign-in ended — waiting for Reconnect"); gdSignedOut(); return; }
 
   // Silently refresh if expired
   if (gdTokenExpired(gdTokens)) {
     const ok = await gdRefreshAccessToken();
     if (!ok) {
-      dbg("GD: silent refresh failed on startup");
-      gdLinked = false;
-      if (!localFileLinked && !nasLinked) setSaveStatus("warn", "No backup");
+      if (gdTokens.revoked) { gdSignedOut(); return; }
+      // Couldn't reach Google or the relay (offline?): stay linked and retry
+      dbg("GD: refresh failed on startup — will retry");
+      gdLinked = true;
       updateGoogleDriveUI();
+      setSaveStatus("err", "Sync failed");
+      pendingRetry = true;
+      scheduleRetry();
       return;
     }
   }
@@ -11264,6 +11348,8 @@ const RETRY_INTERVAL_MS = 30000;
 let   pendingRetry      = false; // true when a write failed and needs retry
 let   retryTimer        = null;
 
+// Back online: try the failed write now rather than waiting for the timer
+window.addEventListener("online", () => { if (pendingRetry) triggerCloudSync(); });
 function scheduleRetry() {
   if (retryTimer) return;
   retryTimer = setTimeout(async () => {
@@ -11290,7 +11376,7 @@ function saveLocal() {
       // Only toast once per session to avoid spam
       if (!sessionStorage.getItem(LOCAL_QUOTA_WARN_KEY)) {
         sessionStorage.setItem(LOCAL_QUOTA_WARN_KEY, "1");
-        toast("Browser storage is full, so your latest changes may not be saved. Back up now from Menu → Settings → Save & backup", "error");
+        toast("Browser storage is full, so your latest changes may not be saved. Back up now from Menu → Save & backup", "error");
         dbg("saveLocal: QuotaExceededError — data may not be saved");
       }
     }
@@ -20810,6 +20896,7 @@ const POPUP_CLOSE = {
   "enc-decrypt-popup": () => document.getElementById("enc-decrypt-cancel")?.click(),
   "enc-choice-popup": () => { encChoiceResolve("skip"); toast("Saved without a password. You can add one in Settings › Encryption", "notice"); },
   "drive-merge-popup": () => resolveDriveMerge("cancel"),
+  "settings-popup": () => closeSettingsPage(), "about-popup": () => closeAbout(), "privacy-popup": () => closePrivacy(),
 };
 function popupIsOpen(el) { return !!el && !el.classList.contains("hidden") && getComputedStyle(el).display !== "none"; }
 function dismissPopup(el) {
@@ -20861,9 +20948,9 @@ function vpTryDismiss(el) {
 // centred everywhere. Popups not listed in VP_SKIP are all covered.
 const VP_SKIP = new Set(["welcome-modal", "pdf-preview-modal", "lock-screen"]);
 const VP_ALERTS = new Set(["vault-confirm-popup", "vh-reset-popup", "import-progress-popup"]);
-const VP_FLUSH = new Set(["setup-modal", "currency-popup"]);
+const VP_FLUSH = new Set(["setup-modal", "currency-popup", "settings-popup"]);
 const VP_NO_FOOT = new Set(["setup-modal", "cloud-picker-popup", "currency-popup", "import-popup", "import-progress-popup",
-  "recurring-modal", "goals-modal", "accounts-modal", "drive-merge-popup", "enc-choice-popup", "ai-provider-popup"]);
+  "recurring-modal", "goals-modal", "accounts-modal", "drive-merge-popup", "enc-choice-popup", "ai-provider-popup", "settings-popup"]);
 const VP_FOOT = { "tx-popup": "#popup-standard-actions", "enc-decrypt-popup": ".modal-actions", "add-recurring-popup": "#recur-add-form > :last-child" };
 const VP_BTN = /\b(pbtn|btn-primary|btn-local|btn-save|btn-popup-cancel|info-popup-close-btn)\b/;
 function vpPopups() {
@@ -20999,7 +21086,6 @@ function vaultEscape(e) {
   if (document.querySelector("#add-sheet.open, #menu-sheet.open, #year-sheet.open")) { e.preventDefault(); closeSheets(); return true; }
   const as = document.getElementById("as-sheet");
   if (as && as.classList.contains("open") && typeof asCloseSheet === "function") { e.preventDefault(); asCloseSheet(); return true; }
-  if (settingsPageOpen()) { e.preventDefault(); closeSettingsPage(); return true; }
   return false;
 }
 
@@ -21210,7 +21296,7 @@ function tickCompatExportCount() {
     const count = parseInt(localStorage.getItem(COMPAT_REMINDER_KEY) || "0", 10) + 1;
     localStorage.setItem(COMPAT_REMINDER_KEY, count.toString());
     if (count > 0 && count % COMPAT_REMINDER_EVERY === 0) {
-      toast(`${count} change${count !== 1 ? "s" : ""} since your last backup. Back up from Menu → Settings → Save & backup`, "notice");
+      toast(`${count} change${count !== 1 ? "s" : ""} since your last backup. Back up from Menu → Save & backup`, "notice");
       dbg("Compat reminder: " + count + " tx since last export");
     }
   } catch {}
@@ -21258,7 +21344,7 @@ function welcomeUseBrowser() {
   document.getElementById("welcome-modal").classList.add("hidden");
   // Save an empty data marker so we don't show welcome next time
   saveLocal();
-  toast("Using browser storage — you can change this in Menu → Settings → Save & backup");
+  toast("Using browser storage — you can change this in Menu → Save & backup");
 }
 
 function initApp() {
@@ -21279,11 +21365,12 @@ function initApp() {
   // Set an appropriate initial status before async inits resolve.
   // If GD tokens, a local file handle, or NAS config exist, show "Reconnecting…"
   // instead of "No backup" to avoid a misleading flash on startup.
-  const _hasGD    = (() => { try { return !!JSON.parse(localStorage.getItem("vault_gd_tokens")||"null")?.refreshToken; } catch { return false; } })();
+  const _hasGD    = (() => { try { return !!JSON.parse(localStorage.getItem(GD_KEY)||"null")?.refreshToken; } catch { return false; } })();
   const _hasFile  = (() => { try { return !!localStorage.getItem("vault_local_file_handle"); } catch { return false; } })();
   const _hasNAS   = (() => { try { return !!localStorage.getItem("vault_nas_url"); } catch { return false; } })();
   setSaveStatus(_hasGD || _hasFile || _hasNAS ? "busy" : "warn",
                 _hasGD || _hasFile || _hasNAS ? "Reconnecting…" : "No backup");
+  vaultAskPersist();
   // Wait for both local file and Google Drive init before deciding first run
   // so OAuth redirects are fully handled before the welcome screen check
   Promise.all([
@@ -21692,7 +21779,7 @@ function _anyOverlayOpen() {
   // Sheets, About/Privacy overlays, and the desktop menu all use .open to show
   const openClassIds = [
     'add-sheet', 'menu-sheet', 'year-sheet',
-    'privacy-overlay', 'about-overlay', 'desktop-menu'
+    'desktop-menu'
   ];
   for (const id of openClassIds) {
     const el = document.getElementById(id);
@@ -22335,24 +22422,16 @@ function psPick(y, m) {
   window.scrollTo(0, 0);
 }
 
-// Settings page (N6)
+// Settings (v6.16.1): a panel — a tray on a phone, the centred card on a wide screen.
 function openSettingsPage() {
-  const p = document.getElementById("settings-page");
+  const p = document.getElementById("settings-popup");
   if (!p) return;
   closeSheets();
-  p.classList.add("open"); p.setAttribute("aria-hidden", "false");
-  document.getElementById("settings-scrim")?.classList.add("open");
-  document.documentElement.classList.add("sp-lock");
+  try { closeDesktopMenu(); } catch {}
+  p.classList.remove("hidden");
 }
-function closeSettingsPage(backToMenu) {
-  const p = document.getElementById("settings-page");
-  if (!p) return;
-  p.classList.remove("open"); p.setAttribute("aria-hidden", "true");
-  document.getElementById("settings-scrim")?.classList.remove("open");
-  document.documentElement.classList.remove("sp-lock");
-  if (backToMenu && window.innerWidth <= 640) openMenuSheet();
-}
-function settingsPageOpen() { return !!document.querySelector("#settings-page.open"); }
+function closeSettingsPage() { document.getElementById("settings-popup")?.classList.add("hidden"); }
+function settingsPageOpen() { const p = document.getElementById("settings-popup"); return !!p && !p.classList.contains("hidden"); }
 
 // ─── Back button and current view (N2, N4 — v6.13.0) ──────────────────────────
 // Each move between Home, the list, Advanced Search and Charts — and between
@@ -22435,7 +22514,6 @@ function navCloseTop() {
   if (document.querySelector("#add-sheet.open, #menu-sheet.open, #year-sheet.open")) { closeSheets(); return true; }
   const as = document.getElementById("as-sheet");
   if (as && as.classList.contains("open") && typeof asCloseSheet === "function") { asCloseSheet(); return true; }
-  if (settingsPageOpen()) { closeSettingsPage(); return true; }
   const vs = document.getElementById("vh-search-corner");
   if (vs && vs.classList.contains("open")) { vhSearchClose(); return true; }
   return false;
@@ -22444,10 +22522,10 @@ window.addEventListener("popstate", e => {
   if (!_navReady) return;
   const h = location.hash;
   if (h === "#privacy" || h === "#about") return;          // those overlays own their entries
-  const priv = document.getElementById("privacy-overlay");
-  if (priv && priv.classList.contains("open")) return;     // checkPrivacyHash closes it
-  const about = document.getElementById("about-overlay");
-  if (about && about.classList.contains("open")) { about.classList.remove("open"); about.classList.add("hidden"); return; }
+  const priv = document.getElementById("privacy-popup");
+  if (priv && !priv.classList.contains("hidden")) return;  // checkPrivacyHash closes it
+  const about = document.getElementById("about-popup");
+  if (about && !about.classList.contains("hidden")) { about.classList.add("hidden"); return; }
   if (navCloseTop()) { try { history.pushState(_navCur, ""); } catch {} return; }
   const st = e.state;
   if (st && st.vault === "view") { navRestore(st); return; }
@@ -22468,8 +22546,7 @@ function navMarkCurrent() {
 // Accessible at vaultsavings.app/#privacy — hash routing opens/closes it.
 
 function openAbout() {
-  document.getElementById("about-overlay").classList.remove("hidden");
-  document.getElementById("about-overlay").classList.add("open");
+  document.getElementById("about-popup").classList.remove("hidden");
   // Update version number dynamically
   const el = document.getElementById("about-version-meta");
   const vf = document.getElementById("version-footer");
@@ -22478,35 +22555,29 @@ function openAbout() {
 }
 
 function closeAbout() {
-  document.getElementById("about-overlay").classList.remove("open");
-  document.getElementById("about-overlay").classList.add("hidden");
-  try { history.back(); } catch {}
+  const el = document.getElementById("about-popup");
+  if (el.classList.contains("hidden")) return;
+  el.classList.add("hidden");
+  try { if (location.hash === "#about") history.back(); } catch {}
 }
 
 function openPrivacy() {
-  document.getElementById("privacy-overlay").classList.remove("hidden");
-  document.getElementById("privacy-overlay").classList.add("open");
-  document.body.style.overflow = "hidden";
+  document.getElementById("privacy-popup").classList.remove("hidden");
   try { if (location.hash !== "#privacy") history.pushState(null, "", "#privacy"); } catch {}
 }
 
 function closePrivacy() {
-  document.getElementById("privacy-overlay").classList.remove("open");
-  document.body.style.overflow = "";
+  const el = document.getElementById("privacy-popup");
+  if (el.classList.contains("hidden")) return;
+  el.classList.add("hidden");
   try { if (location.hash === "#privacy") history.back(); } catch {}
 }
 
 // Handle hash on load and on browser back/forward
 function checkPrivacyHash() {
   try {
-    if (location.hash === "#privacy") {
-      document.getElementById("privacy-overlay").classList.remove("hidden");
-      document.getElementById("privacy-overlay").classList.add("open");
-      document.body.style.overflow = "hidden";
-    } else {
-      document.getElementById("privacy-overlay").classList.remove("open");
-      document.body.style.overflow = "";
-    }
+    const el = document.getElementById("privacy-popup");
+    el.classList.toggle("hidden", location.hash !== "#privacy");
   } catch {}
 }
 try { window.addEventListener("popstate", checkPrivacyHash); } catch {}
@@ -22519,8 +22590,9 @@ navInit();
 </script>
 
   <!-- ── Privacy Policy overlay ── -->
-  <div id="privacy-overlay" class="hidden">
-    <div id="privacy-header">
+  <div id="privacy-popup" class="hidden pop-anim" role="dialog" aria-label="Privacy policy">
+  <div class="modal-box pp-box">
+    <div class="pp-headrow">
       <h2>Privacy policy</h2>
       <button class="modal-close" onclick="closePrivacy()" title="Close">✕</button>
     </div>
@@ -22679,11 +22751,14 @@ navInit();
 
       </div>
     </div>
+    <div class="pbtn-row"><button class="pbtn pbtn-secondary" type="button" onclick="closePrivacy()">Done</button></div>
   </div>
+</div>
 
     <!-- ── About overlay ── -->
-  <div id="about-overlay" class="hidden">
-    <div id="about-header">
+  <div id="about-popup" class="hidden pop-anim" role="dialog" aria-label="About Vault">
+  <div class="modal-box pp-box">
+    <div class="pp-headrow">
       <h2>About Vault</h2>
       <button class="modal-close" onclick="closeAbout()" title="Close">✕</button>
     </div>
@@ -22694,7 +22769,7 @@ navInit();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.16.0</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.16.1</div>
         </div>
 
         <div class="pp-cards">
@@ -22802,9 +22877,11 @@ navInit();
       </div><!-- /about-body -->
     </div><!-- /about-overlay -->
 
-  </div><!-- /app root -->
+    <div class="pbtn-row"><button class="pbtn pbtn-secondary" type="button" onclick="closeAbout()">Done</button></div>
+  </div>
+</div><!-- /app root -->
 
-  <div id="version-footer">v6.16.0</div>
+  <div id="version-footer">v6.16.1</div>
 
 </body>
 </html>

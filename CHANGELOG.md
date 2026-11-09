@@ -10,6 +10,17 @@ Version numbers follow [Semantic Versioning](https://semver.org/) and were assig
 
 The first release is v1.0.0. A major bump resets minor and patch to 0, a minor bump resets patch to 0, and patch rolls over into the next minor after .99. Types marked \* are judgement calls, explained in [Notes](#notes) at the end.
 
+## v6.16.1 — 2026-11-09
+
+Patch · `9052245`
+
+- Settings, About and Privacy open as trays on a phone, and as the same card as other popups on a computer
+- Save & backup is in the Menu, and shows how your backup is doing
+- Google Drive stays connected when the connection drops. If Google signs Vault out, the status says Reconnect Drive, and one tap reconnects to the same backup without asking how to merge
+- If your browser clears Vault, the backup status offers Restore from Google Drive, which brings everything back in one step
+- Vault asks the browser to keep its data, and opens as its own app from a Home Screen icon
+- The arrow that opens the period picker on Transactions is bigger
+
 ## v6.16.0 — 2026-11-09
 
 Minor · `7b739d7`

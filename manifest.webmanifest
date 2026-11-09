@@ -1,0 +1,13 @@
+{
+  "name": "Vault",
+  "short_name": "Vault",
+  "description": "Your personal savings tracker.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#07080b",
+  "theme_color": "#07080b",
+  "icons": [
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
