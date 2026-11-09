@@ -1643,5 +1643,24 @@
       "Closing About or Privacy no longer closes Settings as well",
       "Save & backup's back buttons match the other trays"
     ]
+  },
+  {
+    "tag": "v6.17.0",
+    "sha": "4fa96821d0574d14e76789d7a1ced3fbfe8597f7",
+    "date": "2026-11-09",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": null,
+    "versioned_at_release": true,
+    "commits": [
+      "4fa9682"
+    ],
+    "notes": [
+      "On a phone, moving from one tray to another slides sideways with a gentle fade, and the tray glides to its new height. Back and ‹ slide back the other way",
+      "Trays only move up and down when you open the first one or close them all. ✕, swiping down or tapping outside now closes every open tray at once",
+      "Recurring history and Save & backup's options slide the same way inside their tray, with one ‹",
+      "Tapping a date in Recurring history opens it straight away, and ‹ comes back to the history",
+      "Accounts and Goals open from the Menu without a pause"
+    ]
   }
 ]

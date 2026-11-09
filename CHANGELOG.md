@@ -10,6 +10,16 @@ Version numbers follow [Semantic Versioning](https://semver.org/) and were assig
 
 The first release is v1.0.0. A major bump resets minor and patch to 0, a minor bump resets patch to 0, and patch rolls over into the next minor after .99. Types marked \* are judgement calls, explained in [Notes](#notes) at the end.
 
+## v6.17.0 — 2026-11-09
+
+Minor · `4fa9682`
+
+- On a phone, moving from one tray to another slides sideways with a gentle fade, and the tray glides to its new height. Back and ‹ slide back the other way
+- Trays only move up and down when you open the first one or close them all. ✕, swiping down or tapping outside now closes every open tray at once
+- Recurring history and Save & backup's options slide the same way inside their tray, with one ‹
+- Tapping a date in Recurring history opens it straight away, and ‹ comes back to the history
+- Accounts and Goals open from the Menu without a pause
+
 ## v6.16.5 — 2026-11-09
 
 Patch · `b861017`
