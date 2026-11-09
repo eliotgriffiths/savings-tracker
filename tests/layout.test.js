@@ -102,7 +102,7 @@ setTimeout(async () => {
   ok(JSON.stringify(chips) === '["This month","Last month","This year","All"]', "quick picks: " + JSON.stringify(chips));
   ok($$("#ps-body .ps-year").length === E(`Object.keys(data).length`), "one row per year");
   ok(txt($("#ps-body .ps-year .ps-row")).startsWith("2026"), "newest year first");
-  ok($$("#ps-body .ps-months").length === 0, "every year starts collapsed (v6.15.2)");
+  ok($$("#ps-body .ps-fold:not(.folded) .ps-months").length === 0, "every year starts collapsed (v6.15.2)");
   $$("#year-sheet .ps-chip").find(b => txt(b) === "This month").click();
   ok(E("activeYear") === "2026" && E("activeMonth") === "2026-11" && !$("#year-sheet").classList.contains("open"), "This month picks November 2026 and closes");
   ok(E("activeAccountFilter") === "ub", "…keeping the account you were looking at");
@@ -110,9 +110,9 @@ setTimeout(async () => {
   E(`openPeriodSheet()`);
   ok(!!$('#year-sheet .ps-chip.on'), "the current pick is highlighted");
   $('#ps-body [data-exp="2025"]').click();
-  const m25 = $$("#ps-body .ps-months button").map(txt);
+  const m25 = $$("#ps-body .ps-fold:not(.folded) .ps-months button").map(txt);
   ok(m25[0] === "Nov" && m25.length === 2, "expanding 2025 shows its months: " + JSON.stringify(m25));
-  $$("#ps-body .ps-months button").find(b => txt(b) === "Dec").click();
+  $$("#ps-body .ps-fold:not(.folded) .ps-months button").find(b => txt(b) === "Dec").click();
   ok(E("activeYear") === "2025" && E("activeMonth") === "2025-12", "picking Dec 2025 shows it");
   E(`openPeriodSheet()`); $('#ps-body .ps-row[data-y="all-years"]').click();
   ok(E("activeYear") === "all-years" && E("activeMonth") === null, "All transactions");

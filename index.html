@@ -2793,6 +2793,40 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     .vp:not(.vp-alert) .vp-head { touch-action: none; }
     .pop-anim.vp.vp-alert .vp-panel { max-width: 300px !important; }
   }
+  /* v6.16.4: something that appears or disappears inside a tray folds open and shut, so the
+     tray glides instead of jumping. Markup: .vp-fold > .vp-fold-in > content. Toggle with
+     vpFold(el, show). The inner box clips, so the content's own padding and margins fold too. */
+  .vp-fold { display: grid; grid-template-rows: 1fr; opacity: 1; visibility: visible;
+    transition: grid-template-rows 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease-out 0.04s, visibility 0s; }
+  .vp-fold > .vp-fold-in { min-height: 0; overflow: hidden; }
+  .vp-fold.folded { grid-template-rows: 0fr; opacity: 0; visibility: hidden;
+    transition: grid-template-rows 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.14s ease-out, visibility 0s linear 0.26s; }
+  @media (prefers-reduced-motion: reduce) { .vp-fold, .vp-fold.folded { transition: none; } }
+  /* v6.16.4: one title size for the phone's screens (Home, Transactions, Search) */
+  @media (max-width: 640px) {
+    .fy-title, .as-title, #home-panel .vh-home-title { font-size: 22px; line-height: 1.2; }
+  }
+  /* v6.16.4: the list's summary cards use Search's card format (.as-sum: label, figure,
+     count line), and both sets are centred. Keep #year-summary .stat* in step with .as-sum. */
+  .as-sum { text-align: center; }
+  .stat-c { display: none; }
+  @media (max-width: 640px) {
+    #year-summary .stat { flex: 1 1 0; min-width: 0; display: block; text-align: center; background: var(--bg1); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; margin-left: 0; }
+    #year-summary .stat + .stat { margin-left: 8px; }
+    #year-summary .stat-label { display: block; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); font-weight: 600; }
+    #year-summary .stat-val, #year-summary .stat-val.big { display: block; font-family: 'DM Sans', sans-serif; font-weight: 600; letter-spacing: -0.02em; font-size: 17px; margin-top: 3px; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #year-summary .stat-c { display: block; font-size: 11px; color: var(--text-3); margin-top: 1px; }
+  }
+  /* Six-figure amounts need the smaller size below 380 px (iPhone SE / mini), on both screens */
+  @media (max-width: 380px) {
+    .as-summary { gap: 6px; }
+    .as-sum { padding: 9px; }
+    .as-sum .v { font-size: 15px; }
+    #year-summary .stat { padding: 9px; }
+    #year-summary .stat + .stat { margin-left: 6px; }
+    #year-summary .stat-val, #year-summary .stat-val.big { font-size: 15px; }
+  }
+
   /* Panels that lay themselves out edge to edge (Save & backup, Currency) */
   .pop-anim.vp .vp-panel.vp-flush { padding: 0 !important; --vp-px: 0px; --vp-pb: 0px; }
   .vp-flush .vp-head { margin: 0 !important; padding: 22px 16px 12px 24px !important; }
@@ -4066,10 +4100,10 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
     <!-- Recurring toggle -->
     <div style="margin-bottom:18px;">
-      <button id="desk-recur-toggle" onclick="toggleDeskRecur()"
+      <div class="vp-fold" id="desk-recur-fold"><div class="vp-fold-in"><button id="desk-recur-toggle" onclick="toggleDeskRecur()"
         style="width:100%; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 14px; color:var(--text-2); font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer; text-align:left; transition:border-color 0.15s, color 0.15s, background 0.15s;">
         Make this a recurring transaction
-      </button>
+      </button></div></div>
       <button id="desk-manage-recur-btn" onclick="closeDesktopAddSheet(); openRecurringModal();"
         style="display:none; margin-top:8px; width:100%; font-size:12px; color:var(--gold); background:color-mix(in srgb, var(--accent) 6%, transparent); border:1px solid var(--gold-dim); border-radius:var(--radius); padding:8px 14px; cursor:pointer; font-family:'DM Sans',sans-serif; text-align:left; transition:opacity 0.15s;"></button>
     </div>
@@ -4314,9 +4348,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   <div id="main">
     <div id="year-summary">
       <div class="fy-title" id="fy-title" role="button" tabindex="0" aria-label="Choose a period" onclick="openPeriodSheet()">FY 20--</div>
-      <div class="stat"><span class="stat-label" id="stat-in-label">Saved</span>   <span class="stat-val"     id="stat-in"  style="color:var(--green)"></span></div>
-      <div class="stat"><span class="stat-label" id="stat-out-label">Withdrawn</span>  <span class="stat-val"     id="stat-out" style="color:var(--red)"></span></div>
-      <div class="stat"><span class="stat-label" id="stat-net-label">Net</span>         <span class="stat-val big" id="stat-net"></span></div>
+      <div class="stat"><span class="stat-label" id="stat-in-label">Saved</span>   <span class="stat-val"     id="stat-in"  style="color:var(--green)"></span><span class="stat-c" id="stat-in-c"></span></div>
+      <div class="stat"><span class="stat-label" id="stat-out-label">Withdrawn</span>  <span class="stat-val"     id="stat-out" style="color:var(--red)"></span><span class="stat-c" id="stat-out-c"></span></div>
+      <div class="stat"><span class="stat-label" id="stat-net-label">Net</span>         <span class="stat-val big" id="stat-net"></span><span class="stat-c" id="stat-net-c"></span></div>
       <div id="stat-rate-note" style="display:none; font-size:10px; color:var(--text-3); margin-top:4px; width:100%; text-align:right; letter-spacing:0.02em;"></div>
     </div>
 
@@ -4986,10 +5020,10 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   </div>
 
   <!-- Recurring toggle -->
-  <button id="mob-recur-toggle" onclick="toggleMobRecur()"
+  <div class="vp-fold" id="mob-recur-fold"><div class="vp-fold-in"><button id="mob-recur-toggle" onclick="toggleMobRecur()"
     style="width:100%; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); padding:11px 14px; color:var(--text-2); font-size:14px; font-family:'DM Sans',sans-serif; cursor:pointer; text-align:left; margin-bottom:8px; transition:border-color 0.15s, color 0.15s, background 0.15s;">
     Make this a recurring transaction
-  </button>
+  </button></div></div>
   <button id="mob-manage-recur-btn" onclick="closeSheets(); openRecurringModal();"
     style="display:none; width:100%; font-size:13px; color:var(--gold); background:color-mix(in srgb, var(--accent) 6%, transparent); border:1px solid var(--gold-dim); border-radius:var(--radius); padding:10px 14px; cursor:pointer; font-family:'DM Sans',sans-serif; text-align:left; margin-bottom:12px; -webkit-tap-highlight-color:transparent;"></button>
 
@@ -11933,6 +11967,18 @@ function renderMain() {
     if (statOutLabel) statOutLabel.textContent = "WITHDRAWN";
     if (statNetLabel) statNetLabel.textContent = "NET";
     if (rateNote) rateNote.style.display = "none";
+  }
+
+  // v6.16.4: the count lines under the cards (Search's format). With an account picked the
+  // figures come from `rows`, so the counts do too; otherwise from the tab counts.
+  {
+    const picked = accFilter !== "all";
+    const nIn  = picked ? rows.filter(r => r[2] === "saved").length   : allSaved;
+    const nOut = picked ? rows.filter(r => r[2] === "removed").length : allRemoved;
+    const netV = picked ? rows.reduce((s, r) => s + (r[2] === "saved" ? r[1] : -r[1]), 0) : tn;
+    const plural = n => n + " transaction" + (n === 1 ? "" : "s");
+    const put = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };
+    put("stat-in-c", plural(nIn)); put("stat-out-c", plural(nOut)); put("stat-net-c", netNeg(netV) ? "deficit" : "surplus");
   }
 
   // On the All tab the rows are mixed, so the total is the net (deposits less
@@ -20609,15 +20655,14 @@ function setDeskType(type) {
   if (type === "deposit") {
     depBtn.style.background = "var(--green)"; depBtn.style.color = "var(--fill-ink)"; depBtn.style.borderColor = "var(--green)";
     saveBtn.textContent     = deskRecurOn ? "Schedule recurring deposit"  : "Add deposit";
-    const recurToggleD = document.getElementById("desk-recur-toggle");
-    if (recurToggleD) recurToggleD.style.display = "";
+    vpFold("desk-recur-fold", true);
   } else if (type === "interest") {
     intBtn.style.background = "var(--interest)"; intBtn.style.color = "var(--fill-ink)"; intBtn.style.borderColor = "var(--interest)";
     saveBtn.textContent      = "Add interest";
     // Interest can't be recurring — hide the toggle and reset if it was on
     const recurToggle = document.getElementById("desk-recur-toggle");
     const recurFields = document.getElementById("desk-recur-fields");
-    if (recurToggle) recurToggle.style.display = "none";
+    vpFold("desk-recur-fold", false);
     if (deskRecurOn) {
       deskRecurOn = false;
       if (recurFields) recurFields.style.display = "none";
@@ -20626,8 +20671,7 @@ function setDeskType(type) {
   } else {
     witBtn.style.background = "var(--red)"; witBtn.style.color = "var(--fill-ink)"; witBtn.style.borderColor = "var(--red)";
     saveBtn.textContent     = deskRecurOn ? "Schedule recurring withdrawal" : "Add withdrawal";
-    const recurToggleW = document.getElementById("desk-recur-toggle");
-    if (recurToggleW) recurToggleW.style.display = "";
+    vpFold("desk-recur-fold", true);
   }
 }
 
@@ -20637,6 +20681,7 @@ function openDesktopAddSheet() {
   document.getElementById("desk-inp-date").value   = today;
   document.getElementById("desk-inp-amount").value = "";
   setDeskType("deposit");
+  vpFold("desk-recur-fold", true, true);
   // Reset recurring toggle
   deskRecurOn = false;
   document.getElementById("desk-recur-fields").style.display = "none";
@@ -20740,14 +20785,14 @@ function setMobType(type) {
   const mobRecurToggle = document.getElementById("mob-recur-toggle");
   const mobRecurFields = document.getElementById("mob-recur-fields");
   if (type === "interest") {
-    if (mobRecurToggle) mobRecurToggle.style.display = "none";
+    vpFold("mob-recur-fold", false);
     if (mobRecurOn) {
       mobRecurOn = false;
       if (mobRecurFields) mobRecurFields.style.display = "none";
       resetRecurToggleLook(mobRecurToggle);   // G1
     }
   } else {
-    if (mobRecurToggle) mobRecurToggle.style.display = "";
+    vpFold("mob-recur-fold", true);
   }
 }
 
@@ -20758,6 +20803,7 @@ function openAddSheet() {
   document.getElementById("mob-inp-date").value   = today;
   document.getElementById("mob-inp-amount").value = "";
   setMobType("deposit");
+  vpFold("mob-recur-fold", true, true);
   // Reset recurring toggle
   mobRecurOn = false;
   document.getElementById("mob-recur-fields").style.display = "none";
@@ -21073,6 +21119,14 @@ function vpSwipe(panel, handles, tryClose) {
     h.addEventListener("pointerup", e => { if (e.pointerType !== "touch") end(); });
     h.addEventListener("pointercancel", e => { if (e.pointerType !== "touch") end(); });
   });
+}
+// v6.16.4: fold a .vp-fold open or shut. `instant` skips the animation (while a tray opens).
+function vpFold(el, show, instant) {
+  if (typeof el === "string") el = document.getElementById(el);
+  if (!el) return;
+  if (instant) el.style.transition = "none";
+  el.classList.toggle("folded", !show);
+  if (instant) { void el.offsetHeight; el.style.transition = ""; }
 }
 // While a popup or tray is open, the page behind can't scroll (rules §8: a class on <html>).
 function vpSyncLock() {
@@ -22407,17 +22461,26 @@ function renderPeriodSheet() {
     const t = _yearTotals(y), n = t.savedTotal - t.removedTotal, open = _psExpanded === y;
     h += `<div class="ps-year"><button class="ps-row${here(y, null) ? " on" : ""}" type="button" data-y="${escapeHTML(y)}" data-m=""><span>${escapeHTML(yearLabel(y))}</span><span class="ps-net" style="color:${netColor(n)}">${aud(n)}</span></button>`
        + `<button class="ps-exp" type="button" data-exp="${escapeHTML(y)}" aria-expanded="${open}" aria-label="${open ? "Hide" : "Show"} months of ${escapeHTML(yearLabel(y))}">${open ? "▴" : "▾"}</button></div>`;
-    if (open) {
-      const months = [...new Set([...data[y].saved, ...data[y].removed].map(r => r[0].slice(0, 7)))].sort();
-      h += `<div class="ps-months">` + months.map(m => {
-        const [yy, mm] = m.split("-").map(Number);
-        return `<button type="button" class="${here(y, m) ? "on" : ""}" data-y="${escapeHTML(y)}" data-m="${m}">${monShort(new Date(yy, mm - 1, 1))}</button>`;
-      }).join("") + `</div>`;
-    }
+    // v6.16.4: every year's months are here, folded shut unless open, so ▾ can fold them open
+    const months = [...new Set([...data[y].saved, ...data[y].removed].map(r => r[0].slice(0, 7)))].sort();
+    h += `<div class="vp-fold ps-fold${open ? "" : " folded"}" data-fold="${escapeHTML(y)}"><div class="vp-fold-in"><div class="ps-months">` + months.map(m => {
+      const [yy, mm] = m.split("-").map(Number);
+      return `<button type="button" class="${here(y, m) ? "on" : ""}" data-y="${escapeHTML(y)}" data-m="${m}">${monShort(new Date(yy, mm - 1, 1))}</button>`;
+    }).join("") + `</div></div></div>`;
   });
   body.innerHTML = h;
   (document.getElementById("year-sheet") || body).querySelectorAll("[data-y]").forEach(b => b.onclick = () => psPick(b.dataset.y, b.dataset.m || null));
-  body.querySelectorAll("[data-exp]").forEach(b => b.onclick = () => { _psExpanded = _psExpanded === b.dataset.exp ? null : b.dataset.exp; renderPeriodSheet(); });
+  body.querySelectorAll("[data-exp]").forEach(b => b.onclick = () => { _psExpanded = _psExpanded === b.dataset.exp ? null : b.dataset.exp; psSyncFolds(body); });
+}
+// v6.16.4: open the one expanded year's months and fold the rest, animated (no re-render).
+function psSyncFolds(body) {
+  body.querySelectorAll(".ps-fold").forEach(f => vpFold(f, f.dataset.fold === _psExpanded));
+  body.querySelectorAll("[data-exp]").forEach(b => {
+    const open = b.dataset.exp === _psExpanded;
+    b.setAttribute("aria-expanded", String(open));
+    b.textContent = open ? "▴" : "▾";
+    b.setAttribute("aria-label", `${open ? "Hide" : "Show"} months of ${yearLabel(b.dataset.exp)}`);
+  });
 }
 // Choosing a period keeps the account and tab you were looking at.
 function psPick(y, m) {
@@ -22776,7 +22839,7 @@ navInit();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.16.3</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.16.4</div>
         </div>
 
         <div class="pp-cards">
@@ -22888,7 +22951,7 @@ navInit();
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v6.16.3</div>
+  <div id="version-footer">v6.16.4</div>
 
 </body>
 </html>
