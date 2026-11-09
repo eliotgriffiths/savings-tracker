@@ -10,6 +10,27 @@ Version numbers follow [Semantic Versioning](https://semver.org/) and were assig
 
 The first release is v1.0.0. A major bump resets minor and patch to 0, a minor bump resets patch to 0, and patch rolls over into the next minor after .99. Types marked \* are judgement calls, explained in [Notes](#notes) at the end.
 
+## v6.16.0 — 2026-11-09
+
+Minor · `7b739d7`
+
+- Popups share one look: on a phone they slide up from the bottom as trays, and on a computer they're the same centred card
+- Short yes/no questions are a small box in the middle of the screen
+- Swipe a tray down to close it. Anything you've typed is kept, and Vault tells you how to leave without saving
+- The Menu, period picker and Add trays slide in and out, and the page behind them stays still
+- The period picker has no title; its quick picks sit at the top
+- Adding or editing a transaction: the type shows in its colour, and Add and Save are gold
+- You can now close Currency mismatch, Encrypted backup, Encrypt your backup? and Existing Vault file found. Closing skips safely, so nothing is merged, overwritten or loaded
+- About and Privacy slide in like Settings
+
+## v6.15.2 — 2026-11-09
+
+Patch · `3105c24`
+
+- The period picker opens with every year folded, and the button that opens a year is bigger
+- This month on Home says which days of last month it's comparing with, such as “1–9 Oct”
+- On iPhone, the tab bar sits clear of the home indicator, with room under its labels
+
 ## v6.15.1 — 2026-11-09
 
 Patch · `58fbe7f`
