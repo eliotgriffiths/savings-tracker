@@ -2827,6 +2827,24 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     #year-summary .stat-val, #year-summary .stat-val.big { font-size: 15px; }
   }
 
+  /* v6.16.5: a popup opens with ONE motion, the transition. The open animations (vpUp, vpRise,
+     _popOverlayIn) ran alongside it and, on iPhone, out of step: the tray rose, dropped back and
+     rose again. The drag rule repeats the selector so it still outranks this one. */
+  .pop-anim.vp:not(.hidden), .pop-anim.vp:not(.hidden) .vp-panel { animation: none !important; }
+  @media (max-width: 640px) {
+    .pop-anim.vp:not(.vp-alert):not(.hidden) .vp-panel { animation: none !important;
+      transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) !important; }
+    .pop-anim.vp:not(.vp-alert):not(.hidden) .vp-panel.vp-drag { transition: none !important; }
+  }
+  /* v6.16.5: ‹ back to the tray this one was opened from, left of the title */
+  .vp-back { width: 34px; height: 34px; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+    padding: 0; margin: -5px -2px 0 -10px; border: 0; border-radius: 9px; background: transparent;
+    color: var(--text-2); cursor: pointer; }
+  .vp-back[hidden] { display: none !important; }
+  @media (hover: hover) { .vp-back:hover { color: var(--text-1); background: var(--bg3); } }
+  .smod-back.vp-back { color: var(--text-2); font-size: 0; padding: 0; margin: 0 -2px 0 -10px; }   /* these heads centre their row */
+  @media (hover: hover) { .smod-back.vp-back:hover { color: var(--text-1); background: var(--bg3); } }
+
   /* Panels that lay themselves out edge to edge (Save & backup, Currency) */
   .pop-anim.vp .vp-panel.vp-flush { padding: 0 !important; --vp-px: 0px; --vp-pb: 0px; }
   .vp-flush .vp-head { margin: 0 !important; padding: 22px 16px 12px 24px !important; }
@@ -3634,7 +3652,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <!-- ── Panel: Google Drive ── -->
     <div id="smod-panel-googledrive" class="smod-panel">
       <div class="smod-panel-header">
-        <button class="smod-back" onclick="closeSmodPanel()">‹ Back</button>
+        <button class="smod-back vp-back" type="button" onclick="closeSmodPanel()" aria-label="Back to Save &amp; backup" title="Back to Save &amp; backup"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <span class="smod-panel-title">
           <svg width="16" height="16" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px; margin-right:6px;"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>
           Google Drive
@@ -3675,7 +3693,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <!-- ── Panel: Network Location / NAS ── -->
     <div id="smod-panel-nas" class="smod-panel">
       <div class="smod-panel-header">
-        <button class="smod-back" onclick="closeSmodPanel()">‹ Back</button>
+        <button class="smod-back vp-back" type="button" onclick="closeSmodPanel()" aria-label="Back to Save &amp; backup" title="Back to Save &amp; backup"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <span class="smod-panel-title">Network location / NAS</span>
         <button class="modal-close" onclick="closeSetup()" title="Close">✕</button>
       </div>
@@ -3734,7 +3752,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <!-- ── Panel: Local File ── -->
     <div id="smod-panel-local" class="smod-panel">
       <div class="smod-panel-header">
-        <button class="smod-back" onclick="closeSmodPanel()">‹ Back</button>
+        <button class="smod-back vp-back" type="button" onclick="closeSmodPanel()" aria-label="Back to Save &amp; backup" title="Back to Save &amp; backup"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <span class="smod-panel-title">Local file</span>
         <button class="modal-close" onclick="closeSetup()" title="Close">✕</button>
       </div>
@@ -3786,7 +3804,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <!-- ── Panel: Browser Storage ── -->
     <div id="smod-panel-browser" class="smod-panel">
       <div class="smod-panel-header">
-        <button class="smod-back" onclick="closeSmodPanel()">‹ Back</button>
+        <button class="smod-back vp-back" type="button" onclick="closeSmodPanel()" aria-label="Back to Save &amp; backup" title="Back to Save &amp; backup"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <span class="smod-panel-title">Browser storage</span>
         <button class="modal-close" onclick="closeSetup()" title="Close">✕</button>
       </div>
@@ -3850,7 +3868,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 <div id="cloud-picker-popup" class="hidden pop-anim" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:400; align-items:center; justify-content:center; padding:20px;">
   <div class="info-popup-box" style="max-width:400px; width:100%;">
     <div style="display:flex; align-items:center; margin-bottom:6px;">
-      <button class="smod-back" onclick="closeCloudPicker()" style="font-size:15px; padding:0 10px 0 0;">‹ Back</button>
+      <button class="smod-back vp-back" type="button" onclick="closeCloudPicker()" aria-label="Back to Save &amp; backup" title="Back to Save &amp; backup"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <h3 style="flex:1; margin:0;">Cloud service</h3>
       <button class="modal-close" onclick="closeCloudPicker()" title="Close" aria-label="Close">✕</button>
     </div>
@@ -20951,7 +20969,14 @@ const POPUP_CLOSE = {
   "drive-merge-popup": () => resolveDriveMerge("cancel"),
   "settings-popup": () => closeSettingsPage(), "about-popup": () => closeAbout(), "privacy-popup": () => closePrivacy(),
 };
-function popupIsOpen(el) { return !!el && !el.classList.contains("hidden") && getComputedStyle(el).display !== "none"; }
+// Open = not hidden itself and not inside anything hidden. v6.16.5: #pdf-preview-modal is the
+// box inside the PDF overlay, so on its own it always looked open, and Back "closed" it
+// instead of the Menu, Add or period tray.
+function popupIsOpen(el) {
+  if (!el || el.closest(".hidden")) return false;
+  for (let n = el; n && n !== document.body; n = n.parentElement) if (getComputedStyle(n).display === "none") return false;
+  return true;
+}
 function dismissPopup(el) {
   const fn = POPUP_CLOSE[el.id];
   if (fn) { try { fn(); } catch (e) { dbg("dismissPopup " + el.id + ": " + e.message); } return true; }
@@ -21062,6 +21087,7 @@ function vpInit() {
     panel.insertBefore(grab, panel.firstChild);
     vpSwipe(panel, [grab, panel.querySelector(".vp-head")].filter(Boolean), () => vpTryDismiss(el));
     vpLockObserver.observe(el, { attributes: true, attributeFilter: ["class"] });
+    vpNavObserver.observe(el, { attributes: true, attributeFilter: ["class"], attributeOldValue: true });
   });
   // Trays
   ["menu-sheet", "year-sheet", "add-sheet"].forEach(id => {
@@ -21070,6 +21096,7 @@ function vpInit() {
     sh.dataset.vp = "1";
     vpSwipe(sh, [sh.querySelector(".sheet-handle"), sh.querySelector(".sheet-header")].filter(Boolean), () => sheetTryClose());
     vpLockObserver.observe(sh, { attributes: true, attributeFilter: ["class"] });
+    vpNavObserver.observe(sh, { attributes: true, attributeFilter: ["class"], attributeOldValue: true });
   });
   vpSyncLock();
 }
@@ -21120,6 +21147,73 @@ function vpSwipe(panel, handles, tryClose) {
     h.addEventListener("pointercancel", e => { if (e.pointerType !== "touch") end(); });
   });
 }
+// ── Layers (v6.16.5): ‹ on every tray opened from another tray ─────────────────
+// When a popup opens, its parent is the tray still open under it (Settings under Currency),
+// or else the tray that closed just before to open it (the Menu, Import, Save & backup…).
+// ‹ and Back close it and, if the parent closed, reopen the parent. Phone only.
+const VP_REOPEN = {
+  "menu-sheet": () => openMenuSheet(), "year-sheet": () => openPeriodSheet(),
+  "settings-popup": () => openSettingsPage(), "setup-modal": () => openSetup(), "import-popup": () => openImportPopup(),
+  "recurring-modal": () => openRecurringModal(), "accounts-modal": () => openAccountsModal(), "goals-modal": () => openGoalsModal(),
+  "enc-menu-popup": () => openEncryptionMenu(), "ai-provider-popup": () => openAIProviderSettings(), "layout-modal": () => openLayoutModal(),
+};
+const VP_SHEET_IDS = ["menu-sheet", "year-sheet", "add-sheet"];
+const VP_BACK_SVG = '<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+let _vpLastClosed = null;   // { el, at } — the tray that closed most recently
+let _vpRestoring = null;    // a parent being reopened by ‹ keeps its own parent
+const vpNavObserver = new MutationObserver(list => list.forEach(m => {
+  const el = m.target, old = m.oldValue || "";
+  if (VP_SHEET_IDS.includes(el.id)) {
+    if (/\bopen\b/.test(old) && !el.classList.contains("open")) _vpLastClosed = { el, at: performance.now() };
+    return;
+  }
+  const was = /\bhidden\b/.test(old), now = el.classList.contains("hidden");
+  if (!was && now) _vpLastClosed = { el, at: performance.now() };
+  else if (was && !now) vpSetParent(el);
+}));
+function vpSetParent(el) {
+  if (_vpRestoring === el) { _vpRestoring = null; vpShowBack(el); return; }
+  const zi = e => parseInt(getComputedStyle(e).zIndex, 10) || 0;
+  const under = vpPopups().filter(p => p !== el && p.classList.contains("vp") && !p.classList.contains("hidden") && !p.classList.contains("vp-alert"))
+    .filter(p => popupIsOpen(p) && zi(p) <= zi(el));
+  let parent = under.length ? under.reduce((a, b) => (zi(b) >= zi(a) ? b : a)) : null;
+  const lc = _vpLastClosed;
+  if (!parent && lc && lc.el !== el && performance.now() - lc.at < 700 && VP_REOPEN[lc.el.id]) parent = lc.el;
+  el._vpParent = parent;
+  vpShowBack(el);
+}
+function vpTrayOpen(t) { return VP_SHEET_IDS.includes(t.id) ? t.classList.contains("open") : popupIsOpen(t); }
+function vpTrayName(t) {
+  const h = t.querySelector(".sheet-title, .vp-title");
+  return (h && h.textContent.trim()) || (t.id === "year-sheet" ? "periods" : "previous");
+}
+function vpShowBack(el) {
+  const head = el.querySelector(".vp-panel .vp-head");
+  let b = head && head.querySelector(":scope > .vp-back");
+  const p = el._vpParent;
+  if (!p || !head || window.innerWidth > 640) { if (b) b.hidden = true; return; }
+  if (!b) {
+    b = document.createElement("button");
+    b.type = "button"; b.className = "vp-back"; b.id = el.id + "-back";
+    b.innerHTML = VP_BACK_SVG;
+    b.onclick = () => vpBack(el);
+    head.insertBefore(b, head.firstChild);
+  }
+  const name = vpTrayName(p);
+  b.setAttribute("aria-label", "Back to " + name); b.title = "Back to " + name;
+  b.hidden = false;
+}
+// One layer back: close this tray (a form with typed input refuses), then show its parent.
+function vpBack(el) {
+  const p = el._vpParent;
+  if (!vpTryDismiss(el)) return false;
+  if (p && !vpTrayOpen(p) && VP_REOPEN[p.id]) {
+    if (!VP_SHEET_IDS.includes(p.id)) _vpRestoring = p;
+    try { VP_REOPEN[p.id](); } catch (e) { _vpRestoring = null; dbg("vpBack " + p.id + ": " + e.message); }
+  }
+  return true;
+}
+
 // v6.16.4: fold a .vp-fold open or shut. `instant` skips the animation (while a tray opens).
 function vpFold(el, show, instant) {
   if (typeof el === "string") el = document.getElementById(el);
@@ -22577,6 +22671,7 @@ function navCloseTop() {
   if (top) {
     if (POPUP_DECISIONS.has(top.id)) return true;
     if (POPUP_FORMS.has(top.id) && top.dataset.dirty === "1") { toast("Tap Cancel to leave without saving", "notice"); return true; }
+    if (top._vpParent && window.innerWidth <= 640) { vpBack(top); return true; }   // v6.16.5: one layer back
     dismissPopup(top); return true;
   }
   const add = document.getElementById("add-sheet");
@@ -22588,8 +22683,11 @@ function navCloseTop() {
   if (vs && vs.classList.contains("open")) { vhSearchClose(); return true; }
   return false;
 }
+// v6.16.5: set when About/Privacy step back to drop their own #hash, so that step isn't a Back press
+let _navEatPop = 0;   // when it was set; it expires, so a missed step can't swallow a later Back
 window.addEventListener("popstate", e => {
   if (!_navReady) return;
+  if (_navEatPop) { const fresh = performance.now() - _navEatPop < 1000; _navEatPop = 0; if (fresh) return; }
   const h = location.hash;
   if (h === "#privacy" || h === "#about") return;          // those overlays own their entries
   const priv = document.getElementById("privacy-popup");
@@ -22628,7 +22726,7 @@ function closeAbout() {
   const el = document.getElementById("about-popup");
   if (el.classList.contains("hidden")) return;
   el.classList.add("hidden");
-  try { if (location.hash === "#about") history.back(); } catch {}
+  try { if (location.hash === "#about") { _navEatPop = performance.now(); history.back(); } } catch {}
 }
 
 function openPrivacy() {
@@ -22640,7 +22738,7 @@ function closePrivacy() {
   const el = document.getElementById("privacy-popup");
   if (el.classList.contains("hidden")) return;
   el.classList.add("hidden");
-  try { if (location.hash === "#privacy") history.back(); } catch {}
+  try { if (location.hash === "#privacy") { _navEatPop = performance.now(); history.back(); } } catch {}
 }
 
 // Handle hash on load and on browser back/forward
@@ -22839,7 +22937,7 @@ navInit();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.16.4</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.16.5</div>
         </div>
 
         <div class="pp-cards">
@@ -22951,7 +23049,7 @@ navInit();
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v6.16.4</div>
+  <div id="version-footer">v6.16.5</div>
 
 </body>
 </html>

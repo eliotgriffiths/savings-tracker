@@ -70,6 +70,8 @@ setTimeout(async () => {
   ok(["mob-recur-manage-sub", "mob-accounts-sub", "menu-goals-sub", "mob-export-sub", "mob-print-sub"].every(id => d.getElementById(id)), "Menu keeps its live sub-labels");
   ok(d.querySelectorAll('[id="mob-accounts-sub"]').length === 1, "IDs are unique");
 
+  // Back, then wait for the browser's popstate (a fixed 60 ms wait was flaky in jsdom)
+  const goBack = () => new Promise(r => { w.addEventListener("popstate", () => setTimeout(r, 10), { once: true }); w.history.back(); });
   // ── N6: Settings (a panel since v6.16.1: a tray on a phone) ─────────────
   E(`openMenuSheet()`);
   [...d.querySelectorAll("#menu-sheet .menu-item-btn")].find(b => /^Settings/.test(txt(b))).click();
@@ -86,10 +88,12 @@ setTimeout(async () => {
   // A setting opens on top of Settings; closing it comes back to Settings.
   [...d.querySelectorAll("#settings-popup .sp-item")].find(b => /Currency/.test(txt(b))).click();
   ok(isOpen("currency-popup") && isOpen("settings-popup"), "Currency opens over Settings");
-  w.history.back(); await sleep(60);
+  await goBack();
   ok(!isOpen("currency-popup") && isOpen("settings-popup"), "Back closes the popup first");
-  w.history.back(); await sleep(60);
-  ok(!isOpen("settings-popup") && !d.documentElement.classList.contains("vp-lock"), "…then Settings");
+  await goBack();
+  ok(!isOpen("settings-popup") && $("#menu-sheet").classList.contains("open"), "…then Settings, back to the Menu it came from (v6.16.5)");
+  await goBack();
+  ok(!$("#menu-sheet").classList.contains("open") && !d.documentElement.classList.contains("vp-lock"), "…then the Menu");
   E(`closeSheets(); openSettingsPage()`);
   d.dispatchEvent(new w.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
   ok(!isOpen("settings-popup"), "Escape closes Settings");
