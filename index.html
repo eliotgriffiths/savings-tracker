@@ -2901,6 +2901,29 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .vp-flush .vp-head { margin: 0 !important; padding: 22px 16px 12px 24px !important; }
   @media (max-width: 640px) { .vp-flush .vp-head { padding: 0 14px 12px 20px !important; } }
 
+  /* v6.18.0: one delete tray (vaultDelete). What's being deleted, then the ways to delete it as
+     option cards: nothing is chosen until you tap one, and only Delete does it. Closing cancels. */
+  #del-popup { position: fixed; inset: 0; z-index: 630; }
+  .del-lead { font-size: 13px; color: var(--text-2); line-height: 1.55; margin: 0 0 12px; }
+  .del-lead[hidden], .del-opts[hidden], #del-sub[hidden] { display: none !important; }
+  .del-opts { display: grid; gap: 8px; }
+  .del-opt { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 11px 14px; border-radius: 12px;
+    background: var(--bg3); border: 1px solid color-mix(in srgb, var(--out) 30%, transparent); color: var(--text-1);
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+  .del-opt-text { flex: 1; min-width: 0; }
+  .del-opt b { display: block; font-size: 14px; font-weight: 500; color: var(--out); line-height: 1.35; }
+  .del-opt small { display: block; font-size: 11.5px; color: var(--text-3); line-height: 1.4; margin: 2px 0 0 !important; }   /* the panel's own <small> rule adds 20 px under it */
+  .del-tick { width: 22px; height: 22px; flex: 0 0 auto; border-radius: 50%; border: 1.5px solid var(--border-hi);
+    display: grid; place-items: center; transition: background 0.15s, border-color 0.15s; }
+  .del-tick::after { content: ""; width: 9px; height: 5px; margin-top: -2px; border: solid var(--accent-ink); border-width: 0 0 2px 2px;
+    transform: rotate(-45deg) scale(0); transition: transform 0.15s; }
+  /* Chosen: the edge turns gold (it replaces the red edge, never sits inside it) */
+  .del-opt[aria-checked="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, var(--bg3)); }
+  .del-opt[aria-checked="true"] .del-tick { background: var(--accent); border-color: var(--accent); }
+  .del-opt[aria-checked="true"] .del-tick::after { transform: rotate(-45deg) scale(1); }
+  @media (hover: hover) { .del-opt:not([aria-checked="true"]):hover { background: color-mix(in srgb, var(--out) 6%, var(--bg3)); } }
+  .pbtn:disabled { opacity: 0.38; box-shadow: none; cursor: default; }
+
 </style>
 <style id="vh-home-styles">
 #home-panel { -webkit-font-smoothing:antialiased; }
@@ -3725,7 +3748,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
             <svg width="14" height="14" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px; margin-right:6px;"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>
             Sign in with Google
           </button>
-          <button class="btn-local" id="btn-gd-unlink" style="display:none; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="unlinkGoogleDrive()">Disconnect</button>
+          <button class="btn-local" id="btn-gd-unlink" style="display:none; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="askUnlink('gd')">Disconnect</button>
         </div>
 
         <div id="gd-status" style="display:none; font-size:12px; text-align:center; padding:4px 0; margin-bottom:8px;"></div>
@@ -3780,7 +3803,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
             <button class="btn-local" style="flex:1;" id="btn-nas-save-now" onclick="saveToNAS(true)">Save now</button>
             <button class="btn-local" style="flex:1; background:var(--bg3);" onclick="loadFromNAS()">Load from server</button>
           </div>
-          <button class="btn-local" id="btn-nas-unlink" style="display:none; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="unlinkNAS()">Disconnect</button>
+          <button class="btn-local" id="btn-nas-unlink" style="display:none; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="askUnlink('nas')">Disconnect</button>
         </div>
 
         <div id="nas-status" style="display:none; font-size:12px; text-align:center; padding:4px 0; margin-bottom:8px;"></div>
@@ -3832,7 +3855,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
             <button class="btn-local" style="flex:1;" id="btn-local-save-now" onclick="saveToLocalFile(true)">Save now</button>
             <button class="btn-local" style="flex:1; background:var(--bg3);" onclick="loadFromLocalFile()">Load file</button>
           </div>
-          <button class="btn-local" id="btn-local-unlink" style="display:none; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="unlinkLocalFile()">Unlink file location</button>
+          <button class="btn-local" id="btn-local-unlink" style="display:none; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="askUnlink('local')">Unlink file location</button>
         </div>
 
         <div id="local-file-status" style="display:none; font-size:12px; text-align:center; padding:4px 0; margin-bottom:8px;"></div>
@@ -5192,29 +5215,10 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <!-- Primary actions -->
     <div class="tx-popup-actions" id="popup-standard-actions" style="margin-top:16px;">
       <button class="pbtn pbtn-primary" id="popup-save-btn" onclick="popupSaveScoped()" style="flex:1;">Save</button>
-      <button class="pbtn pbtn-danger-quiet" id="popup-delete-toggle" onclick="togglePopupDeleteMenu()">Delete</button>
+      <button class="pbtn pbtn-danger-quiet" id="popup-delete-toggle" onclick="openTxDelete()">Delete</button>
       <button class="pbtn pbtn-secondary" onclick="closePopup()">Cancel</button>
     </div>
 
-    <!-- Delete options menu — expands below the action row -->
-    <div id="popup-delete-menu" class="popup-delete-menu" style="display:none;">
-      <!-- Non-recurring: just one option -->
-      <button id="popup-del-single" class="popup-delete-menu-item" onclick="deletePopup()">
-        Delete this transaction
-      </button>
-      <!-- Recurring-specific options (hidden for non-recurring) -->
-      <button id="popup-del-all" class="popup-delete-menu-item" onclick="deletePopupAll()" style="display:none;">
-        Delete all in this series
-        <span class="popup-delete-sub">Keeps the rule active</span>
-      </button>
-      <button id="popup-del-rule" class="popup-delete-menu-item" onclick="deleteRuleFromPopup()" style="display:none;">
-        Stop recurring rule
-        <span class="popup-delete-sub">Keeps existing transactions</span>
-      </button>
-      <button id="popup-del-rule-all" class="popup-delete-menu-item" onclick="deleteRuleAndAllFromPopup()" style="display:none;">
-        Delete rule + all transactions
-      </button>
-    </div>
   </div>
 </div>
 
@@ -5558,33 +5562,15 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   </div>
 </div>
 
-<!-- Recurring: Delete confirm popup -->
-<div id="recur-delete-popup" class="hidden pop-anim" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:300; align-items:center; justify-content:center; padding:20px;">
-  <div class="modal-box" style="max-width:400px; position:relative;">
-    <button class="modal-close" onclick="closeRecurDeletePopup()" style="position:absolute; top:14px; right:14px;">✕</button>
-    <div class="modal-header" style="padding-right:32px;">
-      <h2>Remove recurring rule?</h2>
-    </div>
-    <p style="font-size:13px; color:var(--text-2); margin-bottom:16px; line-height:1.6;" id="rdel-title"></p>
-    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;">
-      <label id="rdel-keep-label" style="display:flex; align-items:center; gap:12px; font-size:13px; color:var(--text-1); cursor:pointer; padding:12px 14px; background:var(--bg3); border:2px solid var(--gold); border-radius:var(--radius); transition:border-color 0.15s, background 0.15s;" onclick="rdel_select('keep')">
-        <input type="radio" name="rdel-mode" id="rdel-keep" value="keep" checked style="display:none;">
-        <span style="width:18px; height:18px; border-radius:50%; border:2px solid var(--gold); background:var(--gold); flex-shrink:0; display:flex; align-items:center; justify-content:center;" id="rdel-keep-dot">
-          <span style="width:8px; height:8px; border-radius:50%; background:var(--bg0); display:block;"></span>
-        </span>
-        Keep all previously added transactions
-      </label>
-      <label id="rdel-remove-label" style="display:flex; align-items:center; gap:12px; font-size:13px; color:var(--text-2); cursor:pointer; padding:12px 14px; background:var(--bg3); border:2px solid var(--border); border-radius:var(--radius); transition:border-color 0.15s, background 0.15s;" onclick="rdel_select('remove')">
-        <input type="radio" name="rdel-mode" id="rdel-remove" value="remove" style="display:none;">
-        <span style="width:18px; height:18px; border-radius:50%; border:2px solid var(--border); background:transparent; flex-shrink:0; display:flex; align-items:center; justify-content:center;" id="rdel-remove-dot">
-          <span style="width:8px; height:8px; border-radius:50%; background:transparent; display:block;"></span>
-        </span>
-        Remove all previously added transactions
-      </label>
-    </div>
-    <div style="display:flex; gap:8px;">
-      <button class="pbtn pbtn-danger" onclick="confirmDeleteRecurRule()" style="flex:1;">Delete</button>
-      <button class="pbtn pbtn-secondary" onclick="closeRecurDeletePopup()">Cancel</button>
+<!-- v6.18.0: one delete tray for every delete and disconnect (vaultDelete) -->
+<div id="del-popup" class="hidden pop-anim" role="dialog" aria-modal="true" aria-labelledby="del-title">
+  <div class="modal-box" style="max-width:420px; position:relative;">
+    <div class="del-head"><h2 id="del-title">Delete?</h2><p id="del-sub" hidden></p><button class="modal-close" aria-label="Close" onclick="delCancel()">✕</button></div>
+    <p class="del-lead" id="del-lead" hidden></p>
+    <div class="del-opts" id="del-opts" role="radiogroup" aria-labelledby="del-title" hidden></div>
+    <div class="pbtn-row" id="del-foot">
+      <button class="pbtn pbtn-danger" id="del-ok" onclick="delConfirm()">Delete</button>
+      <button class="pbtn pbtn-secondary" onclick="delCancel()">Cancel</button>
     </div>
   </div>
 </div>
@@ -5713,39 +5699,6 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   </div>
 </div>
 
-<!-- Account delete confirm popup -->
-<div id="account-delete-popup" class="hidden pop-anim">
-  <div class="modal-box" style="max-width:400px; position:relative;">
-    <button class="modal-close" onclick="closeAccountDeletePopup()" style="position:absolute; top:14px; right:14px;">✕</button>
-    <div class="modal-header" style="padding-right:32px;"><h2>Delete account?</h2></div>
-    <p id="account-delete-desc" style="font-size:13px; color:var(--text-2); margin-bottom:16px; line-height:1.6;"></p>
-
-    <!-- Only shown when the account has transactions. Picks between moving them
-         or wiping everything account-related. -->
-    <div id="account-delete-choice-wrap" style="display:none; margin-bottom:16px;">
-      <label class="acc-del-choice">
-        <input type="radio" name="acc-del-mode" value="move" checked onchange="updateAccountDeleteMode()">
-        <span class="acc-del-choice-label">Move transactions to another account</span>
-      </label>
-      <div id="account-delete-reassign-wrap" style="margin:8px 0 16px 26px;">
-        <select id="account-delete-reassign"
-          style="width:100%; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none;"></select>
-      </div>
-      <label class="acc-del-choice">
-        <input type="radio" name="acc-del-mode" value="wipe" onchange="updateAccountDeleteMode()">
-        <span class="acc-del-choice-label">Delete transactions with the account</span>
-      </label>
-      <div id="account-delete-wipe-warning" style="display:none; margin:8px 0 0 26px; padding:10px 12px; background:color-mix(in srgb, var(--out) 8%, transparent); border:1px solid color-mix(in srgb, var(--out) 28%, transparent); border-radius:var(--radius); font-size:12px; color:var(--red); line-height:1.5;">
-        <span id="account-delete-wipe-warning-text"></span>
-      </div>
-    </div>
-
-    <div style="display:flex; gap:8px;">
-      <button class="pbtn pbtn-danger" id="account-delete-confirm-btn" onclick="confirmDeleteAccount()" style="flex:1;">Delete</button>
-      <button class="pbtn pbtn-secondary" onclick="closeAccountDeletePopup()">Cancel</button>
-    </div>
-  </div>
-</div>
 
 <!-- Encryption menu popup — opened from the main menu -->
 <!-- Save status legend popup — explains what each pill state means -->
@@ -8821,75 +8774,36 @@ function confirmAddAccount() {
 
 // ── Account delete popup ──────────────────────────────────────────────────────
 
-function openAccountDeletePopup(id) {
+// v6.18.0: Accounts › Delete opens the delete tray: move its transactions to another account
+// (one card per account) or delete them with it.
+async function openAccountDeletePopup(id) {
   const acc = getAccountById(id);
   if (!acc) return;
-  _accountDeleteTarget = id;
-  const count       = countTxForAccount(id);
-  const descEl      = document.getElementById("account-delete-desc");
-  const choiceWrap  = document.getElementById("account-delete-choice-wrap");
-  const reassignSel = document.getElementById("account-delete-reassign");
-  const warnText    = document.getElementById("account-delete-wipe-warning-text");
-  const confirmBtn  = document.getElementById("account-delete-confirm-btn");
-
-  if (count > 0) {
-    descEl.textContent = `"${acc.name}" has ${count} transaction${count !== 1 ? "s" : ""}. Choose what to do with them:`;
-    choiceWrap.style.display = "";
-    // Reset radios to the default (safer) move mode on every open
-    const moveRadio = document.querySelector('input[name="acc-del-mode"][value="move"]');
-    if (moveRadio) moveRadio.checked = true;
-    // Populate reassign options — all accounts except this one
-    reassignSel.innerHTML = "";
-    accounts.filter(a => a.id !== id).forEach(a => {
-      const opt = document.createElement("option");
-      opt.value = a.id; opt.textContent = a.name;
-      reassignSel.appendChild(opt);
-    });
-    // Stash the count for the button label + warning text
-    if (warnText) warnText.textContent = `⚠ This will permanently delete ${count} transaction${count !== 1 ? "s" : ""}. This cannot be undone.`;
-    _accountDeleteTxCount = count;
-    updateAccountDeleteMode();
-  } else {
-    descEl.textContent = `Delete account "${acc.name}"? This cannot be undone.`;
-    choiceWrap.style.display = "none";
-    _accountDeleteTxCount = 0;
-    if (confirmBtn) confirmBtn.textContent = "Delete";
-  }
-  document.getElementById("account-delete-popup").classList.remove("hidden");
-  document.body.style.overflow = "hidden";
-}
-
-// Update the popup based on the current radio selection: swap between the
-// reassign dropdown and the wipe warning, and update the confirm button label.
-let _accountDeleteTxCount = 0;
-function updateAccountDeleteMode() {
-  const mode = document.querySelector('input[name="acc-del-mode"]:checked')?.value || "move";
-  const reassignWrap = document.getElementById("account-delete-reassign-wrap");
-  const warningWrap  = document.getElementById("account-delete-wipe-warning");
-  const confirmBtn   = document.getElementById("account-delete-confirm-btn");
-  if (mode === "wipe") {
-    reassignWrap.style.display = "none";
-    warningWrap.style.display  = "";
-    if (confirmBtn) confirmBtn.textContent = `Delete account + ${_accountDeleteTxCount} transaction${_accountDeleteTxCount !== 1 ? "s" : ""}`;
-  } else {
-    reassignWrap.style.display = "";
-    warningWrap.style.display  = "none";
-    if (confirmBtn) confirmBtn.textContent = "Delete account";
-  }
-}
-
-function closeAccountDeletePopup() {
-  document.getElementById("account-delete-popup").classList.add("hidden");
-  _accountDeleteTarget = null;
-  // Keep accounts modal open
-  document.body.style.overflow = "hidden";
-}
-
-function confirmDeleteAccount() {
-  const id  = _accountDeleteTarget;
-  if (!id) return;
   const count = countTxForAccount(id);
-  const mode  = document.querySelector('input[name="acc-del-mode"]:checked')?.value || "move";
+  const rules = recurRules.filter(r => r.account === id).length;
+  const others = accounts.filter(a => a.id !== id);
+  const rulesNote = rules ? ` and its recurring rule${rules !== 1 ? "s" : ""}` : "";
+  let lead, options;
+  if (!count) {
+    lead = rules ? `It has no transactions. Its recurring rule${rules !== 1 ? "s" : ""} move${rules === 1 ? "s" : ""} to ${others[0] ? others[0].name : "another account"}.`
+                 : "It has no transactions, so nothing else changes.";
+    options = [{ value: "move:" + (others[0] ? others[0].id : "") }];
+  } else {
+    lead = "What should happen to its transactions?";
+    options = others.map(o => ({ value: "move:" + o.id, title: `Move them to ${o.name}`,
+      sub: `Then delete ${acc.name}. They keep their dates and amounts${rules ? ", and its rules move too" : ""}` }))
+      .concat([{ value: "wipe", title: `Delete them with ${acc.name}`, sub: `Removes all ${count}${rulesNote} · can't be undone` }]);
+    if (options.length === 1) lead = `Its ${txCountLabel(count)}${rulesNote} will be deleted with it. This can't be undone.`;
+  }
+  const v = await vaultDelete({ title: "Delete account?", sub: `${acc.name} · ${count ? txCountLabel(count) : "no transactions"}`, lead, options });
+  if (!v) return;
+  if (v === "wipe") confirmDeleteAccount(id, "wipe");
+  else confirmDeleteAccount(id, "move", v.slice(5) || null);
+}
+
+function confirmDeleteAccount(id, mode = "move", toId = null) {
+  if (!id || !getAccountById(id)) return;
+  const count = countTxForAccount(id);
   let reassignTarget = null;
   let wipedTxCount   = 0;
 
@@ -8914,8 +8828,7 @@ function confirmDeleteAccount() {
       });
       dbg(`confirmDeleteAccount: wiped ${wipedTxCount} transaction(s) for account ${id}`);
     } else {
-      const toId = document.getElementById("account-delete-reassign").value;
-      if (!toId) { toast("Select an account to move transactions to", "error"); return; }
+      if (!toId || !getAccountById(toId)) { toast("Choose an account to move the transactions to", "error"); return; }
       reassignTransactions(id, toId);
       reassignTarget = toId;
     }
@@ -8949,14 +8862,14 @@ function confirmDeleteAccount() {
   addAccountTombstone(id);
   saveAccounts();
   if (activeAccountFilter === id) activeAccountFilter = "all";
-  closeAccountDeletePopup();
   renderAccountManagerList();
   updateAccountsMenuSub();
   renderAccountPills();
   populateAccountSelects();
   saveAndRender(null);
   triggerCloudSync();
-  toast("Account deleted");
+  const name = getAccountById(reassignTarget)?.name;
+  toast(mode === "wipe" && wipedTxCount ? `Account and ${txCountLabel(wipedTxCount)} deleted` : reassignTarget && count ? `Account deleted · ${txCountLabel(count)} moved to ${name}` : "Account deleted", mode === "wipe" && wipedTxCount ? "error" : undefined);
 }
 
 // Refresh all open account <select> elements in forms
@@ -11400,7 +11313,9 @@ async function initGoogleDrive() {
 // Also unlinks the auto-save file handle (so emptied data is not written back
 // to the file). Resets all in-memory state and shows the welcome screen.
 async function clearBrowserData() {
-  if (!await vaultConfirm({ title: "Clear all Vault data from this browser?", message: "This can't be undone. Anything not in a backup (Google Drive, a network location or a file) will be lost for good.", ok: "Clear data", danger: true })) return;
+  if (!await vaultDelete({ title: "Clear all data?", sub: "Everything Vault keeps in this browser",
+    lead: "Anything not in a backup (Google Drive, a network location or a file) will be lost for good. This can't be undone.",
+    options: [{ value: "clear" }], ok: "Clear all data" })) return;
 
   // Remove all Vault keys from localStorage — do NOT call saveLocal() after this,
   // or render(), as both would write empty data back to localStorage and/or the linked file
@@ -13124,28 +13039,22 @@ function renderGoalsList() {
     const dot = g.accountId && acc ? getAccountColor(g.accountId) : "var(--gold)";
     const val = goalProgress(acc || !g.accountId ? g : Object.assign({}, g, { accountId: null }));
     const pct = g.target > 0 ? Math.min(100, (val / g.target) * 100) : 0;
-    const confirming = _goalConfirmId === g.id;
     html += `<div class="goal-row">`
           + `<span class="goal-row-dot" style="background:${dot}"></span>`
           + `<div class="goal-row-body">`
           + `<div class="goal-row-name">${escapeHTML(g.name)}</div>`
           + `<div class="goal-row-meta">${aud(g.target)} &middot; ${scope} &middot; ${pct.toFixed(0)}%</div>`
           + `</div>`;
-    if (confirming) {
-      html += `<button class="goal-row-btn danger" data-goal-del-yes="${g.id}">Delete</button>`
-            + `<button class="goal-row-btn" data-goal-del-no="${g.id}">Cancel</button>`;
-    } else {
+    {
       html += `<button class="goal-row-btn" data-goal-edit="${g.id}">Edit</button>`
-            + `<button class="goal-row-del" data-goal-del="${g.id}">&times;</button>`;
+            + `<button class="goal-row-del" data-goal-del="${g.id}" aria-label="Delete goal">&times;</button>`;
     }
     html += `</div>`;
   });
   list.innerHTML = html;
   list.querySelectorAll("[data-goal-edit]").forEach(b => b.addEventListener("click", () => openGoalForm(b.dataset.goalEdit)));
   // Deleting is irreversible, so the first tap only arms it.
-  list.querySelectorAll("[data-goal-del]").forEach(b => b.addEventListener("click", () => { _goalConfirmId = b.dataset.goalDel; renderGoalsList(); }));
-  list.querySelectorAll("[data-goal-del-no]").forEach(b => b.addEventListener("click", () => { _goalConfirmId = null; renderGoalsList(); }));
-  list.querySelectorAll("[data-goal-del-yes]").forEach(b => b.addEventListener("click", () => deleteGoal(b.dataset.goalDelYes)));
+  list.querySelectorAll("[data-goal-del]").forEach(b => b.addEventListener("click", () => askDeleteGoal(b.dataset.goalDel)));
 }
 
 // The origin date of the goal being edited. Held separately so that re-saving an
@@ -13282,6 +13191,17 @@ function saveGoalForm() {
   triggerCloudSync();
 }
 
+// v6.18.0: the delete tray (it was Delete / Cancel inside the row)
+async function askDeleteGoal(id) {
+  const g = goals.find(x => x.id === id);
+  if (!g) return;
+  const acc = g.accountId ? getAccountById(g.accountId) : null;
+  const val = goalProgress(acc || !g.accountId ? g : Object.assign({}, g, { accountId: null }));
+  const pct = g.target > 0 ? Math.min(100, (val / g.target) * 100) : 0;
+  const v = await vaultDelete({ title: "Delete goal?", sub: `${g.name} · ${pct.toFixed(0)}% of ${aud(g.target)}`,
+    lead: "Your transactions aren't affected.", options: [{ value: "goal" }] });
+  if (v) { deleteGoal(id); toast("Goal deleted"); }
+}
 function deleteGoal(id) {
   goalDeletedIds.add(id);              // tombstone, or sync resurrects it
   goals = goals.filter(g => g.id !== id);
@@ -18000,14 +17920,6 @@ function popupSaveScoped() {
   else savePopup();
 }
 
-function togglePopupDeleteMenu() {
-  const menu = document.getElementById("popup-delete-menu");
-  if (!menu) return;
-  const isOpen = menu.style.display !== "none";
-  menu.style.display = isOpen ? "none" : "";
-  const btn = document.getElementById("popup-delete-toggle");
-  if (btn) btn.style.borderColor = isOpen ? "" : "var(--red)";
-}
 
 // Undo for deletes (U15). Only the deleted rows go back, so anything that happened
 // in between (a sync, a recurring post) is kept. A row whose ID was tombstoned comes
@@ -18198,37 +18110,55 @@ function openRuleFromPopup() {
 }
 
 // Delete the recurring rule (but keep existing transactions)
+// v6.18.0: Edit transaction › Delete opens the delete tray: this one, the series, or the rule
+// (keeping or deleting its transactions). Deleting one or the series still offers Undo.
+async function openTxDelete() {
+  if (popupIdx === null || !popupYear) return;
+  const tab = popupType === "saved" ? "saved" : "removed";
+  const tx = data[popupYear] && data[popupYear][tab] && data[popupYear][tab][popupIdx];
+  if (!tx) return;
+  const kind = tx[4] === "interest" ? "Interest" : tab === "saved" ? "Deposit" : "Withdrawal";
+  const sub = `${kind} · ${fmtDate(tx[0])} · ${fmtCurrency(+tx[1] || 0, getAccountCurrency(tx[6] || getDefaultAccountId()))}`;
+  const recurId = document.getElementById("tx-popup").dataset.recurId;
+  const rule = recurId ? recurRules.find(r => String(r.id) === String(recurId)) : null;
+  let v;
+  if (!rule) {
+    v = await vaultDelete({ title: "Delete transaction?", sub, lead: "You can undo it straight after.", options: [{ value: "one" }] });
+  } else {
+    const series = getTxByRecurId(recurId).length, n = recurRuleTxRows(rule).length;
+    const freq = (FREQ_LABELS[rule.freq] || rule.freq).toLowerCase();
+    v = await vaultDelete({
+      title: "Delete transaction?", sub,
+      lead: `It's part of a ${freq} rule that has added ${txCountLabel(n)}.`,
+      options: [
+        { value: "one", title: "Delete this transaction", sub: "You can undo it" },
+        { value: "series", title: series === 1 ? "Delete the 1 in this series" : `Delete all ${series} in this series`, sub: "Keeps the rule · you can undo it" },
+        { value: "rule", title: "Delete the rule, keep its transactions", sub: `The ${n === 1 ? "one" : n} already added stay${n === 1 ? "s" : ""} in your list` },
+        { value: "rule-all", title: `Delete the rule and its ${txCountLabel(n)}`, sub: "Can't be undone" },
+      ],
+    });
+  }
+  if (v === "one") deletePopup();
+  else if (v === "series") deletePopupAll();
+  else if (v === "rule") deleteRuleFromPopup();
+  else if (v === "rule-all") deleteRuleAndAllFromPopup();
+}
+
 function deleteRuleFromPopup() {
   const recurId = document.getElementById("tx-popup").dataset.recurId;
   if (!recurId) return;
-  recurRules = recurRules.filter(r => String(r.id) !== String(recurId));
-  saveRecurring();
   _popupFromHistoryIdx = null; // rule is gone — don't return to history
   closePopup();
-  render();
-  triggerCloudSync();
-  toast("Recurring rule deleted — existing transactions kept");
+  deleteRecurRule(recurId, false);
 }
 
 // Delete the recurring rule AND all its generated transactions
 function deleteRuleAndAllFromPopup() {
   const recurId = document.getElementById("tx-popup").dataset.recurId;
   if (!recurId) return;
-  const matches = getTxByRecurId(recurId);
-  matches.forEach(({ tx }) => { if (tx[2]) addTombstone(tx[2]); });
-  Object.keys(data).forEach(y => {
-    ["saved", "removed"].forEach(bucket => {
-      data[y][bucket] = data[y][bucket].filter(tx => !tx[5] || String(tx[5]) !== String(recurId));
-    });
-  });
-  recurRules = recurRules.filter(r => String(r.id) !== String(recurId));
-  saveRecurring();
-  pruneEmptyYears();
   _popupFromHistoryIdx = null; // rule is gone — don't return to history
   closePopup();
-  saveAndRender(null);
-  triggerCloudSync();
-  toast(`Rule and ${matches.length} transaction${matches.length !== 1 ? "s" : ""} deleted`, "error");
+  deleteRecurRule(recurId, true);
 }
 
 // close popup on backdrop click
@@ -19968,6 +19898,85 @@ function vaultDialogResolve(v) {
   const r = _vdResolve; _vdResolve = null;
   if (r) r(v);
 }
+// v6.18.0: vaultDelete({ title, sub, lead, options, ok }) -> Promise<value | null>
+// One tray for every delete (and disconnect). `options` are the ways to do it, each
+// { value, title, sub }: nothing is chosen until one is tapped, which only highlights it, and
+// only the red button does it. With one way (or none) there's nothing to choose, so the button
+// is ready straight away. Cancel, ✕, swipe, an outside tap, ‹ and Back resolve null.
+// After a choice the caller acts first, then the tray goes: back to the tray it was opened
+// from, or, if that tray went too (Edit transaction after its transaction is deleted), to the
+// nearest tray still open under it.
+let _delResolve = null, _delChoice = null;
+function vaultDelete({ title, sub = "", lead = "", options = [], ok = "Delete" } = {}) {
+  if (_delResolve) { const r = _delResolve; _delResolve = null; r(null); }
+  const el = document.getElementById("del-popup");
+  document.getElementById("del-title").textContent = title || "Delete?";
+  const subEl = document.getElementById("del-sub"); subEl.textContent = sub || ""; subEl.hidden = !sub;
+  const leadEl = document.getElementById("del-lead"); leadEl.textContent = lead || ""; leadEl.hidden = !lead;
+  const box = document.getElementById("del-opts"); box.innerHTML = "";
+  const many = options.length > 1;
+  _delChoice = many ? null : (options[0] ? options[0].value : true);
+  if (many) options.forEach(o => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "del-opt"; b.setAttribute("role", "radio"); b.setAttribute("aria-checked", "false");
+    b.innerHTML = `<span class="del-opt-text"><b></b>${o.sub ? "<small></small>" : ""}</span><span class="del-tick" aria-hidden="true"></span>`;
+    b.querySelector("b").textContent = o.title;
+    if (o.sub) b.querySelector("small").textContent = o.sub;
+    b.dataset.value = String(o.value);
+    b.onclick = () => delPick(b, o.value);
+    box.appendChild(b);
+  });
+  box.hidden = !many;
+  const okBtn = document.getElementById("del-ok");
+  okBtn.textContent = ok; okBtn.disabled = _delChoice === null;
+  el.classList.remove("hidden");
+  return new Promise(res => { _delResolve = res; });
+}
+function delPick(btn, value) {
+  _delChoice = value;
+  document.querySelectorAll("#del-opts .del-opt").forEach(b => b.setAttribute("aria-checked", b === btn ? "true" : "false"));
+  document.getElementById("del-ok").disabled = false;
+}
+function delConfirm() {
+  if (_delChoice === null || !_delResolve) return;
+  const r = _delResolve, v = _delChoice;
+  _delResolve = null; _delChoice = null;
+  const el = document.getElementById("del-popup"), parent = el._vpParent;
+  r(v);
+  // Let the caller act first (it may close the tray this was opened from)
+  setTimeout(() => {
+    el.classList.add("hidden");
+    if (parent && !vpTrayOpen(parent) && vpIsPhone() && !_vpClosingAll) {
+      let a = parent._vpParent;
+      while (a && !vpTrayOpen(a)) a = a._vpParent;
+      if (a) vpSlide(el, a, "pop");
+    }
+  }, 0);
+}
+function delCancel() {
+  const r = _delResolve;
+  _delResolve = null; _delChoice = null;
+  document.getElementById("del-popup").classList.add("hidden");
+  if (r) r(null);
+}
+
+// v6.18.0: Disconnect asks first, in the delete tray. Nothing is deleted: the data stays in the
+// app and the backup stays where it is. (The unlink functions themselves don't ask: they're
+// also used when a connection is cancelled part-way.)
+const UNLINK = {
+  gd:    { name: "Google Drive", title: "Disconnect Google Drive?", where: "the Vault file stays in your Drive", fn: () => unlinkGoogleDrive() },
+  nas:   { name: "Network location", title: "Disconnect the network location?", where: "the file stays on the network location", fn: () => unlinkNAS() },
+  local: { name: "Local file", title: "Disconnect the local file?", where: "the file stays where it is", fn: () => unlinkLocalFile() },
+};
+async function askUnlink(kind) {
+  const u = UNLINK[kind];
+  if (!u) return;
+  const v = await vaultDelete({ title: u.title,
+    lead: `Vault stops saving to it. Your data stays in the app and ${u.where}, so you can reconnect any time.`,
+    options: [{ value: kind }], ok: "Disconnect" });
+  if (v) await u.fn();
+}
+
 // vaultConfirm({ title, message, ok, danger }) -> Promise<boolean>
 function vaultConfirm({ title, message = "", ok = "OK", danger = false }) {
   if (_vdResolve) vaultDialogResolve(false);
@@ -20129,7 +20138,7 @@ function renderAIProviderCards() {
           <button class="ai-provider-btn primary" onclick="saveAIKey('${provider.id}')">Save key</button>
           <button class="ai-provider-btn" onclick="testAIConnection('${provider.id}')">Test</button>
           ${hasKey && isEnabled && !isDefault ? `<button class="ai-provider-btn" onclick="setDefaultAIProvider('${provider.id}')">Set as default</button>` : ""}
-          ${hasKey ? `<button class="ai-provider-btn" onclick="clearAIKey('${provider.id}')">Remove</button>` : ""}
+          ${hasKey ? `<button class="ai-provider-btn" onclick="askClearAIKey('${provider.id}')">Delete</button>` : ""}
         </div>
       </div>
     `;
@@ -20181,6 +20190,14 @@ async function saveAIKey(providerId) {
   triggerCloudSync();
 }
 
+// v6.18.0: the delete tray (the key went at once, with no way back)
+async function askClearAIKey(providerId) {
+  const prov = AI_PROVIDERS.find(p => p.id === providerId);
+  const name = prov ? prov.name : "this";
+  const v = await vaultDelete({ title: "Delete API key?", sub: prov ? `${prov.name}${prov.company ? " · " + prov.company : ""}` : "",
+    lead: `Vault will forget your ${name} key. You'll need to paste it again to import with ${name}.`, options: [{ value: "key" }] });
+  if (v) clearAIKey(providerId);
+}
 function clearAIKey(providerId) {
   setAIKey(providerId, "");
   // Stamp a fresh timestamp so cloud sync won't restore the old key
@@ -20193,7 +20210,7 @@ function clearAIKey(providerId) {
   renderAIProviderCards();
   updateAIMenuSubs();
   triggerCloudSync();
-  toast("API key removed");
+  toast("API key deleted");
 }
 
 function setDefaultAIProvider(providerId) {
@@ -21041,12 +21058,12 @@ const POPUP_CLOSE = {
   "rep-account-confirm-popup": () => document.getElementById("rep-acct-cancel-btn")?.click(),
   "vh-reset-popup": () => vhResetPopupClose(), "layout-modal": () => cancelLayoutModal(),
   "goals-modal": () => closeGoalsModal(), "accounts-modal": () => closeAccountsModal(),
-  "tx-currency-change-popup": () => cancelTxCurrencyChange(), "account-delete-popup": () => closeAccountDeletePopup(),
+  "tx-currency-change-popup": () => cancelTxCurrencyChange(),
   "currency-popup": () => closeCurrencyPopup(), "save-status-legend-popup": () => closeSaveStatusLegend(),
   "setup-modal": () => closeSetup(), "cloud-picker-popup": () => closeCloudPicker(), "tx-popup": () => closePopup(),
   "compat-info-popup": () => closeCompatInfo(), "recurring-modal": () => closeRecurringModal(),
   "add-recurring-popup": () => closeAddRecurringPopup(), "recur-edit-popup": () => closeRecurEditPopup(),
-  "recur-delete-popup": () => closeRecurDeletePopup(), "year-format-popup": () => closeYearFormatPopup(),
+  "del-popup": () => delCancel(), "year-format-popup": () => closeYearFormatPopup(),
   "enc-menu-popup": () => closeEncryptionMenu(), "currency-change-popup": () => cancelCurrencyChange(),
   "enc-set-popup": () => document.getElementById("enc-set-popup").classList.add("hidden"),
   "backup-switch-popup": () => resolveBackupSwitch(false),
@@ -22266,39 +22283,6 @@ function closeAddRecurringPopup() {
 }
 
 
-// Update the custom radio button styling in the delete-recurring popup.
-// val is "keep" or "remove" — highlights the selected option with the appropriate colour.
-function rdel_select(val) {
-  document.getElementById("rdel-keep").checked   = val === "keep";
-  document.getElementById("rdel-remove").checked = val === "remove";
-  const keepLabel   = document.getElementById("rdel-keep-label");
-  const removeLabel = document.getElementById("rdel-remove-label");
-  const keepDot     = document.getElementById("rdel-keep-dot");
-  const removeDot   = document.getElementById("rdel-remove-dot");
-  if (val === "keep") {
-    keepLabel.style.borderColor   = "var(--gold)";
-    keepLabel.style.color         = "var(--text-1)";
-    keepDot.style.borderColor     = "var(--gold)";
-    keepDot.style.background      = "var(--gold)";
-    keepDot.firstElementChild.style.background = "var(--accent-ink)";
-    removeLabel.style.borderColor = "var(--border)";
-    removeLabel.style.color       = "var(--text-2)";
-    removeDot.style.borderColor   = "var(--border)";
-    removeDot.style.background    = "transparent";
-    removeDot.firstElementChild.style.background = "transparent";
-  } else {
-    removeLabel.style.borderColor = "var(--red)";
-    removeLabel.style.color       = "var(--text-1)";
-    removeDot.style.borderColor   = "var(--red)";
-    removeDot.style.background    = "var(--red)";
-    removeDot.firstElementChild.style.background = "#fff";
-    keepLabel.style.borderColor   = "var(--border)";
-    keepLabel.style.color         = "var(--text-2)";
-    keepDot.style.borderColor     = "var(--border)";
-    keepDot.style.background      = "transparent";
-    keepDot.firstElementChild.style.background = "transparent";
-  }
-}
 
 
 // Render the list of existing recurring rules inside the modal
@@ -22559,25 +22543,69 @@ function closeRecurEditPopup() {
   document.body.style.overflow = "hidden"; // recurring modal still open
 }
 
-// Open the recurring rule delete confirmation popup for the rule at the given list index.
-function openRecurDeletePopup(idx) {
+// Recurring › Delete (v6.18.0): the delete tray, keep or delete the rule's transactions.
+function recurRuleLabel(rule) {
+  const cur = getAccountCurrency(rule.account || getDefaultAccountId());
+  return `${rule.type === "deposit" ? "Deposit" : "Withdrawal"} · ${FREQ_LABELS[rule.freq] || rule.freq} · ${fmtCurrency(rule.amount, cur)}`;
+}
+function recurRuleTxRows(rule) {
+  const id = String(rule.id), bucket = rule.type === "deposit" ? "saved" : "removed";
+  const ruleAcc = rule.account || getDefaultAccountId();
+  const rows = [];
+  Object.keys(data).forEach(y => ["saved", "removed"].forEach(b => (data[y][b] || []).forEach(tx => {
+    if (tx[5] && String(tx[5]) === id) rows.push(tx);
+    else if (!tx[5] && b === bucket && tx[0] >= rule.startDate && (!rule.endDate || tx[0] <= rule.endDate)
+             && Math.abs((+tx[1] || 0) - rule.amount) < 0.001 && (tx[6] || getDefaultAccountId()) === ruleAcc) rows.push(tx);
+  })));
+  return rows;
+}
+function txCountLabel(n) { return `${n} transaction${n !== 1 ? "s" : ""}`; }
+function recurDeleteOptions(rule) {
+  const n = recurRuleTxRows(rule).length;
+  if (!n) return { lead: "It hasn't added any transactions yet.", options: [{ value: "keep" }] };
+  return {
+    lead: `It has added ${txCountLabel(n)} so far.`,
+    options: [
+      { value: "keep", title: "Delete the rule, keep its transactions", sub: `The ${n === 1 ? "one" : n} already added stay${n === 1 ? "s" : ""} in your list` },
+      { value: "remove", title: `Delete the rule and its ${txCountLabel(n)}`, sub: "Can't be undone" },
+    ],
+  };
+}
+async function openRecurDeletePopup(idx) {
   const rule = recurRules[idx];
   if (!rule) return;
-  _recurPopupIdx = idx;
-  const isDeposit = rule.type === "deposit";
-  document.getElementById("rdel-title").textContent =
-    `${isDeposit ? "Deposit" : "Withdrawal"} · ${FREQ_LABELS[rule.freq] || rule.freq} · ${aud(rule.amount)}`;
-  // Reset radio to default (keep)
-  rdel_select("keep");
-  document.getElementById("recur-delete-popup").classList.remove("hidden");
-  document.body.style.overflow = "hidden";
+  const { lead, options } = recurDeleteOptions(rule);
+  const v = await vaultDelete({ title: "Delete recurring rule?", sub: recurRuleLabel(rule), lead, options });
+  if (v) deleteRecurRule(rule.id, v === "remove");
+}
+// Delete a rule, and with removeTx every transaction it added. Returns how many went.
+function deleteRecurRule(ruleId, removeTx) {
+  const idx = recurRules.findIndex(r => String(r.id) === String(ruleId));
+  if (idx < 0) return 0;
+  const rule = recurRules[idx];
+  let removed = 0;
+  if (removeTx) {
+    const kill = new Set(recurRuleTxRows(rule));
+    kill.forEach(tx => { if (tx[2]) addTombstone(tx[2]); });
+    Object.keys(data).forEach(y => ["saved", "removed"].forEach(b => {
+      data[y][b] = (data[y][b] || []).filter(tx => !kill.has(tx));
+    }));
+    removed = kill.size;
+    pruneEmptyYears();
+  }
+  recurDeletedIds.add(String(rule.id));   // so a sync can't bring it back
+  recurRules.splice(idx, 1);
+  if (_recurPopupIdx !== null && _recurPopupIdx >= idx) _recurPopupIdx = null;
+  saveRecurring();
+  updateRecurMenuSub();
+  if (popupIsOpen(document.getElementById("recurring-modal"))) renderRecurList();
+  saveAndRender(null);
+  triggerCloudSync();
+  if (removeTx) toast(`Rule and ${txCountLabel(removed)} deleted`, "error");
+  else toast("Recurring rule deleted · transactions kept");
+  return removed;
 }
 
-function closeRecurDeletePopup() {
-  document.getElementById("recur-delete-popup").classList.add("hidden");
-  _recurPopupIdx = null;
-  document.body.style.overflow = "hidden"; // recurring modal still open
-}
 
 // Save edits from the recurring rule edit popup and update the rule in place.
 function saveRecurEditPopup() {
@@ -22685,34 +22713,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// Confirm deletion of the recurring rule currently shown in the delete popup.
-// Records the rule's ID in recurDeletedIds to prevent it being re-added during sync,
-// and optionally removes all previously posted transactions that match the rule.
-function confirmDeleteRecurRule() {
-  const idx  = _recurPopupIdx;
-  const rule = recurRules[idx];
-  if (!rule) return;
-  const mode = document.getElementById("rdel-remove")?.checked ? "remove" : "keep";
-  if (mode === "remove") {
-    const ruleType = rule.type === "deposit" ? "saved" : "removed";
-    const ruleAmt  = rule.amount;
-    const start    = rule.startDate;
-    Object.keys(data).forEach(fy => {
-      data[fy][ruleType] = data[fy][ruleType].filter(([d, a]) =>
-        !(d >= start && Math.abs(a - ruleAmt) < 0.001)
-      );
-    });
-    saveAndRender(null);
-  }
-  recurDeletedIds.add(String(rule.id));
-  recurRules.splice(idx, 1);
-  saveRecurring();
-  triggerCloudSync();
-  updateRecurMenuSub();
-  closeRecurDeletePopup();
-  renderRecurList();
-  toast("Recurring rule deleted");
-}
 
 // Create a new recurring rule from the modal form, then immediately process it
 // in case its first occurrence is today or already past.
@@ -23194,7 +23194,7 @@ navInit();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.17.1</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.18.0</div>
         </div>
 
         <div class="pp-cards">
@@ -23306,7 +23306,7 @@ navInit();
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v6.17.1</div>
+  <div id="version-footer">v6.18.0</div>
 
 </body>
 </html>
