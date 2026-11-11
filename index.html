@@ -1007,8 +1007,6 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   #recur-edit-popup:not(.hidden) { display: flex; }
   #recur-delete-popup { display: none; }
   #recur-delete-popup:not(.hidden) { display: flex; }
-  #vh-reset-popup { display: none; }
-  #vh-reset-popup:not(.hidden) { display: flex; }
   #rep-account-confirm-popup { display: none; }
   #rep-account-confirm-popup:not(.hidden) { display: flex; }
   #recurring-modal .modal-box { max-width: 520px; max-height: 85vh; display: flex; flex-direction: column; }
@@ -5547,20 +5545,6 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   </div>
 </div>
 
-<!-- Home: reset layout confirm popup -->
-<div id="vh-reset-popup" class="hidden pop-anim" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:300; align-items:center; justify-content:center; padding:20px;">
-  <div class="modal-box" style="max-width:380px; position:relative;">
-    <button class="modal-close" onclick="vhResetPopupClose()" style="position:absolute; top:14px; right:14px;">✕</button>
-    <div class="modal-header" style="padding-right:32px;">
-      <h2>Reset home layout?</h2>
-    </div>
-    <p style="font-size:13px; color:var(--text-2); margin-bottom:20px; line-height:1.6;">This restores the default section order and shows every section again. Your current arrangement will be cleared.</p>
-    <div style="display:flex; gap:8px;">
-      <button class="pbtn pbtn-primary" onclick="vhResetLayoutConfirmed()" style="flex:1;">Reset</button>
-      <button class="pbtn pbtn-secondary" onclick="vhResetPopupClose()">Cancel</button>
-    </div>
-  </div>
-</div>
 
 <!-- v6.18.0: one delete tray for every delete and disconnect (vaultDelete) -->
 <div id="del-popup" class="hidden pop-anim" role="dialog" aria-modal="true" aria-labelledby="del-title">
@@ -8739,6 +8723,7 @@ function openAddAccountForm() {
 function cancelAddAccount(instant) {
   vpFold("account-add-fold", false, instant);
   vpFold("account-add-btn-fold", true, instant);
+  const am = document.getElementById("accounts-modal"); if (am) am.dataset.dirty = "";   // v6.18.1: as Goals
   const inp = document.getElementById("account-new-name");
   if (inp) inp.value = "";
   _accountNewColor = ACCOUNT_COLORS[0];
@@ -10413,7 +10398,9 @@ async function encSetSubmit() {
 
 // Prompt for confirmation before disabling encryption
 async function confirmDisableEnc() {
-  if (!await vaultConfirm({ title: "Remove encryption?", message: "Your backup files will no longer be encrypted, and your recovery key will stop working.", ok: "Remove encryption", danger: true })) return;
+  if (!await vaultDelete({ title: "Remove encryption?", sub: "Settings › Encryption",
+    lead: "Your backup files will no longer be encrypted, and your recovery key will stop working.",
+    options: [{ value: "off" }], ok: "Remove encryption" })) return;
   disablePasswordEncryption();
   triggerCloudSync();
   updateEncUI();
@@ -12902,16 +12889,14 @@ function vhHomeMenuEdit() {
   vhHomeMenuClose();
   openLayoutModal();
 }
-// Reset asks first; the actual wipe happens in vhResetLayoutConfirmed.
-function vhHomeMenuReset() {
+// Reset asks first, in the delete tray (v6.18.1; it was a centred alert); the actual wipe
+// happens in vhResetLayoutConfirmed.
+async function vhHomeMenuReset() {
   vhHomeMenuClose();
-  vhResetPopupOpen();
-}
-function vhResetPopupOpen() {
-  document.getElementById("vh-reset-popup")?.classList.remove("hidden");
-}
-function vhResetPopupClose() {
-  document.getElementById("vh-reset-popup")?.classList.add("hidden");
+  const v = await vaultDelete({ title: "Reset Home layout?", sub: "Section order and hidden sections",
+    lead: "This restores the default section order and shows every section again. Your current arrangement will be cleared.",
+    options: [{ value: "reset" }], ok: "Reset" });
+  if (v) vhResetLayoutConfirmed();
 }
 // Persists immediately (fresh ts + save + sync), unlike the modal's preview reset.
 function vhResetLayoutConfirmed() {
@@ -12919,7 +12904,6 @@ function vhResetLayoutConfirmed() {
   _frozenOrder = null;
   saveHomeLayout(false); // ts already stamped
   if (activeTab === "home") renderHome();
-  vhResetPopupClose();
   toast("Home layout reset to default");
 }
 
@@ -13140,6 +13124,10 @@ function closeGoalForm(instant) {
   _goalEditId = null;
   vpFold("goal-form-fold", false, instant);
   vpFold("goal-add-fold", true, instant);
+  // v6.18.1: with the form put away (Cancel or Save) nothing is left unsaved, so ✕, swipe and an
+  // outside tap close Goals again. It used to stay "touched" and answer "Tap Cancel to leave
+  // without saving" (Eliot's video, 11 Nov 18:28).
+  const gm = document.getElementById("goals-modal"); if (gm) gm.dataset.dirty = "";
 }
 
 function saveGoalForm() {
@@ -21056,7 +21044,7 @@ const POPUP_CLOSE = {
   "import-preview-popup": () => closeImportPreview(), "import-tx-review-popup": () => closeImportTxReview(),
   "ai-provider-popup": () => closeAIProviderSettings(), "ai-privacy-popup": () => closeAIPrivacyNotice(),
   "rep-account-confirm-popup": () => document.getElementById("rep-acct-cancel-btn")?.click(),
-  "vh-reset-popup": () => vhResetPopupClose(), "layout-modal": () => cancelLayoutModal(),
+  "layout-modal": () => cancelLayoutModal(),
   "goals-modal": () => closeGoalsModal(), "accounts-modal": () => closeAccountsModal(),
   "tx-currency-change-popup": () => cancelTxCurrencyChange(),
   "currency-popup": () => closeCurrencyPopup(), "save-status-legend-popup": () => closeSaveStatusLegend(),
@@ -21131,7 +21119,7 @@ function vpTryDismiss(el) {
 // phone and a centred card on a wide screen. Alerts (a short yes/no) stay small and
 // centred everywhere. Popups not listed in VP_SKIP are all covered.
 const VP_SKIP = new Set(["welcome-modal", "pdf-preview-modal", "lock-screen"]);
-const VP_ALERTS = new Set(["vault-confirm-popup", "vh-reset-popup", "import-progress-popup"]);
+const VP_ALERTS = new Set(["vault-confirm-popup", "import-progress-popup"]);
 const VP_FLUSH = new Set(["setup-modal", "currency-popup", "settings-popup"]);
 const VP_NO_FOOT = new Set(["setup-modal", "cloud-picker-popup", "currency-popup", "import-popup", "import-progress-popup",
   "recurring-modal", "goals-modal", "accounts-modal", "drive-merge-popup", "enc-choice-popup", "ai-provider-popup", "settings-popup"]);
@@ -21374,8 +21362,10 @@ function vpSlide(from, to, dir) {
   const stayUnder = push && vpTrayOpen(from);
   delete to.dataset.vpUnder;
   // One dim for the move
-  dim.style.zIndex = z - 2; ghost.style.zIndex = z - 1; dim.style.display = "block";
-  pops.forEach(t => vpSet(t, { background: "transparent" }));
+  dim.style.zIndex = z - 2; ghost.style.zIndex = z - 1;
+  const below = (push ? from : to)._vpParent;
+  if (!(below && vpTrayOpen(below))) dim.style.display = "block";   // v6.18.1: else the tray under the stack already dims
+  pops.forEach(t => vpSet(t, { transition: "none", background: "transparent" }));   // v6.18.1: at once, not faded over #vp-dim
   if (sov) sov.style.visibility = "hidden";
   if (!isSheet(from) && !stayUnder) vpSet(from, { transition: "opacity 0s linear var(--nav-out), visibility 0s linear var(--nav-out)" });
   if (!isSheet(to)) vpSet(to, { transition: "none" });
@@ -21402,8 +21392,13 @@ function vpSlide(from, to, dir) {
     vpUnset(tb, VP_NAV_PROPS); tb.classList.remove("vp-nav"); fb.classList.remove("vp-nav");
     if (stayUnder) { vpUnset(fb, ["transition", "clip-path"]); from.dataset.vpUnder = "1"; }
     else vpUnset(fb, VP_NAV_PROPS);
-    pops.forEach(t => { vpSet(t, { transition: "none" }); vpUnset(t, ["background"]); void t.offsetHeight; vpUnset(t, ["transition"]); });   // v6.17.1: the dim comes back at once, no fade
-    if (stayUnder) vpSet(to, { background: "transparent" });   // the tray under it already dims the page
+    // v6.18.1: the dims come back at once, never faded over #vp-dim as it goes (that darkened
+    // the page for a moment). Only the bottom tray of a stack dims the page: a tray whose
+    // parent is still open under it keeps its own dim off. (Restoring the middle tray's dim
+    // in a stack of three, e.g. Settings › Encryption › Remove encryption?, made it 0.80.)
+    pops.forEach(t => { vpSet(t, { transition: "none" }); vpUnset(t, ["background"]); });
+    pops.forEach(t => { if (vpTrayOpen(t) && t._vpParent && vpTrayOpen(t._vpParent)) vpSet(t, { background: "transparent" }); });
+    pops.forEach(t => { void t.offsetHeight; vpUnset(t, ["transition"]); });
     ghost.style.display = "none"; dim.style.display = "none";
     if (sov) sov.style.visibility = "";
   };
@@ -23194,7 +23189,7 @@ navInit();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.18.0</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.18.1</div>
         </div>
 
         <div class="pp-cards">
@@ -23306,7 +23301,7 @@ navInit();
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v6.18.0</div>
+  <div id="version-footer">v6.18.1</div>
 
 </body>
 </html>

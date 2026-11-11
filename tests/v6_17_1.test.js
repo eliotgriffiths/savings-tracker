@@ -53,8 +53,14 @@ setTimeout(async () => {
     ok(/@media \(max-width: 640px\) \{\s*\.pop-anim\.vp:not\(\.vp-alert\) \{ transition: opacity 0s/.test(phone), "…on a phone only (cards on a wide screen keep their fade)");
     ok(/prefers-reduced-motion: reduce\) \{\s*\.pop-anim\.vp:not\(\.vp-alert\), \.pop-anim\.vp:not\(\.vp-alert\)\.hidden \{ transition: none !important; \}/.test(phone), "Reduce Motion: no dim fade either");
     ok(/\.pop-anim\.vp:not\(\.vp-alert\)\.hidden \.vp-panel \{ transform: translateY\(100%\) !important; opacity: 1 !important;/.test(css), "the tray itself stays solid as it slides");
-    ok(/vpSet\(t, \{ transition: "none" \}\); vpUnset\(t, \["background"\]\); void t\.offsetHeight; vpUnset\(t, \["transition"\]\);/.test(html),
+    ok(/pops\.forEach\(t => \{ vpSet\(t, \{ transition: "none" \}\); vpUnset\(t, \["background"\]\); \}\);[\s\S]{0,200}pops\.forEach\(t => \{ void t\.offsetHeight; vpUnset\(t, \["transition"\]\); \}\);/.test(html),
       "after a tray move the trays get their dims back at once, with no fade (no flash of the page)");
+    ok(/pops\.forEach\(t => vpSet\(t, \{ transition: "none", background: "transparent" \}\)\);/.test(html),
+      "when a move starts, each tray's own dim goes at once (it faded over #vp-dim, darkening the page)");
+    ok(/pops\.forEach\(t => \{ if \(vpTrayOpen\(t\) && t\._vpParent && vpTrayOpen\(t\._vpParent\)\) vpSet\(t, \{ background: "transparent" \}\); \}\);/.test(html),
+      "after a move only the bottom tray of the stack dims the page");
+    ok(/const below = \(push \? from : to\)\._vpParent;\s*if \(!\(below && vpTrayOpen\(below\)\)\) dim\.style\.display = "block";/.test(html),
+      "#vp-dim only shows when no tray under the move already dims the page");
     // A move still works and leaves nothing behind
     await run("openMenuSheet()");
     [...d.querySelectorAll("#menu-sheet .menu-item-btn")].find(b => b.textContent.includes("Recurring")).click();
@@ -97,6 +103,16 @@ setTimeout(async () => {
     ok(/\.vp-note\.folded \{ margin-top: 0 !important; margin-bottom: 0 !important;/.test(css), "a folded line takes no space, margins included");
     d.querySelector(".goal-btn-cancel").click(); await sleep(0);
     ok(folded("goal-form-fold") && !folded("goal-add-fold"), "Cancel folds the form away and the button back");
+    // Putting the form away means nothing is unsaved: swipe, ✕ and an outside tap close Goals again
+    $("goal-add-btn").click(); await sleep(0);
+    $("goals-modal").dataset.dirty = "1";          // as if a date had been picked (jsdom events aren't trusted)
+    ok(E(`vpTryDismiss(document.getElementById("goals-modal"))`) === false, "while the form is open and touched, Goals springs back");
+    d.querySelector(".goal-btn-cancel").click(); await sleep(0);
+    ok($("goals-modal").dataset.dirty === "", "Cancel on the form clears the touched state");
+    ok(E(`vpTryDismiss(document.getElementById("goals-modal"))`) === true && !E(`popupIsOpen(document.getElementById("goals-modal"))`),
+      "…so closing the tray works again (it said \"Tap Cancel to leave without saving\")");
+    await sleep(300);
+    await run("openGoalsModal()");
     E(`closeGoalsModal()`); await sleep(300);
     await run(`openGoalsModal("${E("goals[0] && goals[0].id") || ""}")`);
     if (E("goals.length")) ok(!folded("goal-form-fold") && $("goal-form-fold").style.transition === "", "opening Goals to edit one shows the form straight away");
@@ -110,6 +126,10 @@ setTimeout(async () => {
     ok($("account-add-form").style.display === "", "…without style.display");
     E("cancelAddAccount()"); await sleep(0);
     ok(folded("account-add-fold") && !folded("account-add-btn-fold"), "Cancel folds it away");
+    $("account-add-btn").click(); await sleep(0); $("accounts-modal").dataset.dirty = "1";
+    E("cancelAddAccount()"); await sleep(0);
+    ok($("accounts-modal").dataset.dirty === "" && E(`vpTryDismiss(document.getElementById("accounts-modal"))`) === true, "Accounts: Cancel on the add form lets the tray close again");
+    await sleep(300); await run("openAccountsModal()");
     E("closeAccountsModal()"); await sleep(300);
 
     // ── 2e. Set password and Unlock errors fold ──────────────────────────────
