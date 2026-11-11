@@ -139,7 +139,7 @@ setTimeout(async () => {
   ok(/No backup/.test(d.getElementById("ss-now").textContent), "the popup leads with the current status");
   ok(JSON.stringify(btns()) === '["Set up backup","Use Google Drive","Done"]', "No backup offers Set up backup, then Google Drive (v6.16.1): " + btns());
   ok(d.querySelector("#ss-now-btns .pbtn-primary").textContent === "Set up backup", "…as the primary button");
-  ok(d.getElementById("ss-legend-fold").open === false, "the full legend is folded away");
+  ok(d.getElementById("ss-legend-body").classList.contains("folded"), "the full legend is folded away");   // v6.17.1: a fold, not a <details>
   E(`closeSaveStatusLegend(); setSaveStatus("err", "Sync failed"); openSaveStatusLegend()`);
   ok(JSON.stringify(btns()) === '["Try again","Backup settings","Done"]', "Sync failed offers Try again: " + btns());
   ok(/ss-now-err/.test(d.getElementById("ss-now").className), "…in red");

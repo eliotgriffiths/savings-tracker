@@ -221,11 +221,12 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   #ss-now-btns { flex-wrap: wrap; }
   #ss-now-btns .pbtn { flex: 1 1 0; white-space: nowrap; padding-left: 10px; padding-right: 10px; }
   #ss-now-btns .pbtn-primary { flex: 1 1 100%; }   /* the fix gets the full width; Done and alternatives share the row below */
-  .ss-legend-fold summary { cursor: pointer; font-size: 12px; color: var(--text-3); padding: 4px 2px; list-style: none; }
-  .ss-legend-fold summary::-webkit-details-marker { display: none; }
-  .ss-legend-fold summary::after { content: " ›"; }
-  .ss-legend-fold[open] summary::after { content: " ⌄"; }
-  .ss-legend-fold[open] summary { margin-bottom: 6px; }
+  /* v6.17.1: a button and a fold, not a <details> (that snapped the tray open in one frame) */
+  .ss-legend-sum { display: block; cursor: pointer; font-size: 12px; color: var(--text-3); padding: 6px 2px; background: none; border: 0;
+    font-family: 'DM Sans', sans-serif; text-align: left; }
+  .ss-legend-sum::after { content: " ›"; }
+  .ss-legend-sum[aria-expanded="true"]::after { content: " ⌄"; }
+  #ss-legend-body > .vp-fold-in > div { padding-top: 6px; }
   @keyframes ss-pulse-dot {
     0%,100% { opacity: 1; transform: scale(1); }
     50%      { opacity: 0.4; transform: scale(0.75); }
@@ -893,7 +894,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     font-family: 'DM Sans', sans-serif; cursor: pointer; transition: opacity 0.15s;
   }
   #goal-add-btn:hover { opacity: 0.88; }
-  #goal-form { display: none; margin-top: 14px; padding: 16px; background: var(--bg3);
+  #goal-form { margin-top: 14px; padding: 16px; background: var(--bg3);
     border: 1px solid var(--border-hi); border-radius: var(--radius-lg); }
   .goal-form-heading { font-size: 13px; color: var(--text-1); font-weight: 600; margin-bottom: 14px; }
   .goal-field-label { display: block; font-size: 11px; color: var(--text-3); font-weight: 500;
@@ -916,7 +917,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   #goal-form .goal-date-wrap.invalid #goal-deadline { border-color: var(--red); background: color-mix(in srgb, var(--out) 7%, transparent); }
   #goal-form .goal-input.invalid:focus,
   #goal-form .goal-date-wrap.invalid #goal-deadline:focus { border-color: var(--red); }
-  .goal-field-err { display: none; font-size: 11.5px; color: var(--red); line-height: 1.4; margin: -10px 0 12px; }
+  .goal-field-err { font-size: 11.5px; color: var(--red); line-height: 1.4; margin: -10px 0 12px; }
   /* iOS Safari sizes an empty date input to its content and ignores width:100%
      until it has a value. min-width + the flourishes below force it to fill. */
   .goal-date-wrap { position: relative; margin-bottom: 14px; }
@@ -925,9 +926,13 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
      provide the picker; the button is a visible affordance that triggers it. */
   .goal-date-wrap #goal-deadline { margin-bottom: 0; padding-right: 42px; }
   .goal-date-wrap #goal-deadline-native {
-    position: absolute; inset: 0; opacity: 0; border: none; padding: 0; margin: 0;
-    width: 100%; height: 100%; pointer-events: none;
+    position: absolute; top: 0; right: 0; left: auto; bottom: auto; opacity: 0; border: none; padding: 0; margin: 0;
+    width: 42px; height: 100%; min-width: 0; z-index: 2; cursor: pointer; color-scheme: dark;
+    -webkit-appearance: none; appearance: none; background: transparent; font-size: 16px;
   }
+  .goal-date-wrap #goal-deadline-native::-webkit-calendar-picker-indicator { position: absolute; inset: 0; width: auto; height: auto; opacity: 0; cursor: pointer; }
+  .goal-date-wrap .goal-date-cal { pointer-events: none; }
+  .goal-date-wrap:hover .goal-date-cal { color: var(--gold); }
   .goal-date-cal {
     position: absolute; top: 0; right: 0; height: 100%; width: 42px;
     display: flex; align-items: center; justify-content: center;
@@ -939,7 +944,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .goal-since-text { flex: 1; min-width: 0; }
   .goal-since-label { font-size: 13px; color: var(--text-1); font-weight: 500; }
   .goal-since-hint { font-size: 11px; color: var(--text-3); margin-top: 3px; line-height: 1.4; }
-  .goal-form-err { display: none; font-size: 12px; color: var(--red); margin-bottom: 10px; }
+  .goal-form-err { font-size: 12px; color: var(--red); margin-bottom: 10px; }
   .goal-form-actions { display: flex; gap: 8px; }
   .goal-btn-save {
     flex: 1; background: var(--gold); border: none; border-radius: var(--radius);
@@ -2813,6 +2818,13 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .vp-fold.folded { grid-template-rows: 0fr; opacity: 0; visibility: hidden;
     transition: grid-template-rows 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.14s ease-out, visibility 0s linear 0.26s; }
   @media (prefers-reduced-motion: reduce) { .vp-fold, .vp-fold.folded { transition: none; } }
+  /* v6.17.1: a message line that folds (vpNote). Its margins fold with it. */
+  .vp-note { transition: grid-template-rows 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease-out 0.04s, visibility 0s,
+    margin 0.26s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .vp-note.folded { margin-top: 0 !important; margin-bottom: 0 !important;
+    transition: grid-template-rows 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.14s ease-out, visibility 0s linear 0.26s,
+      margin 0.26s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  @media (prefers-reduced-motion: reduce) { .vp-note, .vp-note.folded { transition: none; } }
   /* v6.16.4: one title size for the phone's screens (Home, Transactions, Search) */
   @media (max-width: 640px) {
     .fy-title, .as-title, #home-panel .vh-home-title { font-size: 22px; line-height: 1.2; }
@@ -2847,6 +2859,19 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) !important; }
     .pop-anim.vp:not(.vp-alert):not(.hidden) .vp-panel.vp-drag { transition: none !important; }
   }
+  /* v6.17.1: on a phone a tray's dim is its own overlay, and the overlay used to fade as a whole,
+     so the tray faded in as it rose (a quarter of the way up it was 12 % visible) and faded out
+     as it dropped. Now the overlay shows at once and stays shown until the tray has slid away;
+     only its dim (the background) fades, on the sheets' timing. The tray itself is solid, like
+     the Menu. Hidden still means opacity 0, which tray moves (vpSlide) rely on. */
+  @media (max-width: 640px) {
+    .pop-anim.vp:not(.vp-alert) { transition: opacity 0s, visibility 0s, background-color 0.26s ease !important; }
+    .pop-anim.vp:not(.vp-alert).hidden { background-color: transparent !important;
+      transition: background-color 0.26s ease, opacity 0s linear 0.26s, visibility 0s linear 0.26s !important; }
+  }
+  @media (max-width: 640px) and (prefers-reduced-motion: reduce) {
+    .pop-anim.vp:not(.vp-alert), .pop-anim.vp:not(.vp-alert).hidden { transition: none !important; }
+  }
   /* v6.16.5: ‹ back to the tray this one was opened from, left of the title */
   .vp-back { width: 34px; height: 34px; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
     padding: 0; margin: -5px -2px 0 -10px; border: 0; border-radius: 9px; background: transparent;
@@ -2875,6 +2900,29 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .pop-anim.vp .vp-panel.vp-flush { padding: 0 !important; --vp-px: 0px; --vp-pb: 0px; }
   .vp-flush .vp-head { margin: 0 !important; padding: 22px 16px 12px 24px !important; }
   @media (max-width: 640px) { .vp-flush .vp-head { padding: 0 14px 12px 20px !important; } }
+
+  /* v6.18.0: one delete tray (vaultDelete). What's being deleted, then the ways to delete it as
+     option cards: nothing is chosen until you tap one, and only Delete does it. Closing cancels. */
+  #del-popup { position: fixed; inset: 0; z-index: 630; }
+  .del-lead { font-size: 13px; color: var(--text-2); line-height: 1.55; margin: 0 0 12px; }
+  .del-lead[hidden], .del-opts[hidden], #del-sub[hidden] { display: none !important; }
+  .del-opts { display: grid; gap: 8px; }
+  .del-opt { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 11px 14px; border-radius: 12px;
+    background: var(--bg3); border: 1px solid color-mix(in srgb, var(--out) 30%, transparent); color: var(--text-1);
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+  .del-opt-text { flex: 1; min-width: 0; }
+  .del-opt b { display: block; font-size: 14px; font-weight: 500; color: var(--out); line-height: 1.35; }
+  .del-opt small { display: block; font-size: 11.5px; color: var(--text-3); line-height: 1.4; margin: 2px 0 0 !important; }   /* the panel's own <small> rule adds 20 px under it */
+  .del-tick { width: 22px; height: 22px; flex: 0 0 auto; border-radius: 50%; border: 1.5px solid var(--border-hi);
+    display: grid; place-items: center; transition: background 0.15s, border-color 0.15s; }
+  .del-tick::after { content: ""; width: 9px; height: 5px; margin-top: -2px; border: solid var(--accent-ink); border-width: 0 0 2px 2px;
+    transform: rotate(-45deg) scale(0); transition: transform 0.15s; }
+  /* Chosen: the edge turns gold (it replaces the red edge, never sits inside it) */
+  .del-opt[aria-checked="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, var(--bg3)); }
+  .del-opt[aria-checked="true"] .del-tick { background: var(--accent); border-color: var(--accent); }
+  .del-opt[aria-checked="true"] .del-tick::after { transform: rotate(-45deg) scale(1); }
+  @media (hover: hover) { .del-opt:not([aria-checked="true"]):hover { background: color-mix(in srgb, var(--out) 6%, var(--bg3)); } }
+  .pbtn:disabled { opacity: 0.38; box-shadow: none; cursor: default; }
 
 </style>
 <style id="vh-home-styles">
@@ -3700,7 +3748,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
             <svg width="14" height="14" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px; margin-right:6px;"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>
             Sign in with Google
           </button>
-          <button class="btn-local" id="btn-gd-unlink" style="display:none; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="unlinkGoogleDrive()">Disconnect</button>
+          <button class="btn-local" id="btn-gd-unlink" style="display:none; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="askUnlink('gd')">Disconnect</button>
         </div>
 
         <div id="gd-status" style="display:none; font-size:12px; text-align:center; padding:4px 0; margin-bottom:8px;"></div>
@@ -3755,7 +3803,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
             <button class="btn-local" style="flex:1;" id="btn-nas-save-now" onclick="saveToNAS(true)">Save now</button>
             <button class="btn-local" style="flex:1; background:var(--bg3);" onclick="loadFromNAS()">Load from server</button>
           </div>
-          <button class="btn-local" id="btn-nas-unlink" style="display:none; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="unlinkNAS()">Disconnect</button>
+          <button class="btn-local" id="btn-nas-unlink" style="display:none; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="askUnlink('nas')">Disconnect</button>
         </div>
 
         <div id="nas-status" style="display:none; font-size:12px; text-align:center; padding:4px 0; margin-bottom:8px;"></div>
@@ -3807,7 +3855,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
             <button class="btn-local" style="flex:1;" id="btn-local-save-now" onclick="saveToLocalFile(true)">Save now</button>
             <button class="btn-local" style="flex:1; background:var(--bg3);" onclick="loadFromLocalFile()">Load file</button>
           </div>
-          <button class="btn-local" id="btn-local-unlink" style="display:none; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="unlinkLocalFile()">Unlink file location</button>
+          <button class="btn-local" id="btn-local-unlink" style="display:none; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="askUnlink('local')">Unlink file location</button>
         </div>
 
         <div id="local-file-status" style="display:none; font-size:12px; text-align:center; padding:4px 0; margin-bottom:8px;"></div>
@@ -5167,29 +5215,10 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <!-- Primary actions -->
     <div class="tx-popup-actions" id="popup-standard-actions" style="margin-top:16px;">
       <button class="pbtn pbtn-primary" id="popup-save-btn" onclick="popupSaveScoped()" style="flex:1;">Save</button>
-      <button class="pbtn pbtn-danger-quiet" id="popup-delete-toggle" onclick="togglePopupDeleteMenu()">Delete</button>
+      <button class="pbtn pbtn-danger-quiet" id="popup-delete-toggle" onclick="openTxDelete()">Delete</button>
       <button class="pbtn pbtn-secondary" onclick="closePopup()">Cancel</button>
     </div>
 
-    <!-- Delete options menu — expands below the action row -->
-    <div id="popup-delete-menu" class="popup-delete-menu" style="display:none;">
-      <!-- Non-recurring: just one option -->
-      <button id="popup-del-single" class="popup-delete-menu-item" onclick="deletePopup()">
-        Delete this transaction
-      </button>
-      <!-- Recurring-specific options (hidden for non-recurring) -->
-      <button id="popup-del-all" class="popup-delete-menu-item" onclick="deletePopupAll()" style="display:none;">
-        Delete all in this series
-        <span class="popup-delete-sub">Keeps the rule active</span>
-      </button>
-      <button id="popup-del-rule" class="popup-delete-menu-item" onclick="deleteRuleFromPopup()" style="display:none;">
-        Stop recurring rule
-        <span class="popup-delete-sub">Keeps existing transactions</span>
-      </button>
-      <button id="popup-del-rule-all" class="popup-delete-menu-item" onclick="deleteRuleAndAllFromPopup()" style="display:none;">
-        Delete rule + all transactions
-      </button>
-    </div>
   </div>
 </div>
 
@@ -5533,33 +5562,15 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   </div>
 </div>
 
-<!-- Recurring: Delete confirm popup -->
-<div id="recur-delete-popup" class="hidden pop-anim" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:300; align-items:center; justify-content:center; padding:20px;">
-  <div class="modal-box" style="max-width:400px; position:relative;">
-    <button class="modal-close" onclick="closeRecurDeletePopup()" style="position:absolute; top:14px; right:14px;">✕</button>
-    <div class="modal-header" style="padding-right:32px;">
-      <h2>Remove recurring rule?</h2>
-    </div>
-    <p style="font-size:13px; color:var(--text-2); margin-bottom:16px; line-height:1.6;" id="rdel-title"></p>
-    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;">
-      <label id="rdel-keep-label" style="display:flex; align-items:center; gap:12px; font-size:13px; color:var(--text-1); cursor:pointer; padding:12px 14px; background:var(--bg3); border:2px solid var(--gold); border-radius:var(--radius); transition:border-color 0.15s, background 0.15s;" onclick="rdel_select('keep')">
-        <input type="radio" name="rdel-mode" id="rdel-keep" value="keep" checked style="display:none;">
-        <span style="width:18px; height:18px; border-radius:50%; border:2px solid var(--gold); background:var(--gold); flex-shrink:0; display:flex; align-items:center; justify-content:center;" id="rdel-keep-dot">
-          <span style="width:8px; height:8px; border-radius:50%; background:var(--bg0); display:block;"></span>
-        </span>
-        Keep all previously added transactions
-      </label>
-      <label id="rdel-remove-label" style="display:flex; align-items:center; gap:12px; font-size:13px; color:var(--text-2); cursor:pointer; padding:12px 14px; background:var(--bg3); border:2px solid var(--border); border-radius:var(--radius); transition:border-color 0.15s, background 0.15s;" onclick="rdel_select('remove')">
-        <input type="radio" name="rdel-mode" id="rdel-remove" value="remove" style="display:none;">
-        <span style="width:18px; height:18px; border-radius:50%; border:2px solid var(--border); background:transparent; flex-shrink:0; display:flex; align-items:center; justify-content:center;" id="rdel-remove-dot">
-          <span style="width:8px; height:8px; border-radius:50%; background:transparent; display:block;"></span>
-        </span>
-        Remove all previously added transactions
-      </label>
-    </div>
-    <div style="display:flex; gap:8px;">
-      <button class="pbtn pbtn-danger" onclick="confirmDeleteRecurRule()" style="flex:1;">Delete</button>
-      <button class="pbtn pbtn-secondary" onclick="closeRecurDeletePopup()">Cancel</button>
+<!-- v6.18.0: one delete tray for every delete and disconnect (vaultDelete) -->
+<div id="del-popup" class="hidden pop-anim" role="dialog" aria-modal="true" aria-labelledby="del-title">
+  <div class="modal-box" style="max-width:420px; position:relative;">
+    <div class="del-head"><h2 id="del-title">Delete?</h2><p id="del-sub" hidden></p><button class="modal-close" aria-label="Close" onclick="delCancel()">✕</button></div>
+    <p class="del-lead" id="del-lead" hidden></p>
+    <div class="del-opts" id="del-opts" role="radiogroup" aria-labelledby="del-title" hidden></div>
+    <div class="pbtn-row" id="del-foot">
+      <button class="pbtn pbtn-danger" id="del-ok" onclick="delConfirm()">Delete</button>
+      <button class="pbtn pbtn-secondary" onclick="delCancel()">Cancel</button>
     </div>
   </div>
 </div>
@@ -5586,17 +5597,18 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <p class="modal-desc">Set a savings target for one account or the whole vault. Progress and pace are worked out from your transactions.</p>
     <div id="goals-list" style="margin-bottom:16px;"></div>
     <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:4px;">
-      <button id="goal-add-btn" onclick="openGoalForm()">+ Add goal</button>
+      <div class="vp-fold" id="goal-add-fold"><div class="vp-fold-in"><button id="goal-add-btn" onclick="openGoalForm()">+ Add goal</button></div></div>
+      <div class="vp-fold folded" id="goal-form-fold"><div class="vp-fold-in">
       <div id="goal-form">
         <div id="goal-form-title" class="goal-form-heading">New goal</div>
         <label class="goal-field-label">Name</label>
         <input type="text" id="goal-name" class="goal-input" maxlength="40" placeholder="e.g. Emergency fund"
           oninput="goalClearFieldError(this)">
-        <div id="goal-name-err" class="goal-field-err"></div>
+        <div id="goal-name-err" class="goal-field-err vp-fold vp-note folded"><div class="vp-fold-in"></div></div>
         <label class="goal-field-label">Target amount</label>
         <input type="number" id="goal-target" class="goal-input" min="0" step="0.01" inputmode="decimal" placeholder="10000"
           oninput="goalClearFieldError(this)">
-        <div id="goal-target-err" class="goal-field-err"></div>
+        <div id="goal-target-err" class="goal-field-err vp-fold vp-note folded"><div class="vp-fold-in"></div></div>
         <label class="goal-field-label">Applies to</label>
         <select id="goal-account" class="goal-input"></select>
         <label class="goal-field-label">Target date <span style="opacity:0.6;">&middot; optional</span></label>
@@ -5605,7 +5617,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
             placeholder="YYYY-MM-DD" maxlength="10" autocomplete="off"
             oninput="goalDeadlineFormat(this); goalClearFieldError(this)">
           <input type="date" id="goal-deadline-native" tabindex="-1" aria-hidden="true"
-            onchange="goalDeadlineFromPicker(this)">
+            onpointerdown="goalSeedPicker()" ontouchstart="goalSeedPicker()" onfocus="goalSeedPicker()"
+            onclick="goalNativeClick(event)" onchange="goalDeadlineFromPicker(this)">
           <button type="button" class="goal-date-cal" tabindex="-1" aria-label="Open calendar"
             onclick="goalOpenPicker()">
             <svg width="17" height="17" viewBox="0 0 16 16" fill="none">
@@ -5616,7 +5629,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
             </svg>
           </button>
         </div>
-        <div id="goal-deadline-err" class="goal-field-err"></div>
+        <div id="goal-deadline-err" class="goal-field-err vp-fold vp-note folded"><div class="vp-fold-in"></div></div>
         <div class="goal-since-row">
           <div class="goal-since-text">
             <div class="goal-since-label">Count from today</div>
@@ -5625,12 +5638,12 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <span class="layout-toggle" id="goal-since-toggle" role="switch" aria-checked="false"
             onclick="goalToggleSince(this)"></span>
         </div>
-        <div id="goal-form-err" class="goal-form-err"></div>
+        <div id="goal-form-err" class="goal-form-err vp-fold vp-note folded"><div class="vp-fold-in"></div></div>
         <div class="goal-form-actions">
           <button class="goal-btn-save" onclick="saveGoalForm()">Save</button>
           <button class="goal-btn-cancel" onclick="closeGoalForm()">Cancel</button>
         </div>
-      </div>
+      </div></div></div>
     </div>
   </div>
 </div>
@@ -5644,8 +5657,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <p class="modal-desc">Organise your transactions into separate savings accounts. Each transaction can be assigned to one account.</p>
     <div id="accounts-list" style="margin-bottom:16px;"></div>
     <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:4px; flex-shrink:0;">
-      <button id="account-add-btn" onclick="openAddAccountForm()">+ Add account</button>
-      <div id="account-add-form" style="display:none; margin-top:12px; padding:14px; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius);">
+      <div class="vp-fold" id="account-add-btn-fold"><div class="vp-fold-in"><button id="account-add-btn" onclick="openAddAccountForm()">+ Add account</button></div></div>
+      <div class="vp-fold folded" id="account-add-fold"><div class="vp-fold-in">
+      <div id="account-add-form" style="margin-top:12px; padding:14px; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius);">
         <div style="font-size:12px; color:var(--text-3); margin-bottom:10px; font-weight:500;">New account</div>
         <input type="text" id="account-new-name" maxlength="32" placeholder="Account name"
           style="width:100%; background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:13px 14px; color:var(--text-1); font-size:16px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box; margin-bottom:12px;"
@@ -5656,6 +5670,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <button class="pbtn pbtn-secondary" onclick="cancelAddAccount()">Cancel</button>
         </div>
       </div>
+      </div></div>
     </div>
   </div>
 </div>
@@ -5684,39 +5699,6 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   </div>
 </div>
 
-<!-- Account delete confirm popup -->
-<div id="account-delete-popup" class="hidden pop-anim">
-  <div class="modal-box" style="max-width:400px; position:relative;">
-    <button class="modal-close" onclick="closeAccountDeletePopup()" style="position:absolute; top:14px; right:14px;">✕</button>
-    <div class="modal-header" style="padding-right:32px;"><h2>Delete account?</h2></div>
-    <p id="account-delete-desc" style="font-size:13px; color:var(--text-2); margin-bottom:16px; line-height:1.6;"></p>
-
-    <!-- Only shown when the account has transactions. Picks between moving them
-         or wiping everything account-related. -->
-    <div id="account-delete-choice-wrap" style="display:none; margin-bottom:16px;">
-      <label class="acc-del-choice">
-        <input type="radio" name="acc-del-mode" value="move" checked onchange="updateAccountDeleteMode()">
-        <span class="acc-del-choice-label">Move transactions to another account</span>
-      </label>
-      <div id="account-delete-reassign-wrap" style="margin:8px 0 16px 26px;">
-        <select id="account-delete-reassign"
-          style="width:100%; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius); padding:9px 10px; color:var(--text-1); font-size:13px; font-family:'DM Sans',sans-serif; outline:none;"></select>
-      </div>
-      <label class="acc-del-choice">
-        <input type="radio" name="acc-del-mode" value="wipe" onchange="updateAccountDeleteMode()">
-        <span class="acc-del-choice-label">Delete transactions with the account</span>
-      </label>
-      <div id="account-delete-wipe-warning" style="display:none; margin:8px 0 0 26px; padding:10px 12px; background:color-mix(in srgb, var(--out) 8%, transparent); border:1px solid color-mix(in srgb, var(--out) 28%, transparent); border-radius:var(--radius); font-size:12px; color:var(--red); line-height:1.5;">
-        <span id="account-delete-wipe-warning-text"></span>
-      </div>
-    </div>
-
-    <div style="display:flex; gap:8px;">
-      <button class="pbtn pbtn-danger" id="account-delete-confirm-btn" onclick="confirmDeleteAccount()" style="flex:1;">Delete</button>
-      <button class="pbtn pbtn-secondary" onclick="closeAccountDeletePopup()">Cancel</button>
-    </div>
-  </div>
-</div>
 
 <!-- Encryption menu popup — opened from the main menu -->
 <!-- Save status legend popup — explains what each pill state means -->
@@ -5729,8 +5711,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
     <div id="ss-now" class="ss-now"></div>
 
-    <details class="ss-legend-fold" id="ss-legend-fold">
-    <summary>What each status means</summary>
+    <div class="ss-legend-fold" id="ss-legend-fold">
+    <button type="button" class="ss-legend-sum" id="ss-legend-sum" aria-expanded="false" aria-controls="ss-legend-body" onclick="ssLegendToggle()">What each status means</button>
+    <div class="vp-fold folded" id="ss-legend-body"><div class="vp-fold-in">
     <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:6px;">
       <div style="font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--in); padding:6px 2px 4px;">All good</div>
       <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:color-mix(in srgb, var(--in) 6%, transparent); border:1px solid color-mix(in srgb, var(--in) 15%, transparent); border-radius:8px;">
@@ -5793,7 +5776,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
         <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Backup write failed. Check your backup source in Menu → Save &amp; backup.</span>
       </div>
     </div>
-    </details>
+    </div></div>
+    </div>
 
     <div class="pbtn-row" id="ss-now-btns" style="margin-top:14px;"></div>
   </div>
@@ -5932,7 +5916,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       <input type="password" id="enc-set-confirm" placeholder="Repeat password" autocomplete="new-password"
              onkeydown="if(event.key==='Enter')encSetSubmit()">
     </div>
-    <div id="enc-set-error" style="display:none; font-size:12px; color:var(--red); margin-bottom:12px;"></div>
+    <div id="enc-set-error" class="vp-fold vp-note folded" style="font-size:12px; color:var(--red); margin-bottom:12px;"><div class="vp-fold-in"></div></div>
     <div style="background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; margin-bottom:16px; font-size:12px; color:var(--text-3); line-height:1.7;">
       A <strong style="color:var(--text-2);">vault-recovery.json</strong> file will be downloaded automatically. Store it somewhere safe — it can unlock your backup if you forget your password.
     </div>
@@ -5955,7 +5939,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       <label>Password</label>
       <input type="password" id="enc-decrypt-pass" placeholder="Your Vault password" autocomplete="current-password">
     </div>
-    <div id="enc-decrypt-error" style="display:none; font-size:12px; color:var(--red); margin-bottom:12px;"></div>
+    <div id="enc-decrypt-error" class="vp-fold vp-note folded" style="font-size:12px; color:var(--red); margin-bottom:12px;"><div class="vp-fold-in"></div></div>
     <div class="modal-actions" style="gap:8px; margin-bottom:16px;">
       <button class="pbtn pbtn-primary" style="flex:2;" id="enc-decrypt-btn">Unlock</button>
       <button class="pbtn pbtn-secondary" style="flex:1;" id="enc-decrypt-cancel">Cancel</button>
@@ -8544,7 +8528,7 @@ function openAccountsModal() {
 function closeAccountsModal() {
   document.getElementById("accounts-modal").classList.add("hidden");
   document.body.style.overflow = "";
-  cancelAddAccount();
+  cancelAddAccount(true);
 }
 
 // Tracks which account's inline colour-picker strip is currently open.
@@ -8746,17 +8730,15 @@ function startRenameAccount(id) {
 
 // Add account form interactions
 function openAddAccountForm() {
-  document.getElementById("account-add-form").style.display = "";
-  document.getElementById("account-add-btn").style.display = "none";
+  vpFold("account-add-fold", true);        // v6.17.1: folds in
+  vpFold("account-add-btn-fold", false);
   buildColorPicker();
   setTimeout(() => document.getElementById("account-new-name").focus(), 50);
 }
 
-function cancelAddAccount() {
-  const f = document.getElementById("account-add-form");
-  const b = document.getElementById("account-add-btn");
-  if (f) f.style.display = "none";
-  if (b) b.style.display = "";
+function cancelAddAccount(instant) {
+  vpFold("account-add-fold", false, instant);
+  vpFold("account-add-btn-fold", true, instant);
   const inp = document.getElementById("account-new-name");
   if (inp) inp.value = "";
   _accountNewColor = ACCOUNT_COLORS[0];
@@ -8792,75 +8774,36 @@ function confirmAddAccount() {
 
 // ── Account delete popup ──────────────────────────────────────────────────────
 
-function openAccountDeletePopup(id) {
+// v6.18.0: Accounts › Delete opens the delete tray: move its transactions to another account
+// (one card per account) or delete them with it.
+async function openAccountDeletePopup(id) {
   const acc = getAccountById(id);
   if (!acc) return;
-  _accountDeleteTarget = id;
-  const count       = countTxForAccount(id);
-  const descEl      = document.getElementById("account-delete-desc");
-  const choiceWrap  = document.getElementById("account-delete-choice-wrap");
-  const reassignSel = document.getElementById("account-delete-reassign");
-  const warnText    = document.getElementById("account-delete-wipe-warning-text");
-  const confirmBtn  = document.getElementById("account-delete-confirm-btn");
-
-  if (count > 0) {
-    descEl.textContent = `"${acc.name}" has ${count} transaction${count !== 1 ? "s" : ""}. Choose what to do with them:`;
-    choiceWrap.style.display = "";
-    // Reset radios to the default (safer) move mode on every open
-    const moveRadio = document.querySelector('input[name="acc-del-mode"][value="move"]');
-    if (moveRadio) moveRadio.checked = true;
-    // Populate reassign options — all accounts except this one
-    reassignSel.innerHTML = "";
-    accounts.filter(a => a.id !== id).forEach(a => {
-      const opt = document.createElement("option");
-      opt.value = a.id; opt.textContent = a.name;
-      reassignSel.appendChild(opt);
-    });
-    // Stash the count for the button label + warning text
-    if (warnText) warnText.textContent = `⚠ This will permanently delete ${count} transaction${count !== 1 ? "s" : ""}. This cannot be undone.`;
-    _accountDeleteTxCount = count;
-    updateAccountDeleteMode();
-  } else {
-    descEl.textContent = `Delete account "${acc.name}"? This cannot be undone.`;
-    choiceWrap.style.display = "none";
-    _accountDeleteTxCount = 0;
-    if (confirmBtn) confirmBtn.textContent = "Delete";
-  }
-  document.getElementById("account-delete-popup").classList.remove("hidden");
-  document.body.style.overflow = "hidden";
-}
-
-// Update the popup based on the current radio selection: swap between the
-// reassign dropdown and the wipe warning, and update the confirm button label.
-let _accountDeleteTxCount = 0;
-function updateAccountDeleteMode() {
-  const mode = document.querySelector('input[name="acc-del-mode"]:checked')?.value || "move";
-  const reassignWrap = document.getElementById("account-delete-reassign-wrap");
-  const warningWrap  = document.getElementById("account-delete-wipe-warning");
-  const confirmBtn   = document.getElementById("account-delete-confirm-btn");
-  if (mode === "wipe") {
-    reassignWrap.style.display = "none";
-    warningWrap.style.display  = "";
-    if (confirmBtn) confirmBtn.textContent = `Delete account + ${_accountDeleteTxCount} transaction${_accountDeleteTxCount !== 1 ? "s" : ""}`;
-  } else {
-    reassignWrap.style.display = "";
-    warningWrap.style.display  = "none";
-    if (confirmBtn) confirmBtn.textContent = "Delete account";
-  }
-}
-
-function closeAccountDeletePopup() {
-  document.getElementById("account-delete-popup").classList.add("hidden");
-  _accountDeleteTarget = null;
-  // Keep accounts modal open
-  document.body.style.overflow = "hidden";
-}
-
-function confirmDeleteAccount() {
-  const id  = _accountDeleteTarget;
-  if (!id) return;
   const count = countTxForAccount(id);
-  const mode  = document.querySelector('input[name="acc-del-mode"]:checked')?.value || "move";
+  const rules = recurRules.filter(r => r.account === id).length;
+  const others = accounts.filter(a => a.id !== id);
+  const rulesNote = rules ? ` and its recurring rule${rules !== 1 ? "s" : ""}` : "";
+  let lead, options;
+  if (!count) {
+    lead = rules ? `It has no transactions. Its recurring rule${rules !== 1 ? "s" : ""} move${rules === 1 ? "s" : ""} to ${others[0] ? others[0].name : "another account"}.`
+                 : "It has no transactions, so nothing else changes.";
+    options = [{ value: "move:" + (others[0] ? others[0].id : "") }];
+  } else {
+    lead = "What should happen to its transactions?";
+    options = others.map(o => ({ value: "move:" + o.id, title: `Move them to ${o.name}`,
+      sub: `Then delete ${acc.name}. They keep their dates and amounts${rules ? ", and its rules move too" : ""}` }))
+      .concat([{ value: "wipe", title: `Delete them with ${acc.name}`, sub: `Removes all ${count}${rulesNote} · can't be undone` }]);
+    if (options.length === 1) lead = `Its ${txCountLabel(count)}${rulesNote} will be deleted with it. This can't be undone.`;
+  }
+  const v = await vaultDelete({ title: "Delete account?", sub: `${acc.name} · ${count ? txCountLabel(count) : "no transactions"}`, lead, options });
+  if (!v) return;
+  if (v === "wipe") confirmDeleteAccount(id, "wipe");
+  else confirmDeleteAccount(id, "move", v.slice(5) || null);
+}
+
+function confirmDeleteAccount(id, mode = "move", toId = null) {
+  if (!id || !getAccountById(id)) return;
+  const count = countTxForAccount(id);
   let reassignTarget = null;
   let wipedTxCount   = 0;
 
@@ -8885,8 +8828,7 @@ function confirmDeleteAccount() {
       });
       dbg(`confirmDeleteAccount: wiped ${wipedTxCount} transaction(s) for account ${id}`);
     } else {
-      const toId = document.getElementById("account-delete-reassign").value;
-      if (!toId) { toast("Select an account to move transactions to", "error"); return; }
+      if (!toId || !getAccountById(toId)) { toast("Choose an account to move the transactions to", "error"); return; }
       reassignTransactions(id, toId);
       reassignTarget = toId;
     }
@@ -8920,14 +8862,14 @@ function confirmDeleteAccount() {
   addAccountTombstone(id);
   saveAccounts();
   if (activeAccountFilter === id) activeAccountFilter = "all";
-  closeAccountDeletePopup();
   renderAccountManagerList();
   updateAccountsMenuSub();
   renderAccountPills();
   populateAccountSelects();
   saveAndRender(null);
   triggerCloudSync();
-  toast("Account deleted");
+  const name = getAccountById(reassignTarget)?.name;
+  toast(mode === "wipe" && wipedTxCount ? `Account and ${txCountLabel(wipedTxCount)} deleted` : reassignTarget && count ? `Account deleted · ${txCountLabel(count)} moved to ${name}` : "Account deleted", mode === "wipe" && wipedTxCount ? "error" : undefined);
 }
 
 // Refresh all open account <select> elements in forms
@@ -9233,14 +9175,13 @@ function promptAndDecrypt(encryptedText) {
     const passInput  = document.getElementById("enc-decrypt-pass");
     const errEl      = document.getElementById("enc-decrypt-error");
     const fileInput  = document.getElementById("enc-recovery-file");
-    passInput.value = ""; errEl.style.display = "none";
+    passInput.value = ""; vpNote(errEl, "", true);
     popup.classList.remove("hidden");
     setTimeout(() => passInput.focus(), 80);
 
     async function tryPassword() {
       const pw = passInput.value;
-      if (!pw) { errEl.textContent = "Please enter your password."; errEl.style.display = "block"; return; }
-      errEl.style.display = "none";
+      if (!pw) { vpNote(errEl, "Please enter your password."); return; }
       const result = await tryDecryptWithPassword(encryptedText, pw);
       if (result) {
         // Correct password — store the key in memory for future saves
@@ -9255,14 +9196,13 @@ function promptAndDecrypt(encryptedText) {
         cleanup();
         resolve(result);
       } else {
-        errEl.textContent = "Incorrect password. Try again, or use your recovery key.";
-        errEl.style.display = "block";
+        vpNote(errEl, "Incorrect password. Try again, or use your recovery key.");
       }
     }
 
     async function tryRecovery() {
       const file = fileInput.files && fileInput.files[0];
-      if (!file) { errEl.textContent = "Please select your vault-recovery.json file."; errEl.style.display = "block"; return; }
+      if (!file) { vpNote(errEl, "Please select your vault-recovery.json file."); return; }
       try {
         const text = await file.text();
         const obj  = JSON.parse(text);
@@ -9283,8 +9223,7 @@ function promptAndDecrypt(encryptedText) {
         toast("Recovery successful — encryption disabled. Re-enable with a new password from Menu → Settings → Encryption", "notice");
         resolve(result);
       } catch (e) {
-        errEl.textContent = "That recovery file didn't work. Check it's the right vault-recovery.json.";
-        errEl.style.display = "block";
+        vpNote(errEl, "That recovery file didn't work. Check it's the right vault-recovery.json.");
       }
     }
 
@@ -9360,8 +9299,15 @@ function renderSaveStatusNow() {
   if (n.btn) add("pbtn-primary", n.btn);
   if (n.alt) add("pbtn-secondary", n.alt);
   add("pbtn-secondary", ["Done", closeSaveStatusLegend]);
-  const fold = document.getElementById("ss-legend-fold");
-  if (fold) fold.open = false;
+  ssLegendToggle(false, true);
+}
+// v6.17.1: the legend folds open and shut (it was a <details> that jumped)
+function ssLegendToggle(show, instant) {
+  const body = document.getElementById("ss-legend-body"), sum = document.getElementById("ss-legend-sum");
+  if (!body || !sum) return;
+  const open = show === undefined ? body.classList.contains("folded") : !!show;
+  sum.setAttribute("aria-expanded", open ? "true" : "false");
+  vpFold(body, open, instant);
 }
 function openSaveStatusLegend() {
   renderSaveStatusNow();
@@ -10444,7 +10390,7 @@ function updateEncUI() {
 function openEncPasswordPopup() {
   document.getElementById("enc-set-pass").value    = "";
   document.getElementById("enc-set-confirm").value = "";
-  document.getElementById("enc-set-error").style.display = "none";
+  vpNote("enc-set-error", "", true);
   document.getElementById("enc-set-popup").classList.remove("hidden");
   setTimeout(() => document.getElementById("enc-set-pass").focus(), 80);
 }
@@ -10454,12 +10400,11 @@ async function encSetSubmit() {
   const p1  = document.getElementById("enc-set-pass").value;
   const p2  = document.getElementById("enc-set-confirm").value;
   const err = document.getElementById("enc-set-error");
-  err.style.display = "none";
-  if (!p1)       { err.textContent = "Please enter a password."; err.style.display = "block"; return; }
-  if (p1 !== p2) { err.textContent = "Passwords don't match.";   err.style.display = "block"; return; }
-  if (p1.length < 8) { err.textContent = "Password must be at least 8 characters."; err.style.display = "block"; return; }
+  if (!p1)       { vpNote(err, "Please enter a password."); return; }
+  if (p1 !== p2) { vpNote(err, "Passwords don't match."); return; }
+  if (p1.length < 8) { vpNote(err, "Password must be at least 8 characters."); return; }
   const ok = await enablePasswordEncryption(p1);
-  if (!ok) { err.textContent = "Encryption unavailable (requires HTTPS)."; err.style.display = "block"; return; }
+  if (!ok) { vpNote(err, "Encryption unavailable (requires HTTPS)."); return; }
   document.getElementById("enc-set-popup").classList.add("hidden");
   triggerCloudSync();
   updateEncUI();
@@ -11368,7 +11313,9 @@ async function initGoogleDrive() {
 // Also unlinks the auto-save file handle (so emptied data is not written back
 // to the file). Resets all in-memory state and shows the welcome screen.
 async function clearBrowserData() {
-  if (!await vaultConfirm({ title: "Clear all Vault data from this browser?", message: "This can't be undone. Anything not in a backup (Google Drive, a network location or a file) will be lost for good.", ok: "Clear data", danger: true })) return;
+  if (!await vaultDelete({ title: "Clear all data?", sub: "Everything Vault keeps in this browser",
+    lead: "Anything not in a backup (Google Drive, a network location or a file) will be lost for good. This can't be undone.",
+    options: [{ value: "clear" }], ok: "Clear all data" })) return;
 
   // Remove all Vault keys from localStorage — do NOT call saveLocal() after this,
   // or render(), as both would write empty data back to localStorage and/or the linked file
@@ -13070,11 +13017,11 @@ function openGoalsModal(editId) {
   document.getElementById("goals-modal")?.classList.remove("hidden");
   _goalConfirmId = null;
   renderGoalsList();
-  if (editId) openGoalForm(editId); else closeGoalForm();
+  if (editId) openGoalForm(editId, true); else closeGoalForm(true);
 }
 function closeGoalsModal() {
   document.getElementById("goals-modal")?.classList.add("hidden");
-  closeGoalForm();
+  closeGoalForm(true);
   _goalConfirmId = null;
 }
 
@@ -13092,28 +13039,22 @@ function renderGoalsList() {
     const dot = g.accountId && acc ? getAccountColor(g.accountId) : "var(--gold)";
     const val = goalProgress(acc || !g.accountId ? g : Object.assign({}, g, { accountId: null }));
     const pct = g.target > 0 ? Math.min(100, (val / g.target) * 100) : 0;
-    const confirming = _goalConfirmId === g.id;
     html += `<div class="goal-row">`
           + `<span class="goal-row-dot" style="background:${dot}"></span>`
           + `<div class="goal-row-body">`
           + `<div class="goal-row-name">${escapeHTML(g.name)}</div>`
           + `<div class="goal-row-meta">${aud(g.target)} &middot; ${scope} &middot; ${pct.toFixed(0)}%</div>`
           + `</div>`;
-    if (confirming) {
-      html += `<button class="goal-row-btn danger" data-goal-del-yes="${g.id}">Delete</button>`
-            + `<button class="goal-row-btn" data-goal-del-no="${g.id}">Cancel</button>`;
-    } else {
+    {
       html += `<button class="goal-row-btn" data-goal-edit="${g.id}">Edit</button>`
-            + `<button class="goal-row-del" data-goal-del="${g.id}">&times;</button>`;
+            + `<button class="goal-row-del" data-goal-del="${g.id}" aria-label="Delete goal">&times;</button>`;
     }
     html += `</div>`;
   });
   list.innerHTML = html;
   list.querySelectorAll("[data-goal-edit]").forEach(b => b.addEventListener("click", () => openGoalForm(b.dataset.goalEdit)));
   // Deleting is irreversible, so the first tap only arms it.
-  list.querySelectorAll("[data-goal-del]").forEach(b => b.addEventListener("click", () => { _goalConfirmId = b.dataset.goalDel; renderGoalsList(); }));
-  list.querySelectorAll("[data-goal-del-no]").forEach(b => b.addEventListener("click", () => { _goalConfirmId = null; renderGoalsList(); }));
-  list.querySelectorAll("[data-goal-del-yes]").forEach(b => b.addEventListener("click", () => deleteGoal(b.dataset.goalDelYes)));
+  list.querySelectorAll("[data-goal-del]").forEach(b => b.addEventListener("click", () => askDeleteGoal(b.dataset.goalDel)));
 }
 
 // The origin date of the goal being edited. Held separately so that re-saving an
@@ -13151,7 +13092,7 @@ function goalClearFieldError(el) {
   el.classList.remove("invalid");
   el.closest(".goal-date-wrap")?.classList.remove("invalid");
   const box = document.getElementById(el.id + "-err");
-  if (box) { box.textContent = ""; box.style.display = "none"; }
+  if (box) vpNote(box, "");
 }
 function goalFieldError(id, msg) {
   const el = document.getElementById(id);
@@ -13160,16 +13101,16 @@ function goalFieldError(id, msg) {
     el.closest(".goal-date-wrap")?.classList.add("invalid");
   }
   const box = document.getElementById(id + "-err");
-  if (box) { box.textContent = msg; box.style.display = "block"; }
+  if (box) vpNote(box, msg);
 }
 function goalClearErrors() {
   ["goal-name", "goal-target", "goal-deadline"].forEach(id =>
     goalClearFieldError(document.getElementById(id)));
   const err = document.getElementById("goal-form-err");
-  if (err) { err.textContent = ""; err.style.display = "none"; }
+  if (err) vpNote(err, "");
 }
 
-function openGoalForm(editId) {
+function openGoalForm(editId, instant) {
   _goalEditId = editId || null;
   const g = editId ? goals.find(x => x.id === editId) : null;
   const sel = document.getElementById("goal-account");
@@ -13192,16 +13133,13 @@ function openGoalForm(editId) {
   goalSinceHint();
   goalClearErrors();
   document.getElementById("goal-form-title").textContent = g ? "Edit goal" : "New goal";
-  document.getElementById("goal-form").style.display = "block";
-  const btn = document.getElementById("goal-add-btn");
-  if (btn) btn.style.display = "none";
+  vpFold("goal-form-fold", true, instant);   // v6.17.1: folds in (it used to appear in one jump)
+  vpFold("goal-add-fold", false, instant);
 }
-function closeGoalForm() {
+function closeGoalForm(instant) {
   _goalEditId = null;
-  const f = document.getElementById("goal-form");
-  if (f) f.style.display = "none";
-  const btn = document.getElementById("goal-add-btn");
-  if (btn) btn.style.display = "";
+  vpFold("goal-form-fold", false, instant);
+  vpFold("goal-add-fold", true, instant);
 }
 
 function saveGoalForm() {
@@ -13226,7 +13164,7 @@ function saveGoalForm() {
   }
   if (accountId && !getAccountById(accountId)) {
     const err = document.getElementById("goal-form-err");
-    if (err) { err.textContent = "That account no longer exists."; err.style.display = "block"; }
+    if (err) vpNote(err, "That account no longer exists.");
     bad.push("goal-account");
   }
   if (bad.length) {
@@ -13253,6 +13191,17 @@ function saveGoalForm() {
   triggerCloudSync();
 }
 
+// v6.18.0: the delete tray (it was Delete / Cancel inside the row)
+async function askDeleteGoal(id) {
+  const g = goals.find(x => x.id === id);
+  if (!g) return;
+  const acc = g.accountId ? getAccountById(g.accountId) : null;
+  const val = goalProgress(acc || !g.accountId ? g : Object.assign({}, g, { accountId: null }));
+  const pct = g.target > 0 ? Math.min(100, (val / g.target) * 100) : 0;
+  const v = await vaultDelete({ title: "Delete goal?", sub: `${g.name} · ${pct.toFixed(0)}% of ${aud(g.target)}`,
+    lead: "Your transactions aren't affected.", options: [{ value: "goal" }] });
+  if (v) { deleteGoal(id); toast("Goal deleted"); }
+}
 function deleteGoal(id) {
   goalDeletedIds.add(id);              // tombstone, or sync resurrects it
   goals = goals.filter(g => g.id !== id);
@@ -13291,6 +13240,22 @@ function goalOpenPicker() {
   nat.style.pointerEvents = "none";
 }
 
+// v6.17.1: the date input sits over the icon, so a tap on iPhone opens the picker itself.
+// Seed it from the typed date first so it opens on the right month.
+function goalSeedPicker() {
+  const txt = document.getElementById("goal-deadline"), nat = document.getElementById("goal-deadline-native");
+  if (!txt || !nat) return;
+  const iso = goalParseDeadline(txt.value);
+  if (iso && nat.value !== iso) nat.value = iso;
+}
+// A mouse (or pen) click on a desktop browser doesn't always open a date input's picker,
+// so ask for it. A touch is left to the browser, which opens it from the tap.
+function goalNativeClick(e) {
+  if (!e || !e.pointerType || e.pointerType === "touch") return;
+  const nat = document.getElementById("goal-deadline-native");
+  goalSeedPicker();
+  try { if (typeof nat.showPicker === "function") nat.showPicker(); } catch {}
+}
 // A date chosen in the native picker flows back into the visible text field, which
 // stays the source of truth the rest of the form reads.
 function goalDeadlineFromPicker(nat) {
@@ -17955,14 +17920,6 @@ function popupSaveScoped() {
   else savePopup();
 }
 
-function togglePopupDeleteMenu() {
-  const menu = document.getElementById("popup-delete-menu");
-  if (!menu) return;
-  const isOpen = menu.style.display !== "none";
-  menu.style.display = isOpen ? "none" : "";
-  const btn = document.getElementById("popup-delete-toggle");
-  if (btn) btn.style.borderColor = isOpen ? "" : "var(--red)";
-}
 
 // Undo for deletes (U15). Only the deleted rows go back, so anything that happened
 // in between (a sync, a recurring post) is kept. A row whose ID was tombstoned comes
@@ -18153,37 +18110,55 @@ function openRuleFromPopup() {
 }
 
 // Delete the recurring rule (but keep existing transactions)
+// v6.18.0: Edit transaction › Delete opens the delete tray: this one, the series, or the rule
+// (keeping or deleting its transactions). Deleting one or the series still offers Undo.
+async function openTxDelete() {
+  if (popupIdx === null || !popupYear) return;
+  const tab = popupType === "saved" ? "saved" : "removed";
+  const tx = data[popupYear] && data[popupYear][tab] && data[popupYear][tab][popupIdx];
+  if (!tx) return;
+  const kind = tx[4] === "interest" ? "Interest" : tab === "saved" ? "Deposit" : "Withdrawal";
+  const sub = `${kind} · ${fmtDate(tx[0])} · ${fmtCurrency(+tx[1] || 0, getAccountCurrency(tx[6] || getDefaultAccountId()))}`;
+  const recurId = document.getElementById("tx-popup").dataset.recurId;
+  const rule = recurId ? recurRules.find(r => String(r.id) === String(recurId)) : null;
+  let v;
+  if (!rule) {
+    v = await vaultDelete({ title: "Delete transaction?", sub, lead: "You can undo it straight after.", options: [{ value: "one" }] });
+  } else {
+    const series = getTxByRecurId(recurId).length, n = recurRuleTxRows(rule).length;
+    const freq = (FREQ_LABELS[rule.freq] || rule.freq).toLowerCase();
+    v = await vaultDelete({
+      title: "Delete transaction?", sub,
+      lead: `It's part of a ${freq} rule that has added ${txCountLabel(n)}.`,
+      options: [
+        { value: "one", title: "Delete this transaction", sub: "You can undo it" },
+        { value: "series", title: series === 1 ? "Delete the 1 in this series" : `Delete all ${series} in this series`, sub: "Keeps the rule · you can undo it" },
+        { value: "rule", title: "Delete the rule, keep its transactions", sub: `The ${n === 1 ? "one" : n} already added stay${n === 1 ? "s" : ""} in your list` },
+        { value: "rule-all", title: `Delete the rule and its ${txCountLabel(n)}`, sub: "Can't be undone" },
+      ],
+    });
+  }
+  if (v === "one") deletePopup();
+  else if (v === "series") deletePopupAll();
+  else if (v === "rule") deleteRuleFromPopup();
+  else if (v === "rule-all") deleteRuleAndAllFromPopup();
+}
+
 function deleteRuleFromPopup() {
   const recurId = document.getElementById("tx-popup").dataset.recurId;
   if (!recurId) return;
-  recurRules = recurRules.filter(r => String(r.id) !== String(recurId));
-  saveRecurring();
   _popupFromHistoryIdx = null; // rule is gone — don't return to history
   closePopup();
-  render();
-  triggerCloudSync();
-  toast("Recurring rule deleted — existing transactions kept");
+  deleteRecurRule(recurId, false);
 }
 
 // Delete the recurring rule AND all its generated transactions
 function deleteRuleAndAllFromPopup() {
   const recurId = document.getElementById("tx-popup").dataset.recurId;
   if (!recurId) return;
-  const matches = getTxByRecurId(recurId);
-  matches.forEach(({ tx }) => { if (tx[2]) addTombstone(tx[2]); });
-  Object.keys(data).forEach(y => {
-    ["saved", "removed"].forEach(bucket => {
-      data[y][bucket] = data[y][bucket].filter(tx => !tx[5] || String(tx[5]) !== String(recurId));
-    });
-  });
-  recurRules = recurRules.filter(r => String(r.id) !== String(recurId));
-  saveRecurring();
-  pruneEmptyYears();
   _popupFromHistoryIdx = null; // rule is gone — don't return to history
   closePopup();
-  saveAndRender(null);
-  triggerCloudSync();
-  toast(`Rule and ${matches.length} transaction${matches.length !== 1 ? "s" : ""} deleted`, "error");
+  deleteRecurRule(recurId, true);
 }
 
 // close popup on backdrop click
@@ -19923,6 +19898,85 @@ function vaultDialogResolve(v) {
   const r = _vdResolve; _vdResolve = null;
   if (r) r(v);
 }
+// v6.18.0: vaultDelete({ title, sub, lead, options, ok }) -> Promise<value | null>
+// One tray for every delete (and disconnect). `options` are the ways to do it, each
+// { value, title, sub }: nothing is chosen until one is tapped, which only highlights it, and
+// only the red button does it. With one way (or none) there's nothing to choose, so the button
+// is ready straight away. Cancel, ✕, swipe, an outside tap, ‹ and Back resolve null.
+// After a choice the caller acts first, then the tray goes: back to the tray it was opened
+// from, or, if that tray went too (Edit transaction after its transaction is deleted), to the
+// nearest tray still open under it.
+let _delResolve = null, _delChoice = null;
+function vaultDelete({ title, sub = "", lead = "", options = [], ok = "Delete" } = {}) {
+  if (_delResolve) { const r = _delResolve; _delResolve = null; r(null); }
+  const el = document.getElementById("del-popup");
+  document.getElementById("del-title").textContent = title || "Delete?";
+  const subEl = document.getElementById("del-sub"); subEl.textContent = sub || ""; subEl.hidden = !sub;
+  const leadEl = document.getElementById("del-lead"); leadEl.textContent = lead || ""; leadEl.hidden = !lead;
+  const box = document.getElementById("del-opts"); box.innerHTML = "";
+  const many = options.length > 1;
+  _delChoice = many ? null : (options[0] ? options[0].value : true);
+  if (many) options.forEach(o => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "del-opt"; b.setAttribute("role", "radio"); b.setAttribute("aria-checked", "false");
+    b.innerHTML = `<span class="del-opt-text"><b></b>${o.sub ? "<small></small>" : ""}</span><span class="del-tick" aria-hidden="true"></span>`;
+    b.querySelector("b").textContent = o.title;
+    if (o.sub) b.querySelector("small").textContent = o.sub;
+    b.dataset.value = String(o.value);
+    b.onclick = () => delPick(b, o.value);
+    box.appendChild(b);
+  });
+  box.hidden = !many;
+  const okBtn = document.getElementById("del-ok");
+  okBtn.textContent = ok; okBtn.disabled = _delChoice === null;
+  el.classList.remove("hidden");
+  return new Promise(res => { _delResolve = res; });
+}
+function delPick(btn, value) {
+  _delChoice = value;
+  document.querySelectorAll("#del-opts .del-opt").forEach(b => b.setAttribute("aria-checked", b === btn ? "true" : "false"));
+  document.getElementById("del-ok").disabled = false;
+}
+function delConfirm() {
+  if (_delChoice === null || !_delResolve) return;
+  const r = _delResolve, v = _delChoice;
+  _delResolve = null; _delChoice = null;
+  const el = document.getElementById("del-popup"), parent = el._vpParent;
+  r(v);
+  // Let the caller act first (it may close the tray this was opened from)
+  setTimeout(() => {
+    el.classList.add("hidden");
+    if (parent && !vpTrayOpen(parent) && vpIsPhone() && !_vpClosingAll) {
+      let a = parent._vpParent;
+      while (a && !vpTrayOpen(a)) a = a._vpParent;
+      if (a) vpSlide(el, a, "pop");
+    }
+  }, 0);
+}
+function delCancel() {
+  const r = _delResolve;
+  _delResolve = null; _delChoice = null;
+  document.getElementById("del-popup").classList.add("hidden");
+  if (r) r(null);
+}
+
+// v6.18.0: Disconnect asks first, in the delete tray. Nothing is deleted: the data stays in the
+// app and the backup stays where it is. (The unlink functions themselves don't ask: they're
+// also used when a connection is cancelled part-way.)
+const UNLINK = {
+  gd:    { name: "Google Drive", title: "Disconnect Google Drive?", where: "the Vault file stays in your Drive", fn: () => unlinkGoogleDrive() },
+  nas:   { name: "Network location", title: "Disconnect the network location?", where: "the file stays on the network location", fn: () => unlinkNAS() },
+  local: { name: "Local file", title: "Disconnect the local file?", where: "the file stays where it is", fn: () => unlinkLocalFile() },
+};
+async function askUnlink(kind) {
+  const u = UNLINK[kind];
+  if (!u) return;
+  const v = await vaultDelete({ title: u.title,
+    lead: `Vault stops saving to it. Your data stays in the app and ${u.where}, so you can reconnect any time.`,
+    options: [{ value: kind }], ok: "Disconnect" });
+  if (v) await u.fn();
+}
+
 // vaultConfirm({ title, message, ok, danger }) -> Promise<boolean>
 function vaultConfirm({ title, message = "", ok = "OK", danger = false }) {
   if (_vdResolve) vaultDialogResolve(false);
@@ -20084,7 +20138,7 @@ function renderAIProviderCards() {
           <button class="ai-provider-btn primary" onclick="saveAIKey('${provider.id}')">Save key</button>
           <button class="ai-provider-btn" onclick="testAIConnection('${provider.id}')">Test</button>
           ${hasKey && isEnabled && !isDefault ? `<button class="ai-provider-btn" onclick="setDefaultAIProvider('${provider.id}')">Set as default</button>` : ""}
-          ${hasKey ? `<button class="ai-provider-btn" onclick="clearAIKey('${provider.id}')">Remove</button>` : ""}
+          ${hasKey ? `<button class="ai-provider-btn" onclick="askClearAIKey('${provider.id}')">Delete</button>` : ""}
         </div>
       </div>
     `;
@@ -20136,6 +20190,14 @@ async function saveAIKey(providerId) {
   triggerCloudSync();
 }
 
+// v6.18.0: the delete tray (the key went at once, with no way back)
+async function askClearAIKey(providerId) {
+  const prov = AI_PROVIDERS.find(p => p.id === providerId);
+  const name = prov ? prov.name : "this";
+  const v = await vaultDelete({ title: "Delete API key?", sub: prov ? `${prov.name}${prov.company ? " · " + prov.company : ""}` : "",
+    lead: `Vault will forget your ${name} key. You'll need to paste it again to import with ${name}.`, options: [{ value: "key" }] });
+  if (v) clearAIKey(providerId);
+}
 function clearAIKey(providerId) {
   setAIKey(providerId, "");
   // Stamp a fresh timestamp so cloud sync won't restore the old key
@@ -20148,7 +20210,7 @@ function clearAIKey(providerId) {
   renderAIProviderCards();
   updateAIMenuSubs();
   triggerCloudSync();
-  toast("API key removed");
+  toast("API key deleted");
 }
 
 function setDefaultAIProvider(providerId) {
@@ -20996,12 +21058,12 @@ const POPUP_CLOSE = {
   "rep-account-confirm-popup": () => document.getElementById("rep-acct-cancel-btn")?.click(),
   "vh-reset-popup": () => vhResetPopupClose(), "layout-modal": () => cancelLayoutModal(),
   "goals-modal": () => closeGoalsModal(), "accounts-modal": () => closeAccountsModal(),
-  "tx-currency-change-popup": () => cancelTxCurrencyChange(), "account-delete-popup": () => closeAccountDeletePopup(),
+  "tx-currency-change-popup": () => cancelTxCurrencyChange(),
   "currency-popup": () => closeCurrencyPopup(), "save-status-legend-popup": () => closeSaveStatusLegend(),
   "setup-modal": () => closeSetup(), "cloud-picker-popup": () => closeCloudPicker(), "tx-popup": () => closePopup(),
   "compat-info-popup": () => closeCompatInfo(), "recurring-modal": () => closeRecurringModal(),
   "add-recurring-popup": () => closeAddRecurringPopup(), "recur-edit-popup": () => closeRecurEditPopup(),
-  "recur-delete-popup": () => closeRecurDeletePopup(), "year-format-popup": () => closeYearFormatPopup(),
+  "del-popup": () => delCancel(), "year-format-popup": () => closeYearFormatPopup(),
   "enc-menu-popup": () => closeEncryptionMenu(), "currency-change-popup": () => cancelCurrencyChange(),
   "enc-set-popup": () => document.getElementById("enc-set-popup").classList.add("hidden"),
   "backup-switch-popup": () => resolveBackupSwitch(false),
@@ -21340,7 +21402,7 @@ function vpSlide(from, to, dir) {
     vpUnset(tb, VP_NAV_PROPS); tb.classList.remove("vp-nav"); fb.classList.remove("vp-nav");
     if (stayUnder) { vpUnset(fb, ["transition", "clip-path"]); from.dataset.vpUnder = "1"; }
     else vpUnset(fb, VP_NAV_PROPS);
-    pops.forEach(t => vpUnset(t, ["background", "transition"]));
+    pops.forEach(t => { vpSet(t, { transition: "none" }); vpUnset(t, ["background"]); void t.offsetHeight; vpUnset(t, ["transition"]); });   // v6.17.1: the dim comes back at once, no fade
     if (stayUnder) vpSet(to, { background: "transparent" });   // the tray under it already dims the page
     ghost.style.display = "none"; dim.style.display = "none";
     if (sov) sov.style.visibility = "";
@@ -21413,6 +21475,20 @@ function vpInnerSwap(outEl, inEl, dir, swap) {
 }
 
 // v6.16.4: fold a .vp-fold open or shut. `instant` skips the animation (while a tray opens).
+// v6.17.1: show (or, with "", fold away) a message line inside a tray. The text stays while it
+// folds away, so the line doesn't collapse before it moves. Instant while its tray is closed.
+function vpNote(el, msg, instant) {
+  if (typeof el === "string") el = document.getElementById(el);
+  if (!el) return;
+  let inner = el.querySelector(":scope > .vp-fold-in");
+  if (!inner) {
+    inner = document.createElement("div"); inner.className = "vp-fold-in";
+    while (el.firstChild) inner.appendChild(el.firstChild);
+    el.appendChild(inner); el.classList.add("vp-fold", "vp-note"); el.style.display = "";
+  }
+  if (msg) inner.textContent = msg;
+  vpFold(el, !!msg, instant || !popupIsOpen(el));
+}
 function vpFold(el, show, instant) {
   if (typeof el === "string") el = document.getElementById(el);
   if (!el) return;
@@ -22207,39 +22283,6 @@ function closeAddRecurringPopup() {
 }
 
 
-// Update the custom radio button styling in the delete-recurring popup.
-// val is "keep" or "remove" — highlights the selected option with the appropriate colour.
-function rdel_select(val) {
-  document.getElementById("rdel-keep").checked   = val === "keep";
-  document.getElementById("rdel-remove").checked = val === "remove";
-  const keepLabel   = document.getElementById("rdel-keep-label");
-  const removeLabel = document.getElementById("rdel-remove-label");
-  const keepDot     = document.getElementById("rdel-keep-dot");
-  const removeDot   = document.getElementById("rdel-remove-dot");
-  if (val === "keep") {
-    keepLabel.style.borderColor   = "var(--gold)";
-    keepLabel.style.color         = "var(--text-1)";
-    keepDot.style.borderColor     = "var(--gold)";
-    keepDot.style.background      = "var(--gold)";
-    keepDot.firstElementChild.style.background = "var(--accent-ink)";
-    removeLabel.style.borderColor = "var(--border)";
-    removeLabel.style.color       = "var(--text-2)";
-    removeDot.style.borderColor   = "var(--border)";
-    removeDot.style.background    = "transparent";
-    removeDot.firstElementChild.style.background = "transparent";
-  } else {
-    removeLabel.style.borderColor = "var(--red)";
-    removeLabel.style.color       = "var(--text-1)";
-    removeDot.style.borderColor   = "var(--red)";
-    removeDot.style.background    = "var(--red)";
-    removeDot.firstElementChild.style.background = "#fff";
-    keepLabel.style.borderColor   = "var(--border)";
-    keepLabel.style.color         = "var(--text-2)";
-    keepDot.style.borderColor     = "var(--border)";
-    keepDot.style.background      = "transparent";
-    keepDot.firstElementChild.style.background = "transparent";
-  }
-}
 
 
 // Render the list of existing recurring rules inside the modal
@@ -22500,25 +22543,69 @@ function closeRecurEditPopup() {
   document.body.style.overflow = "hidden"; // recurring modal still open
 }
 
-// Open the recurring rule delete confirmation popup for the rule at the given list index.
-function openRecurDeletePopup(idx) {
+// Recurring › Delete (v6.18.0): the delete tray, keep or delete the rule's transactions.
+function recurRuleLabel(rule) {
+  const cur = getAccountCurrency(rule.account || getDefaultAccountId());
+  return `${rule.type === "deposit" ? "Deposit" : "Withdrawal"} · ${FREQ_LABELS[rule.freq] || rule.freq} · ${fmtCurrency(rule.amount, cur)}`;
+}
+function recurRuleTxRows(rule) {
+  const id = String(rule.id), bucket = rule.type === "deposit" ? "saved" : "removed";
+  const ruleAcc = rule.account || getDefaultAccountId();
+  const rows = [];
+  Object.keys(data).forEach(y => ["saved", "removed"].forEach(b => (data[y][b] || []).forEach(tx => {
+    if (tx[5] && String(tx[5]) === id) rows.push(tx);
+    else if (!tx[5] && b === bucket && tx[0] >= rule.startDate && (!rule.endDate || tx[0] <= rule.endDate)
+             && Math.abs((+tx[1] || 0) - rule.amount) < 0.001 && (tx[6] || getDefaultAccountId()) === ruleAcc) rows.push(tx);
+  })));
+  return rows;
+}
+function txCountLabel(n) { return `${n} transaction${n !== 1 ? "s" : ""}`; }
+function recurDeleteOptions(rule) {
+  const n = recurRuleTxRows(rule).length;
+  if (!n) return { lead: "It hasn't added any transactions yet.", options: [{ value: "keep" }] };
+  return {
+    lead: `It has added ${txCountLabel(n)} so far.`,
+    options: [
+      { value: "keep", title: "Delete the rule, keep its transactions", sub: `The ${n === 1 ? "one" : n} already added stay${n === 1 ? "s" : ""} in your list` },
+      { value: "remove", title: `Delete the rule and its ${txCountLabel(n)}`, sub: "Can't be undone" },
+    ],
+  };
+}
+async function openRecurDeletePopup(idx) {
   const rule = recurRules[idx];
   if (!rule) return;
-  _recurPopupIdx = idx;
-  const isDeposit = rule.type === "deposit";
-  document.getElementById("rdel-title").textContent =
-    `${isDeposit ? "Deposit" : "Withdrawal"} · ${FREQ_LABELS[rule.freq] || rule.freq} · ${aud(rule.amount)}`;
-  // Reset radio to default (keep)
-  rdel_select("keep");
-  document.getElementById("recur-delete-popup").classList.remove("hidden");
-  document.body.style.overflow = "hidden";
+  const { lead, options } = recurDeleteOptions(rule);
+  const v = await vaultDelete({ title: "Delete recurring rule?", sub: recurRuleLabel(rule), lead, options });
+  if (v) deleteRecurRule(rule.id, v === "remove");
+}
+// Delete a rule, and with removeTx every transaction it added. Returns how many went.
+function deleteRecurRule(ruleId, removeTx) {
+  const idx = recurRules.findIndex(r => String(r.id) === String(ruleId));
+  if (idx < 0) return 0;
+  const rule = recurRules[idx];
+  let removed = 0;
+  if (removeTx) {
+    const kill = new Set(recurRuleTxRows(rule));
+    kill.forEach(tx => { if (tx[2]) addTombstone(tx[2]); });
+    Object.keys(data).forEach(y => ["saved", "removed"].forEach(b => {
+      data[y][b] = (data[y][b] || []).filter(tx => !kill.has(tx));
+    }));
+    removed = kill.size;
+    pruneEmptyYears();
+  }
+  recurDeletedIds.add(String(rule.id));   // so a sync can't bring it back
+  recurRules.splice(idx, 1);
+  if (_recurPopupIdx !== null && _recurPopupIdx >= idx) _recurPopupIdx = null;
+  saveRecurring();
+  updateRecurMenuSub();
+  if (popupIsOpen(document.getElementById("recurring-modal"))) renderRecurList();
+  saveAndRender(null);
+  triggerCloudSync();
+  if (removeTx) toast(`Rule and ${txCountLabel(removed)} deleted`, "error");
+  else toast("Recurring rule deleted · transactions kept");
+  return removed;
 }
 
-function closeRecurDeletePopup() {
-  document.getElementById("recur-delete-popup").classList.add("hidden");
-  _recurPopupIdx = null;
-  document.body.style.overflow = "hidden"; // recurring modal still open
-}
 
 // Save edits from the recurring rule edit popup and update the rule in place.
 function saveRecurEditPopup() {
@@ -22626,34 +22713,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// Confirm deletion of the recurring rule currently shown in the delete popup.
-// Records the rule's ID in recurDeletedIds to prevent it being re-added during sync,
-// and optionally removes all previously posted transactions that match the rule.
-function confirmDeleteRecurRule() {
-  const idx  = _recurPopupIdx;
-  const rule = recurRules[idx];
-  if (!rule) return;
-  const mode = document.getElementById("rdel-remove")?.checked ? "remove" : "keep";
-  if (mode === "remove") {
-    const ruleType = rule.type === "deposit" ? "saved" : "removed";
-    const ruleAmt  = rule.amount;
-    const start    = rule.startDate;
-    Object.keys(data).forEach(fy => {
-      data[fy][ruleType] = data[fy][ruleType].filter(([d, a]) =>
-        !(d >= start && Math.abs(a - ruleAmt) < 0.001)
-      );
-    });
-    saveAndRender(null);
-  }
-  recurDeletedIds.add(String(rule.id));
-  recurRules.splice(idx, 1);
-  saveRecurring();
-  triggerCloudSync();
-  updateRecurMenuSub();
-  closeRecurDeletePopup();
-  renderRecurList();
-  toast("Recurring rule deleted");
-}
 
 // Create a new recurring rule from the modal form, then immediately process it
 // in case its first occurrence is today or already past.
@@ -23135,7 +23194,7 @@ navInit();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.17.0</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.18.0</div>
         </div>
 
         <div class="pp-cards">
@@ -23247,7 +23306,7 @@ navInit();
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v6.17.0</div>
+  <div id="version-footer">v6.18.0</div>
 
 </body>
 </html>
