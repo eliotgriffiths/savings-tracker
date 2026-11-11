@@ -1662,5 +1662,41 @@
       "Tapping a date in Recurring history opens it straight away, and ‹ comes back to the history",
       "Accounts and Goals open from the Menu without a pause"
     ]
+  },
+  {
+    "tag": "v6.17.1",
+    "sha": "c7a966c7269a1b4714cf1df5adbd430ab4e13b56",
+    "commits": [
+      "c7a966c"
+    ],
+    "date": "2026-11-11",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "notes": [
+      "On a phone, trays slide up solid when they open, and only the background darkens. They used to fade in as they rose",
+      "What each status means in Backup status, the New goal and New account forms, and error messages fold open smoothly instead of jumping",
+      "Goals › Target date: tapping the calendar opens the date picker on iPhone"
+    ],
+    "versioned_at_release": true
+  },
+  {
+    "tag": "v6.18.0",
+    "sha": "4beb8ace965c40c5eea3100a5658e242308da61e",
+    "commits": [
+      "4beb8ac"
+    ],
+    "date": "2026-11-11",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": null,
+    "notes": [
+      "Every delete now asks in the same tray: tap how you want to delete it, then Delete. Cancel, ✕, swiping down or tapping outside keeps everything",
+      "Edit transaction's Delete shows every option in that tray: this transaction, the series, or the recurring rule with or without its transactions",
+      "Deleting an account offers each account to move its transactions to, or deleting them with it",
+      "Deleting a goal or an AI key, and disconnecting Google Drive, a network location or the local file, now ask first",
+      "A recurring rule deleted from Edit transaction no longer comes back after a sync, and deleting a rule's transactions removes only the ones it added"
+    ],
+    "versioned_at_release": true
   }
 ]

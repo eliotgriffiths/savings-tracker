@@ -10,6 +10,24 @@ Version numbers follow [Semantic Versioning](https://semver.org/) and were assig
 
 The first release is v1.0.0. A major bump resets minor and patch to 0, a minor bump resets patch to 0, and patch rolls over into the next minor after .99. Types marked \* are judgement calls, explained in [Notes](#notes) at the end.
 
+## v6.18.0 — 2026-11-11
+
+Minor · `4beb8ac`
+
+- Every delete now asks in the same tray: tap how you want to delete it, then Delete. Cancel, ✕, swiping down or tapping outside keeps everything
+- Edit transaction's Delete shows every option in that tray: this transaction, the series, or the recurring rule with or without its transactions
+- Deleting an account offers each account to move its transactions to, or deleting them with it
+- Deleting a goal or an AI key, and disconnecting Google Drive, a network location or the local file, now ask first
+- A recurring rule deleted from Edit transaction no longer comes back after a sync, and deleting a rule's transactions removes only the ones it added
+
+## v6.17.1 — 2026-11-11
+
+Patch · `c7a966c`
+
+- On a phone, trays slide up solid when they open, and only the background darkens. They used to fade in as they rose
+- What each status means in Backup status, the New goal and New account forms, and error messages fold open smoothly instead of jumping
+- Goals › Target date: tapping the calendar opens the date picker on iPhone
+
 ## v6.17.0 — 2026-11-09
 
 Minor · `4fa9682`
