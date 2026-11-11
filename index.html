@@ -625,6 +625,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     transition: background 0.15s, color 0.15s;
   }
   .popup-scope-btn:last-child { border-right: none; }
+  /* v6.18.1: a heading above, like Account and Date, and the buttons alone in the row under it */
+  .popup-seg { display: flex; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .popup-seg .popup-scope-btn { height: 40px; font-size: 13px; }
   .popup-scope-btn:hover { background: var(--bg4); color: var(--text-1); }
   .popup-scope-btn.active { background: var(--gold); color: var(--accent-ink); font-weight: 700; }
   .popup-scope-btn.active:hover { opacity: 0.9; }
@@ -5150,11 +5153,13 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <div class="tx-popup-meta" id="popup-meta"></div>
     <!-- Type can be changed here (U17). Hidden for transactions a recurring rule
          posted: their type follows the rule. -->
-    <div class="popup-scope-row" id="popup-type-row" style="margin-top:12px;">
-      <span class="popup-scope-label">Type</span>
-      <button class="popup-scope-btn" data-ptype="deposit" onclick="popupSetType('deposit')">Deposit</button>
-      <button class="popup-scope-btn" data-ptype="interest" onclick="popupSetType('interest')">Interest</button>
-      <button class="popup-scope-btn" data-ptype="withdraw" onclick="popupSetType('withdraw')">Withdrawal</button>
+    <div class="tx-popup-field popup-seg-field" id="popup-type-row" style="margin-top:12px;">
+      <label id="popup-type-label">Type</label>
+      <div class="popup-seg" role="group" aria-labelledby="popup-type-label">
+        <button class="popup-scope-btn" data-ptype="deposit" onclick="popupSetType('deposit')">Deposit</button>
+        <button class="popup-scope-btn" data-ptype="interest" onclick="popupSetType('interest')">Interest</button>
+        <button class="popup-scope-btn" data-ptype="withdraw" onclick="popupSetType('withdraw')">Withdrawal</button>
+      </div>
     </div>
 
     <!-- Recurring pill — tappable, opens the rule manager -->
@@ -5204,10 +5209,12 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <div id="popup-currency-info" style="font-size:11px; color:var(--text-3); margin-bottom:14px; line-height:1.6; display:none;"></div>
 
     <!-- Save scope toggle — only shown for recurring transactions -->
-    <div id="popup-scope-row" class="popup-scope-row" style="display:none;">
-      <span class="popup-scope-label">Save</span>
-      <button class="popup-scope-btn active" id="popup-scope-this" onclick="popupSetScope('this')">This only</button>
-      <button class="popup-scope-btn" id="popup-scope-all" onclick="popupSetScope('all')">All in series</button>
+    <div id="popup-scope-row" class="tx-popup-field popup-seg-field" style="display:none;">
+      <label id="popup-scope-label">Save changes to</label>
+      <div class="popup-seg" role="group" aria-labelledby="popup-scope-label">
+        <button class="popup-scope-btn active" id="popup-scope-this" onclick="popupSetScope('this')">This only</button>
+        <button class="popup-scope-btn" id="popup-scope-all" onclick="popupSetScope('all')">All in series</button>
+      </div>
     </div>
 
     <!-- Primary actions -->
@@ -23189,7 +23196,7 @@ navInit();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.18.1</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.18.2</div>
         </div>
 
         <div class="pp-cards">
@@ -23301,7 +23308,7 @@ navInit();
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v6.18.1</div>
+  <div id="version-footer">v6.18.2</div>
 
 </body>
 </html>
