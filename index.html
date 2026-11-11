@@ -221,11 +221,12 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   #ss-now-btns { flex-wrap: wrap; }
   #ss-now-btns .pbtn { flex: 1 1 0; white-space: nowrap; padding-left: 10px; padding-right: 10px; }
   #ss-now-btns .pbtn-primary { flex: 1 1 100%; }   /* the fix gets the full width; Done and alternatives share the row below */
-  .ss-legend-fold summary { cursor: pointer; font-size: 12px; color: var(--text-3); padding: 4px 2px; list-style: none; }
-  .ss-legend-fold summary::-webkit-details-marker { display: none; }
-  .ss-legend-fold summary::after { content: " ›"; }
-  .ss-legend-fold[open] summary::after { content: " ⌄"; }
-  .ss-legend-fold[open] summary { margin-bottom: 6px; }
+  /* v6.17.1: a button and a fold, not a <details> (that snapped the tray open in one frame) */
+  .ss-legend-sum { display: block; cursor: pointer; font-size: 12px; color: var(--text-3); padding: 6px 2px; background: none; border: 0;
+    font-family: 'DM Sans', sans-serif; text-align: left; }
+  .ss-legend-sum::after { content: " ›"; }
+  .ss-legend-sum[aria-expanded="true"]::after { content: " ⌄"; }
+  #ss-legend-body > .vp-fold-in > div { padding-top: 6px; }
   @keyframes ss-pulse-dot {
     0%,100% { opacity: 1; transform: scale(1); }
     50%      { opacity: 0.4; transform: scale(0.75); }
@@ -893,7 +894,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     font-family: 'DM Sans', sans-serif; cursor: pointer; transition: opacity 0.15s;
   }
   #goal-add-btn:hover { opacity: 0.88; }
-  #goal-form { display: none; margin-top: 14px; padding: 16px; background: var(--bg3);
+  #goal-form { margin-top: 14px; padding: 16px; background: var(--bg3);
     border: 1px solid var(--border-hi); border-radius: var(--radius-lg); }
   .goal-form-heading { font-size: 13px; color: var(--text-1); font-weight: 600; margin-bottom: 14px; }
   .goal-field-label { display: block; font-size: 11px; color: var(--text-3); font-weight: 500;
@@ -916,7 +917,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   #goal-form .goal-date-wrap.invalid #goal-deadline { border-color: var(--red); background: color-mix(in srgb, var(--out) 7%, transparent); }
   #goal-form .goal-input.invalid:focus,
   #goal-form .goal-date-wrap.invalid #goal-deadline:focus { border-color: var(--red); }
-  .goal-field-err { display: none; font-size: 11.5px; color: var(--red); line-height: 1.4; margin: -10px 0 12px; }
+  .goal-field-err { font-size: 11.5px; color: var(--red); line-height: 1.4; margin: -10px 0 12px; }
   /* iOS Safari sizes an empty date input to its content and ignores width:100%
      until it has a value. min-width + the flourishes below force it to fill. */
   .goal-date-wrap { position: relative; margin-bottom: 14px; }
@@ -925,9 +926,13 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
      provide the picker; the button is a visible affordance that triggers it. */
   .goal-date-wrap #goal-deadline { margin-bottom: 0; padding-right: 42px; }
   .goal-date-wrap #goal-deadline-native {
-    position: absolute; inset: 0; opacity: 0; border: none; padding: 0; margin: 0;
-    width: 100%; height: 100%; pointer-events: none;
+    position: absolute; top: 0; right: 0; left: auto; bottom: auto; opacity: 0; border: none; padding: 0; margin: 0;
+    width: 42px; height: 100%; min-width: 0; z-index: 2; cursor: pointer; color-scheme: dark;
+    -webkit-appearance: none; appearance: none; background: transparent; font-size: 16px;
   }
+  .goal-date-wrap #goal-deadline-native::-webkit-calendar-picker-indicator { position: absolute; inset: 0; width: auto; height: auto; opacity: 0; cursor: pointer; }
+  .goal-date-wrap .goal-date-cal { pointer-events: none; }
+  .goal-date-wrap:hover .goal-date-cal { color: var(--gold); }
   .goal-date-cal {
     position: absolute; top: 0; right: 0; height: 100%; width: 42px;
     display: flex; align-items: center; justify-content: center;
@@ -939,7 +944,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .goal-since-text { flex: 1; min-width: 0; }
   .goal-since-label { font-size: 13px; color: var(--text-1); font-weight: 500; }
   .goal-since-hint { font-size: 11px; color: var(--text-3); margin-top: 3px; line-height: 1.4; }
-  .goal-form-err { display: none; font-size: 12px; color: var(--red); margin-bottom: 10px; }
+  .goal-form-err { font-size: 12px; color: var(--red); margin-bottom: 10px; }
   .goal-form-actions { display: flex; gap: 8px; }
   .goal-btn-save {
     flex: 1; background: var(--gold); border: none; border-radius: var(--radius);
@@ -2813,6 +2818,13 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   .vp-fold.folded { grid-template-rows: 0fr; opacity: 0; visibility: hidden;
     transition: grid-template-rows 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.14s ease-out, visibility 0s linear 0.26s; }
   @media (prefers-reduced-motion: reduce) { .vp-fold, .vp-fold.folded { transition: none; } }
+  /* v6.17.1: a message line that folds (vpNote). Its margins fold with it. */
+  .vp-note { transition: grid-template-rows 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease-out 0.04s, visibility 0s,
+    margin 0.26s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .vp-note.folded { margin-top: 0 !important; margin-bottom: 0 !important;
+    transition: grid-template-rows 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.14s ease-out, visibility 0s linear 0.26s,
+      margin 0.26s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  @media (prefers-reduced-motion: reduce) { .vp-note, .vp-note.folded { transition: none; } }
   /* v6.16.4: one title size for the phone's screens (Home, Transactions, Search) */
   @media (max-width: 640px) {
     .fy-title, .as-title, #home-panel .vh-home-title { font-size: 22px; line-height: 1.2; }
@@ -2846,6 +2858,19 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     .pop-anim.vp:not(.vp-alert):not(.hidden) .vp-panel { animation: none !important;
       transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) !important; }
     .pop-anim.vp:not(.vp-alert):not(.hidden) .vp-panel.vp-drag { transition: none !important; }
+  }
+  /* v6.17.1: on a phone a tray's dim is its own overlay, and the overlay used to fade as a whole,
+     so the tray faded in as it rose (a quarter of the way up it was 12 % visible) and faded out
+     as it dropped. Now the overlay shows at once and stays shown until the tray has slid away;
+     only its dim (the background) fades, on the sheets' timing. The tray itself is solid, like
+     the Menu. Hidden still means opacity 0, which tray moves (vpSlide) rely on. */
+  @media (max-width: 640px) {
+    .pop-anim.vp:not(.vp-alert) { transition: opacity 0s, visibility 0s, background-color 0.26s ease !important; }
+    .pop-anim.vp:not(.vp-alert).hidden { background-color: transparent !important;
+      transition: background-color 0.26s ease, opacity 0s linear 0.26s, visibility 0s linear 0.26s !important; }
+  }
+  @media (max-width: 640px) and (prefers-reduced-motion: reduce) {
+    .pop-anim.vp:not(.vp-alert), .pop-anim.vp:not(.vp-alert).hidden { transition: none !important; }
   }
   /* v6.16.5: ‹ back to the tray this one was opened from, left of the title */
   .vp-back { width: 34px; height: 34px; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
@@ -5586,17 +5611,18 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <p class="modal-desc">Set a savings target for one account or the whole vault. Progress and pace are worked out from your transactions.</p>
     <div id="goals-list" style="margin-bottom:16px;"></div>
     <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:4px;">
-      <button id="goal-add-btn" onclick="openGoalForm()">+ Add goal</button>
+      <div class="vp-fold" id="goal-add-fold"><div class="vp-fold-in"><button id="goal-add-btn" onclick="openGoalForm()">+ Add goal</button></div></div>
+      <div class="vp-fold folded" id="goal-form-fold"><div class="vp-fold-in">
       <div id="goal-form">
         <div id="goal-form-title" class="goal-form-heading">New goal</div>
         <label class="goal-field-label">Name</label>
         <input type="text" id="goal-name" class="goal-input" maxlength="40" placeholder="e.g. Emergency fund"
           oninput="goalClearFieldError(this)">
-        <div id="goal-name-err" class="goal-field-err"></div>
+        <div id="goal-name-err" class="goal-field-err vp-fold vp-note folded"><div class="vp-fold-in"></div></div>
         <label class="goal-field-label">Target amount</label>
         <input type="number" id="goal-target" class="goal-input" min="0" step="0.01" inputmode="decimal" placeholder="10000"
           oninput="goalClearFieldError(this)">
-        <div id="goal-target-err" class="goal-field-err"></div>
+        <div id="goal-target-err" class="goal-field-err vp-fold vp-note folded"><div class="vp-fold-in"></div></div>
         <label class="goal-field-label">Applies to</label>
         <select id="goal-account" class="goal-input"></select>
         <label class="goal-field-label">Target date <span style="opacity:0.6;">&middot; optional</span></label>
@@ -5605,7 +5631,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
             placeholder="YYYY-MM-DD" maxlength="10" autocomplete="off"
             oninput="goalDeadlineFormat(this); goalClearFieldError(this)">
           <input type="date" id="goal-deadline-native" tabindex="-1" aria-hidden="true"
-            onchange="goalDeadlineFromPicker(this)">
+            onpointerdown="goalSeedPicker()" ontouchstart="goalSeedPicker()" onfocus="goalSeedPicker()"
+            onclick="goalNativeClick(event)" onchange="goalDeadlineFromPicker(this)">
           <button type="button" class="goal-date-cal" tabindex="-1" aria-label="Open calendar"
             onclick="goalOpenPicker()">
             <svg width="17" height="17" viewBox="0 0 16 16" fill="none">
@@ -5616,7 +5643,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
             </svg>
           </button>
         </div>
-        <div id="goal-deadline-err" class="goal-field-err"></div>
+        <div id="goal-deadline-err" class="goal-field-err vp-fold vp-note folded"><div class="vp-fold-in"></div></div>
         <div class="goal-since-row">
           <div class="goal-since-text">
             <div class="goal-since-label">Count from today</div>
@@ -5625,12 +5652,12 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <span class="layout-toggle" id="goal-since-toggle" role="switch" aria-checked="false"
             onclick="goalToggleSince(this)"></span>
         </div>
-        <div id="goal-form-err" class="goal-form-err"></div>
+        <div id="goal-form-err" class="goal-form-err vp-fold vp-note folded"><div class="vp-fold-in"></div></div>
         <div class="goal-form-actions">
           <button class="goal-btn-save" onclick="saveGoalForm()">Save</button>
           <button class="goal-btn-cancel" onclick="closeGoalForm()">Cancel</button>
         </div>
-      </div>
+      </div></div></div>
     </div>
   </div>
 </div>
@@ -5644,8 +5671,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     <p class="modal-desc">Organise your transactions into separate savings accounts. Each transaction can be assigned to one account.</p>
     <div id="accounts-list" style="margin-bottom:16px;"></div>
     <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:4px; flex-shrink:0;">
-      <button id="account-add-btn" onclick="openAddAccountForm()">+ Add account</button>
-      <div id="account-add-form" style="display:none; margin-top:12px; padding:14px; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius);">
+      <div class="vp-fold" id="account-add-btn-fold"><div class="vp-fold-in"><button id="account-add-btn" onclick="openAddAccountForm()">+ Add account</button></div></div>
+      <div class="vp-fold folded" id="account-add-fold"><div class="vp-fold-in">
+      <div id="account-add-form" style="margin-top:12px; padding:14px; background:var(--bg3); border:1px solid var(--border-hi); border-radius:var(--radius);">
         <div style="font-size:12px; color:var(--text-3); margin-bottom:10px; font-weight:500;">New account</div>
         <input type="text" id="account-new-name" maxlength="32" placeholder="Account name"
           style="width:100%; background:var(--bg2); border:1px solid var(--border-hi); border-radius:var(--radius); padding:13px 14px; color:var(--text-1); font-size:16px; font-family:'DM Sans',sans-serif; outline:none; box-sizing:border-box; margin-bottom:12px;"
@@ -5656,6 +5684,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <button class="pbtn pbtn-secondary" onclick="cancelAddAccount()">Cancel</button>
         </div>
       </div>
+      </div></div>
     </div>
   </div>
 </div>
@@ -5729,8 +5758,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
     <div id="ss-now" class="ss-now"></div>
 
-    <details class="ss-legend-fold" id="ss-legend-fold">
-    <summary>What each status means</summary>
+    <div class="ss-legend-fold" id="ss-legend-fold">
+    <button type="button" class="ss-legend-sum" id="ss-legend-sum" aria-expanded="false" aria-controls="ss-legend-body" onclick="ssLegendToggle()">What each status means</button>
+    <div class="vp-fold folded" id="ss-legend-body"><div class="vp-fold-in">
     <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:6px;">
       <div style="font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--in); padding:6px 2px 4px;">All good</div>
       <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:color-mix(in srgb, var(--in) 6%, transparent); border:1px solid color-mix(in srgb, var(--in) 15%, transparent); border-radius:8px;">
@@ -5793,7 +5823,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
         <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Backup write failed. Check your backup source in Menu → Save &amp; backup.</span>
       </div>
     </div>
-    </details>
+    </div></div>
+    </div>
 
     <div class="pbtn-row" id="ss-now-btns" style="margin-top:14px;"></div>
   </div>
@@ -5932,7 +5963,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       <input type="password" id="enc-set-confirm" placeholder="Repeat password" autocomplete="new-password"
              onkeydown="if(event.key==='Enter')encSetSubmit()">
     </div>
-    <div id="enc-set-error" style="display:none; font-size:12px; color:var(--red); margin-bottom:12px;"></div>
+    <div id="enc-set-error" class="vp-fold vp-note folded" style="font-size:12px; color:var(--red); margin-bottom:12px;"><div class="vp-fold-in"></div></div>
     <div style="background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; margin-bottom:16px; font-size:12px; color:var(--text-3); line-height:1.7;">
       A <strong style="color:var(--text-2);">vault-recovery.json</strong> file will be downloaded automatically. Store it somewhere safe — it can unlock your backup if you forget your password.
     </div>
@@ -5955,7 +5986,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       <label>Password</label>
       <input type="password" id="enc-decrypt-pass" placeholder="Your Vault password" autocomplete="current-password">
     </div>
-    <div id="enc-decrypt-error" style="display:none; font-size:12px; color:var(--red); margin-bottom:12px;"></div>
+    <div id="enc-decrypt-error" class="vp-fold vp-note folded" style="font-size:12px; color:var(--red); margin-bottom:12px;"><div class="vp-fold-in"></div></div>
     <div class="modal-actions" style="gap:8px; margin-bottom:16px;">
       <button class="pbtn pbtn-primary" style="flex:2;" id="enc-decrypt-btn">Unlock</button>
       <button class="pbtn pbtn-secondary" style="flex:1;" id="enc-decrypt-cancel">Cancel</button>
@@ -8544,7 +8575,7 @@ function openAccountsModal() {
 function closeAccountsModal() {
   document.getElementById("accounts-modal").classList.add("hidden");
   document.body.style.overflow = "";
-  cancelAddAccount();
+  cancelAddAccount(true);
 }
 
 // Tracks which account's inline colour-picker strip is currently open.
@@ -8746,17 +8777,15 @@ function startRenameAccount(id) {
 
 // Add account form interactions
 function openAddAccountForm() {
-  document.getElementById("account-add-form").style.display = "";
-  document.getElementById("account-add-btn").style.display = "none";
+  vpFold("account-add-fold", true);        // v6.17.1: folds in
+  vpFold("account-add-btn-fold", false);
   buildColorPicker();
   setTimeout(() => document.getElementById("account-new-name").focus(), 50);
 }
 
-function cancelAddAccount() {
-  const f = document.getElementById("account-add-form");
-  const b = document.getElementById("account-add-btn");
-  if (f) f.style.display = "none";
-  if (b) b.style.display = "";
+function cancelAddAccount(instant) {
+  vpFold("account-add-fold", false, instant);
+  vpFold("account-add-btn-fold", true, instant);
   const inp = document.getElementById("account-new-name");
   if (inp) inp.value = "";
   _accountNewColor = ACCOUNT_COLORS[0];
@@ -9233,14 +9262,13 @@ function promptAndDecrypt(encryptedText) {
     const passInput  = document.getElementById("enc-decrypt-pass");
     const errEl      = document.getElementById("enc-decrypt-error");
     const fileInput  = document.getElementById("enc-recovery-file");
-    passInput.value = ""; errEl.style.display = "none";
+    passInput.value = ""; vpNote(errEl, "", true);
     popup.classList.remove("hidden");
     setTimeout(() => passInput.focus(), 80);
 
     async function tryPassword() {
       const pw = passInput.value;
-      if (!pw) { errEl.textContent = "Please enter your password."; errEl.style.display = "block"; return; }
-      errEl.style.display = "none";
+      if (!pw) { vpNote(errEl, "Please enter your password."); return; }
       const result = await tryDecryptWithPassword(encryptedText, pw);
       if (result) {
         // Correct password — store the key in memory for future saves
@@ -9255,14 +9283,13 @@ function promptAndDecrypt(encryptedText) {
         cleanup();
         resolve(result);
       } else {
-        errEl.textContent = "Incorrect password. Try again, or use your recovery key.";
-        errEl.style.display = "block";
+        vpNote(errEl, "Incorrect password. Try again, or use your recovery key.");
       }
     }
 
     async function tryRecovery() {
       const file = fileInput.files && fileInput.files[0];
-      if (!file) { errEl.textContent = "Please select your vault-recovery.json file."; errEl.style.display = "block"; return; }
+      if (!file) { vpNote(errEl, "Please select your vault-recovery.json file."); return; }
       try {
         const text = await file.text();
         const obj  = JSON.parse(text);
@@ -9283,8 +9310,7 @@ function promptAndDecrypt(encryptedText) {
         toast("Recovery successful — encryption disabled. Re-enable with a new password from Menu → Settings → Encryption", "notice");
         resolve(result);
       } catch (e) {
-        errEl.textContent = "That recovery file didn't work. Check it's the right vault-recovery.json.";
-        errEl.style.display = "block";
+        vpNote(errEl, "That recovery file didn't work. Check it's the right vault-recovery.json.");
       }
     }
 
@@ -9360,8 +9386,15 @@ function renderSaveStatusNow() {
   if (n.btn) add("pbtn-primary", n.btn);
   if (n.alt) add("pbtn-secondary", n.alt);
   add("pbtn-secondary", ["Done", closeSaveStatusLegend]);
-  const fold = document.getElementById("ss-legend-fold");
-  if (fold) fold.open = false;
+  ssLegendToggle(false, true);
+}
+// v6.17.1: the legend folds open and shut (it was a <details> that jumped)
+function ssLegendToggle(show, instant) {
+  const body = document.getElementById("ss-legend-body"), sum = document.getElementById("ss-legend-sum");
+  if (!body || !sum) return;
+  const open = show === undefined ? body.classList.contains("folded") : !!show;
+  sum.setAttribute("aria-expanded", open ? "true" : "false");
+  vpFold(body, open, instant);
 }
 function openSaveStatusLegend() {
   renderSaveStatusNow();
@@ -10444,7 +10477,7 @@ function updateEncUI() {
 function openEncPasswordPopup() {
   document.getElementById("enc-set-pass").value    = "";
   document.getElementById("enc-set-confirm").value = "";
-  document.getElementById("enc-set-error").style.display = "none";
+  vpNote("enc-set-error", "", true);
   document.getElementById("enc-set-popup").classList.remove("hidden");
   setTimeout(() => document.getElementById("enc-set-pass").focus(), 80);
 }
@@ -10454,12 +10487,11 @@ async function encSetSubmit() {
   const p1  = document.getElementById("enc-set-pass").value;
   const p2  = document.getElementById("enc-set-confirm").value;
   const err = document.getElementById("enc-set-error");
-  err.style.display = "none";
-  if (!p1)       { err.textContent = "Please enter a password."; err.style.display = "block"; return; }
-  if (p1 !== p2) { err.textContent = "Passwords don't match.";   err.style.display = "block"; return; }
-  if (p1.length < 8) { err.textContent = "Password must be at least 8 characters."; err.style.display = "block"; return; }
+  if (!p1)       { vpNote(err, "Please enter a password."); return; }
+  if (p1 !== p2) { vpNote(err, "Passwords don't match."); return; }
+  if (p1.length < 8) { vpNote(err, "Password must be at least 8 characters."); return; }
   const ok = await enablePasswordEncryption(p1);
-  if (!ok) { err.textContent = "Encryption unavailable (requires HTTPS)."; err.style.display = "block"; return; }
+  if (!ok) { vpNote(err, "Encryption unavailable (requires HTTPS)."); return; }
   document.getElementById("enc-set-popup").classList.add("hidden");
   triggerCloudSync();
   updateEncUI();
@@ -13070,11 +13102,11 @@ function openGoalsModal(editId) {
   document.getElementById("goals-modal")?.classList.remove("hidden");
   _goalConfirmId = null;
   renderGoalsList();
-  if (editId) openGoalForm(editId); else closeGoalForm();
+  if (editId) openGoalForm(editId, true); else closeGoalForm(true);
 }
 function closeGoalsModal() {
   document.getElementById("goals-modal")?.classList.add("hidden");
-  closeGoalForm();
+  closeGoalForm(true);
   _goalConfirmId = null;
 }
 
@@ -13151,7 +13183,7 @@ function goalClearFieldError(el) {
   el.classList.remove("invalid");
   el.closest(".goal-date-wrap")?.classList.remove("invalid");
   const box = document.getElementById(el.id + "-err");
-  if (box) { box.textContent = ""; box.style.display = "none"; }
+  if (box) vpNote(box, "");
 }
 function goalFieldError(id, msg) {
   const el = document.getElementById(id);
@@ -13160,16 +13192,16 @@ function goalFieldError(id, msg) {
     el.closest(".goal-date-wrap")?.classList.add("invalid");
   }
   const box = document.getElementById(id + "-err");
-  if (box) { box.textContent = msg; box.style.display = "block"; }
+  if (box) vpNote(box, msg);
 }
 function goalClearErrors() {
   ["goal-name", "goal-target", "goal-deadline"].forEach(id =>
     goalClearFieldError(document.getElementById(id)));
   const err = document.getElementById("goal-form-err");
-  if (err) { err.textContent = ""; err.style.display = "none"; }
+  if (err) vpNote(err, "");
 }
 
-function openGoalForm(editId) {
+function openGoalForm(editId, instant) {
   _goalEditId = editId || null;
   const g = editId ? goals.find(x => x.id === editId) : null;
   const sel = document.getElementById("goal-account");
@@ -13192,16 +13224,13 @@ function openGoalForm(editId) {
   goalSinceHint();
   goalClearErrors();
   document.getElementById("goal-form-title").textContent = g ? "Edit goal" : "New goal";
-  document.getElementById("goal-form").style.display = "block";
-  const btn = document.getElementById("goal-add-btn");
-  if (btn) btn.style.display = "none";
+  vpFold("goal-form-fold", true, instant);   // v6.17.1: folds in (it used to appear in one jump)
+  vpFold("goal-add-fold", false, instant);
 }
-function closeGoalForm() {
+function closeGoalForm(instant) {
   _goalEditId = null;
-  const f = document.getElementById("goal-form");
-  if (f) f.style.display = "none";
-  const btn = document.getElementById("goal-add-btn");
-  if (btn) btn.style.display = "";
+  vpFold("goal-form-fold", false, instant);
+  vpFold("goal-add-fold", true, instant);
 }
 
 function saveGoalForm() {
@@ -13226,7 +13255,7 @@ function saveGoalForm() {
   }
   if (accountId && !getAccountById(accountId)) {
     const err = document.getElementById("goal-form-err");
-    if (err) { err.textContent = "That account no longer exists."; err.style.display = "block"; }
+    if (err) vpNote(err, "That account no longer exists.");
     bad.push("goal-account");
   }
   if (bad.length) {
@@ -13291,6 +13320,22 @@ function goalOpenPicker() {
   nat.style.pointerEvents = "none";
 }
 
+// v6.17.1: the date input sits over the icon, so a tap on iPhone opens the picker itself.
+// Seed it from the typed date first so it opens on the right month.
+function goalSeedPicker() {
+  const txt = document.getElementById("goal-deadline"), nat = document.getElementById("goal-deadline-native");
+  if (!txt || !nat) return;
+  const iso = goalParseDeadline(txt.value);
+  if (iso && nat.value !== iso) nat.value = iso;
+}
+// A mouse (or pen) click on a desktop browser doesn't always open a date input's picker,
+// so ask for it. A touch is left to the browser, which opens it from the tap.
+function goalNativeClick(e) {
+  if (!e || !e.pointerType || e.pointerType === "touch") return;
+  const nat = document.getElementById("goal-deadline-native");
+  goalSeedPicker();
+  try { if (typeof nat.showPicker === "function") nat.showPicker(); } catch {}
+}
 // A date chosen in the native picker flows back into the visible text field, which
 // stays the source of truth the rest of the form reads.
 function goalDeadlineFromPicker(nat) {
@@ -21340,7 +21385,7 @@ function vpSlide(from, to, dir) {
     vpUnset(tb, VP_NAV_PROPS); tb.classList.remove("vp-nav"); fb.classList.remove("vp-nav");
     if (stayUnder) { vpUnset(fb, ["transition", "clip-path"]); from.dataset.vpUnder = "1"; }
     else vpUnset(fb, VP_NAV_PROPS);
-    pops.forEach(t => vpUnset(t, ["background", "transition"]));
+    pops.forEach(t => { vpSet(t, { transition: "none" }); vpUnset(t, ["background"]); void t.offsetHeight; vpUnset(t, ["transition"]); });   // v6.17.1: the dim comes back at once, no fade
     if (stayUnder) vpSet(to, { background: "transparent" });   // the tray under it already dims the page
     ghost.style.display = "none"; dim.style.display = "none";
     if (sov) sov.style.visibility = "";
@@ -21413,6 +21458,20 @@ function vpInnerSwap(outEl, inEl, dir, swap) {
 }
 
 // v6.16.4: fold a .vp-fold open or shut. `instant` skips the animation (while a tray opens).
+// v6.17.1: show (or, with "", fold away) a message line inside a tray. The text stays while it
+// folds away, so the line doesn't collapse before it moves. Instant while its tray is closed.
+function vpNote(el, msg, instant) {
+  if (typeof el === "string") el = document.getElementById(el);
+  if (!el) return;
+  let inner = el.querySelector(":scope > .vp-fold-in");
+  if (!inner) {
+    inner = document.createElement("div"); inner.className = "vp-fold-in";
+    while (el.firstChild) inner.appendChild(el.firstChild);
+    el.appendChild(inner); el.classList.add("vp-fold", "vp-note"); el.style.display = "";
+  }
+  if (msg) inner.textContent = msg;
+  vpFold(el, !!msg, instant || !popupIsOpen(el));
+}
 function vpFold(el, show, instant) {
   if (typeof el === "string") el = document.getElementById(el);
   if (!el) return;
@@ -23135,7 +23194,7 @@ navInit();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.17.0</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.17.1</div>
         </div>
 
         <div class="pp-cards">
@@ -23247,7 +23306,7 @@ navInit();
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v6.17.0</div>
+  <div id="version-footer">v6.17.1</div>
 
 </body>
 </html>
