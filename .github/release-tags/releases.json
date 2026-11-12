@@ -1698,5 +1698,37 @@
       "A recurring rule deleted from Edit transaction no longer comes back after a sync, and deleting a rule's transactions removes only the ones it added"
     ],
     "versioned_at_release": true
+  },
+  {
+    "tag": "v6.18.1",
+    "sha": "8e57fa4d011326dbc5198cf0cc12ff6e74f2edc0",
+    "commits": [
+      "8e57fa4"
+    ],
+    "date": "2026-11-11",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "notes": [
+      "Moving from one tray to another keeps the background steady. It no longer darkens for a moment, or stays darker with three trays open",
+      "Reset Home layout and Remove encryption ask in the same tray as every delete",
+      "After cancelling a new goal or account, the tray closes again with ✕, a swipe or a tap outside"
+    ],
+    "versioned_at_release": true
+  },
+  {
+    "tag": "v6.18.2",
+    "sha": "5b26457b1ccb7ae2415783aadb807150b6a14292",
+    "commits": [
+      "5b26457"
+    ],
+    "date": "2026-11-11",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "notes": [
+      "Edit transaction: Type is now a heading above the Deposit, Interest and Withdrawal buttons, like Account and Date. Save changes to (This only / All in series) matches"
+    ],
+    "versioned_at_release": true
   }
 ]

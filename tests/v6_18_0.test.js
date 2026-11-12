@@ -217,6 +217,33 @@ setTimeout(async () => {
       await settle();
     }
 
+    // ── Remove encryption and Reset Home layout (11 Nov 18:10) ────────────────
+    ok(!$("vh-reset-popup"), "Reset Home layout's centred alert is gone");
+    ok(!/vaultConfirm\(\{ title: "Remove encryption\?"/.test(html), "Remove encryption doesn't use the centred alert any more");
+    E(`window.__dis = 0; disablePasswordEncryption = () => { window.__dis++; };`);
+    E(`openEncryptionMenu()`); await settle();
+    E(`confirmDisableEnc()`); await sleep(0);
+    ok(delOpen() && $("del-title").textContent === "Remove encryption?" && okBtn().textContent === "Remove encryption" && !okBtn().disabled, "Remove encryption asks in the delete tray, with its own verb");
+    ok($("del-popup")._vpParent === $("enc-menu-popup"), "…on top of Encryption");
+    ok(/recovery key will stop working/.test($("del-lead").textContent), "…saying what it does");
+    $("del-popup").querySelector(".modal-close").click(); await sleep(10);
+    ok(E(`window.__dis`) === 0, "closing it keeps encryption on");
+    await settle();
+    E(`openEncryptionMenu()`); await settle();
+    E(`confirmDisableEnc()`); await sleep(0); okBtn().click(); await sleep(10);
+    ok(E(`window.__dis`) === 1, "Remove encryption removes it");
+    await settle(); E(`closeEncryptionMenu()`); await settle();
+    E(`homeLayout = { order: ["goals"], hidden: ["streak"], auto: false, ts: 5, v: 1 }`);
+    E(`vhHomeMenuReset()`); await sleep(0);
+    ok(delOpen() && $("del-title").textContent === "Reset Home layout?" && okBtn().textContent === "Reset" && !okBtn().disabled, "Home ⋮ › Reset to default asks in the same tray (it was a centred alert)");
+    d.querySelector("#del-foot .pbtn-secondary").click(); await sleep(10);
+    ok(E(`homeLayout.hidden.length`) === 1, "Cancel keeps the layout");
+    await settle();
+    E(`vhHomeMenuReset()`); await sleep(0); okBtn().click(); await sleep(10);
+    ok(E(`homeLayout.auto === true && homeLayout.hidden.length === 0 && homeLayout.order.length === 0`), "Reset restores the default layout");
+    ok(/Home layout reset to default/.test(toastText()), "…and says so");
+    await settle();
+
     // Version
     const ver = t => (t.match(/v(\d+)\.(\d+)\.(\d+)/) || []).slice(1).map(Number);
     const tx = el => (el && el.textContent || "").trim();

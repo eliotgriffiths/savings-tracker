@@ -48,7 +48,7 @@ setTimeout(async () => {
      covered.filter(el => !el.classList.contains("vp")).map(el => el.id).join(", "));
   ok(covered.every(el => el.querySelector(".vp-panel > .vp-grab")), "every panel has a handle (shown on a phone)");
   const alerts = covered.filter(el => el.classList.contains("vp-alert")).map(el => el.id).sort();
-  ok(JSON.stringify(alerts) === '["import-progress-popup","vault-confirm-popup","vh-reset-popup"]', "alerts: " + JSON.stringify(alerts));
+  ok(JSON.stringify(alerts) === '["import-progress-popup","vault-confirm-popup"]', "alerts: " + JSON.stringify(alerts));   // v6.18.0: Reset Home layout moved to the delete tray
   const headless = covered.filter(el => !el.classList.contains("vp-alert") && el.id !== "cloud-picker-popup" && !el.querySelector(".vp-head"));
   ok(headless.length === 0, "every panel has one head: " + headless.map(el => el.id).join(", "));
   const noX = covered.filter(el => !el.classList.contains("vp-alert") && el.id !== "cloud-picker-popup" && !el.querySelector(".vp-head > .modal-close"));

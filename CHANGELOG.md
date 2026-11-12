@@ -10,6 +10,20 @@ Version numbers follow [Semantic Versioning](https://semver.org/) and were assig
 
 The first release is v1.0.0. A major bump resets minor and patch to 0, a minor bump resets patch to 0, and patch rolls over into the next minor after .99. Types marked \* are judgement calls, explained in [Notes](#notes) at the end.
 
+## v6.18.2 — 2026-11-11
+
+Patch · `5b26457`
+
+- Edit transaction: Type is now a heading above the Deposit, Interest and Withdrawal buttons, like Account and Date. Save changes to (This only / All in series) matches
+
+## v6.18.1 — 2026-11-11
+
+Patch · `8e57fa4`
+
+- Moving from one tray to another keeps the background steady. It no longer darkens for a moment, or stays darker with three trays open
+- Reset Home layout and Remove encryption ask in the same tray as every delete
+- After cancelling a new goal or account, the tray closes again with ✕, a swipe or a tap outside
+
 ## v6.18.0 — 2026-11-11
 
 Minor · `4beb8ac`
