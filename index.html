@@ -1855,14 +1855,17 @@
     #add-sheet .sheet-foot .pbtn-secondary { width: auto !important; margin-top: 0 !important; }
     #add-sheet *, #add-sheet *::before, #add-sheet *::after { box-sizing: border-box; }
 
+    /* v7.0.1: the handle is a strip pinned to the top of the sheet (like a tray's .vp-grab), so
+       it stays put while the sheet scrolls. The bar is drawn where it always was: 9 px down. */
     .sheet-handle {
-      position: relative;
-      width: 36px; height: 4px;
-      background: var(--border-hi);
-      border-radius: 2px;
-      margin: 9px auto 9px;
-      touch-action: none;
+      position: sticky; top: 0; z-index: 3;
+      height: 22px; margin: 0;
+      background: var(--bg2);
+      touch-action: none; cursor: grab;
     }
+    .sheet-handle::before { content: ""; position: absolute; left: 50%; top: 9px; width: 36px; height: 4px;
+      margin-left: -18px; border-radius: 2px; background: var(--border-hi); }
+    #add-sheet .sheet-handle { margin: 0 -20px; }
     .sheet-title {
       font-family: 'DM Serif Display', serif;
       font-size: 20px; font-weight: 400;
@@ -23972,7 +23975,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v7.0.0</div>
+          <div class="pp-meta" id="about-version-meta">Version v7.0.1</div>
         </div>
 
         <div class="pp-cards">
@@ -24084,7 +24087,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v7.0.0</div>
+  <div id="version-footer">v7.0.1</div>
 
 </body>
 </html>
