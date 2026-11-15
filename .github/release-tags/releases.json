@@ -1822,5 +1822,25 @@
       "Recurring transactions are posted after that first sync, so a rule changed or deleted on another device isn't posted again"
     ],
     "versioned_at_release": true
+  },
+  {
+    "tag": "v6.19.1",
+    "sha": "9c1501c9332f700b2df7bb4e72d3bd39193e6302",
+    "commits": [
+      "9c1501c"
+    ],
+    "date": "2026-11-15",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "notes": [
+      "Your vault-recovery.json keeps working after Vault locks or restarts. Before, backups made after a lock or restart could only be opened with your password",
+      "Another device that opens your backup with the password now keeps the recovery key working too",
+      "The lock screen now checks your password and recovery file. Before, it accepted anything",
+      "Use recovery key file in the Encrypted backup popup now opens the file picker",
+      "After recovering with the file, your backup is read and merged instead of staying locked",
+      "If a device's backups lost the recovery key, Encryption settings now offer Make a new recovery key"
+    ],
+    "versioned_at_release": true
   }
 ]

@@ -10,6 +10,17 @@ Version numbers follow [Semantic Versioning](https://semver.org/) and were assig
 
 The first release is v1.0.0. A major bump resets minor and patch to 0, a minor bump resets patch to 0, and patch rolls over into the next minor after .99. Types marked \* are judgement calls, explained in [Notes](#notes) at the end.
 
+## v6.19.1 — 2026-11-15
+
+Patch · `9c1501c`
+
+- Your vault-recovery.json keeps working after Vault locks or restarts. Before, backups made after a lock or restart could only be opened with your password
+- Another device that opens your backup with the password now keeps the recovery key working too
+- The lock screen now checks your password and recovery file. Before, it accepted anything
+- Use recovery key file in the Encrypted backup popup now opens the file picker
+- After recovering with the file, your backup is read and merged instead of staying locked
+- If a device's backups lost the recovery key, Encryption settings now offer Make a new recovery key
+
 ## v6.19.0 — 2026-11-15
 
 Minor · `6538092`
