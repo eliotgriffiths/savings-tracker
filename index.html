@@ -7804,6 +7804,41 @@ function addTombstone(id) {
   saveTombstones();
 }
 
+// Rows on a deleted account (its ID is in accountTombstones). A device that missed the
+// delete (stale local data, an old file) still holds them, and a sync put them back:
+// on 13 Nov Eliot's PC re-added 224, and Home counted every one (v6.18.3). When the other
+// side of a merge has the same transaction on a live account, that copy wins (a move keeps
+// the ID); otherwise the row goes. They aren't tombstoned: a tombstone would also delete
+// the moved copy of the same ID on every device. Returns how many rows changed.
+function dropDeletedAccountRows(remoteById) {
+  if (!accountTombstones || !accountTombstones.size) return 0;
+  const dead = id => !!id && accountTombstones.has(id);
+  const swaps = [];
+  let dropped = 0;
+  Object.keys(data).forEach(y => ["saved", "removed"].forEach(tab => {
+    const arr = data[y] && data[y][tab];
+    if (!Array.isArray(arr) || !arr.some(tx => dead(tx[6]))) return;
+    data[y][tab] = arr.filter(tx => {
+      if (!dead(tx[6])) return true;
+      const alt = remoteById && tx[2] ? remoteById.get(tx[2]) : null;
+      if (alt && !dead(alt.tx[6])) swaps.push(alt); else dropped++;
+      return false;
+    });
+  }));
+  swaps.forEach(({ tx, tab }) => {
+    const k = fyKeyForDate(tx[0]);
+    if (!data[k]) data[k] = { saved: [], removed: [] };
+    data[k][tab].push(tx);
+    data[k][tab].sort((a, c) => a[0].localeCompare(c[0]));
+  });
+  const n = dropped + swaps.length;
+  if (n) {
+    _yearTotalsCache = {};
+    dbg(`dropDeletedAccountRows: dropped ${dropped}, kept ${swaps.length} moved copies`);
+  }
+  return n;
+}
+
 
 
 // Load data from localStorage. Falls back to PREVIEW_SEED in the Claude sandbox
@@ -7841,6 +7876,7 @@ function loadLocal() {
   loadYearMode();
   reconcileYears();
   selfHealTombstoneCollisions();
+  if (dropDeletedAccountRows(null)) saveLocal();
 }
 
 // Switch between "calendar" and "financial" year modes.
@@ -8163,7 +8199,7 @@ function reassignTransactions(fromId, toId) {
   Object.values(data).forEach(yr => {
     ["saved","removed"].forEach(tab => {
       yr[tab].forEach(tx => {
-        if ((tx[6] || getDefaultAccountId()) === fromId) tx[6] = toId;
+        if ((tx[6] || getDefaultAccountId()) === fromId) { tx[6] = toId; tx[3] = Date.now(); }
       });
     });
   });
@@ -9617,6 +9653,9 @@ function applyPayloadSettings({ recurring, recurDeleted: remoteRecurDeleted, acc
     });
     if (addedAny) saveAccountTombstones();
   }
+  // Rows on an account deleted on either side go now, before the merged result is
+  // written back (v6.18.3).
+  if (dropDeletedAccountRows(_mergeRemoteById)) saveAndRender(null);
   // ── Accounts ──────────────────────────────────────────────────────────────
   if (remoteAccounts && Array.isArray(remoteAccounts) && remoteAccounts.length) {
     const localIds = new Set(accounts.map(a => a.id));
@@ -9666,9 +9705,23 @@ function applyPayloadSettings({ recurring, recurDeleted: remoteRecurDeleted, acc
       // Drop any local rules whose ID is now in the deletion set — this is how
       // a deletion made on another device propagates onto this one.
       const before = recurRules.length;
+      const goneRules = new Set(recurRules.filter(r => recurDeletedIds.has(String(r.id))).map(r => String(r.id)));
       recurRules = recurRules.filter(r => !recurDeletedIds.has(String(r.id)));
       if (recurRules.length !== before) {
         dbg(`applyPayloadSettings: dropped ${before - recurRules.length} local recurring rule(s) tombstoned remotely`);
+      }
+      if (goneRules.size && _mergeRemoteById) {
+        let stale = 0;
+        Object.keys(data).forEach(y => ["saved", "removed"].forEach(tab => {
+          const arr = data[y] && data[y][tab];
+          if (!Array.isArray(arr)) return;
+          data[y][tab] = arr.filter(tx => {
+            const auto = tx[5] && goneRules.has(String(tx[5])) && String(tx[2] || "").startsWith("rc_" + tx[5] + "_");
+            if (auto && !_mergeRemoteById.has(tx[2])) { stale++; return false; }
+            return true;
+          });
+        }));
+        if (stale) { dbg(`applyPayloadSettings: removed ${stale} post(s) of rules deleted elsewhere`); saveAndRender(null); }
       }
       saveRecurring();
     }
@@ -20530,6 +20583,7 @@ function closeCurrencyMismatchDialog() {
   _pendingMerge = null;
 }
 
+let _mergeRemoteById = null;   // remote rows of the last merge, by ID (v6.18.3)
 function autoMerge(remoteData, remoteTombstones) {
   ensureFYSilent = true;
   const safeRemote = sanitiseData(remoteData);
@@ -20558,6 +20612,12 @@ function autoMerge(remoteData, remoteTombstones) {
     ((data[y] && data[y][tab]) || []).forEach(tx => take(tx, tab, false))));
   Object.keys(safeRemote).forEach(y => ["saved", "removed"].forEach(tab =>
     ((safeRemote[y] && safeRemote[y][tab]) || []).forEach(tx => take(tx, tab, true))));
+  // The remote side by ID, for the cleanups after this merge (v6.18.3).
+  _mergeRemoteById = new Map();
+  Object.keys(safeRemote).forEach(y => ["saved", "removed"].forEach(tab =>
+    ((safeRemote[y] && safeRemote[y][tab]) || []).forEach(tx => {
+      if (tx[2] && !tombstones.has(tx[2])) _mergeRemoteById.set(tx[2], { tx, tab });
+    })));
 
   // Rebuild the buckets from each transaction's own date under THIS device's year
   // settings. Years the user added by hand stay, even while empty.
@@ -20576,6 +20636,7 @@ function autoMerge(remoteData, remoteTombstones) {
   });
   data = next;
 
+  dropDeletedAccountRows(_mergeRemoteById);
   dedupeRecurringPosts();
   ensureFYSilent = false;
   saveAndRender(null);
@@ -22670,6 +22731,7 @@ function _commitRecurEdit(applyToPast) {
             data[y][bucket].forEach(tx => {
               if (tx[5] && String(tx[5]) === String(rule.id)) {
                 tx[6] = pending.newAcct;
+                tx[3] = Date.now();
                 updated++;
               }
             });
@@ -23196,7 +23258,7 @@ navInit();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.18.2</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.18.3</div>
         </div>
 
         <div class="pp-cards">
@@ -23308,7 +23370,7 @@ navInit();
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v6.18.2</div>
+  <div id="version-footer">v6.18.3</div>
 
 </body>
 </html>
