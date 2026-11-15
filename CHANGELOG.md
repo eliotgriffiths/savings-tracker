@@ -10,6 +10,32 @@ Version numbers follow [Semantic Versioning](https://semver.org/) and were assig
 
 The first release is v1.0.0. A major bump resets minor and patch to 0, a minor bump resets patch to 0, and patch rolls over into the next minor after .99. Types marked \* are judgement calls, explained in [Notes](#notes) at the end.
 
+## v6.19.0 — 2026-11-15
+
+Minor · `6538092`
+
+- Vault now picks up changes from your other devices when you open it, when you come back to it (at most every 5 minutes), and every hour while it's open
+- Recurring transactions are posted after that first sync, so a rule changed or deleted on another device isn't posted again
+
+## v6.18.6 — 2026-11-15
+
+Patch · `6605220`
+
+- Syncing never writes over a backup it couldn't read. A failed read, or a backup this device can't open, is left alone instead of being overwritten
+- If another device turned on encryption, Vault asks for the password ("Backup locked") instead of saving your backup unencrypted over it
+- Closing or reloading Vault no longer overwrites your backup with this device's older data
+- Edits to a recurring rule (amount, schedule, end date, account) now reach your other devices
+- A change of year format now reaches your other devices
+- Changing an account's currency with conversion now syncs the converted amounts
+- Undo after an import stays undone
+- Reset Home layout now sticks across devices
+- A deleted AI key stays deleted, and a new key is no longer replaced by an old one
+- A new vault with only a few transactions no longer syncs with Google Drive non-stop
+- Choosing which currency to keep when your backup uses a different one now settles it, instead of asking again on every sync
+- Network location backups: encrypted files merge, connecting asks what to do with a file that's already there, and loading no longer reports a false error
+- Replacing this device's data with an older file no longer brings back transactions you deleted
+- Clear all data now removes everything Vault keeps in the browser, including accounts, goals, API keys and backup connections
+
 ## v6.18.5 — 2026-11-15
 
 Patch · `4088b60`
