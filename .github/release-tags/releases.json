@@ -1896,5 +1896,20 @@
       "Vault versions before 7.0 can't open backups made with a new password, so update every device"
     ],
     "versioned_at_release": true
+  },
+  {
+    "tag": "v7.0.1",
+    "sha": "125e7ac0447b0e1b9905cabbe6b8d2afbdb93174",
+    "commits": [
+      "125e7ac"
+    ],
+    "date": "2026-11-15",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "notes": [
+      "The handle at the top of the Menu, the period picker and Add now stays in place when you scroll, instead of scrolling away with the list"
+    ],
+    "versioned_at_release": true
   }
 ]

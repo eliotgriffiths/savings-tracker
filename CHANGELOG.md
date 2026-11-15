@@ -10,6 +10,12 @@ Version numbers follow [Semantic Versioning](https://semver.org/) and were assig
 
 The first release is v1.0.0. A major bump resets minor and patch to 0, a minor bump resets patch to 0, and patch rolls over into the next minor after .99. Types marked \* are judgement calls, explained in [Notes](#notes) at the end.
 
+## v7.0.1 — 2026-11-15
+
+Patch · `125e7ac`
+
+- The handle at the top of the Menu, the period picker and Add now stays in place when you scroll, instead of scrolling away with the list
+
 ## v7.0.0 — 2026-11-15
 
 Major · `55f281e`
