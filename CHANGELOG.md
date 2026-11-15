@@ -10,6 +10,24 @@ Version numbers follow [Semantic Versioning](https://semver.org/) and were assig
 
 The first release is v1.0.0. A major bump resets minor and patch to 0, a minor bump resets patch to 0, and patch rolls over into the next minor after .99. Types marked \* are judgement calls, explained in [Notes](#notes) at the end.
 
+## v7.0.0 — 2026-11-15
+
+Major · `55f281e`
+
+- New passwords are protected with a random salt and 600,000 rounds of key stretching, which makes them much harder to guess from a copy of your backup. Your existing password is upgraded automatically the next time you enter it. Your recovery key doesn't change
+- Removing encryption on one device now removes it on your other devices too, instead of one device encrypting the backup again and the other asking for the password you'd removed
+- Only a device that had your password or recovery key can switch encryption off elsewhere. An unencrypted file placed in your Drive can't
+- Vault versions before 7.0 can't open backups made with a new password, so update every device
+
+## v6.20.1 — 2026-11-15
+
+Patch · `72cb4a9`
+
+- While Vault is locked, nothing is backed up. Before, a background sync could save your backup unencrypted, either to a new backup location or when Vault locked part-way through a sync
+- After you open Vault with your recovery key, it asks for a new password straight away and backs nothing up until you set one, so your backup isn't saved unencrypted. You can choose to back up without encryption instead
+- Using your recovery key in the Encrypted backup popup no longer switches off a password you've already set on this device
+- If your password doesn't work, Vault mentions that it may have been changed on another device
+
 ## v6.20.0 — 2026-11-15
 
 Minor · `78453fc`
