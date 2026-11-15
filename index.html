@@ -5912,6 +5912,10 @@
       <button class="modal-close" onclick="document.getElementById('enc-set-popup').classList.add('hidden')" title="Close">✕</button>
     </div>
     <p style="margin-bottom:8px; font-size:13px; color:var(--text-2); line-height:1.7; font-weight:300;">Your backup files will be encrypted with this password.</p>
+    <div id="enc-set-recov" class="vp-fold folded"><div class="vp-fold-in"><div style="background:color-mix(in srgb, var(--attention) 8%, transparent); border:1px solid color-mix(in srgb, var(--attention) 25%, transparent); border-radius:var(--radius); padding:12px 14px; margin-bottom:12px; font-size:12px; color:var(--text-2); line-height:1.6;">
+      You opened Vault with your recovery key, so nothing is backed up until you choose a new password.
+      <button class="pbtn pbtn-secondary" style="width:100%; margin-top:10px;" onclick="vaultRecovKeepPlain()">Back up unencrypted instead</button>
+    </div></div></div>
     <div style="background:color-mix(in srgb, var(--out) 8%, transparent); border:1px solid color-mix(in srgb, var(--out) 25%, transparent); border-radius:var(--radius); padding:12px 14px; margin-bottom:16px; font-size:12px; color:var(--red); line-height:1.6;">
       <strong>Important:</strong> If you forget this password and lose your recovery key, your data cannot be recovered. There is no reset option.
     </div>
@@ -9023,7 +9027,11 @@ function buildWrappedPayload() {
     _sort:         buildSortPayload(),
   };
 }
-async function buildVaultPayload() {
+async function buildVaultPayload(opts) {
+  // v6.20.1: never build a backup in the clear while encryption is on but the password isn't in
+  // memory (Vault is locked), or before a new password is chosen after a recovery
+  if (vaultEncActive && !vaultEncKey) throw new Error("Vault is locked");
+  if (vaultRecovHold() && !(opts && opts.allowHold)) throw new Error("Choose a new password first");
   const wrapped = buildWrappedPayload();
   if (vaultEncActive && vaultEncKey) {
     if (vaultRecovKey) {
@@ -9308,7 +9316,7 @@ function promptAndDecrypt(encryptedText) {
         cleanup();
         resolve(result);
       } else {
-        vpNote(errEl, "Incorrect password. Try again, or use your recovery key.");
+        vpNote(errEl, "Incorrect password. If you changed it on another device, enter the new one. Or use your recovery key.");
       }
     }
 
@@ -9330,11 +9338,18 @@ function promptAndDecrypt(encryptedText) {
         if (!result) throw new Error("Recovery key did not match");
         // Success — disable enc (user can re-enable with a new password). The key stays for
         // this session so the backup can still be read and merged (v6.19.1).
-        disablePasswordEncryption();
         vaultRecovReadKey = recovKey;
         popup.classList.add("hidden");
         cleanup();
-        toast("Recovery successful — encryption disabled. Re-enable with a new password from Menu → Settings → Encryption", "notice");
+        if (vaultEncActive && vaultEncKey) {
+          // v6.20.1: this device already has a password (say, one set after a recovery and a
+          // restart): the file only reads the backup, which is written back with that password
+          toast("Recovery successful. Your backup will be saved with this device's password", "notice");
+        } else {
+          disablePasswordEncryption();
+          vaultRecovHoldStart();   // v6.20.1
+          toast("Recovery successful. Choose a new password to keep your backups encrypted", "notice");
+        }
         resolve(result);
       } catch (e) {
         vpNote(errEl, "That recovery file didn't work. Check it's the right vault-recovery.json.");
@@ -9386,8 +9401,11 @@ const SS_NOW = {
                          btn: ["Reconnect file", () => { closeSaveStatusLegend(); reauthoriseLocalFile(); }] },
   "Reconnect Drive":   { tone: "warn", text: "Google ended Vault's sign-in to your Drive. Your data here is safe. Reconnect to carry on backing up to the same file.",
                          btn: ["Reconnect Google Drive", () => { closeSaveStatusLegend(); connectGoogleDrive(); }] },
-  "Backup locked":     { tone: "warn", text: "Your backup is encrypted with a password this device doesn't have yet. Vault won't write to it until you enter it.",
+  "Backup locked":     { tone: "warn", text: "Your backup is encrypted with a password this device doesn't have yet (it may have been changed on another device). Vault won't write to it until you enter it.",
                          btn: ["Enter password", () => { closeSaveStatusLegend(); unlockBackup(); }] },
+  "Set a password":    { tone: "warn", text: "You opened Vault with your recovery key. Nothing is backed up until you choose a new password, so your backup isn't saved unencrypted.",
+                         btn: ["Set password", () => { closeSaveStatusLegend(); setTimeout(openEncPasswordPopup, 50); }],
+                         alt: ["Back up unencrypted", () => { closeSaveStatusLegend(); vaultRecovKeepPlain(); }] },
   "Choose a currency": { tone: "warn", text: "Your backup uses a different main currency. Choose how to merge them before Vault backs up again.",
                          btn: ["Choose", () => { closeSaveStatusLegend(); triggerCloudSync(); }] },
   "Sync failed":       { tone: "err",  text: "The last change couldn't be written to your backup.",
@@ -9543,12 +9561,17 @@ async function syncLeg(leg, quiet) {
     applyPayloadSettings(settings, false);
   }
   if (_syncLockedLeg === leg.name) _syncLockedLeg = null;
+  // v6.20.1: merged here, but not written while locked or before a new password after a recovery
+  if (vaultIsLocked) return "skip";
+  if (vaultRecovHold()) return "held";
   return (await leg.write()) ? "ok" : "fail";
 }
 
 async function triggerCloudSync(opts) {
   const quiet = !!(opts && opts.quiet);
   if (!localFileHandle && !nasLinked && !gdLinked) return;
+  // v6.20.1: nothing is written while Vault is locked; it syncs once it's unlocked
+  if (vaultIsLocked) { _syncAfterUnlock = true; dbg("Sync: waiting for the unlock"); return; }
   // A currency decision is waiting: nothing syncs until it's made
   if (_pendingMerge) { if (!quiet) openCurrencyMismatchAgain(); return; }
 
@@ -9568,19 +9591,27 @@ async function triggerCloudSync(opts) {
 
   if (!quiet) setSaveStatus("busy", "Syncing…");
 
-  let ok = true, locked = false, mismatch = false, any = false;
+  let ok = true, locked = false, mismatch = false, any = false, held = false;
   for (const leg of syncLegs()) {
     let res;
     try { res = await syncLeg(leg, quiet); }
     catch (e) { res = "fail"; dbg("Sync: " + leg.name + " error: " + (e && e.message)); }
     if (res === "skip") continue;
+    if (res === "held") { held = true; continue; }
     any = true;
     if (res === "mismatch") { mismatch = true; break; }
     if (res === "locked") locked = true;
     if (res !== "ok") ok = false;
   }
 
-  if (mismatch) {
+  if (vaultIsLocked) {
+    // Locked part-way through: nothing more was written, and it finishes after the unlock
+    _syncAfterUnlock = true; pendingRetry = false;
+    dbg("Sync: Vault locked mid-sync — finishes after the unlock");
+  } else if (held) {
+    pendingRetry = false;
+    setSaveStatus("warn", "Set a password");
+  } else if (mismatch) {
     setSaveStatus("warn", "Choose a currency");
   } else if (locked) {
     pendingRetry = false;
@@ -9649,7 +9680,7 @@ async function saveToLocalFile(showPicker = false) {
     return;
   }
 
-  const payload  = await buildVaultPayload();
+  const payload  = await buildVaultPayload({ allowHold: true });
   const filename = "vault-data" + (vaultEncActive ? "-encrypted" : "") + ".json";
   const blob     = new Blob([payload], { type: "application/json" });
 
@@ -10388,9 +10419,38 @@ function vaultFinishStartUnlock() {
   if (_sealMem) { try { localStorage.setItem(ENC_ACTIVE_KEY, "true"); } catch {} }
   const el = document.getElementById("vault-lock-screen");
   if (el) el.classList.add("hidden");
+  _syncAfterUnlock = false;   // initApp syncs at start-up anyway
   initApp();
   resetLockTimer();
   vaultSealSoon();
+}
+
+// ── v6.20.1: after a recovery nothing is backed up until there's a new password ──
+// The recovery file switches encryption off; until a new password is set (or the choice is made
+// to go without), backups aren't written, so the backup isn't saved unencrypted by accident.
+const RECOV_HOLD_KEY = "vault_recov_hold";
+function vaultRecovHold() { try { return localStorage.getItem(RECOV_HOLD_KEY) === "1"; } catch { return false; } }
+function vaultRecovHoldStart() {
+  try { localStorage.setItem(RECOV_HOLD_KEY, "1"); } catch {}
+  setSaveStatus("warn", "Set a password");
+  // Ask for the new password straight away, once whatever is closing has gone
+  setTimeout(() => { if (vaultRecovHold() && !vaultIsLocked) openEncPasswordPopup(); }, 400);
+}
+function vaultRecovHoldEnd() { try { localStorage.removeItem(RECOV_HOLD_KEY); } catch {} }
+async function vaultRecovKeepPlain() {
+  if (!await vaultConfirm({ title: "Back up without encryption?",
+    message: "Your backups will be saved unencrypted, and Vault will open without a password. You can set a password any time in Settings → Encryption.",
+    ok: "Back up unencrypted" })) return;
+  vaultRecovHoldEnd();
+  document.getElementById("enc-set-popup").classList.add("hidden");
+  triggerCloudSync();
+}
+// A sync asked for while Vault was locked runs once it's unlocked (v6.20.1)
+let _syncAfterUnlock = false;
+function vaultSyncAfterUnlock() {
+  if (!_syncAfterUnlock) return;
+  _syncAfterUnlock = false;
+  triggerCloudSync();
 }
 
 // Load encryption active flag from localStorage
@@ -10409,13 +10469,13 @@ async function enablePasswordEncryption(password) {
     // Generate a random recovery key (a raw AES-256 key)
     const recov    = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
     await encAdoptRecovery(b64encode(await crypto.subtle.exportKey("raw", recov)));
-    vaultRecovReadKey = null;
     vaultEncActive = true;
     localStorage.setItem(ENC_ACTIVE_KEY, "true");
     // v6.19.1: kept wrapped in the password, so a lock or restart doesn't lose it
     await encStoreCheck();
     // v6.20.0: and what's on this device is encrypted from now on
     await vaultSealStart();
+    vaultRecovHoldEnd();   // v6.20.1: backups can be written again
     initActivityTracking();
     resetLockTimer();
     // Download recovery key file immediately
@@ -10565,10 +10625,16 @@ async function unlockVault() {
     hideLockScreen();
     vaultSealSoon();   // anything changed while it was locked
     saveAndRender(null);
+    vaultSyncAfterUnlock();   // v6.20.1
     dbg("Lock: unlocked successfully");
 
   } catch (e) {
-    if (errEl) { errEl.textContent = "Incorrect password. Try again, or use your recovery key."; errEl.style.display = ""; }
+    if (errEl) {
+      errEl.textContent = vaultSealedOnDisk()
+        ? "Incorrect password. Changed it on another device? This one opens with the old password until it next syncs. Or use your recovery key."
+        : "Incorrect password. Try again, or use your recovery key.";
+      errEl.style.display = "";
+    }
     const passEl2 = document.getElementById("lock-screen-pass");
     if (passEl2) { passEl2.value = ""; passEl2.focus(); }
     dbg("Lock: unlock failed: " + e.message);
@@ -10602,15 +10668,16 @@ async function unlockWithRecoveryFile(input) {
     // backup can still be read and merged (v6.19.1). This device's data goes back in the clear.
     disablePasswordEncryption();
     vaultRecovReadKey = recovKey;
+    vaultRecovHoldStart();   // v6.20.1
     if (_startLocked) {
       vaultFinishStartUnlock();
-      toast("Unlocked with recovery key — encryption disabled. Set a new password from Menu → Settings → Encryption");
+      toast("Unlocked with your recovery key. Choose a new password to keep your backups encrypted");
       dbg("Lock: opened with the recovery key");
       return;
     }
     hideLockScreen();
     saveAndRender(null);
-    toast("Unlocked with recovery key — encryption disabled. Set a new password from Menu → Settings → Encryption");
+    toast("Unlocked with your recovery key. Choose a new password to keep your backups encrypted");
     dbg("Lock: unlocked with recovery key");
   } catch (e) {
     if (errEl) { errEl.textContent = "Recovery file invalid or did not match."; errEl.style.display = ""; }
@@ -10797,6 +10864,7 @@ function openEncPasswordPopup() {
   document.getElementById("enc-set-pass").value    = "";
   document.getElementById("enc-set-confirm").value = "";
   vpNote("enc-set-error", "", true);
+  vpFold("enc-set-recov", vaultRecovHold(), true);   // v6.20.1
   document.getElementById("enc-set-popup").classList.remove("hidden");
   setTimeout(() => document.getElementById("enc-set-pass").focus(), 80);
 }
@@ -23800,7 +23868,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.20.0</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.20.1</div>
         </div>
 
         <div class="pp-cards">
@@ -23912,7 +23980,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v6.20.0</div>
+  <div id="version-footer">v6.20.1</div>
 
 </body>
 </html>
