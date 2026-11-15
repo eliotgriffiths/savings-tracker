@@ -1842,5 +1842,23 @@
       "If a device's backups lost the recovery key, Encryption settings now offer Make a new recovery key"
     ],
     "versioned_at_release": true
+  },
+  {
+    "tag": "v6.20.0",
+    "sha": "78453fcabdfa4b9ce29e46b4ea34f8094e19c1f0",
+    "commits": [
+      "78453fc"
+    ],
+    "date": "2026-11-15",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": null,
+    "notes": [
+      "With encryption on, Vault now asks for your password when it opens, and nothing can be read before it is entered. Your transactions, accounts, goals, recurring rules, AI keys and recent searches are encrypted on the device too, not just in your backups",
+      "Backups made straight after opening Vault are encrypted. Before, they could be saved unencrypted until you unlocked your backup",
+      "With encryption off, Vault opens as it always has",
+      "The lock screen shows a padlock"
+    ],
+    "versioned_at_release": true
   }
 ]
