@@ -90,7 +90,7 @@ setTimeout(async () => {
     ok(/Incorrect password/.test(A.d.getElementById("lock-screen-error").textContent), "…and says so");
     await lockUnlock(A, PW);
     ok(A.E("vaultIsLocked") === false && A.E("vaultRecovKey") !== null, "the right password unlocks, and the recovery key comes back");
-    A.add("a2"); await A.sync();
+    A.add("a2"); await A.sync(); await until(() => !A.E("_syncInProgress")); await A.sync(); await until(() => !A.E("_syncInProgress"));
     const after = await openWithRecovery(drive.text, recov.key);
     ok(after && rowsOf(after).includes("a2"), "a backup made after the lock still opens with the recovery file (it lost the recovery copy)");
 
@@ -102,12 +102,21 @@ setTimeout(async () => {
     A = A.reload(); await sleep(60);
     A.E(`gdLinked = true; gdTokens = { accessToken: "x", refreshToken: "r", expiresAt: 9e15, fileId: "f" };
          gdReadFile = async () => window.__drive.text; gdWriteFile = async () => { window.__drive.text = await buildVaultPayload(); return true; };`);
-    A.add("a3"); await A.sync(); await sleep(30);
-    ok(!A.d.getElementById("enc-decrypt-popup").classList.contains("hidden"), "after a restart the backup asks for the password");
-    A.d.getElementById("enc-decrypt-pass").value = PW;
-    A.d.getElementById("enc-decrypt-btn").click();
-    await until(() => A.E("vaultEncActive && !!vaultEncKey"));
-    await sleep(100);
+    if (A.E("vaultIsLocked")) {
+      // v6.20.0 and later: the data on the device is encrypted, so Vault opens to the lock screen
+      await lockUnlock(A, PW); await sleep(60);
+      A.E(`gdLinked = true; gdTokens = { accessToken: "x", refreshToken: "r", expiresAt: 9e15, fileId: "f" };
+           gdReadFile = async () => window.__drive.text; gdWriteFile = async () => { window.__drive.text = await buildVaultPayload(); return true; };`);
+      ok(true, "after a restart Vault asks for the password");
+      A.add("a3");
+    } else {
+      A.add("a3"); await A.sync(); await sleep(30);
+      ok(!A.d.getElementById("enc-decrypt-popup").classList.contains("hidden"), "after a restart the backup asks for the password");
+      A.d.getElementById("enc-decrypt-pass").value = PW;
+      A.d.getElementById("enc-decrypt-btn").click();
+      await until(() => A.E("vaultEncActive && !!vaultEncKey"));
+      await sleep(100);
+    }
     ok(A.E("vaultRecovKey") !== null, "…and the recovery key comes back on this device, even from a backup without rk");
     await A.sync();
     ok(rowsOf(await openWithRecovery(drive.text, recov.key) || {}).includes("a3"), "a backup made after a restart opens with the recovery file too");

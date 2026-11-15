@@ -155,7 +155,7 @@ setTimeout(async () => {
   E(`openSetup = window.__os`);
   // v6.16.1: Save & backup moved back to the Menu
   ok(!/Menu → Settings → Save (&amp;|&) backup/.test(html), "no wording points at Menu → Settings → Save & backup any more");
-  ok((html.match(/Menu → Save (&amp;|&) backup/g) || []).length === 7, "every pointer says Menu → Save & backup");
+  ok((html.match(/Menu → Save (&amp;|&) backup/g) || []).length >= 7, "every pointer says Menu → Save & backup"); // v6.20.0 added one
 
   // ── N8 ──────────────────────────────────────────────────────────────────
   ok(d.querySelector("#vh-home-menu-drop .vh-menu-item").textContent === "Customise Home", "Home's ⋮ says Customise Home");

@@ -3913,7 +3913,7 @@
     <div style="font-family:'DM Serif Display',serif; font-size:36px; font-weight:400; color:var(--text-1); margin-bottom:4px;">Vault</div>
     <div style="font-size:13px; color:var(--text-3); margin-bottom:36px;">Your data is encrypted</div>
 
-    <div style="width:64px; height:64px; background:var(--bg3); border:1px solid var(--border); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; margin-bottom:28px;"></div>
+    <div style="width:64px; height:64px; background:var(--bg3); border:1px solid var(--border); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; margin-bottom:28px;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></div>
 
     <div style="width:100%; background:var(--bg1); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; display:flex; flex-direction:column; gap:16px;">
       <div id="lock-screen-reason" style="font-size:13px; color:var(--text-2); text-align:center; line-height:1.6;"></div>
@@ -5898,7 +5898,7 @@
       <button id="btn-enc-disable" class="pbtn pbtn-secondary" style="display:none; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="confirmDisableEnc()">Remove encryption</button>
     </div>
     <div id="enc-section" style="padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text-3); line-height:1.7;">
-      Password-encrypts your backup files using AES-256. A recovery key file is downloaded when you set a password — keep it safe. Without it, a forgotten password means your data cannot be recovered.
+      Password-encrypts your backup files and the data on this device using AES-256. Vault asks for the password when it opens, and after 15 minutes without use. A recovery key file is downloaded when you set a password — keep it safe. Without it, a forgotten password means your data cannot be recovered.
     </div>
     <button class="info-popup-close-btn" style="margin-top:12px;" onclick="closeEncryptionMenu()">Done</button>
   </div>
@@ -7923,19 +7923,19 @@ function loadLocal() {
   loadAccountTombstones();
   applyPendingYearMode(); // apply any deferred year mode change from previous session
   try {
-    const stored = localStorage.getItem(DATA_KEY);
+    const stored = vsGet(DATA_KEY);
     // In sandbox: re-seed everything if the seed version has changed
     const sandboxStale = inSandbox &&
       localStorage.getItem(SANDBOX_SEED_KEY) !== SANDBOX_SEED_VERSION;
     if (sandboxStale) {
       // Wipe all seed-dependent keys so everything re-seeds fresh
       try { localStorage.removeItem(DATA_KEY); } catch {}
-      try { localStorage.removeItem(ACCOUNTS_KEY); } catch {}
+      try { vsRemove(ACCOUNTS_KEY); } catch {}
       try { localStorage.removeItem("vault_recurring_v1"); } catch {}
       try { localStorage.removeItem("vault_recurring_deleted_v1"); } catch {}
       try { localStorage.setItem(SANDBOX_SEED_KEY, SANDBOX_SEED_VERSION); } catch {}
     }
-    const freshStored = localStorage.getItem(DATA_KEY);
+    const freshStored = vsGet(DATA_KEY);
     if (freshStored) {
       data = sanitiseData(JSON.parse(freshStored));
     } else {
@@ -8156,12 +8156,12 @@ function dbg(msg) {
 
 function loadAccounts() {
   try {
-    const raw = localStorage.getItem(ACCOUNTS_KEY);
+    const raw = vsGet(ACCOUNTS_KEY);
     accounts = raw ? JSON.parse(raw) : [];
   } catch { accounts = []; }
 
   // In sandbox mode, seed with example accounts on first load
-  const everSavedAccounts = localStorage.getItem(ACCOUNTS_KEY) !== null;
+  const everSavedAccounts = vsGet(ACCOUNTS_KEY) !== null;
   if (inSandbox && !everSavedAccounts) {
     accounts = [
       { id: "acc_general",   name: "General",        color: "#c9a84c", currency: "AUD" },
@@ -8169,7 +8169,7 @@ function loadAccounts() {
       { id: "acc_emergency", name: "Emergency Fund", color: "#5ba6d3", currency: "AUD" },
       { id: "acc_car",       name: "Car",            color: "#a06dc8", currency: "GBP" },
     ];
-    try { localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts)); } catch {}
+    try { vsSet(ACCOUNTS_KEY, JSON.stringify(accounts)); } catch {}
     return;
   }
 
@@ -8177,7 +8177,7 @@ function loadAccounts() {
 }
 
 function saveAccounts() {
-  try { localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts)); } catch {}
+  try { vsSet(ACCOUNTS_KEY, JSON.stringify(accounts)); } catch {}
 }
 
 function ensureDefaultAccount() {
@@ -8994,8 +8994,9 @@ function populateAccountSelects() {
   });
 }
 
-async function buildVaultPayload() {
-  const wrapped = {
+// v6.20.0: the payload itself, shared by the backup and the encrypted copy on this device
+function buildWrappedPayload() {
+  return {
     _data:         data,
     _tombstones:   [...tombstones],
     _accountTombstones: [...accountTombstones],
@@ -9021,6 +9022,9 @@ async function buildVaultPayload() {
     _aiSettings:   buildAISettingsPayload(),
     _sort:         buildSortPayload(),
   };
+}
+async function buildVaultPayload() {
+  const wrapped = buildWrappedPayload();
   if (vaultEncActive && vaultEncKey) {
     if (vaultRecovKey) {
       const pwdEnv   = JSON.parse(await encryptDataObj(wrapped, vaultEncKey));
@@ -10244,6 +10248,7 @@ async function encAfterBackupOpened(envelopeText) {
     }
   } catch {}
   await encStoreCheck();
+  await vaultSealStart();   // v6.20.0: the password is proven, so encrypt what's on this device
   if (typeof updateEncUI === "function") updateEncUI();
 }
 // A new recovery key, for a device whose backups lost theirs (or after recovering)
@@ -10252,6 +10257,7 @@ async function makeNewRecoveryKey() {
   const recov = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
   await encAdoptRecovery(b64encode(await crypto.subtle.exportKey("raw", recov)));
   await encStoreCheck();
+  if (_sealMem) vaultSealSoon();
   downloadRecoveryFile();
   updateEncUI();
   triggerCloudSync();
@@ -10271,9 +10277,125 @@ function downloadRecoveryFile() {
   URL.revokeObjectURL(url);
 }
 
+// ── v6.20.0: the data on this device is encrypted too ─────────────────────────
+// With encryption on, what Vault keeps on the device lives in one encrypted envelope under
+// DATA_KEY ({vault_enc:3, iv, ct, riv?, rct?, local:1}), so nothing can be read before the
+// password. Inside is the backup's own payload (so an older version's lock screen can open it)
+// plus _sealed: the exact stored strings of the other sealed keys. While it's on, those keys
+// are read and written through _sealMem; vaultSealNow writes the envelope, one at a time.
+var VS_SEALED = ["savings_data_v4", "vault_accounts_v1", "vault_goals", "vault_recurring_v1", "vault_search_recent_v1", "vault_nas_v1"];
+function vsIsSealed(k) { return VS_SEALED.includes(k) || (/^vault_ai_key_/.test(k) && !/_ts$/.test(k)); }
+var _sealMem = null, _sealDirty = false, _sealGen = 0, _sealChain = Promise.resolve();
+function vsGet(k) {
+  if (_sealMem && vsIsSealed(k)) return Object.prototype.hasOwnProperty.call(_sealMem, k) ? _sealMem[k] : null;
+  return localStorage.getItem(k);
+}
+function vsSet(k, v) {
+  if (_sealMem && vsIsSealed(k)) { _sealMem[k] = String(v); vaultSealSoon(); return; }
+  localStorage.setItem(k, v);
+}
+function vsRemove(k) {
+  if (_sealMem && vsIsSealed(k)) { delete _sealMem[k]; vaultSealSoon(); return; }
+  localStorage.removeItem(k);
+}
+function vaultSealedOnDisk() {
+  try { return isEncryptedEnvelope(localStorage.getItem(DATA_KEY)); } catch { return false; }
+}
+// Ask for the envelope to be written. Runs after any write already under way; while Vault is
+// locked (no key) it waits, and the unlock writes it.
+function vaultSealSoon() {
+  _sealDirty = true;
+  _sealChain = _sealChain.then(vaultSealNow, vaultSealNow);
+  return _sealChain;
+}
+async function vaultSealNow() {
+  if (!_sealDirty || !_sealMem || !vaultEncKey) return;
+  _sealDirty = false;
+  const gen = _sealGen, key = vaultEncKey, rkey = vaultRecovKey;
+  try {
+    const items = Object.assign({}, _sealMem); delete items[DATA_KEY];
+    const plain = Object.assign(buildWrappedPayload(), { _sealed: items });
+    const env = JSON.parse(await encryptDataObj(plain, key));
+    if (rkey) { const r = JSON.parse(await encryptDataObj(plain, rkey)); env.riv = r.iv; env.rct = r.ct; }
+    env.local = 1;
+    if (gen !== _sealGen || !_sealMem) return;   // encryption was switched off meanwhile
+    localStorage.setItem(DATA_KEY, JSON.stringify(env));
+  } catch (e) {
+    _sealDirty = true;
+    dbg("Seal: write failed: " + (e && (e.name + " " + e.message)));
+    if (e && /Quota/i.test(e.name || "") && !sessionStorage.getItem(LOCAL_QUOTA_WARN_KEY)) {
+      try { sessionStorage.setItem(LOCAL_QUOTA_WARN_KEY, "1"); } catch {}
+      toast("Browser storage is full, so your latest changes may not be saved. Back up now from Menu → Save & backup", "error");
+    }
+  }
+}
+// Encryption is on and the password proven: move what's kept in the clear into the envelope
+async function vaultSealStart() {
+  if (inSandbox || !vaultEncActive || !vaultEncKey) return;
+  if (_sealMem) return vaultSealSoon();            // already on (a new password re-encrypts it)
+  const mem = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k !== DATA_KEY && vsIsSealed(k)) mem[k] = localStorage.getItem(k);
+  }
+  mem[DATA_KEY] = JSON.stringify(data);
+  _sealMem = mem; _sealGen++;
+  await vaultSealSoon();
+  if (!vaultSealedOnDisk() || _sealMem !== mem) {   // couldn't write it: stay in the clear
+    if (_sealMem === mem) { _sealMem = null; _sealGen++; }
+    dbg("Seal: not started — the envelope couldn't be written");
+    return;
+  }
+  Object.keys(mem).forEach(k => { if (k !== DATA_KEY) { try { localStorage.removeItem(k); } catch {} } });
+  try { localStorage.setItem(ENC_ACTIVE_KEY, "true"); } catch {}
+  dbg("Seal: this device's data is encrypted");
+}
+// Encryption switched off: everything goes back in the clear
+function vaultSealStop() {
+  if (!_sealMem) return;
+  const mem = _sealMem;
+  _sealMem = null; _sealDirty = false; _sealGen++;
+  Object.keys(mem).forEach(k => { try { localStorage.setItem(k, mem[k]); } catch {} });
+  dbg("Seal: this device's data is back in the clear");
+}
+// Opened with the password or recovery file: take on what the envelope holds
+function vaultSealAdopt(plain) {
+  const mem = {};
+  if (plain && plain._sealed && typeof plain._sealed === "object") {
+    Object.entries(plain._sealed).forEach(([k, v]) => { if (k !== DATA_KEY && vsIsSealed(k) && typeof v === "string") mem[k] = v; });
+  } else {
+    // Encrypted by an older version, which left everything else in the clear
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k !== DATA_KEY && vsIsSealed(k)) mem[k] = localStorage.getItem(k);
+    }
+  }
+  mem[DATA_KEY] = JSON.stringify(plain && plain._data ? plain._data : (plain || {}));
+  _sealMem = mem; _sealGen++;
+}
+// Vault starts locked: nothing is loaded until the password or recovery file opens it
+let _startLocked = false;
+function vaultStartLocked() {
+  _startLocked = true;
+  vaultEncActive = true;
+  showLockScreen("Enter your password to open Vault.");
+  dbg("Lock: started locked — this device's data is encrypted");
+}
+function vaultFinishStartUnlock() {
+  _startLocked = false;
+  _appInitDone = true;   // initApp below is the whole start
+  vaultIsLocked = false;
+  if (_sealMem) { try { localStorage.setItem(ENC_ACTIVE_KEY, "true"); } catch {} }
+  const el = document.getElementById("vault-lock-screen");
+  if (el) el.classList.add("hidden");
+  initApp();
+  resetLockTimer();
+  vaultSealSoon();
+}
+
 // Load encryption active flag from localStorage
 function loadEncActive() {
-  try { vaultEncActive = localStorage.getItem(ENC_ACTIVE_KEY) === "true"; } catch {}
+  try { vaultEncActive = localStorage.getItem(ENC_ACTIVE_KEY) === "true" || !!_sealMem; } catch {}
 }
 
 // ── password setup / change ───────────────────────────────────────────────────
@@ -10292,6 +10414,8 @@ async function enablePasswordEncryption(password) {
     localStorage.setItem(ENC_ACTIVE_KEY, "true");
     // v6.19.1: kept wrapped in the password, so a lock or restart doesn't lose it
     await encStoreCheck();
+    // v6.20.0: and what's on this device is encrypted from now on
+    await vaultSealStart();
     initActivityTracking();
     resetLockTimer();
     // Download recovery key file immediately
@@ -10307,6 +10431,7 @@ async function enablePasswordEncryption(password) {
 // Disable password encryption — removes the key from memory and clears the flag.
 // The backup file will be overwritten with plain JSON on the next auto-save.
 function disablePasswordEncryption() {
+  vaultSealStop();   // v6.20.0: this device's data goes back in the clear
   vaultEncKey    = null;
   vaultRecovKey  = null;
   vaultRecovRaw  = null;
@@ -10412,30 +10537,33 @@ async function unlockVault() {
   try {
     const key        = await deriveKeyFromPassword(pw);
     const storedRaw  = localStorage.getItem(DATA_KEY);
-    // v6.19.1: the password check. The stored data isn't encrypted, so without it any
-    // password unlocked Vault — and became the key the next backup was encrypted with.
+    const sealed     = !!storedRaw && isEncryptedEnvelope(storedRaw);
+    // v6.19.1: the password check. Data kept in the clear can't check a password, so without
+    // it any password unlocked Vault — and became the key the next backup was encrypted with.
+    // v6.20.0: encrypted data is its own check (AES-GCM won't open with a wrong key).
     const check = await encVerifyPassword(key);
-    if (check === "bad") throw new Error("Wrong password");
+    if (!sealed && check === "bad") throw new Error("Wrong password");
 
-    if (storedRaw && isEncryptedEnvelope(storedRaw)) {
-      const decrypted = await decryptDataObj(storedRaw, key);
+    if (sealed) {
+      const decrypted = await decryptDataObj(storedRaw, key);   // throws on a wrong password
       if (!decrypted) throw new Error("Wrong password");
       vaultEncKey    = key;
       vaultEncActive = true;
-      const { data: rawData, ...settings } = unwrapPayload(decrypted);
-      data = sanitiseData(rawData);
-      applyPayloadSettings(settings, true);
-      loadYearMode();
-      reconcileYears();
+      // Opening Vault: take on what's stored. After an idle lock, memory is newer: keep it.
+      if (!_sealMem) vaultSealAdopt(decrypted);
     } else {
       vaultEncKey    = key;
       vaultEncActive = true;
     }
     // Set before v6.19.1: there was no check yet. The next backup this password opens records
     // one; until then a wrong password shows as "Backup locked", never as a new backup key.
-    if (check === "ok") await encStoreCheck();
+    if (check === "ok" || sealed) await encStoreCheck();
+    // v6.20.0: a proven password and data still in the clear (from before): encrypt it now
+    if (check === "ok" && !_sealMem) await vaultSealStart();
 
+    if (_startLocked) { vaultFinishStartUnlock(); dbg("Lock: opened with the password"); return; }
     hideLockScreen();
+    vaultSealSoon();   // anything changed while it was locked
     saveAndRender(null);
     dbg("Lock: unlocked successfully");
 
@@ -10462,16 +10590,24 @@ async function unlockWithRecoveryFile(input) {
     if (await encVerifyRecovery(recovKey, storedRaw && isEncryptedEnvelope(storedRaw) ? storedRaw : null) === false)
       throw new Error("Recovery key did not match");
     if (storedRaw && isEncryptedEnvelope(storedRaw)) {
-      const decrypted = await decryptDataObj(storedRaw, recovKey);
+      // v6.20.0: the envelope's recovery copy (riv/rct); an older version used the main one
+      const env = JSON.parse(storedRaw);
+      let decrypted = null;
+      if (env.riv && env.rct) { try { decrypted = await encOpen({ iv: env.riv, ct: env.rct }, recovKey); } catch {} }
+      if (!decrypted) { try { decrypted = await decryptDataObj(storedRaw, recovKey); } catch {} }
       if (!decrypted) throw new Error("Recovery key did not match");
-      data = sanitiseData(decrypted);
-      loadYearMode();
-      reconcileYears();
+      if (!_sealMem) vaultSealAdopt(decrypted);
     }
     // Disable encryption — let user set a new password. The key stays for this session so the
-    // backup can still be read and merged (v6.19.1).
+    // backup can still be read and merged (v6.19.1). This device's data goes back in the clear.
     disablePasswordEncryption();
     vaultRecovReadKey = recovKey;
+    if (_startLocked) {
+      vaultFinishStartUnlock();
+      toast("Unlocked with recovery key — encryption disabled. Set a new password from Menu → Settings → Encryption");
+      dbg("Lock: opened with the recovery key");
+      return;
+    }
     hideLockScreen();
     saveAndRender(null);
     toast("Unlocked with recovery key — encryption disabled. Set a new password from Menu → Settings → Encryption");
@@ -10639,7 +10775,7 @@ function updateEncUI() {
   const menuSub   = document.getElementById("dmenu-enc-sub");
   const mobSub    = document.getElementById("mob-enc-sub");
   if (vaultEncActive) {
-    if (statusEl) statusEl.innerHTML = '<span style="color:var(--green);">Encryption is <strong>on</strong></span> — backups are password-protected.';
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--green);">Encryption is <strong>on</strong></span> — Vault and your backups need your password to open.';
     if (setBtnEl) setBtnEl.textContent = "Change password";
     if (disBtnEl) disBtnEl.style.display = "";
     if (menuSub)  menuSub.textContent = "On — AES-256 encrypted";
@@ -10734,11 +10870,11 @@ function updateLocalFileUI() {
 // ─── NAS / WebDAV ──────────────────────────────────────────────────────────────
 
 function saveNASConfig(cfg) {
-  try { localStorage.setItem(NAS_KEY, JSON.stringify(cfg)); } catch {}
+  try { vsSet(NAS_KEY, JSON.stringify(cfg)); } catch {}
 }
 
 function loadNASConfig() {
-  try { const raw = localStorage.getItem(NAS_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; }
+  try { const raw = vsGet(NAS_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; }
 }
 
 function nasAuthHeader(cfg) {
@@ -10846,7 +10982,7 @@ async function connectNAS() {
 function unlinkNAS() {
   nasLinked = false;
   nasConfig = null;
-  try { localStorage.removeItem(NAS_KEY); } catch {}
+  try { vsRemove(NAS_KEY); } catch {}
   setSaveStatus("warn", "No backup");
   updateNASUI();
   updateSetupModal();
@@ -11456,7 +11592,7 @@ async function disconnectAllBackupsAndReadData() {
     } catch {}
     nasLinked = false;
     nasConfig = null;
-    try { localStorage.removeItem(NAS_KEY); } catch {}
+    try { vsRemove(NAS_KEY); } catch {}
     updateNASUI();
   }
 
@@ -11639,6 +11775,7 @@ async function clearBrowserData() {
   if (!await vaultDelete({ title: "Clear all data?", sub: "Everything Vault keeps in this browser",
     lead: "Transactions, accounts, goals, settings, API keys and the backup connections all go. Your backups themselves aren't touched, so you can restore from one. Anything not in a backup is lost for good. This can't be undone.",
     options: [{ value: "clear" }], ok: "Clear all data" })) return;
+  _sealMem = null; _sealDirty = false; _sealGen++;   // v6.20.0
 
   // v6.18.6: everything, then a fresh start. It used to remove only the transactions and rules,
   // leaving accounts, goals, API keys, the NAS password and the Drive sign-in (which then merged
@@ -11661,7 +11798,7 @@ async function clearBrowserData() {
   // or render(), as both would write empty data back to localStorage and/or the linked file
   try {
     localStorage.removeItem(DATA_KEY);
-    localStorage.removeItem(RECUR_KEY);
+    vsRemove(RECUR_KEY);
     localStorage.removeItem(SIDEBAR_KEY);
     localStorage.removeItem(ENC_ACTIVE_KEY);
   } catch {}
@@ -11745,6 +11882,8 @@ function scheduleRetry() {
 // Detect when localStorage write fails (quota exceeded) and warn the user.
 const LOCAL_QUOTA_WARN_KEY = "vault_quota_warned";
 function saveLocal() {
+  // v6.20.0: with encryption on, kept in the encrypted envelope
+  if (_sealMem) { _sealMem[DATA_KEY] = JSON.stringify(data); vaultSealSoon(); return; }
   try {
     localStorage.setItem(DATA_KEY, JSON.stringify(data));
     // Clear quota warning if write succeeded
@@ -13011,7 +13150,7 @@ function newGoalId() { return "goal_" + Date.now().toString(36) + Math.random().
 
 function loadGoals() {
   try {
-    const raw = localStorage.getItem(GOALS_KEY);
+    const raw = vsGet(GOALS_KEY);
     goals = raw ? JSON.parse(raw) : [];
     if (!Array.isArray(goals)) goals = [];
   } catch { goals = []; }
@@ -13022,7 +13161,7 @@ function loadGoals() {
   goals = goals.filter(g => g && g.id && !goalDeletedIds.has(g.id));
 }
 function saveGoals() {
-  try { localStorage.setItem(GOALS_KEY, JSON.stringify(goals)); } catch {}
+  try { vsSet(GOALS_KEY, JSON.stringify(goals)); } catch {}
   try { localStorage.setItem(GOALS_DELETED_KEY, JSON.stringify([...goalDeletedIds])); } catch {}
 }
 
@@ -16927,11 +17066,11 @@ let _asRows = [];          // last rendered results, in display order (print/exp
 
 function asLoadRecent() {
   try {
-    const v = JSON.parse(localStorage.getItem(AS_RECENT_KEY) || "[]");
+    const v = JSON.parse(vsGet(AS_RECENT_KEY) || "[]");
     asRecent = Array.isArray(v) ? v.filter(x => typeof x === "string" && x.trim()).slice(0, AS_RECENT_MAX) : [];
   } catch { asRecent = []; }
 }
-function asSaveRecent() { try { localStorage.setItem(AS_RECENT_KEY, JSON.stringify(asRecent)); } catch {} }
+function asSaveRecent() { try { vsSet(AS_RECENT_KEY, JSON.stringify(asRecent)); } catch {} }
 
 // ── Dates ─────────────────────────────────────────────────────────────────
 function asIso(d) { return isoDate(d); }
@@ -19191,10 +19330,10 @@ const AI_PRIVACY_KEY     = "vault_ai_privacy_agreed";
 const AI_ENABLED_PREFIX  = "vault_ai_enabled_"; // "0" = disabled, absent/other = enabled
 
 function getAIKey(providerId) {
-  try { return (localStorage.getItem(AI_KEY_PREFIX + providerId) || "").trim(); } catch { return ""; }
+  try { return (vsGet(AI_KEY_PREFIX + providerId) || "").trim(); } catch { return ""; }
 }
 function setAIKey(providerId, key) {
-  try { localStorage.setItem(AI_KEY_PREFIX + providerId, key); } catch {}
+  try { vsSet(AI_KEY_PREFIX + providerId, key); } catch {}
 }
 function isAIProviderEnabled(providerId) {
   try { return localStorage.getItem(AI_ENABLED_PREFIX + providerId) !== "0"; } catch { return true; }
@@ -22161,7 +22300,7 @@ async function welcomeLoadFile() {
   document.getElementById("welcome-modal").classList.add("hidden");
   await loadFromLocalFile();
   // If nothing was loaded, show welcome again
-  if (!localFileHandle && !localStorage.getItem(DATA_KEY)) {
+  if (!localFileHandle && !vsGet(DATA_KEY)) {
     document.getElementById("welcome-modal").classList.remove("hidden");
   }
 }
@@ -22185,6 +22324,8 @@ function vaultBootReveal() {
 }
 
 function initApp() {
+  // v6.20.0: with encryption on, nothing on this device can be read until the password is entered
+  if (!_sealMem && !inSandbox && vaultSealedOnDisk()) { vaultStartLocked(); return; }
   loadSortPref(); // before the first render so the list opens in the remembered order
   asLoadRecent(); // Advanced Search's recent searches (this device only)
   loadLocal();
@@ -22225,12 +22366,11 @@ function initApp() {
 
   closeSetup();
 
-  // If encryption is active, show lock screen before rendering
-  if (vaultEncActive) {
-    initLockScreen();
-    initActivityTracking();
-    return; // render() called after successful unlock instead
-  }
+  // v6.20.0: the lock comes before anything loads (vaultStartLocked above). Data still kept in
+  // the clear from before opens as it did, and is encrypted once the password is entered.
+  // (This used to return here, so Home was never drawn.)
+  if (vaultEncActive && !vaultEncKey) initLockScreen();
+  if (vaultEncActive) initActivityTracking();
 
   loadAccounts();
   updateAccountsMenuSub();
@@ -22352,7 +22492,7 @@ const FREQ_LABELS = { weekly:"Weekly", fortnightly:"Fortnightly", monthly:"Month
 // Load recurring rules from localStorage
 function loadRecurring() {
   try {
-    const raw = localStorage.getItem(RECUR_KEY);
+    const raw = vsGet(RECUR_KEY);
     recurRules = raw ? JSON.parse(raw) : [];
   } catch { recurRules = []; }
   try {
@@ -22362,7 +22502,7 @@ function loadRecurring() {
 
   // In sandbox mode, seed with example recurring rules only on first load
   // (i.e. when nothing has ever been saved — not when rules were deliberately deleted)
-  const everSaved = localStorage.getItem(RECUR_KEY) !== null;
+  const everSaved = vsGet(RECUR_KEY) !== null;
   if (inSandbox && !everSaved) {
     recurRules = [
       {
@@ -22417,13 +22557,13 @@ function loadRecurring() {
       },
     ];
     // Persist immediately so deletions survive page reloads
-    try { localStorage.setItem(RECUR_KEY, JSON.stringify(recurRules)); } catch {}
+    try { vsSet(RECUR_KEY, JSON.stringify(recurRules)); } catch {}
   }
 }
 
 // Persist recurring rules to localStorage
 function saveRecurring() {
-  try { localStorage.setItem(RECUR_KEY, JSON.stringify(recurRules)); } catch {}
+  try { vsSet(RECUR_KEY, JSON.stringify(recurRules)); } catch {}
   try { localStorage.setItem(RECUR_DELETED_KEY, JSON.stringify([...recurDeletedIds])); } catch {}
 }
 
@@ -23660,7 +23800,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.19.1</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.20.0</div>
         </div>
 
         <div class="pp-cards">
@@ -23772,7 +23912,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v6.19.1</div>
+  <div id="version-footer">v6.20.0</div>
 
 </body>
 </html>
