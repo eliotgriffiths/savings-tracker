@@ -172,7 +172,7 @@ setTimeout(async () => {
   ok(!/Sync to Google Drive, OneDrive, or Dropbox/.test(html), "OneDrive/Dropbox not presented as available");
   // Version: v6.12.0 or later, and the About panel matches the footer.
   const vf = E(`document.getElementById("version-footer").textContent.trim()`);
-  ok(/^v6\.(1[2-9]|[2-9]\d)\.\d+$/.test(vf) && html.includes(`Version ${vf}<`), "version is v6.12.0 or later, About matches footer: " + vf);
+  ok((([M, m, p]) => M > 6 || (M === 6 && (m > 12 || (m === 12 && p >= 0))))((vf.match(/^v(\d+)\.(\d+)\.(\d+)$/) || []).slice(1).map(Number)) && html.includes(`Version ${vf}<`), "version is v6.12.0 or later, About matches footer: " + vf);
 
   console.log(`${pass} passed, ${fail} failed; page errors: ${errors.length}`);
   errors.slice(0, 5).forEach(e => console.log("  err:", e.slice(0, 200)));

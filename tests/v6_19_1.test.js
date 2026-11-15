@@ -146,7 +146,10 @@ setTimeout(async () => {
     await until(() => C.E("window.__res") !== "pending");
     ok(C.E("!!window.__res && !!window.__res._data"), "choosing the file opens the backup");
     ok(C.E("vaultEncActive") === false && C.E("vaultRecovReadKey") !== null, "encryption is switched off for a new password, and the backup stays readable");
-    C.add("c1"); await C.sync();
+    C.add("c1");
+    // v6.20.1 and later: nothing is backed up until a new password, or the choice to go without
+    if (C.E("typeof vaultRecovHold === 'function' && vaultRecovHold()")) { C.E("vaultRecovHoldEnd()"); C.d.getElementById("enc-set-popup").classList.add("hidden"); }
+    await C.sync();
     ok(!/vault_enc/.test(drive.text) && rowsOf(JSON.parse(drive.text)).includes("b1") && rowsOf(JSON.parse(drive.text)).includes("c1"), "after recovering, the next sync merges the backup (it was stuck as locked)");
 
     // ── A wrong recovery file on the lock screen ────────────────────────────

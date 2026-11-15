@@ -123,8 +123,8 @@ setTimeout(async () => {
     ok(A.rows().includes("new3"), "a change made after an idle unlock is there after a restart");
 
     // ── An older version can still open it ──────────────────────────────────
-    const plainEnv = await A.E(`(async () => decryptDataObj(localStorage.getItem(DATA_KEY), await deriveKeyFromPassword(${JSON.stringify(PW)})))()`);
-    ok(plainEnv && plainEnv._data && Array.isArray(plainEnv._accounts) && plainEnv._accounts[0].name === "UBankSecretName", "the envelope is the backup's own payload, so an older version's lock screen opens it");
+    const plainEnv = await A.E(`(async () => decryptDataObj(localStorage.getItem(DATA_KEY), await deriveKeyFromPassword(${JSON.stringify(PW)}, typeof encKdfOf === "function" ? encKdfOf(localStorage.getItem(DATA_KEY)) : undefined)))()`);
+    ok(plainEnv && plainEnv._data && Array.isArray(plainEnv._accounts) && plainEnv._accounts[0].name === "UBankSecretName", "the envelope is the backup's own payload (until v7.0.0, an older version's lock screen could open it)");
 
     // ── Recovery file on the lock screen ────────────────────────────────────
     A = A.reload(false); await sleep(80);

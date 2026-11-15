@@ -148,7 +148,7 @@ setTimeout(async () => {
   ok(!/Advanced [Ss]earch/.test(visible), "no visible text says Advanced Search");
 
   const vf = d.getElementById("version-footer").textContent.trim();
-  ok(/^v6\.(1[4-9]|[2-9]\d)\.\d+$/.test(vf) && html.includes(`Version ${vf}<`), "version v6.14.0 or later, About matches: " + vf);
+  ok((([M, m, p]) => M > 6 || (M === 6 && (m > 14 || (m === 14 && p >= 0))))((vf.match(/^v(\d+)\.(\d+)\.(\d+)$/) || []).slice(1).map(Number)) && html.includes(`Version ${vf}<`), "version v6.14.0 or later, About matches: " + vf);
 
   console.log(`layout: ${pass} passed, ${fail} failed, ${errors.length} page errors`);
   errors.slice(0, 5).forEach(e => console.log("PAGE ERROR:", e.slice(0, 300)));

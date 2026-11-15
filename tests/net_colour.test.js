@@ -81,7 +81,7 @@ setTimeout(() => {
 
   // v6.12.1 or later, with About matching the footer.
   const vf = d.getElementById("version-footer").textContent.trim();
-  ok(/^v6\.(12\.([1-9]|\d\d)|(1[3-9]|[2-9]\d)\.\d+)$/.test(vf), "footer version is v6.12.1 or later: " + vf);
+  ok((([M, m, p]) => M > 6 || (M === 6 && (m > 12 || (m === 12 && p >= 1))))((vf.match(/^v(\d+)\.(\d+)\.(\d+)$/) || []).slice(1).map(Number)), "footer version is v6.12.1 or later: " + vf);
   ok(html.includes(`Version ${vf}<`), "About matches the footer");
   ok(!/\.net[^{]*\{[^}]*var\(--gold\)/.test(html.replace(/\.vh-heat[^{]*\{[^}]*\}/g, "")), "no Net rule left in gold");
 

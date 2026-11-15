@@ -1860,5 +1860,41 @@
       "The lock screen shows a padlock"
     ],
     "versioned_at_release": true
+  },
+  {
+    "tag": "v6.20.1",
+    "sha": "72cb4a9b070be51c6f71edfc2d51fed4e18a07ea",
+    "commits": [
+      "72cb4a9"
+    ],
+    "date": "2026-11-15",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "notes": [
+      "While Vault is locked, nothing is backed up. Before, a background sync could save your backup unencrypted, either to a new backup location or when Vault locked part-way through a sync",
+      "After you open Vault with your recovery key, it asks for a new password straight away and backs nothing up until you set one, so your backup isn't saved unencrypted. You can choose to back up without encryption instead",
+      "Using your recovery key in the Encrypted backup popup no longer switches off a password you've already set on this device",
+      "If your password doesn't work, Vault mentions that it may have been changed on another device"
+    ],
+    "versioned_at_release": true
+  },
+  {
+    "tag": "v7.0.0",
+    "sha": "55f281e83b6ad7f1f89c4e9868993d9a0c234902",
+    "commits": [
+      "55f281e"
+    ],
+    "date": "2026-11-15",
+    "type": "Major",
+    "judgement_call": false,
+    "previous_version": null,
+    "notes": [
+      "New passwords are protected with a random salt and 600,000 rounds of key stretching, which makes them much harder to guess from a copy of your backup. Your existing password is upgraded automatically the next time you enter it. Your recovery key doesn't change",
+      "Removing encryption on one device now removes it on your other devices too, instead of one device encrypting the backup again and the other asking for the password you'd removed",
+      "Only a device that had your password or recovery key can switch encryption off elsewhere. An unencrypted file placed in your Drive can't",
+      "Vault versions before 7.0 can't open backups made with a new password, so update every device"
+    ],
+    "versioned_at_release": true
   }
 ]

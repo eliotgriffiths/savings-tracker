@@ -75,7 +75,7 @@ setTimeout(() => {
   ok(/\.replace\(\/var\\\(--in\\\)\/g,\s*"#2a7a52"\)/.test(html) && /\.replace\(\/var\\\(--accent\\\)\/g,\s*"#8a7530"\)/.test(html), "printed charts map the roles to the print palette");
 
   const vf = d.getElementById("version-footer").textContent.trim();
-  ok(/^v6\.(1[5-9]|[2-9]\d)\.\d+$/.test(vf) && html.includes(`Version ${vf}<`), "version v6.15.0 or later, About matches: " + vf);
+  ok((([M, m, p]) => M > 6 || (M === 6 && (m > 15 || (m === 15 && p >= 0))))((vf.match(/^v(\d+)\.(\d+)\.(\d+)$/) || []).slice(1).map(Number)) && html.includes(`Version ${vf}<`), "version v6.15.0 or later, About matches: " + vf);
 
   console.log(`look: ${pass} passed, ${fail} failed, ${errors.length} page errors`);
   errors.slice(0, 5).forEach(e => console.log("PAGE ERROR:", e.slice(0, 300)));
