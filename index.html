@@ -5887,6 +5887,12 @@
       <button class="modal-close" onclick="closeEncryptionMenu()" title="Close">✕</button>
     </div>
     <div id="enc-status-row" style="font-size:13px; color:var(--text-2); margin-bottom:16px; line-height:1.7; font-weight:300;"></div>
+    <div class="vp-fold folded" id="enc-recov-row"><div class="vp-fold-in">
+      <div style="padding:12px 14px; margin-bottom:16px; background:color-mix(in srgb, var(--attention) 8%, transparent); border:1px solid color-mix(in srgb, var(--attention) 25%, transparent); border-radius:var(--radius); font-size:12px; color:var(--text-2); line-height:1.6;">
+        <strong style="color:var(--attention);">Your recovery key isn't attached to new backups.</strong> Backups made since Vault last locked can't be opened with your vault-recovery.json. Make a new recovery key to fix this. Your old file stops working for new backups.
+        <button class="pbtn pbtn-secondary" style="width:100%; margin-top:10px;" onclick="makeNewRecoveryKey()">Make a new recovery key</button>
+      </div>
+    </div></div>
     <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
       <button id="btn-enc-set" class="pbtn pbtn-primary" onclick="openEncPasswordPopup()">Set password</button>
       <button id="btn-enc-disable" class="pbtn pbtn-secondary" style="display:none; color:var(--red); border-color:color-mix(in srgb, var(--out) 30%, transparent);" onclick="confirmDisableEnc()">Remove encryption</button>
@@ -9019,8 +9025,11 @@ async function buildVaultPayload() {
     if (vaultRecovKey) {
       const pwdEnv   = JSON.parse(await encryptDataObj(wrapped, vaultEncKey));
       const recovEnv = JSON.parse(await encryptDataObj(wrapped, vaultRecovKey));
+      // rk (v6.19.1): the recovery key wrapped in the password, so another device that opens
+      // this backup with the password can keep writing the recovery copy (riv/rct) too.
+      const rk = vaultRecovRaw ? await encSeal({ v: 1, recov: vaultRecovRaw }, vaultEncKey) : undefined;
       return JSON.stringify({ vault_enc: 3, iv: pwdEnv.iv, ct: pwdEnv.ct,
-                              riv: recovEnv.iv, rct: recovEnv.ct }, null, 2);
+                              riv: recovEnv.iv, rct: recovEnv.ct, rk }, null, 2);
     }
     return await encryptDataObj(wrapped, vaultEncKey);
   }
@@ -9284,6 +9293,8 @@ function promptAndDecrypt(encryptedText) {
         // Correct password — store the key in memory for future saves
         vaultEncKey    = await deriveKeyFromPassword(pw);
         vaultEncActive = true;
+        vaultRecovReadKey = null;
+        await encAfterBackupOpened(encryptedText);   // v6.19.1
         // Only persist enc active flag if localStorage data is itself encrypted
         const storedRaw = localStorage.getItem(DATA_KEY);
         if (storedRaw && isEncryptedEnvelope(storedRaw)) {
@@ -9307,14 +9318,16 @@ function promptAndDecrypt(encryptedText) {
         // Try recovery key path: envelope has riv/rct for recovery decryption
         const env = JSON.parse(encryptedText);
         let result = null;
+        const recovKey = await importRawKey(obj.key);
         if (env.riv && env.rct) {
-          const recovKey = await importRawKey(obj.key);
           const recovEnv = JSON.stringify({ vault_enc: 3, iv: env.riv, ct: env.rct });
           result = await tryDecryptWithRecoveryKey(recovEnv, recovKey);
         }
         if (!result) throw new Error("Recovery key did not match");
-        // Success — disable enc (user can re-enable with a new password)
+        // Success — disable enc (user can re-enable with a new password). The key stays for
+        // this session so the backup can still be read and merged (v6.19.1).
         disablePasswordEncryption();
+        vaultRecovReadKey = recovKey;
         popup.classList.add("hidden");
         cleanup();
         toast("Recovery successful — encryption disabled. Re-enable with a new password from Menu → Settings → Encryption", "notice");
@@ -9332,13 +9345,16 @@ function promptAndDecrypt(encryptedText) {
 
     function cleanup() {
       document.getElementById("enc-decrypt-btn").onclick    = null;
-      document.getElementById("enc-recovery-btn").onclick   = null;
       document.getElementById("enc-decrypt-cancel").onclick = null;
+      fileInput.onchange = null; fileInput.value = "";
       passInput.onkeydown = null;
     }
 
     document.getElementById("enc-decrypt-btn").onclick    = tryPassword;
-    document.getElementById("enc-recovery-btn").onclick   = tryRecovery;
+    // v6.19.1: the button opens the file picker (its own onclick); the file is checked once
+    // chosen. Replacing the button's onclick ran the check at once, with no file, every time.
+    fileInput.value = "";
+    fileInput.onchange = tryRecovery;
     document.getElementById("enc-decrypt-cancel").onclick = cancel;
     passInput.onkeydown = e => { if (e.key === "Enter") tryPassword(); };
   });
@@ -10092,6 +10108,19 @@ const ENC_ACTIVE_KEY  = "vault_enc_active";        // "true" if password enc is 
 let vaultEncKey     = null;   // in-memory CryptoKey derived from password
 let vaultRecovKey   = null;   // in-memory CryptoKey for recovery key path
 let vaultEncActive  = false;  // true when a password is set and enc is enabled
+// v6.19.1: the recovery key's raw bytes (base64), so they can travel wrapped in the password.
+// Locking wipes them with the keys; unlocking brings them back from ENC_CHECK_KEY.
+let vaultRecovRaw   = null;
+// After recovering with the file (encryption then off), this reads the backup's recovery copy
+// so it can still be merged. Session only.
+let vaultRecovReadKey = null;
+// The password check: { iv, ct } — {v:1, recov:<b64 raw recovery key>|null} encrypted with the
+// password key. A wrong password can't open it, so the lock screen can tell, and the recovery
+// key comes back with it. Written whenever a password is proven (set, or opens a backup).
+const ENC_CHECK_KEY   = "vault_enc_check";
+// The recovery file's check: { iv, ct } — {v:1} encrypted with the recovery key itself, so a
+// recovery file can be checked without the password.
+const RECOV_CHECK_KEY = "vault_recov_check";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -10148,10 +10177,98 @@ async function vaultParseBackup(text) {
   if (o === null || (typeof o === "object" && !Array.isArray(o) && !Object.keys(o).length)) return { state: "empty" };
   if (!o || typeof o !== "object" || Array.isArray(o)) return { state: "bad" };
   if (o.vault_enc === 3) {
-    if (vaultEncKey) { try { return { state: "ok", remote: await decryptDataObj(text, vaultEncKey), enc: true }; } catch {} }
+    if (vaultEncKey) {
+      let remote = null;
+      try { remote = await decryptDataObj(text, vaultEncKey); } catch {}
+      if (remote) { await encAfterBackupOpened(text); return { state: "ok", remote, enc: true }; }
+    }
+    // v6.19.1: just recovered with the recovery file (encryption is off until a new password
+    // is set): the backup's recovery copy can still be read, so it's merged, not stuck locked
+    const rkey = vaultRecovReadKey || vaultRecovKey;
+    if (rkey && o.riv && o.rct) {
+      try { return { state: "ok", remote: await encOpen({ iv: o.riv, ct: o.rct }, rkey), enc: true }; } catch {}
+    }
     return { state: "locked", text };
   }
   return { state: "ok", remote: o };
+}
+
+// ── v6.19.1: recovery key that survives a lock or restart ─────────────────────
+async function encSeal(obj, key) { const e = JSON.parse(await encryptDataObj(obj, key)); return { iv: e.iv, ct: e.ct }; }
+async function encOpen(box, key) {
+  if (!box || !box.iv || !box.ct) throw new Error("no box");
+  return decryptDataObj(JSON.stringify({ vault_enc: 3, iv: box.iv, ct: box.ct }), key);
+}
+// Take on a recovery key (base64 raw bytes) for this session and record its own check
+async function encAdoptRecovery(b64) {
+  vaultRecovKey = await importRawKey(b64);
+  vaultRecovRaw = b64;
+  try { localStorage.setItem(RECOV_CHECK_KEY, JSON.stringify(await encSeal({ v: 1 }, vaultRecovKey))); } catch {}
+}
+// Store the password check (with the recovery key inside, when known)
+async function encStoreCheck() {
+  if (!vaultEncKey) return;
+  try { localStorage.setItem(ENC_CHECK_KEY, JSON.stringify(await encSeal({ v: 1, recov: vaultRecovRaw || null }, vaultEncKey))); } catch {}
+}
+// "none" (no check stored yet), "bad" (wrong password) or "ok" (and the recovery key is back)
+async function encVerifyPassword(key) {
+  let box = null;
+  try { box = JSON.parse(localStorage.getItem(ENC_CHECK_KEY) || "null"); } catch {}
+  if (!box) return "none";
+  let inner;
+  try { inner = await encOpen(box, key); } catch { return "bad"; }
+  if (inner && inner.recov && !vaultRecovRaw) { try { await encAdoptRecovery(inner.recov); } catch {} }
+  return "ok";
+}
+// Is this the recovery file's key? true / false, or null when nothing here can tell
+async function encVerifyRecovery(key, envelopeText) {
+  let box = null;
+  try { box = JSON.parse(localStorage.getItem(RECOV_CHECK_KEY) || "null"); } catch {}
+  if (box) { try { await encOpen(box, key); return true; } catch { return false; } }
+  if (envelopeText) {
+    try { const env = JSON.parse(envelopeText); if (env.riv && env.rct) { await encOpen({ iv: env.riv, ct: env.rct }, key); return true; } } catch { return false; }
+  }
+  return null;
+}
+// After a backup opened with the password: learn its recovery key if it carries one, and
+// record the password check
+async function encAfterBackupOpened(envelopeText) {
+  // This device may already hold the recovery key under the same password (a backup made
+  // before v6.19.1 has no rk): get it back before the check is rewritten
+  if (!vaultRecovRaw && vaultEncKey) await encVerifyPassword(vaultEncKey);
+  try {
+    const env = JSON.parse(envelopeText);
+    if (env.rk && !vaultRecovRaw && vaultEncKey) {
+      const inner = await encOpen(env.rk, vaultEncKey);
+      if (inner && inner.recov) await encAdoptRecovery(inner.recov);
+    }
+  } catch {}
+  await encStoreCheck();
+  if (typeof updateEncUI === "function") updateEncUI();
+}
+// A new recovery key, for a device whose backups lost theirs (or after recovering)
+async function makeNewRecoveryKey() {
+  if (!vaultEncActive || !vaultEncKey) { toast("Unlock Vault with your password first", "error"); return; }
+  const recov = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+  await encAdoptRecovery(b64encode(await crypto.subtle.exportKey("raw", recov)));
+  await encStoreCheck();
+  downloadRecoveryFile();
+  updateEncUI();
+  triggerCloudSync();
+  toast("New recovery key downloaded — keep it safe");
+}
+function downloadRecoveryFile() {
+  const recovData = JSON.stringify({
+    vault_recovery: 1,
+    key:     vaultRecovRaw,
+    created: todayISO(),
+    note:    "Keep this file safe. It can decrypt your Vault backup if you forget your password."
+  }, null, 2);
+  const blob = new Blob([recovData], { type: "application/json" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href = url; a.download = "vault-recovery.json"; a.click();
+  URL.revokeObjectURL(url);
 }
 
 // Load encryption active flag from localStorage
@@ -10169,24 +10286,16 @@ async function enablePasswordEncryption(password) {
     vaultEncKey    = await deriveKeyFromPassword(password);
     // Generate a random recovery key (a raw AES-256 key)
     const recov    = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
-    const recovRaw = await crypto.subtle.exportKey("raw", recov);
-    vaultRecovKey  = recov;
+    await encAdoptRecovery(b64encode(await crypto.subtle.exportKey("raw", recov)));
+    vaultRecovReadKey = null;
     vaultEncActive = true;
     localStorage.setItem(ENC_ACTIVE_KEY, "true");
+    // v6.19.1: kept wrapped in the password, so a lock or restart doesn't lose it
+    await encStoreCheck();
     initActivityTracking();
     resetLockTimer();
     // Download recovery key file immediately
-    const recovData = JSON.stringify({
-      vault_recovery: 1,
-      key:     b64encode(recovRaw),
-      created: todayISO(),
-      note:    "Keep this file safe. It can decrypt your Vault backup if you forget your password."
-    }, null, 2);
-    const blob = new Blob([recovData], { type: "application/json" });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement("a");
-    a.href = url; a.download = "vault-recovery.json"; a.click();
-    URL.revokeObjectURL(url);
+    downloadRecoveryFile();
     dbg("Enc: password encryption enabled, recovery key downloaded");
     return true;
   } catch (e) {
@@ -10200,9 +10309,10 @@ async function enablePasswordEncryption(password) {
 function disablePasswordEncryption() {
   vaultEncKey    = null;
   vaultRecovKey  = null;
+  vaultRecovRaw  = null;
   vaultEncActive = false;
   clearLockTimer();
-  try { localStorage.removeItem(ENC_ACTIVE_KEY); } catch {}
+  try { localStorage.removeItem(ENC_ACTIVE_KEY); localStorage.removeItem(ENC_CHECK_KEY); localStorage.removeItem(RECOV_CHECK_KEY); } catch {}
   dbg("Enc: password encryption disabled");
 }
 
@@ -10237,6 +10347,7 @@ function showLockScreen(reason) {
   vaultIsLocked  = true;
   vaultEncKey    = null; // wipe key from memory
   vaultRecovKey  = null;
+  vaultRecovRaw  = null; // back from the password check on unlock (v6.19.1)
 
   const el = document.getElementById("vault-lock-screen");
   const reasonEl = document.getElementById("lock-screen-reason");
@@ -10301,6 +10412,10 @@ async function unlockVault() {
   try {
     const key        = await deriveKeyFromPassword(pw);
     const storedRaw  = localStorage.getItem(DATA_KEY);
+    // v6.19.1: the password check. The stored data isn't encrypted, so without it any
+    // password unlocked Vault — and became the key the next backup was encrypted with.
+    const check = await encVerifyPassword(key);
+    if (check === "bad") throw new Error("Wrong password");
 
     if (storedRaw && isEncryptedEnvelope(storedRaw)) {
       const decrypted = await decryptDataObj(storedRaw, key);
@@ -10316,6 +10431,9 @@ async function unlockVault() {
       vaultEncKey    = key;
       vaultEncActive = true;
     }
+    // Set before v6.19.1: there was no check yet. The next backup this password opens records
+    // one; until then a wrong password shows as "Backup locked", never as a new backup key.
+    if (check === "ok") await encStoreCheck();
 
     hideLockScreen();
     saveAndRender(null);
@@ -10339,6 +10457,10 @@ async function unlockWithRecoveryFile(input) {
     if (!recov.vault_recovery || !recov.key) throw new Error("Invalid recovery file");
     const recovKey  = await importRawKey(recov.key);
     const storedRaw = localStorage.getItem(DATA_KEY);
+    // v6.19.1: check the file is this vault's recovery key (any file with a key field used to
+    // unlock Vault and switch encryption off)
+    if (await encVerifyRecovery(recovKey, storedRaw && isEncryptedEnvelope(storedRaw) ? storedRaw : null) === false)
+      throw new Error("Recovery key did not match");
     if (storedRaw && isEncryptedEnvelope(storedRaw)) {
       const decrypted = await decryptDataObj(storedRaw, recovKey);
       if (!decrypted) throw new Error("Recovery key did not match");
@@ -10346,8 +10468,10 @@ async function unlockWithRecoveryFile(input) {
       loadYearMode();
       reconcileYears();
     }
-    // Disable encryption — let user set a new password
+    // Disable encryption — let user set a new password. The key stays for this session so the
+    // backup can still be read and merged (v6.19.1).
     disablePasswordEncryption();
+    vaultRecovReadKey = recovKey;
     hideLockScreen();
     saveAndRender(null);
     toast("Unlocked with recovery key — encryption disabled. Set a new password from Menu → Settings → Encryption");
@@ -10520,7 +10644,10 @@ function updateEncUI() {
     if (disBtnEl) disBtnEl.style.display = "";
     if (menuSub)  menuSub.textContent = "On — AES-256 encrypted";
     if (mobSub)   mobSub.textContent  = "On";
+    // v6.19.1: unlocked, and no recovery key to attach → offer a new one
+    vpFold("enc-recov-row", !!vaultEncKey && !vaultRecovKey, true);
   } else {
+    vpFold("enc-recov-row", false, true);
     if (statusEl) statusEl.innerHTML = '<span style="color:var(--text-3);">Encryption is <strong>off</strong></span> — backups are unencrypted.';
     if (setBtnEl) setBtnEl.textContent = "Set password";
     if (disBtnEl) disBtnEl.style.display = "none";
@@ -23533,7 +23660,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.19.0</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.19.1</div>
         </div>
 
         <div class="pp-cards">
@@ -23645,7 +23772,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v6.19.0</div>
+  <div id="version-footer">v6.19.1</div>
 
 </body>
 </html>
