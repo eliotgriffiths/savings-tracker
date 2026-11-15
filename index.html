@@ -10275,7 +10275,8 @@ function hideLockScreen() {
     renderAccountPills();
     populateAccountSelects();
     loadRecurring();
-    runRecurringCheck();
+    // v6.19.0: sync first when a backup is set up, then the recurring check
+    if (vaultHasBackup()) { _recurAfterSync = true; vaultStartupSync(); } else runRecurringCheck();
     updateRecurMenuSub();
     bindHourlyTick();
     // Gate 1 of 2: a fresh load past the 6-hour window re-ranks BEFORE the first
@@ -22085,7 +22086,7 @@ function initApp() {
   Promise.all([
     initLocalFileSync(),
     initGoogleDrive(),
-  ]).then(() => { checkFirstRun(); });
+  ]).then(() => { checkFirstRun(); vaultStartupSync(); });
   activeYear = "all-years";
 
   // Restore collapsed sidebar state
@@ -22117,7 +22118,8 @@ function initApp() {
   initTabConflictDetection();
   enforceAccountTombstones();
   loadRecurring();
-  runRecurringCheck();
+  // v6.19.0: with a backup set up, the check runs after the first sync (vaultStartupSync)
+  if (_hasGD || _hasFile || _hasNAS) _recurAfterSync = true; else runRecurringCheck();
   updateRecurMenuSub();
   // Land on Home only after recurring rules are loaded/processed, so the Upcoming
   // section sees the fully-populated recurRules on its first render.
@@ -22148,6 +22150,35 @@ function initApp() {
 // the layout must never move while it is being read. Deferral is self-queueing:
 // the tick simply returns and tries again in an hour, so the reorder lands on the
 // first tick after the user navigates away.
+// v6.19.0: pick up other devices' changes without waiting for a change here (sync sweep #13).
+// A quiet sync (no status chatter, no dialogs — see triggerCloudSync) runs when Vault opens or
+// unlocks, whenever it comes back to the screen (at most every 5 minutes), when the connection
+// comes back, and on the hourly tick. Before, nothing was read until you changed something, so
+// a phone showed yesterday's figures and a computer left open for weeks kept its old data.
+const AUTO_SYNC_MS = 5 * 60 * 1000;
+let _lastAutoSync = 0;
+let _recurAfterSync = false;   // start-up's recurring check waits for the first sync
+function vaultHasBackup() { return !!(localFileHandle || nasLinked || gdLinked); }
+async function maybeAutoSync(why, force) {
+  if (!vaultHasBackup() || vaultIsLocked) return false;
+  if (document.visibilityState === "hidden") return false;
+  if (_syncInProgress || _pendingMerge) return false;
+  if (!force && _anyOverlayOpen()) return false;               // never under a half-filled form
+  if (!force && Date.now() - _lastAutoSync < AUTO_SYNC_MS) return false;
+  _lastAutoSync = Date.now();   // stamped first, so a quick switch back can't start a second one
+  dbg("auto-sync from " + why);
+  await triggerCloudSync({ quiet: true });
+  return true;
+}
+// Start-up and unlock: sync first, then post any recurring occurrences that are due, so a
+// device that's been away doesn't post for a rule that was edited or deleted elsewhere.
+async function vaultStartupSync() {
+  try { await Promise.race([maybeAutoSync("start", true), new Promise(r => setTimeout(r, 15000))]); } catch {}
+  if (_recurAfterSync) { _recurAfterSync = false; runRecurringCheck(); }
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") maybeAutoSync("back on screen"); });
+window.addEventListener("online", () => { if (!pendingRetry) maybeAutoSync("online"); });
+
 let _hourlyBound = false;
 function bindHourlyTick() {
   if (_hourlyBound) return;
@@ -22159,6 +22190,7 @@ function bindHourlyTick() {
     }
     runRecurringCheck();
     if (activeTab !== "home") vhMaybeReorder("hourly tick");
+    maybeAutoSync("hourly tick");
   }, 60 * 60 * 1000);
 }
 
@@ -22506,6 +22538,8 @@ function _anyOverlayOpen() {
   // while the user is reviewing the print preview.
   const pdfOverlay = document.getElementById('pdf-preview-overlay');
   if (pdfOverlay && !pdfOverlay.classList.contains('hidden')) return true;
+  // v6.19.0: and the *-modal trays (popupIsOpen also checks what's around them)
+  for (const el of document.querySelectorAll('[id$="-modal"]')) if (popupIsOpen(el)) return true;
   return false;
 }
 
@@ -23499,7 +23533,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.18.6</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.19.0</div>
         </div>
 
         <div class="pp-cards">
@@ -23611,7 +23645,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v6.18.6</div>
+  <div id="version-footer">v6.19.0</div>
 
 </body>
 </html>
