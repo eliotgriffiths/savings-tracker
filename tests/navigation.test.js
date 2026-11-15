@@ -187,7 +187,7 @@ setTimeout(async () => {
 
   // ── version ─────────────────────────────────────────────────────────────
   const vf = d.getElementById("version-footer").textContent.trim();
-  ok(/^v6\.(1[3-9]|[2-9]\d)\.\d+$/.test(vf) && html.includes(`Version ${vf}<`), "version v6.13.0 or later, About matches: " + vf);
+  ok((([M, m, p]) => M > 6 || (M === 6 && (m > 13 || (m === 13 && p >= 0))))((vf.match(/^v(\d+)\.(\d+)\.(\d+)$/) || []).slice(1).map(Number)) && html.includes(`Version ${vf}<`), "version v6.13.0 or later, About matches: " + vf);
 
   console.log(`navigation: ${pass} passed, ${fail} failed, ${errors.length} page errors`);
   errors.slice(0, 5).forEach(e => console.log("PAGE ERROR:", e.slice(0, 300)));

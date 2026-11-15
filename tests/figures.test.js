@@ -81,8 +81,7 @@ setTimeout(async () => {
 
     // version
     const vf = d.getElementById("version-footer").textContent.trim();
-    const [, mi, pa] = vf.match(/^v6\.(\d+)\.(\d+)$/) || [];
-    ok(+mi > 15 || (+mi === 15 && +pa >= 1), "version v6.15.1 or later: " + vf);
+    ok((([M, m, p]) => M > 6 || (M === 6 && (m > 15 || (m === 15 && p >= 1))))((vf.match(/^v(\d+)\.(\d+)\.(\d+)$/) || []).slice(1).map(Number)), "version v6.15.1 or later: " + vf);
     ok(html.includes(`Version ${vf}<`), "About matches the footer");
   } catch (e) { fail++; console.log("FAIL: threw", e); }
   ok(errors.length === 0, "no page errors: " + errors.join(" | "));

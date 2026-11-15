@@ -9025,6 +9025,7 @@ function buildWrappedPayload() {
     _settingsTs:   Math.max(getYearTs(), getCurrencyTs()),
     _aiSettings:   buildAISettingsPayload(),
     _sort:         buildSortPayload(),
+    _encOff:       encOffForPayload(),   // v7.0.0
   };
 }
 async function buildVaultPayload(opts) {
@@ -9034,16 +9035,19 @@ async function buildVaultPayload(opts) {
   if (vaultRecovHold() && !(opts && opts.allowHold)) throw new Error("Choose a new password first");
   const wrapped = buildWrappedPayload();
   if (vaultEncActive && vaultEncKey) {
-    if (vaultRecovKey) {
-      const pwdEnv   = JSON.parse(await encryptDataObj(wrapped, vaultEncKey));
-      const recovEnv = JSON.parse(await encryptDataObj(wrapped, vaultRecovKey));
+    // v7.0.0: one key and its kdf for the whole build, and the kdf travels with the backup
+    const key = vaultEncKey, kdf = vaultKdf || undefined, rkey = vaultRecovKey, rraw = vaultRecovRaw;
+    if (rkey) {
+      const pwdEnv   = JSON.parse(await encryptDataObj(wrapped, key));
+      const recovEnv = JSON.parse(await encryptDataObj(wrapped, rkey));
       // rk (v6.19.1): the recovery key wrapped in the password, so another device that opens
       // this backup with the password can keep writing the recovery copy (riv/rct) too.
-      const rk = vaultRecovRaw ? await encSeal({ v: 1, recov: vaultRecovRaw }, vaultEncKey) : undefined;
+      const rk = rraw ? await encSeal({ v: 1, recov: rraw }, key) : undefined;
       return JSON.stringify({ vault_enc: 3, iv: pwdEnv.iv, ct: pwdEnv.ct,
-                              riv: recovEnv.iv, rct: recovEnv.ct, rk }, null, 2);
+                              riv: recovEnv.iv, rct: recovEnv.ct, rk, kdf }, null, 2);
     }
-    return await encryptDataObj(wrapped, vaultEncKey);
+    const env = JSON.parse(await encryptDataObj(wrapped, key));
+    return JSON.stringify({ vault_enc: 3, iv: env.iv, ct: env.ct, kdf });
   }
   return JSON.stringify(wrapped, null, 2);
 }
@@ -9303,10 +9307,14 @@ function promptAndDecrypt(encryptedText) {
       const result = await tryDecryptWithPassword(encryptedText, pw);
       if (result) {
         // Correct password — store the key in memory for future saves
-        vaultEncKey    = await deriveKeyFromPassword(pw);
+        const kdf      = encKdfOf(encryptedText);   // v7.0.0
+        vaultEncKey    = await deriveKeyFromPassword(pw, kdf);
+        vaultKdf       = kdf;
         vaultEncActive = true;
         vaultRecovReadKey = null;
+        encRecordOn();
         await encAfterBackupOpened(encryptedText);   // v6.19.1
+        await encUpgradeKdf(pw);                     // v7.0.0: a backup on the old settings
         // Only persist enc active flag if localStorage data is itself encrypted
         const storedRaw = localStorage.getItem(DATA_KEY);
         if (storedRaw && isEncryptedEnvelope(storedRaw)) {
@@ -9559,6 +9567,7 @@ async function syncLeg(leg, quiet) {
     }
     autoMerge(sanitiseData(remoteData), remoteTombstones);
     applyPayloadSettings(settings, false);
+    await encRemoteOff(r.remote, !!r.enc);   // v7.0.0
   }
   if (_syncLockedLeg === leg.name) _syncLockedLeg = null;
   // v6.20.1: merged here, but not written while locked or before a new password after a recovery
@@ -10162,14 +10171,85 @@ const RECOV_CHECK_KEY = "vault_recov_check";
 function b64encode(buf) { return btoa(String.fromCharCode(...new Uint8Array(buf))); }
 function b64decode(str) { return Uint8Array.from(atob(str), c => c.charCodeAt(0)); }
 
+// ── v7.0.0: a random salt per password, and 600,000 iterations ─────────────────
+// Every envelope (backup, the copy on this device, the password check) carries the kdf its key
+// was made with: { s: base64 16-byte salt, i: iterations }. No kdf = the settings before
+// v7.0.0 (the fixed app salt, 310,000 iterations): those still open, and a typed password
+// re-keys to the new ones (encUpgradeKdf). vaultKdf is the kdf of vaultEncKey; set them together.
+const ENC_KDF_ITER = 600000;
+var vaultKdf = null;
+function encNewKdf() { return { s: b64encode(crypto.getRandomValues(new Uint8Array(16))), i: ENC_KDF_ITER }; }
+function encKdfValid(k) {
+  return k && typeof k.s === "string" && k.s.length >= 20 && Number.isInteger(k.i) && k.i >= 100000 && k.i <= 10000000
+    ? { s: k.s, i: k.i } : null;
+}
+function encKdfOf(text) { try { return encKdfValid(JSON.parse(text).kdf); } catch { return null; } }
+function encCheckKdf() { try { return encKdfValid(JSON.parse(localStorage.getItem(ENC_CHECK_KEY) || "null").kdf); } catch { return null; } }
 // Derive an AES-256-GCM CryptoKey from a password string via PBKDF2
-async function deriveKeyFromPassword(password) {
+async function deriveKeyFromPassword(password, kdf) {
   const enc    = new TextEncoder();
   const keyMat = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]);
   return crypto.subtle.deriveKey(
-    { name: "PBKDF2", salt: enc.encode(ENC_PWD_SALT), iterations: 310000, hash: "SHA-256" },
+    { name: "PBKDF2", salt: kdf ? b64decode(kdf.s) : enc.encode(ENC_PWD_SALT), iterations: kdf ? kdf.i : 310000, hash: "SHA-256" },
     keyMat, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]
   );
+}
+// A password typed for a key still on the old settings: re-key with a new salt and 600,000
+// iterations. The recovery key stays the same, so other devices still read the backup.
+async function encUpgradeKdf(pw) {
+  if (vaultKdf || !pw || !vaultEncKey) return;
+  const kdf = encNewKdf();
+  const key = await deriveKeyFromPassword(pw, kdf);
+  vaultPrevEncKey = vaultEncKey;   // still reads a backup on the old settings (memory only)
+  vaultEncKey = key; vaultKdf = kdf;
+  await encStoreCheck();
+  if (_sealMem) vaultSealSoon();
+  dbg("Enc: password key upgraded (random salt, " + kdf.i + " iterations)");
+}
+
+// ── v7.0.0: removing encryption reaches every device ───────────────────────────
+// A backup written without encryption carries _encOff { ts, p?, r? }: the time it was removed,
+// sealed with the password key (p) and the recovery key (r). A device that can open either
+// switches encryption off too; one that can't (a planted file) keeps it on.
+const ENC_OFF_KEY   = "vault_enc_off";
+var vaultPrevEncKey = null;   // the password key before a re-key or a removal here: reads only, memory only
+function encKeepForReading(prevKey, prevRecov) {
+  if (prevKey) vaultPrevEncKey = prevKey;
+  if (prevRecov) vaultRecovReadKey = prevRecov;
+}
+const ENC_ON_TS_KEY = "vault_enc_on_ts";
+async function encRecordOff() {
+  const ts = Date.now(), off = { ts };
+  try { if (vaultEncKey) off.p = await encSeal({ off: ts }, vaultEncKey); } catch {}
+  const rkey = vaultRecovKey || vaultRecovReadKey;
+  try { if (rkey) off.r = await encSeal({ off: ts }, rkey); } catch {}
+  try { localStorage.setItem(ENC_OFF_KEY, JSON.stringify(off)); localStorage.removeItem(ENC_ON_TS_KEY); } catch {}
+}
+function encRecordOn() {
+  try { localStorage.setItem(ENC_ON_TS_KEY, String(Date.now())); localStorage.removeItem(ENC_OFF_KEY); } catch {}
+}
+function encOffForPayload() {
+  if (vaultEncActive) return undefined;
+  try { const o = JSON.parse(localStorage.getItem(ENC_OFF_KEY) || "null"); return o && o.ts ? o : undefined; } catch { return undefined; }
+}
+// After merging a backup that wasn't encrypted: was encryption removed by someone with the key?
+async function encRemoteOff(remote, wasEncrypted) {
+  if (wasEncrypted || !vaultEncActive || !vaultEncKey || !remote || !remote._encOff) return;
+  const off = remote._encOff, ts = Number(off.ts);
+  if (!ts || ts <= (Number(localStorage.getItem(ENC_ON_TS_KEY)) || 0)) return;   // set again here since
+  let proven = false;
+  for (const [box, key] of [[off.p, vaultEncKey], [off.r, vaultRecovKey], [off.r, vaultRecovReadKey]]) {
+    if (proven || !box || !key) continue;
+    try { const inner = await encOpen(box, key); proven = !!inner && inner.off === ts; } catch {}
+  }
+  if (!proven) { dbg("Enc: an unencrypted backup without proof that encryption was removed with its key — kept on"); return; }
+  const prevKey = vaultEncKey, prevRecov = vaultRecovKey;
+  disablePasswordEncryption();
+  encKeepForReading(prevKey, prevRecov);   // another backup location may still be encrypted
+  try { localStorage.setItem(ENC_OFF_KEY, JSON.stringify(off)); } catch {}
+  if (typeof updateEncUI === "function") updateEncUI();
+  toast("Encryption was removed on another device");
+  dbg("Enc: removed on another device — off here too");
 }
 
 // Import a raw AES key from a base64 string (for recovery key)
@@ -10217,6 +10297,10 @@ async function vaultParseBackup(text) {
       try { remote = await decryptDataObj(text, vaultEncKey); } catch {}
       if (remote) { await encAfterBackupOpened(text); return { state: "ok", remote, enc: true }; }
     }
+    // v7.0.0: re-keyed or removed here this session: the previous password key still reads it
+    if (vaultPrevEncKey) {
+      try { return { state: "ok", remote: await decryptDataObj(text, vaultPrevEncKey), enc: true }; } catch {}
+    }
     // v6.19.1: just recovered with the recovery file (encryption is off until a new password
     // is set): the backup's recovery copy can still be read, so it's merged, not stuck locked
     const rkey = vaultRecovReadKey || vaultRecovKey;
@@ -10243,7 +10327,12 @@ async function encAdoptRecovery(b64) {
 // Store the password check (with the recovery key inside, when known)
 async function encStoreCheck() {
   if (!vaultEncKey) return;
-  try { localStorage.setItem(ENC_CHECK_KEY, JSON.stringify(await encSeal({ v: 1, recov: vaultRecovRaw || null }, vaultEncKey))); } catch {}
+  const key = vaultEncKey, kdf = vaultKdf;   // v7.0.0: the check says which kdf opens it
+  try {
+    const box = await encSeal({ v: 1, recov: vaultRecovRaw || null }, key);
+    if (kdf) box.kdf = kdf;
+    localStorage.setItem(ENC_CHECK_KEY, JSON.stringify(box));
+  } catch {}
 }
 // "none" (no check stored yet), "bad" (wrong password) or "ok" (and the recovery key is back)
 async function encVerifyPassword(key) {
@@ -10342,13 +10431,14 @@ function vaultSealSoon() {
 async function vaultSealNow() {
   if (!_sealDirty || !_sealMem || !vaultEncKey) return;
   _sealDirty = false;
-  const gen = _sealGen, key = vaultEncKey, rkey = vaultRecovKey;
+  const gen = _sealGen, key = vaultEncKey, rkey = vaultRecovKey, kdf = vaultKdf;
   try {
     const items = Object.assign({}, _sealMem); delete items[DATA_KEY];
     const plain = Object.assign(buildWrappedPayload(), { _sealed: items });
     const env = JSON.parse(await encryptDataObj(plain, key));
     if (rkey) { const r = JSON.parse(await encryptDataObj(plain, rkey)); env.riv = r.iv; env.rct = r.ct; }
     env.local = 1;
+    if (kdf) env.kdf = kdf;   // v7.0.0
     if (gen !== _sealGen || !_sealMem) return;   // encryption was switched off meanwhile
     localStorage.setItem(DATA_KEY, JSON.stringify(env));
   } catch (e) {
@@ -10441,6 +10531,7 @@ async function vaultRecovKeepPlain() {
   if (!await vaultConfirm({ title: "Back up without encryption?",
     message: "Your backups will be saved unencrypted, and Vault will open without a password. You can set a password any time in Settings → Encryption.",
     ok: "Back up unencrypted" })) return;
+  await encRecordOff();   // v7.0.0: your other devices follow (proved with the recovery key)
   vaultRecovHoldEnd();
   document.getElementById("enc-set-popup").classList.add("hidden");
   triggerCloudSync();
@@ -10465,7 +10556,10 @@ function loadEncActive() {
 // Returns true on success, false if SubtleCrypto is unavailable.
 async function enablePasswordEncryption(password) {
   try {
-    vaultEncKey    = await deriveKeyFromPassword(password);
+    const kdf      = encNewKdf();   // v7.0.0: a new random salt for every new password
+    vaultEncKey    = await deriveKeyFromPassword(password, kdf);
+    vaultKdf       = kdf;
+    encRecordOn();
     // Generate a random recovery key (a raw AES-256 key)
     const recov    = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
     await encAdoptRecovery(b64encode(await crypto.subtle.exportKey("raw", recov)));
@@ -10492,6 +10586,7 @@ async function enablePasswordEncryption(password) {
 // The backup file will be overwritten with plain JSON on the next auto-save.
 function disablePasswordEncryption() {
   vaultSealStop();   // v6.20.0: this device's data goes back in the clear
+  vaultKdf = null;   // v7.0.0
   vaultEncKey    = null;
   vaultRecovKey  = null;
   vaultRecovRaw  = null;
@@ -10504,7 +10599,7 @@ function disablePasswordEncryption() {
 // Attempt to decrypt an encrypted backup file using a password. Returns null on wrong password.
 async function tryDecryptWithPassword(text, password) {
   try {
-    const key = await deriveKeyFromPassword(password);
+    const key = await deriveKeyFromPassword(password, encKdfOf(text));   // v7.0.0
     return await decryptDataObj(text, key);
   } catch { return null; }
 }
@@ -10595,9 +10690,11 @@ async function unlockVault() {
 
   // Derive key and test it against the stored data
   try {
-    const key        = await deriveKeyFromPassword(pw);
     const storedRaw  = localStorage.getItem(DATA_KEY);
     const sealed     = !!storedRaw && isEncryptedEnvelope(storedRaw);
+    // v7.0.0: derived with the salt and iterations the stored data (or the check) was made with
+    const kdf        = sealed ? encKdfOf(storedRaw) : encCheckKdf();
+    const key        = await deriveKeyFromPassword(pw, kdf);
     // v6.19.1: the password check. Data kept in the clear can't check a password, so without
     // it any password unlocked Vault — and became the key the next backup was encrypted with.
     // v6.20.0: encrypted data is its own check (AES-GCM won't open with a wrong key).
@@ -10608,11 +10705,13 @@ async function unlockVault() {
       const decrypted = await decryptDataObj(storedRaw, key);   // throws on a wrong password
       if (!decrypted) throw new Error("Wrong password");
       vaultEncKey    = key;
+      vaultKdf       = kdf;
       vaultEncActive = true;
       // Opening Vault: take on what's stored. After an idle lock, memory is newer: keep it.
       if (!_sealMem) vaultSealAdopt(decrypted);
     } else {
       vaultEncKey    = key;
+      vaultKdf       = kdf;
       vaultEncActive = true;
     }
     // Set before v6.19.1: there was no check yet. The next backup this password opens records
@@ -10620,6 +10719,8 @@ async function unlockVault() {
     if (check === "ok" || sealed) await encStoreCheck();
     // v6.20.0: a proven password and data still in the clear (from before): encrypt it now
     if (check === "ok" && !_sealMem) await vaultSealStart();
+    // v7.0.0: a proven password on the old settings: re-key with a random salt
+    if (check === "ok" || sealed) await encUpgradeKdf(pw);
 
     if (_startLocked) { vaultFinishStartUnlock(); dbg("Lock: opened with the password"); return; }
     hideLockScreen();
@@ -10888,9 +10989,12 @@ async function encSetSubmit() {
 // Prompt for confirmation before disabling encryption
 async function confirmDisableEnc() {
   if (!await vaultDelete({ title: "Remove encryption?", sub: "Settings › Encryption",
-    lead: "Your backup files will no longer be encrypted, and your recovery key will stop working.",
+    lead: "Your backups and the data on all your devices will no longer be encrypted, and your recovery key will stop working.",
     options: [{ value: "off" }], ok: "Remove encryption" })) return;
+  await encRecordOff();   // v7.0.0: so your other devices switch it off too
+  const prevKey = vaultEncKey, prevRecov = vaultRecovKey;
   disablePasswordEncryption();
+  encKeepForReading(prevKey, prevRecov);
   triggerCloudSync();
   updateEncUI();
   toast("Encryption removed");
@@ -23868,7 +23972,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.20.1</div>
+          <div class="pp-meta" id="about-version-meta">Version v7.0.0</div>
         </div>
 
         <div class="pp-cards">
@@ -23980,7 +24084,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v6.20.1</div>
+  <div id="version-footer">v7.0.0</div>
 
 </body>
 </html>

@@ -138,9 +138,7 @@ setTimeout(async () => {
     await until(() => drive.writes > 0, 3000); await sleep(80);
     ok(A.E("vaultEncActive") === true && !!A.E("vaultEncKey"), "using the file there keeps this device's new password (it switched encryption off)");
     ok(drive.writes > 0 && /vault_enc/.test(drive.text) && !secrets.test(drive.text), "…and the backup is written back encrypted with it");
-    const pwKey = await A.E(`deriveKeyFromPassword("a third password 3")`);
-    ok(!!(await A.E(`(async () => decryptDataObj(window.__drive.text, await deriveKeyFromPassword("a third password 3")))()`)), "…which opens it");
-    void pwKey;
+    ok(!!(await A.E(`(async () => decryptDataObj(window.__drive.text, await deriveKeyFromPassword("a third password 3", typeof encKdfOf === "function" ? encKdfOf(window.__drive.text) : undefined)))()`)), "…which opens it");
 
     // Recover, then choose to go without encryption
     const recov3 = JSON.parse(await downloads[0].text());
