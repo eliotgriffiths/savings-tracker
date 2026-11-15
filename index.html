@@ -2894,6 +2894,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   #vp-ghost::before { content: ""; position: absolute; left: 50%; top: 9px; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--border-hi); }
   /* While moving, the edge carries the only handle */
   .vp-nav .vp-grab::before, .vp-nav > .sheet-handle { visibility: hidden; }
+  /* v6.18.4: …and the strip it sits on is see-through, so it can't cover the edge's handle as
+     the arriving tray fades in (the handle went for ~0.15 s at the end of every move) */
+  .vp-nav .vp-grab { background: transparent !important; }
   /* …and the sheet itself: the moving trays are just content over it, no card edges */
   .vp-nav { background: transparent !important; border-color: transparent !important; box-shadow: none !important; }
 
@@ -21269,11 +21272,11 @@ function vpInit() {
 // calls preventDefault (passive: false) to keep the drag in the panel. Mouse and
 // pen (a narrow desktop window) use pointer events.
 function vpSwipe(panel, handles, tryClose) {
-  let y0 = null, dy = 0;
+  let y0 = null, dy = 0, h0 = 0;
   const can = (target, h) => window.innerWidth <= 640
     && !target.closest("button, input, select, textarea, a, label, .ps-chip")
     && !(panel.scrollTop > 0 && !h.classList.contains("vp-grab") && !h.classList.contains("sheet-handle") && !h.classList.contains("as-sh-drag"));
-  const start = y => { y0 = y; dy = 0; panel.classList.add("vp-drag"); };
+  const start = y => { y0 = y; dy = 0; h0 = panel.offsetHeight; panel.classList.add("vp-drag"); };
   const move = y => {
     if (y0 === null) return;
     dy = Math.max(0, y - y0);
@@ -21283,7 +21286,8 @@ function vpSwipe(panel, handles, tryClose) {
     if (y0 === null) return;
     y0 = null;
     panel.classList.remove("vp-drag");
-    if (dy > 80) tryClose();
+    // v6.18.4: past half the tray's own height it closes; less springs back open
+    if (dy > Math.max(80, h0 / 2)) tryClose();
     panel.style.transform = "";      // animates to closed, or springs back
     dy = 0;
   };
@@ -23258,7 +23262,7 @@ navInit();
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.18.3</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.18.4</div>
         </div>
 
         <div class="pp-cards">
@@ -23370,7 +23374,7 @@ navInit();
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v6.18.3</div>
+  <div id="version-footer">v6.18.4</div>
 
 </body>
 </html>
