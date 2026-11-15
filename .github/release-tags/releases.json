@@ -1730,5 +1730,53 @@
       "Edit transaction: Type is now a heading above the Deposit, Interest and Withdrawal buttons, like Account and Date. Save changes to (This only / All in series) matches"
     ],
     "versioned_at_release": true
+  },
+  {
+    "tag": "v6.18.3",
+    "sha": "908f7a703deee8c1636b3502ea5e05cac1a1d374",
+    "commits": [
+      "908f7a7"
+    ],
+    "date": "2026-11-15",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "notes": [
+      "Totals no longer double after a device with old data syncs. Transactions on an account you deleted on another device are removed instead of coming back, and both devices clean up the backup on their next sync",
+      "A recurring rule deleted on another device no longer leaves extra transactions from a device that hadn't caught up yet",
+      "Moving an account's transactions to another account sticks, even if another device still has the old copy"
+    ],
+    "versioned_at_release": true
+  },
+  {
+    "tag": "v6.18.4",
+    "sha": "1305115603823d18878bb8ad21490b8095c7af20",
+    "commits": [
+      "1305115"
+    ],
+    "date": "2026-11-15",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "notes": [
+      "The handle at the top of a tray stays in place while you move between trays. It no longer disappears and comes back",
+      "Swiping a tray down only closes it once you've dragged it past half its height. A shorter swipe springs it back open"
+    ],
+    "versioned_at_release": true
+  },
+  {
+    "tag": "v6.18.5",
+    "sha": "4088b60abf55942bcf7262565049ec3559e1db37",
+    "commits": [
+      "4088b60"
+    ],
+    "date": "2026-11-15",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "notes": [
+      "Opening Vault is smoother: no grey flash or half-drawn list before Home. The screen stays dark and Home fades in once it's ready"
+    ],
+    "versioned_at_release": true
   }
 ]
