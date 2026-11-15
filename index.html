@@ -5756,6 +5756,20 @@
         </div>
         <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Google ended Vault's sign-in to Drive. Tap the status to reconnect to the same backup.</span>
       </div>
+      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:color-mix(in srgb, var(--attention) 6%, transparent); border:1px solid color-mix(in srgb, var(--attention) 15%, transparent); border-radius:8px;">
+        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:color-mix(in srgb, var(--attention) 12%, transparent); border:1px solid color-mix(in srgb, var(--attention) 25%, transparent); flex-shrink:0;">
+          <span style="width:5px;height:5px;border-radius:50%;background:var(--attention);flex-shrink:0;display:inline-block;"></span>
+          <span style="font-size:10px; font-weight:600; color:var(--attention); white-space:nowrap;">Backup locked</span>
+        </div>
+        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Your backup is encrypted with a password this device doesn't have. Tap the status to enter it.</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:color-mix(in srgb, var(--attention) 6%, transparent); border:1px solid color-mix(in srgb, var(--attention) 15%, transparent); border-radius:8px;">
+        <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:color-mix(in srgb, var(--attention) 12%, transparent); border:1px solid color-mix(in srgb, var(--attention) 25%, transparent); flex-shrink:0;">
+          <span style="width:5px;height:5px;border-radius:50%;background:var(--attention);flex-shrink:0;display:inline-block;"></span>
+          <span style="font-size:10px; font-weight:600; color:var(--attention); white-space:nowrap;">Choose a currency</span>
+        </div>
+        <span style="font-size:11px; color:var(--text-3); line-height:1.5;">Your backup uses a different main currency. Tap the status to choose how to merge them.</span>
+      </div>
       <div style="font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--out); padding:10px 2px 4px;">Error</div>
       <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:color-mix(in srgb, var(--out) 6%, transparent); border:1px solid color-mix(in srgb, var(--out) 15%, transparent); border-radius:8px;">
         <div style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px 2px 5px; border-radius:20px; background:color-mix(in srgb, var(--out) 12%, transparent); border:1px solid color-mix(in srgb, var(--out) 25%, transparent); flex-shrink:0;">
@@ -7499,12 +7513,16 @@ function _confirmAccountCurrencyChange() {
       toast("Exchange rate unavailable — cannot convert", "error");
       return;
     }
-    // Multiply every transaction belonging to this account by rateT / rateF
+    // Multiply every transaction belonging to this account by rateT / rateF. Each one is
+    // stamped, so the new amount syncs: before v6.18.6 the other device kept the old amounts
+    // under the new currency (sync sweep #7).
+    const now = Date.now();
     Object.keys(data).forEach(fy => {
       ["saved","removed"].forEach(bucket => {
         data[fy][bucket].forEach((tx, i) => {
           if ((tx[6] || defaultAccId) === accountId) {
             data[fy][bucket][i][1] = parseFloat(applyTxCurrencyOption(tx[1], oldCur, newCode, "convert").toFixed(2));
+            data[fy][bucket][i][3] = now;
           }
         });
       });
@@ -7514,6 +7532,7 @@ function _confirmAccountCurrencyChange() {
     recurRules.forEach(r => {
       if ((r.account || defaultAccId) === accountId) {
         r.amount = parseFloat(applyTxCurrencyOption(r.amount, oldCur, newCode, "convert").toFixed(2));
+        r.ts = now;
         ruleConvertCount++;
       }
     });
@@ -7551,9 +7570,27 @@ function loadCurrency() {
 }
 
 // Persist currency preference to localStorage (with settings timestamp bump)
-function saveCurrency() {
-  try { localStorage.setItem(CURRENCY_KEY, currencyCode); } catch {}
-  saveYearMode(); // reuse settings timestamp
+// v6.18.6: currency and year format used to share one timestamp, so a sync that adopted one
+// restamped the other and year format changes never reached another device (sync sweep #5).
+const YEAR_TS_KEY     = "vault_year_ts";
+const CURRENCY_TS_KEY = "vault_currency_ts";
+function _tsKey(k) { try { const v = localStorage.getItem(k); return v === null ? null : (parseInt(v, 10) || 0); } catch { return null; } }
+// Before v6.18.6 only the shared timestamp existed: the first read copies it into each key,
+// once, so the two can't keep borrowing each other's changes through it
+function _tsOwn(k) {
+  let v = _tsKey(k);
+  if (v === null) { v = getSettingsTs(); try { localStorage.setItem(k, String(v)); } catch {} }
+  return v;
+}
+function getYearTs()     { return _tsOwn(YEAR_TS_KEY); }
+function getCurrencyTs() { return _tsOwn(CURRENCY_TS_KEY); }
+function _syncSettingsTs() {
+  try { localStorage.setItem(SETTINGS_TS_KEY, String(Math.max(getYearTs(), getCurrencyTs()))); } catch {}
+}
+function saveCurrency(ts) {
+  getYearTs();   // the year format keeps its own time
+  try { localStorage.setItem(CURRENCY_KEY, currencyCode); localStorage.setItem(CURRENCY_TS_KEY, String(ts || Date.now())); } catch {}
+  _syncSettingsTs();
 }
 
 function loadYearMode() {
@@ -7565,23 +7602,25 @@ function loadYearMode() {
 }
 
 // Persist year mode settings to localStorage, with a timestamp for sync conflict resolution
-function saveYearMode() {
+// ts: when the year format was chosen (now, unless it came from another device)
+function saveYearMode(ts) {
+  getCurrencyTs();   // the currency keeps its own time
   try {
     localStorage.setItem(YEAR_MODE_KEY, yearMode);
     localStorage.setItem(FY_START_KEY, String(fyStartMonth));
     localStorage.setItem(FY_START_DAY_KEY, String(fyStartDay));
-    localStorage.setItem(SETTINGS_TS_KEY, String(Date.now()));
+    localStorage.setItem(YEAR_TS_KEY, String(ts || Date.now()));
   } catch {}
+  _syncSettingsTs();
 }
 
 // Get the current settings timestamp from localStorage
 
 function bumpSettingsTs() {
-  // Advance the local settings timestamp so that after a currency mismatch
-  // resolution the local state is always seen as newer than the remote on
-  // the next sync, preventing the mismatch dialog from re-appearing.
-  const ts = Date.now();
-  localStorage.setItem('vault_settings_ts', String(ts));
+  // After a currency decision this device's currency is the newest one
+  getYearTs();
+  try { localStorage.setItem(CURRENCY_TS_KEY, String(Date.now())); } catch {}
+  _syncSettingsTs();
 }
 function getSettingsTs() {
   try { return parseInt(localStorage.getItem(SETTINGS_TS_KEY) || "0", 10); } catch { return 0; }
@@ -7800,6 +7839,36 @@ function addTombstone(id) {
   if (!id) return;
   tombstones.add(id);
   saveTombstones();
+}
+
+// v6.18.6: a file loaded over this device's data can be older than a delete made here. Its
+// copies of deleted rows are left out; kept, the next start gave them fresh IDs and they came
+// back for good (sync sweep #14).
+function vaultDropTombstoned(d) {
+  Object.keys(d || {}).forEach(y => ["saved", "removed"].forEach(t => {
+    if (d[y] && Array.isArray(d[y][t])) d[y][t] = d[y][t].filter(tx => !tx[2] || !tombstones.has(tx[2]));
+  }));
+  return d;
+}
+// The answer to "Existing Vault file found": merge, keep this device's data, or replace it
+function vaultApplyLoadChoice(choice, safe, remoteTombstones, settings) {
+  if (choice === "merge") {
+    autoMerge(safe, remoteTombstones);
+    applyPayloadSettings(settings, false);
+    saveAndRender(null);
+    toast("Merged with your backup");
+  } else if (choice === "overwrite-drive") {
+    toast("The backup will be overwritten with your current data");
+  } else if (choice === "overwrite-app") {
+    (remoteTombstones || []).forEach(id => tombstones.add(id));
+    saveTombstones();
+    _mergeRemoteById = null;
+    data = vaultDropTombstoned(safe);
+    reconcileYears();
+    applyPayloadSettings(settings, true);
+    saveAndRender(null);
+    toast("App data replaced with the backup");
+  }
 }
 
 // Rows on a deleted account (its ID is in accountTombstones). A device that missed the
@@ -8875,7 +8944,7 @@ function confirmDeleteAccount(id, mode = "move", toId = null) {
       dbg(`confirmDeleteAccount: deleted ${rulesUsingDeleted.length} recurring rule(s) alongside wipe`);
     } else {
       const fallback = reassignTarget || getDefaultAccountId();
-      rulesUsingDeleted.forEach(r => { r.account = fallback; });
+      rulesUsingDeleted.forEach(r => { r.account = fallback; r.ts = Date.now(); });
       saveRecurring();
       dbg(`confirmDeleteAccount: reassigned ${rulesUsingDeleted.length} recurring rule(s) to ${fallback}`);
     }
@@ -8927,20 +8996,22 @@ async function buildVaultPayload() {
     _recurDeleted: [...recurDeletedIds],
     _recurring:    recurRules,
     _accounts:     accounts,
-    _yearMode:     yearMode,
-    _fyStartMonth: fyStartMonth,
-    _fyStartDay:   fyStartDay,
+    _yearMode:     _pendingYearModeChange ? _pendingYearModeChange.yearMode : yearMode,
+    _fyStartMonth: _pendingYearModeChange ? (_pendingYearModeChange.fyStartMonth || fyStartMonth) : fyStartMonth,
+    _fyStartDay:   _pendingYearModeChange ? (_pendingYearModeChange.fyStartDay || fyStartDay) : fyStartDay,
+    _yearTs:       _pendingYearModeChange ? (_pendingYearModeChange.settingsTs || 0) : getYearTs(),
     _currency:     currencyCode,
+    _currencyTs:   getCurrencyTs(),
     _exchangeRates: ratesAreFresh() ? exchangeRates : null,
     _fxHist:       Object.keys(fxHist).length ? fxHist : null,
     _goals:        goals.length ? goals : null,
     // Uploaded once the user has expressed anything at all: a manual layout, or a
     // hide while still on auto. Keying off order.length alone used to strand a
     // hidden-list on one device.
-    _homeLayout:     (homeLayout.auto === false || homeLayout.hidden.length || homeLayout.order.length) ? homeLayout : null,
+    _homeLayout:     (homeLayout.chosen || homeLayout.auto === false || homeLayout.hidden.length || homeLayout.order.length) ? homeLayout : null,
     _homeAutoLayout: (autoLayout.order && autoLayout.order.length) ? autoLayout : null,
     _goalsDeleted: goalDeletedIds.size ? [...goalDeletedIds] : null,
-    _settingsTs:   getSettingsTs(),
+    _settingsTs:   Math.max(getYearTs(), getCurrencyTs()),
     _aiSettings:   buildAISettingsPayload(),
     _sort:         buildSortPayload(),
   };
@@ -9295,6 +9366,10 @@ const SS_NOW = {
                          btn: ["Reconnect file", () => { closeSaveStatusLegend(); reauthoriseLocalFile(); }] },
   "Reconnect Drive":   { tone: "warn", text: "Google ended Vault's sign-in to your Drive. Your data here is safe. Reconnect to carry on backing up to the same file.",
                          btn: ["Reconnect Google Drive", () => { closeSaveStatusLegend(); connectGoogleDrive(); }] },
+  "Backup locked":     { tone: "warn", text: "Your backup is encrypted with a password this device doesn't have yet. Vault won't write to it until you enter it.",
+                         btn: ["Enter password", () => { closeSaveStatusLegend(); unlockBackup(); }] },
+  "Choose a currency": { tone: "warn", text: "Your backup uses a different main currency. Choose how to merge them before Vault backs up again.",
+                         btn: ["Choose", () => { closeSaveStatusLegend(); triggerCloudSync(); }] },
   "Sync failed":       { tone: "err",  text: "The last change couldn't be written to your backup.",
                          btn: ["Try again", () => { closeSaveStatusLegend(); triggerCloudSync(); }],
                          alt: ["Backup settings", () => { closeSaveStatusLegend(); setTimeout(openSetup, 50); }] },
@@ -9393,8 +9468,69 @@ function vaultAskPersist() {
 // This ensures no changes from other devices are overwritten.
 // Local file is included because it may be saved to a network/cloud folder.
 
-async function triggerCloudSync() {
+// v6.18.6: each connected backup is a leg: read it, merge it, and only then write. A leg whose
+// read fails, can't be decrypted (another device turned on encryption or changed the password)
+// or holds junk is left alone — before, every one of those wrote this device's data over it,
+// and a plain-text write over an encrypted file switched encryption off (sync sweep #1, #2, #12).
+// opts.quiet (v6.19.0): a background sync — no status chatter, no dialogs, no retry loop.
+let _syncLockedLeg = null;    // the leg whose backup this device can't open, if any
+let _lockPromptShown = false; // ask for the password by itself only once per session
+function syncLegs() {
+  const legs = [];
+  if (localFileHandle) legs.push({
+    name: "file",
+    read: async (quiet) => {
+      const perm = await localFileHandle.queryPermission({ mode: "readwrite" });
+      if (perm !== "granted") {
+        // Asking needs a tap; a background sync skips the file rather than fail on it
+        if (quiet) return { skip: true };
+        if ((await localFileHandle.requestPermission({ mode: "readwrite" })) !== "granted") throw new Error("file: no permission");
+      }
+      const file = await localFileHandle.getFile();
+      return { text: await file.text() };
+    },
+    write: async () => {
+      const payload = await buildVaultPayload();
+      const writable = await localFileHandle.createWritable();
+      await writable.write(new Blob([payload], { type: "application/json" }));
+      await writable.close();
+      localFileLinked = true;
+      setLocalFileStatus("✓ Synced" + (vaultEncActive ? " [enc]" : ""), "var(--green)");
+      return true;
+    },
+  });
+  if (nasLinked && nasConfig) legs.push({ name: "nas", read: async () => ({ text: await readFromNAS() }), write: () => writeToNAS() });
+  if (gdLinked) legs.push({ name: "drive", read: async () => ({ text: await gdReadFile() }), write: () => gdWriteFile() });
+  return legs;
+}
+// "ok", "fail", "locked", "mismatch" or "skip"
+async function syncLeg(leg, quiet) {
+  const got = await leg.read(quiet);
+  if (got && got.skip) return "skip";
+  const r = await vaultParseBackup(got && got.text);
+  if (r.state === "bad") { dbg("Sync: " + leg.name + " backup isn't readable — left alone"); return "fail"; }
+  if (r.state === "locked") { _syncLockedLeg = leg.name; dbg("Sync: " + leg.name + " backup is encrypted with a password this device doesn't have — left alone"); return "locked"; }
+  if (r.state === "ok") {
+    const { data: remoteData, tombstones: remoteTombstones, ...settings } = unwrapPayload(r.remote);
+    const mm = detectCurrencyMismatch(settings);
+    if (mm) {
+      // A background sync never opens a dialog: the next sync you start asks
+      if (quiet) return "fail";
+      await showCurrencyMismatchDialog(remoteData, remoteTombstones, mm, settings, leg);
+      return "mismatch";
+    }
+    autoMerge(sanitiseData(remoteData), remoteTombstones);
+    applyPayloadSettings(settings, false);
+  }
+  if (_syncLockedLeg === leg.name) _syncLockedLeg = null;
+  return (await leg.write()) ? "ok" : "fail";
+}
+
+async function triggerCloudSync(opts) {
+  const quiet = !!(opts && opts.quiet);
   if (!localFileHandle && !nasLinked && !gdLinked) return;
+  // A currency decision is waiting: nothing syncs until it's made
+  if (_pendingMerge) { if (!quiet) openCurrencyMismatchAgain(); return; }
 
   // ── Concurrency guard ────────────────────────────────────────────────────
   // If a sync is already in-flight, don't start a second one — the read-merge-write
@@ -9402,134 +9538,41 @@ async function triggerCloudSync() {
   // the current sync finishes. This prevents race conditions where two overlapping
   // syncs each read a stale Drive file and then clobber each other's writes.
   if (_syncInProgress) {
-    _syncPending = true;
-    dbg("triggerCloudSync: sync already in-flight, queued");
+    if (!quiet) _syncPending = true;
+    dbg("triggerCloudSync: sync already in-flight" + (quiet ? "" : ", queued"));
     return;
   }
   _syncInProgress = true;
   _syncPending = false;
   // ── end concurrency guard ────────────────────────────────────────────────
 
-  setSaveStatus("busy", "Syncing…");
+  if (!quiet) setSaveStatus("busy", "Syncing…");
 
-  let ok = true;
-
-  // ── Local file ────────────────────────────────────────────────────────────
-  if (localFileHandle) {
-    try {
-      // Read current file contents
-      const perm = await localFileHandle.queryPermission({ mode: "readwrite" });
-      if (perm === "granted" || (await localFileHandle.requestPermission({ mode: "readwrite" })) === "granted") {
-        const file = await localFileHandle.getFile();
-        const text = await file.text();
-        if (text) {
-          let remote;
-          if (isEncryptedEnvelope(text)) {
-            if (vaultEncKey) { try { remote = await decryptDataObj(text, vaultEncKey); } catch {} }
-          } else {
-            try { remote = JSON.parse(text); } catch {}
-          }
-          if (remote) {
-            const { data: remoteData, tombstones: remoteTombstones, ...settings } = unwrapPayload(remote);
-            const _mismatchLocal = detectCurrencyMismatch(settings);
-            if (_mismatchLocal) {
-              // Do NOT applyPayloadSettings here — it would overwrite the local
-              // currency the user just changed to, causing an infinite mismatch loop.
-              await showCurrencyMismatchDialog(remoteData, remoteTombstones, _mismatchLocal);
-              _syncInProgress = false; // release lock before returning
-              return; // don't write back until resolved
-            } else {
-              autoMerge(sanitiseData(remoteData), remoteTombstones);
-              applyPayloadSettings(settings, false);
-            }
-          }
-        }
-        // Write merged result
-        const payload = await buildVaultPayload();
-        const writable = await localFileHandle.createWritable();
-        await writable.write(new Blob([payload], { type: "application/json" }));
-        await writable.close();
-        localFileLinked = true;
-        setLocalFileStatus("✓ Synced" + (vaultEncActive ? " [enc]" : ""), "var(--green)");
-        dbg("Sync: local file write-back complete");
-      }
-    } catch (e) {
-      ok = false;
-      dbg("Sync: local file error: " + e.message);
-    }
+  let ok = true, locked = false, mismatch = false, any = false;
+  for (const leg of syncLegs()) {
+    let res;
+    try { res = await syncLeg(leg, quiet); }
+    catch (e) { res = "fail"; dbg("Sync: " + leg.name + " error: " + (e && e.message)); }
+    if (res === "skip") continue;
+    any = true;
+    if (res === "mismatch") { mismatch = true; break; }
+    if (res === "locked") locked = true;
+    if (res !== "ok") ok = false;
   }
 
-  // ── NAS / WebDAV ──────────────────────────────────────────────────────────
-  if (nasLinked && nasConfig) {
-    try {
-      const text = await readFromNAS();
-      if (text) {
-        let remote;
-        try { remote = JSON.parse(text); } catch {}
-        if (remote) {
-          const { data: remoteData, tombstones: remoteTombstones, ...settings } = unwrapPayload(remote);
-          const _mismatchNAS = detectCurrencyMismatch(settings);
-          if (_mismatchNAS) {
-            // Do NOT applyPayloadSettings here — it would overwrite the local
-            // currency the user just changed to, causing an infinite mismatch loop.
-            await showCurrencyMismatchDialog(remoteData, remoteTombstones, _mismatchNAS);
-            _syncInProgress = false; // release lock before returning
-            return;
-          } else {
-            autoMerge(sanitiseData(remoteData), remoteTombstones);
-            applyPayloadSettings(settings, false);
-          }
-        }
-      }
-      const nasOk = await writeToNAS();
-      if (!nasOk) ok = false;
-    } catch (e) {
-      ok = false;
-      dbg("Sync: NAS error: " + e.message);
-    }
-  }
-
-  // ── Google Drive ──────────────────────────────────────────────────────────
-  if (gdLinked) {
-    try {
-      const text = await gdReadFile();
-      if (text) {
-        let remote;
-        if (isEncryptedEnvelope(text)) {
-          if (vaultEncKey) { try { remote = await decryptDataObj(text, vaultEncKey); } catch {} }
-        } else {
-          try { remote = JSON.parse(text); } catch {}
-        }
-        if (remote) {
-          const { data: remoteData, tombstones: remoteTombstones, ...settings } = unwrapPayload(remote);
-          const _mismatchGD = detectCurrencyMismatch(settings);
-          if (_mismatchGD) {
-            // Do NOT applyPayloadSettings here — it would overwrite the local
-            // currency the user just changed to, causing an infinite mismatch loop.
-            await showCurrencyMismatchDialog(remoteData, remoteTombstones, _mismatchGD);
-            _syncInProgress = false; // release lock before returning
-            return;
-          } else {
-            autoMerge(sanitiseData(remoteData), remoteTombstones);
-            applyPayloadSettings(settings, false);
-          }
-        }
-      }
-      const gdOk = await gdWriteFile();
-      if (!gdOk) ok = false;
-    } catch (e) {
-      ok = false;
-      dbg("Sync: Drive error: " + e.message);
-    }
-  }
-
-  if (!ok && !gdLinked && gdTokens && gdTokens.revoked) {
+  if (mismatch) {
+    setSaveStatus("warn", "Choose a currency");
+  } else if (locked) {
+    pendingRetry = false;
+    setSaveStatus("warn", "Backup locked");
+    if (!quiet && !_lockPromptShown) { _lockPromptShown = true; setTimeout(unlockBackup, 0); }
+  } else if (!ok && !gdLinked && gdTokens && gdTokens.revoked) {
     pendingRetry = false;
     setSaveStatus("warn", "Reconnect Drive");
   } else if (ok) {
     pendingRetry = false;
-    setSaveStatus("ok", "Backed up" + (vaultEncActive ? " · encrypted" : ""));
-  } else {
+    if (!quiet || any) setSaveStatus("ok", "Backed up" + (vaultEncActive ? " · encrypted" : ""));
+  } else if (!quiet) {
     pendingRetry = true;
     setSaveStatus("err", "Sync failed");
     scheduleRetry();
@@ -9539,11 +9582,30 @@ async function triggerCloudSync() {
   // Release the lock. If another sync was requested while we were running,
   // fire it now so the latest local state gets written to Drive.
   _syncInProgress = false;
-  if (_syncPending) {
+  if (_syncPending && !mismatch) {
     dbg("triggerCloudSync: running queued sync");
     triggerCloudSync();
   }
   // ── end concurrency guard teardown ───────────────────────────────────────
+}
+
+// v6.18.6: the backup is encrypted and this device can't open it (sync sweep #1). Ask for the
+// password; once it opens, this device keeps the backup encrypted and syncs again.
+async function unlockBackup() {
+  const leg = syncLegs().find(l => l.name === (_syncLockedLeg || "drive")) || syncLegs()[0];
+  if (!leg) return;
+  let got;
+  try { got = await leg.read(false); } catch { toast("Couldn't reach your backup. Try again", "error"); return; }
+  const text = got && got.text;
+  if (!text || !isEncryptedEnvelope(text)) { triggerCloudSync(); return; }
+  const loaded = await promptAndDecrypt(text);
+  if (!loaded) return;
+  // promptAndDecrypt kept the key; encryption is on for this device from now on
+  vaultEncActive = true;
+  try { localStorage.setItem(ENC_ACTIVE_KEY, "true"); } catch {}
+  if (typeof updateEncUI === "function") updateEncUI();
+  _syncLockedLeg = null;
+  triggerCloudSync();
 }
 
 // ─── end triggerCloudSync ─────────────────────────────────────────────────────
@@ -9624,6 +9686,8 @@ function unwrapPayload(obj) {
       autoLayout:    obj._homeAutoLayout || null,
       goalsDeleted:  obj._goalsDeleted  || null,
       settingsTs:    obj._settingsTs    || 0,
+      yearTs:        obj._yearTs        || 0,
+      currencyTs:    obj._currencyTs    || 0,
       aiSettings:    obj._aiSettings    || null,
       sort:          obj._sort          || null,
     };
@@ -9638,7 +9702,7 @@ let _pendingYearModeChange = null;
 // Recurring rules: always apply if present (rules are additive, not conflicting).
 // Year mode: only apply if remote timestamp is newer than local. If app is already
 // running (not startup), defer the change to next startup to avoid disrupting the session.
-function applyPayloadSettings({ recurring, recurDeleted: remoteRecurDeleted, accounts: remoteAccounts, accountTombstones: remoteAccTombs, yearMode: ym, fyStartMonth: fym, fyStartDay: fyd, currency: cur, exchangeRates: exRates, fxHist: remoteFxHist, goals: remoteGoals, goalsDeleted: remoteGoalsDel, homeLayout: remoteHomeLayout, autoLayout: remoteAutoLayout, settingsTs, aiSettings, sort: remoteSort }, isStartup) {
+function applyPayloadSettings({ recurring, recurDeleted: remoteRecurDeleted, accounts: remoteAccounts, accountTombstones: remoteAccTombs, yearMode: ym, fyStartMonth: fym, fyStartDay: fyd, currency: cur, exchangeRates: exRates, fxHist: remoteFxHist, goals: remoteGoals, goalsDeleted: remoteGoalsDel, homeLayout: remoteHomeLayout, autoLayout: remoteAutoLayout, settingsTs, yearTs, currencyTs, aiSettings, sort: remoteSort }, isStartup) {
   // ── AI Settings ───────────────────────────────────────────────────────────
   if (aiSettings) applyAISettingsPayload(aiSettings);
   // ── Account tombstones ────────────────────────────────────────────────────
@@ -9744,6 +9808,14 @@ function applyPayloadSettings({ recurring, recurDeleted: remoteRecurDeleted, acc
       // skip/move actions made on other devices propagate here.
       const local = localById.get(ridKey);
 
+      // v6.18.6: and the newer edit wins the rest (amount, schedule, end date, account…).
+      // Before, a rule edited on one device never changed on another (sync sweep #4).
+      if ((r.ts || 0) > (local.ts || 0)) {
+        const keep = new Set(["skippedDates", "movedDates", "nextDate", "completed"]);
+        Object.keys(local).forEach(k => { if (!keep.has(k) && !(k in r)) delete local[k]; });
+        Object.keys(r).forEach(k => { if (!keep.has(k)) local[k] = r[k]; });
+      }
+
       // skippedDates: simple set union of ISO date strings
       if (Array.isArray(r.skippedDates) && r.skippedDates.length) {
         if (!Array.isArray(local.skippedDates)) local.skippedDates = [];
@@ -9794,13 +9866,15 @@ function applyPayloadSettings({ recurring, recurDeleted: remoteRecurDeleted, acc
   }
 
   // ── Currency ──────────────────────────────────────────────────────────────
+  // Its own timestamp (v6.18.6). A different currency is settled by the mismatch question
+  // before this runs; here a newer same currency only takes on the newer timestamp.
   if (cur && CURRENCIES.find(c => c[0] === cur)) {
-    const remoteTs  = settingsTs || 0;
-    const localTs   = getSettingsTs();
-    if (remoteTs > localTs) {
+    const remoteTs = currencyTs || settingsTs || 0;
+    if (remoteTs > getCurrencyTs()) {
+      const changed = cur !== currencyCode;
       currencyCode = cur;
-      saveCurrency();
-      updateCurrencyUI();
+      saveCurrency(remoteTs);
+      if (changed) updateCurrencyUI();
     }
   }
 
@@ -9841,28 +9915,35 @@ function applyPayloadSettings({ recurring, recurDeleted: remoteRecurDeleted, acc
   }
 
   // ── Year mode ─────────────────────────────────────────────────────────────
-  if (ym) {
-    const localTs  = getSettingsTs();
-    const remoteTs = settingsTs || 0;
-    const remoteIsNewer = remoteTs > localTs;
-
-    if (remoteIsNewer) {
-      if (isStartup) {
+  // Its own timestamp (v6.18.6), and only a real difference is a change.
+  if (ym === "calendar" || ym === "financial") {
+    const remoteTs = yearTs || settingsTs || 0;
+    const known = _pendingYearModeChange || { yearMode, fyStartMonth, fyStartDay, settingsTs: getYearTs() };
+    if (remoteTs > (known.settingsTs || 0)) {
+      const m = fym || fyStartMonth, dd = fyd || fyStartDay;
+      const differs = ym !== yearMode || (ym === "financial" && (m !== fyStartMonth || dd !== fyStartDay));
+      if (!differs) {
+        // Same format, newer stamp: take the stamp, drop anything waiting
+        _pendingYearModeChange = null;
+        try { localStorage.removeItem("vault_pending_ym"); localStorage.setItem(YEAR_TS_KEY, String(remoteTs)); } catch {}
+        _syncSettingsTs();
+      } else if (isStartup) {
         // Safe to apply immediately — no UI disruption
-        yearMode     = ym;
-        fyStartMonth = fym || fyStartMonth;
-        fyStartDay   = fyd || fyStartDay;
-        saveYearMode();
+        yearMode = ym; fyStartMonth = m; fyStartDay = dd;
+        saveYearMode(remoteTs);
         dbg("applyPayloadSettings: applied remote year mode on startup — " + ym);
       } else {
         // Mid-session — defer to next startup
-        _pendingYearModeChange = { yearMode: ym, fyStartMonth: fym, fyStartDay: fyd, settingsTs: remoteTs };
+        const was = _pendingYearModeChange;
+        _pendingYearModeChange = { yearMode: ym, fyStartMonth: m, fyStartDay: dd, settingsTs: remoteTs };
         localStorage.setItem("vault_pending_ym", JSON.stringify(_pendingYearModeChange));
         dbg("applyPayloadSettings: deferred year mode change to next startup — " + ym);
-        toast("Year format was changed on another device — it will take effect when you next open Vault");
+        if (!was || was.yearMode !== ym || was.fyStartMonth !== m || was.fyStartDay !== dd)
+          toast("Year format was changed on another device — it will take effect when you next open Vault");
       }
     }
   }
+  _mergeRemoteById = null;   // used up: a later call without a merge mustn't reuse it
 }
 
 // On startup, apply any pending year mode change that was deferred from a previous sync
@@ -9871,12 +9952,12 @@ function applyPendingYearMode() {
     const raw = localStorage.getItem("vault_pending_ym");
     if (!raw) return;
     const pending = JSON.parse(raw);
-    const localTs = getSettingsTs();
-    if ((pending.settingsTs || 0) > localTs) {
+    loadYearMode();
+    if ((pending.settingsTs || 0) > getYearTs() && (pending.yearMode === "calendar" || pending.yearMode === "financial")) {
       yearMode     = pending.yearMode;
       fyStartMonth = pending.fyStartMonth || fyStartMonth;
       fyStartDay   = pending.fyStartDay   || fyStartDay;
-      saveYearMode();
+      saveYearMode(pending.settingsTs);   // its own time, not now (v6.18.6)
       dbg("applyPendingYearMode: applied deferred year mode — " + yearMode);
     }
     localStorage.removeItem("vault_pending_ym");
@@ -9908,17 +9989,15 @@ async function loadFromLocalFile() {
 
     // Decrypt if needed
     let loaded;
-    if (isEncryptedEnvelope(text)) {
+    const parsed = await vaultParseBackup(text);
+    if (parsed.state === "locked") {
       setLocalFileStatus("Encrypted — enter password…", "var(--gold)");
-      if (vaultEncKey) {
-        try { loaded = await decryptDataObj(text, vaultEncKey); } catch { loaded = null; }
-      }
-      if (!loaded) loaded = await promptAndDecrypt(text);
+      loaded = await promptAndDecrypt(text);
       if (!loaded) { setLocalFileStatus("Decryption cancelled or failed.", "error"); return; }
+    } else if (parsed.state === "ok") {
+      loaded = parsed.remote;
     } else {
-      try { loaded = JSON.parse(text); } catch {
-        setLocalFileStatus("Invalid file — not a Vault backup.", "error"); return;
-      }
+      setLocalFileStatus("Invalid file — not a Vault backup.", "error"); return;
     }
 
     const { data: rawData, tombstones: remoteTombstones, ...settings } = unwrapPayload(loaded);
@@ -9943,7 +10022,8 @@ async function loadFromLocalFile() {
       remoteTombstones.forEach(id => tombstones.add(id));
       saveTombstones();
       applyPayloadSettings(settings, true);
-      data = safe;
+      _mergeRemoteById = null;
+      data = vaultDropTombstoned(safe);
       reconcileYears();
       saveAndRender(null);
       setLocalFileStatus("✓ Loaded", "var(--green)");
@@ -10053,6 +10133,25 @@ async function decryptDataObj(envelopeStr, key) {
 
 function isEncryptedEnvelope(text) {
   try { const o = JSON.parse(text); return o && o.vault_enc === 3; } catch { return false; }
+}
+
+// v6.18.6: what a backup's text holds. Every sync leg and every load goes through this, so
+// nothing writes over a backup it couldn't read (sync sweep #1, #2, #12).
+//   empty  — nothing there yet: the file doesn't exist or holds nothing
+//   ok     — remote is the payload (decrypted when it was encrypted)
+//   locked — encrypted, and this device has no key that opens it
+//   bad    — not a Vault backup (junk, cut short)
+async function vaultParseBackup(text) {
+  if (text == null || !String(text).trim()) return { state: "empty" };
+  let o;
+  try { o = JSON.parse(text); } catch { return { state: "bad" }; }
+  if (o === null || (typeof o === "object" && !Array.isArray(o) && !Object.keys(o).length)) return { state: "empty" };
+  if (!o || typeof o !== "object" || Array.isArray(o)) return { state: "bad" };
+  if (o.vault_enc === 3) {
+    if (vaultEncKey) { try { return { state: "ok", remote: await decryptDataObj(text, vaultEncKey), enc: true }; } catch {} }
+    return { state: "locked", text };
+  }
+  return { state: "ok", remote: o };
 }
 
 // Load encryption active flag from localStorage
@@ -10532,14 +10631,17 @@ async function writeToNAS() {
   } catch (e) { dbg("NAS: write failed: " + e.message); return false; }
 }
 
+// v6.18.6: null when the server has no file yet (404); any other failure throws (sync sweep #2).
 async function readFromNAS(cfg) {
   const c = cfg || nasConfig;
-  if (!c) return null;
+  if (!c) throw new Error("NAS: not set up");
+  let res;
   try {
-    const res = await fetch(c.url, { method: "GET", headers: { "Authorization": nasAuthHeader(c) } });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    return await res.text();
-  } catch (e) { dbg("NAS: read failed: " + e.message); return null; }
+    res = await fetch(c.url, { method: "GET", headers: { "Authorization": nasAuthHeader(c) } });
+  } catch (e) { dbg("NAS: read failed: " + e.message); throw e; }
+  if (res.status === 404) return null;
+  if (!res.ok) { dbg("NAS: read failed: HTTP " + res.status); throw new Error("NAS: read failed: HTTP " + res.status); }
+  return await res.text();
 }
 
 async function connectNAS() {
@@ -10557,6 +10659,37 @@ async function connectNAS() {
   if (!user) { setNASStatus("Please enter a username.", "error"); return; }
   setNASStatus("Connecting…", "var(--gold)");
   const cfg = { url, user, pass };
+  // v6.18.6: read what's there first. A file with data gets the same question as Drive;
+  // before, connecting wrote this device's data straight over it.
+  let existing = null;
+  try { existing = await readFromNAS(cfg); }
+  catch (e) {
+    if (/HTTP 401/.test(e && e.message)) { setNASStatus("Wrong username or password.", "error"); return; }
+    if (!/HTTP 40[45]/.test(e && e.message)) { setNASStatus("Could not reach server. Check the URL and that CORS is enabled on your server.", "error"); return; }
+  }
+  if (existing) {
+    let r = await vaultParseBackup(existing), loaded = r.state === "ok" ? r.remote : null;
+    if (r.state === "locked") {
+      loaded = await promptAndDecrypt(existing);
+      if (!loaded) { setNASStatus("Cancelled. Nothing was changed.", "var(--text-3)"); return; }
+      vaultEncActive = true;
+      try { localStorage.setItem(ENC_ACTIVE_KEY, "true"); } catch {}
+    } else if (r.state === "bad") {
+      setNASStatus("There's a file at that address that isn't a Vault backup, so nothing was changed.", "error"); return;
+    }
+    if (loaded) {
+      const { data: rawData, tombstones: remoteTombstones, ...settings } = unwrapPayload(loaded);
+      const safe = sanitiseData(rawData);
+      if (safe && Object.keys(safe).length) {
+        const choice = vaultIsEmpty() ? "overwrite-app" : await showDriveMergeDialog(
+          "Existing Vault file found on server",
+          "A Vault file already exists on your network location. How would you like to proceed?"
+        );
+        if (choice === "cancel") { setNASStatus("Cancelled. Nothing was changed.", "var(--text-3)"); return; }
+        vaultApplyLoadChoice(choice, safe, remoteTombstones, settings);
+      }
+    }
+  }
   try {
     const payload = await buildVaultPayload();
     const res = await fetch(url, {
@@ -10579,6 +10712,7 @@ async function connectNAS() {
   updateSetupModal();
   setNASStatus("", "");
   toast("Network location connected — auto-saving active");
+  if (oldSnapshot) await applyOldBackupMergeChoice(oldSnapshot);
 }
 
 function unlinkNAS() {
@@ -10608,10 +10742,15 @@ async function loadFromNAS() {
     nasConfig = { url, user, pass };
   }
   setNASStatus("Loading…", "var(--gold)");
-  const raw = await readFromNAS();
-  if (!raw) { setNASStatus("Could not load — check connection and credentials.", "error"); nasConfig = null; return; }
+  let raw = null;
+  try { raw = await readFromNAS(); } catch {}
+  if (!raw) { setNASStatus("Could not load — check connection and credentials.", "error"); if (!nasLinked) nasConfig = null; return; }
   try {
-    const parsed = JSON.parse(raw);
+    // v6.18.6: an encrypted server file is opened with the password, like Drive's
+    const r = await vaultParseBackup(raw);
+    let parsed = r.state === "ok" ? r.remote : null;
+    if (r.state === "locked") parsed = await promptAndDecrypt(raw);
+    if (!parsed) { setNASStatus(r.state === "locked" ? "Cancelled. Nothing was loaded." : "Could not parse server data.", r.state === "locked" ? "var(--text-3)" : "error"); return; }
     const { data: rawData, tombstones: remoteTombstones, ...settings } = unwrapPayload(parsed);
     const safe = sanitiseData(rawData);
     if (!safe || !Object.keys(safe).length) { setNASStatus("Server file appears empty or invalid.", "error"); return; }
@@ -10631,13 +10770,13 @@ async function loadFromNAS() {
       remoteTombstones.forEach(id => tombstones.add(id));
       saveTombstones();
       applyPayloadSettings(settings, true);
-      data = safe;
+      _mergeRemoteById = null;
+      data = vaultDropTombstoned(safe);
       reconcileYears();
       saveAndRender(null);
       toast("App data replaced with server data");
     }
     setNASStatus("Connected.", "var(--green)");
-    if (oldSnapshot) await applyOldBackupMergeChoice(oldSnapshot);
   } catch (e) {
     setNASStatus("Could not parse server data.", "error");
     dbg("NAS load parse error: " + e.message);
@@ -10926,15 +11065,22 @@ async function gdHandleRedirect() {
       gdTokens.fileId = existingId;
       gdSaveTokens(gdTokens);
 
-      const raw = await gdReadFile();
+      const raw = await gdReadFile();   // throws if Drive can't be read: nothing is written (v6.18.6)
       if (raw) {
         let loaded;
-        if (isEncryptedEnvelope(raw)) {
+        const parsed = await vaultParseBackup(raw);
+        if (parsed.state === "locked") {
           setGDStatus("Drive file is encrypted — enter password…", "var(--gold)");
           loaded = await promptAndDecrypt(raw);
           if (!loaded) { setGDStatus("Decryption cancelled.", "error"); return; }
-        } else {
-          try { loaded = JSON.parse(raw); } catch { loaded = null; }
+          vaultEncActive = true;
+          try { localStorage.setItem(ENC_ACTIVE_KEY, "true"); } catch {}
+        } else if (parsed.state === "ok") {
+          loaded = parsed.remote;
+        } else if (parsed.state === "bad") {
+          // Not a Vault backup: don't write over it
+          setGDStatus("The Vault file in your Drive couldn't be read, so it was left alone.", "error");
+          return;
         }
         if (loaded) {
           const { data: rawData, tombstones: remoteTombstones, ...settings } = unwrapPayload(loaded);
@@ -10961,7 +11107,8 @@ async function gdHandleRedirect() {
               // Replace local data with Drive data
               (remoteTombstones || []).forEach(id => tombstones.add(id));
               saveTombstones();
-              data = safe;
+              _mergeRemoteById = null;
+              data = vaultDropTombstoned(safe);
               reconcileYears();
               applyPayloadSettings(settings, true);
               saveAndRender(null);
@@ -11097,20 +11244,22 @@ async function gdWriteFile() {
   }
 }
 
+// v6.18.6: null means there's no file yet (none remembered, or Drive says 404). Any other
+// failure throws, so a sync never mistakes "couldn't read" for "nothing there" and writes
+// over the file (sync sweep #2).
 async function gdReadFile() {
-  if (!await gdEnsureToken()) return null;
+  if (!await gdEnsureToken()) throw new Error("GD: not signed in");
+  const fileId = gdTokens.fileId;
+  if (!fileId) return null;
+  let res;
   try {
-    const fileId = gdTokens.fileId;
-    if (!fileId) return null;
-    const res = await fetch("https://www.googleapis.com/drive/v3/files/" + fileId + "?alt=media", {
+    res = await fetch("https://www.googleapis.com/drive/v3/files/" + fileId + "?alt=media", {
       headers: { "Authorization": "Bearer " + gdTokens.accessToken },
     });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    return await res.text();
-  } catch (e) {
-    dbg("GD: read failed: " + e.message);
-    return null;
-  }
+  } catch (e) { dbg("GD: read failed: " + e.message); throw e; }
+  if (res.status === 404) return null;
+  if (!res.ok) { dbg("GD: read failed: HTTP " + res.status); throw new Error("GD: read failed: HTTP " + res.status); }
+  return await res.text();
 }
 
 // ── public actions ────────────────────────────────────────────────────────────
@@ -11169,8 +11318,8 @@ async function disconnectAllBackupsAndReadData() {
     try {
       const text = await readFromNAS();
       if (text) {
-        let parsed;
-        try { parsed = JSON.parse(text); } catch {}
+        const r = await vaultParseBackup(text);
+        const parsed = r.state === "ok" ? r.remote : null;
         if (parsed) {
           const { data: d, tombstones: t, ...s } = unwrapPayload(parsed);
           remoteSnapshot = { data: sanitiseData(d), tombstones: t, settings: s };
@@ -11230,7 +11379,8 @@ async function applyOldBackupMergeChoice(snapshot) {
   } else if (choice === "overwrite-app") {
     snapshot.tombstones?.forEach(id => tombstones.add(id));
     saveTombstones();
-    data = snapshot.data;
+    _mergeRemoteById = null;
+    data = vaultDropTombstoned(snapshot.data);
     reconcileYears();
     applyPayloadSettings(snapshot.settings, true);
     saveAndRender(null);
@@ -11359,8 +11509,25 @@ async function initGoogleDrive() {
 // to the file). Resets all in-memory state and shows the welcome screen.
 async function clearBrowserData() {
   if (!await vaultDelete({ title: "Clear all data?", sub: "Everything Vault keeps in this browser",
-    lead: "Anything not in a backup (Google Drive, a network location or a file) will be lost for good. This can't be undone.",
+    lead: "Transactions, accounts, goals, settings, API keys and the backup connections all go. Your backups themselves aren't touched, so you can restore from one. Anything not in a backup is lost for good. This can't be undone.",
     options: [{ value: "clear" }], ok: "Clear all data" })) return;
+
+  // v6.18.6: everything, then a fresh start. It used to remove only the transactions and rules,
+  // leaving accounts, goals, API keys, the NAS password and the Drive sign-in (which then merged
+  // Drive straight back in) behind (sync sweep #15).
+  gdLinked = false; gdTokens = null; nasLinked = false; nasConfig = null;
+  localFileHandle = null; localFileLinked = false;
+  data = {}; recurRules = [];
+  try { await clearLocalFileHandle(); } catch {}
+  try {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
+    keys.forEach(k => { if (/^(vault|savings_)/.test(k) || k === SIDEBAR_KEY) localStorage.removeItem(k); });
+  } catch {}
+  try { sessionStorage.clear(); sessionStorage.setItem("vault_cleared", "1"); } catch {}
+  dbg("clearBrowserData: everything cleared, restarting");
+  try { location.reload(); } catch {}
+  return;
 
   // Remove all Vault keys from localStorage — do NOT call saveLocal() after this,
   // or render(), as both would write empty data back to localStorage and/or the linked file
@@ -11421,14 +11588,10 @@ function useLocal() {
 
 // ─── edge case fixes ──────────────────────────────────────────────────────────
 
-// ── 1. beforeunload flush ─────────────────────────────────────────────────────
-// On tab close, fire all pending writes immediately (best-effort).
-// We skip the read-merge-write cycle here since we're closing — just write.
-window.addEventListener("beforeunload", () => {
-  if (localFileHandle) writeTolocalFileHandle();
-  if (nasLinked && nasConfig) writeToNAS();
-  if (gdLinked) gdWriteFile();
-});
+// ── 1. (removed in v6.18.6) beforeunload flush ────────────────────────────────
+// Closing or reloading the page used to write this device's data to every backup without
+// reading it first, wiping whatever other devices had added since (sync sweep #3). Every
+// change already syncs (read, merge, write) as it's made, so nothing is pending at close.
 
 // ── 2. failed write retry queue ───────────────────────────────────────────────
 // If a NAS or Drive write fails, queue it for retry. On next successful write
@@ -12195,7 +12358,7 @@ const VH_AUTO_MAX   = 11;                   // sections surfaced per cycle
 // ts drives last-write-wins independently of the global settingsTs, since a layout
 // change shouldn't look like a currency/year change to the merge logic.
 function saveHomeLayout(bumpTs) {
-  if (bumpTs) homeLayout.ts = Date.now();
+  if (bumpTs) { homeLayout.ts = Date.now(); homeLayout.chosen = true; }
   vhSavePrefs();
   if (typeof triggerCloudSync === "function") triggerCloudSync();
 }
@@ -12211,28 +12374,22 @@ function saveHomeLayout(bumpTs) {
 //
 // Nothing is applied on the spot. vhLayoutOrder() serves the frozen order until the
 // next gate, so an incoming layout waits rather than rearranging a screen in use.
+// v6.18.6: what matters is whether the USER chose the layout — arranged it by hand, hid
+// sections, or reset it to automatic — not whether it's manual. A chosen layout beats one
+// nobody chose (so the ranker can't undo a hand-made order); between two chosen layouts the
+// newer wins (so a Reset is no longer undone by an older manual layout, sync sweep #8).
+// Layouts saved before v6.18.6: a manual one counts as chosen.
+function vhLayoutChosen(l) { return !!l && (l.chosen === true || l.auto === false); }
 function mergeHomeLayout(remote) {
   if (!remote || typeof remote !== "object") return false;
-  const localAuto  = homeLayout.auto !== false;
-  const remoteAuto = remote.auto !== false;
-  if (localAuto !== remoteAuto) {
-    if (localAuto) {           // remote is the manual one — take it
-      homeLayout = {
-        order:  Array.isArray(remote.order)  ? remote.order  : [],
-        hidden: Array.isArray(remote.hidden) ? remote.hidden : [],
-        auto: false, ts: remote.ts || 0, v: remote.v || 1,
-      };
-      vhSavePrefs();
-      return true;
-    }
-    return false;              // ours is manual — it stands, whatever their ts
-  }
+  const localChosen = vhLayoutChosen(homeLayout), remoteChosen = vhLayoutChosen(remote);
   const localTs = homeLayout.ts || 0, remoteTs = remote.ts || 0;
-  if (remoteTs <= localTs) return false;
+  const take = remoteChosen !== localChosen ? remoteChosen : remoteTs > localTs;
+  if (!take) return false;
   homeLayout = {
     order:  Array.isArray(remote.order)  ? remote.order  : [],
     hidden: Array.isArray(remote.hidden) ? remote.hidden : [],
-    auto: remoteAuto, ts: remoteTs, v: remote.v || 1,
+    auto: remote.auto !== false, chosen: remoteChosen, ts: remoteTs, v: remote.v || 1,
   };
   vhSavePrefs();
   return true;
@@ -12322,6 +12479,7 @@ function vhLoadPrefs() {
         auto: typeof p.homeLayout.auto === "boolean"
                 ? p.homeLayout.auto
                 : !(p.homeLayout.order && p.homeLayout.order.length),
+        chosen: !!p.homeLayout.chosen,
         ts: p.homeLayout.ts || 0, v: p.homeLayout.v || 1,
       };
     }
@@ -12845,6 +13003,7 @@ function saveLayoutModal() {
     return;
   }
   homeLayout.ts = Date.now();
+  homeLayout.chosen = true;   // v6.18.6: the user's choice, auto or not
   saveHomeLayout(false); // ts already set
   _layoutSnapshot = null;
   document.getElementById("layout-modal")?.classList.add("hidden");
@@ -12958,7 +13117,7 @@ async function vhHomeMenuReset() {
 }
 // Persists immediately (fresh ts + save + sync), unlike the modal's preview reset.
 function vhResetLayoutConfirmed() {
-  homeLayout = { order: [], hidden: [], auto: true, ts: Date.now(), v: 1 };
+  homeLayout = { order: [], hidden: [], auto: true, chosen: true, ts: Date.now(), v: 1 };
   _frozenOrder = null;
   saveHomeLayout(false); // ts already stamped
   if (activeTab === "home") renderHome();
@@ -16415,6 +16574,12 @@ function vhComputeAutoOrder() {
     order.forEach(k => { if (scores[k] && scores[k].reason) reasons[k] = scores[k].reason; });
   }
 
+  // v6.18.6: the same cold-start order again changes nothing, so it isn't saved or synced.
+  // Every merge re-ran this in a vault under 8 transactions, and each run started another
+  // sync: the app synced with Drive non-stop (sync sweep #10).
+  if (!enoughHistory && !(autoLayout.computedAt) &&
+      JSON.stringify(autoLayout.order || []) === JSON.stringify(order)) return;
+
   const cycle = (autoLayout.cycle || 0) + 1;
   const shown = Object.assign({}, autoLayout.shown || {});
   order.forEach(k => { shown[k] = cycle; });
@@ -18069,7 +18234,7 @@ function savePopupAll() {
       data[y][bucket][i] = updated;
     });
     const rule = recurRules.find(r => String(r.id) === String(recurId));
-    if (rule) { rule.amount = amt; if (accountChanged) rule.account = newAccountId; }
+    if (rule) { rule.amount = amt; if (accountChanged) rule.account = newAccountId; rule.ts = Date.now(); saveRecurring(); }
     closePopup();
     saveAndRender(null);
     triggerCloudSync();
@@ -18915,6 +19080,7 @@ function setAIProviderEnabled(providerId, enabled) {
 function toggleAIProviderEnabled(providerId) {
   const nowEnabled = !isAIProviderEnabled(providerId);
   setAIProviderEnabled(providerId, nowEnabled);
+  stampAIKey(providerId);
   // If disabling the default, clear the default
   if (!nowEnabled && getAIProvider() === providerId) {
     const next = AI_PROVIDERS.find(p => p.id !== providerId && getAIKey(p.id) && isAIProviderEnabled(p.id));
@@ -19920,6 +20086,9 @@ function undoLastImport() {
       yr[tab] = yr[tab].filter(tx => !ids.has(tx[2]));
     });
   });
+  // v6.18.6: tombstoned, or the sync brings them back from the backup (sync sweep #6)
+  ids.forEach(id => tombstones.add(id));
+  saveTombstones();
   _importLastIds = [];
   pruneEmptyYears();
   saveAndRender(null);
@@ -20226,6 +20395,7 @@ async function saveAIKey(providerId) {
   }
 
   setAIKey(providerId, key);
+  stampAIKey(providerId);
   // Auto-set as default if no default set yet
   if (!getAIProvider()) setDefaultAIProvider(providerId);
   toast(`${AI_PROVIDERS.find(p=>p.id===providerId)?.name} key saved`);
@@ -20372,15 +20542,22 @@ function showAIPrivacyAndWait() {
 }
 
 // ── AI settings in backup payload ─────────────────────────────────────────
+// v6.18.6: each key carries the time it was set (or deleted), not the time of the write.
+// Stamped "now" on every write, whichever device wrote last won: a deleted key came back and
+// a new key could be replaced by an old one (sync sweep #9). A deleted key is sent as "".
+function aiKeyTs(id) { try { return parseInt(localStorage.getItem(AI_KEY_PREFIX + id + "_ts") || "0", 10) || 0; } catch { return 0; } }
+function stampAIKey(id) { try { localStorage.setItem(AI_KEY_PREFIX + id + "_ts", String(Date.now())); } catch {} }
 function buildAISettingsPayload() {
   const keys = {};
   AI_PROVIDERS.forEach(p => {
-    const k = getAIKey(p.id);
-    if (k) keys[p.id] = { key: k, ts: Date.now(), enabled: isAIProviderEnabled(p.id) };
+    const k = getAIKey(p.id), ts = aiKeyTs(p.id);
+    if (k || ts) keys[p.id] = { key: k || "", ts, enabled: isAIProviderEnabled(p.id) };
   });
+  let providerTs = 0;
+  try { providerTs = parseInt(localStorage.getItem(AI_PROVIDER_TS_KEY) || "0", 10) || 0; } catch {}
   return {
     defaultProvider: getAIProvider(),
-    providerTs: Date.now(),
+    providerTs,
     keys,
   };
 }
@@ -20389,8 +20566,9 @@ function applyAISettingsPayload(remote) {
   if (!remote) return;
   const localTs  = parseInt(localStorage.getItem(AI_PROVIDER_TS_KEY) || "0");
   const remoteTs = remote.providerTs || 0;
-  if (remoteTs > localTs && remote.defaultProvider) {
+  if (remoteTs > localTs && typeof remote.defaultProvider === "string") {
     setAIProvider(remote.defaultProvider);
+    try { localStorage.setItem(AI_PROVIDER_TS_KEY, String(remoteTs)); } catch {}   // its time, not now
   }
   if (remote.keys && typeof remote.keys === "object") {
     AI_PROVIDERS.forEach(p => {
@@ -20398,8 +20576,8 @@ function applyAISettingsPayload(remote) {
       if (!remoteKey) return;
       const remoteKeyTs = remoteKey.ts || 0;
       const localKeyTs  = parseInt(localStorage.getItem(AI_KEY_PREFIX + p.id + "_ts") || "0");
-      if (remoteKeyTs > localKeyTs) {
-        setAIKey(p.id, remoteKey.key);
+      if (remoteKeyTs > localKeyTs && typeof remoteKey.key === "string") {
+        setAIKey(p.id, remoteKey.key);   // "" is a deletion
         if (typeof remoteKey.enabled === "boolean") setAIProviderEnabled(p.id, remoteKey.enabled);
         try { localStorage.setItem(AI_KEY_PREFIX + p.id + "_ts", remoteKeyTs.toString()); } catch {}
       }
@@ -20445,8 +20623,8 @@ function detectCurrencyMismatch(settings) {
 }
 
 // Open the currency mismatch dialog
-async function showCurrencyMismatchDialog(remoteData, remoteTombstones, remoteCurrency) {
-  _pendingMerge = { remoteData, remoteTombstones, remoteCurrency };
+async function showCurrencyMismatchDialog(remoteData, remoteTombstones, remoteCurrency, settings, leg) {
+  _pendingMerge = { remoteData, remoteTombstones, remoteCurrency, settings: settings || null, leg: leg || null };
 
   const local  = currencyCode;
   const remote = remoteCurrency;
@@ -20493,6 +20671,12 @@ async function showCurrencyMismatchDialog(remoteData, remoteTombstones, remoteCu
 
   document.getElementById("currency-mismatch-popup").classList.remove("hidden");
   document.body.style.overflow = "hidden";
+  setSaveStatus("warn", "Choose a currency");
+}
+// The question is still waiting (it was closed some other way): show it again
+function openCurrencyMismatchAgain() {
+  const el = document.getElementById("currency-mismatch-popup");
+  if (el && el.classList.contains("hidden")) { el.classList.remove("hidden"); document.body.style.overflow = "hidden"; }
 }
 
 // User chose how to resolve the mismatch
@@ -20507,29 +20691,35 @@ async function resolveCurrencyMismatch(choice) {
     autoMerge(sanitiseData(remoteData), remoteTombstones);
 
   } else if (choice === "keep-remote") {
-    // Merge as-is, switch to remote currency
+    // Merge as-is, switch to remote currency. Accounts that were in the old main currency
+    // are relabelled with it (their amounts were already in it, by this choice).
     autoMerge(sanitiseData(remoteData), remoteTombstones);
+    accounts.forEach(a => { if (getAccountCurrency(a.id) === local) { a.currency = remote; touchAccount(a); } });
+    saveAccounts();
     currencyCode = remote;
     saveCurrency();
     updateCurrencyUI();
 
   } else if (choice === "convert-local") {
-    // Convert ALL local transactions (local → remote currency), then merge
+    // Convert the local transactions in the old main currency (local → remote), then merge.
+    // Accounts with a currency of their own keep it and aren't touched (v6.18.6).
     const rate = getRate(remote);
     if (!rate) { toast("Exchange rate unavailable — cannot convert", "error"); return; }
-    // Convert every local transaction
+    const now = Date.now(), def = getDefaultAccountId();
+    const inLocal = new Set(accounts.filter(a => getAccountCurrency(a.id) === local).map(a => a.id));
     Object.keys(data).forEach(y => {
       ["saved", "removed"].forEach(bucket => {
-        data[y][bucket] = data[y][bucket].map(tx => {
-          const converted = parseFloat((tx[1] * rate).toFixed(2));
-          const updated = [tx[0], converted, tx[2], tx[3]];
-          if (tx[4] !== undefined) updated.push(tx[4]);
-          if (tx[5] !== undefined) updated.push(tx[5]);
-          if (tx[6] !== undefined) updated.push(tx[6]); // preserve accountId
-          return updated;
+        data[y][bucket].forEach(tx => {
+          if (!inLocal.has(tx[6] || def)) return;
+          tx[1] = parseFloat((tx[1] * rate).toFixed(2));
+          tx[3] = now;   // stamped, so the conversion syncs
         });
       });
     });
+    recurRules.forEach(r => { if (inLocal.has(r.account || def)) { r.amount = parseFloat((r.amount * rate).toFixed(2)); r.ts = now; } });
+    saveRecurring();
+    accounts.forEach(a => { if (inLocal.has(a.id)) { a.currency = remote; touchAccount(a); } });
+    saveAccounts();
     currencyCode = remote;
     saveCurrency();
     updateCurrencyUI();
@@ -20544,17 +20734,21 @@ async function resolveCurrencyMismatch(choice) {
     const rate = getRate(remote); // 1 local = rate remote, so 1 remote = 1/rate local
     if (!rate) { toast("Exchange rate unavailable — cannot convert", "error"); return; }
     const inverseRate = 1 / rate;
-    // Convert all remote transactions
+    // Convert the remote transactions in the remote main currency; accounts with a currency
+    // of their own keep it. Converted rows are stamped so the conversion wins (v6.18.6).
+    const now = Date.now();
+    const remoteAccs = (_pendingMerge.settings && Array.isArray(_pendingMerge.settings.accounts)) ? _pendingMerge.settings.accounts : [];
+    const ownCur = new Map(remoteAccs.map(a => [a.id, a.currency || remote]));
     const convertedRemote = {};
     Object.keys(remoteData).forEach(y => {
       convertedRemote[y] = { saved: [], removed: [] };
       ["saved", "removed"].forEach(bucket => {
         convertedRemote[y][bucket] = (remoteData[y][bucket] || []).map(tx => {
-          const converted = parseFloat((tx[1] * inverseRate).toFixed(2));
-          const updated = [tx[0], converted, tx[2], tx[3]];
-          if (tx[4] !== undefined) updated.push(tx[4]);
-          if (tx[5] !== undefined) updated.push(tx[5]);
-          if (tx[6] !== undefined) updated.push(tx[6]); // preserve accountId
+          const cur = ownCur.get(tx[6]) || remote;
+          if (cur !== remote) return tx;
+          const updated = tx.slice();
+          updated[1] = parseFloat((tx[1] * inverseRate).toFixed(2));
+          updated[3] = now;
           return updated;
         });
       });
@@ -20563,8 +20757,23 @@ async function resolveCurrencyMismatch(choice) {
     // Keep local currency
   }
 
+  // The rest of what the file carried (deletions, rules, goals, settings) is merged too —
+  // before v6.18.6 it was skipped for that sync.
+  const { settings, leg } = _pendingMerge;
   closeCurrencyMismatchDialog();
-  bumpSettingsTs(); // ensure local settingsTs is newer than remote after resolution
+  if (settings) {
+    // The currency was just decided here; don't let the file's currency fields revisit it
+    const rest = Object.assign({}, settings, { currency: null, currencyTs: 0 });
+    applyPayloadSettings(rest, false);
+  }
+  bumpSettingsTs(); // this device's currency is now the newest
+  saveAndRender(null);
+  // Write the merged result back to the backup the question came from, without reading it
+  // again: it would ask the same question (with "Keep" it never settled before v6.18.6).
+  if (leg) {
+    try { await leg.write(); } catch (e) { dbg("Currency merge: write failed: " + e.message); }
+  }
+  setSaveStatus("ok", "Backed up" + (vaultEncActive ? " · encrypted" : ""));
   triggerCloudSync();
   toast("Merged with your backup");
 }
@@ -20572,6 +20781,7 @@ async function resolveCurrencyMismatch(choice) {
 function dismissCurrencyMismatch() {
   // Leave local data untouched — show a warning pill
   closeCurrencyMismatchDialog();
+  setSaveStatus("warn", "Choose a currency");
   toast("Merge skipped — currency mismatch unresolved. Backup not updated", "error");
 }
 
@@ -21916,6 +22126,13 @@ function initApp() {
   vhLoadPrefs(); vhMaybeReorder("page load");
   if (!_didHomeLanding) { _didHomeLanding = true; _navReplaceNext = true; switchTab("home"); }
   bindHourlyTick();
+  try {
+    if (sessionStorage.getItem("vault_cleared")) {
+      sessionStorage.removeItem("vault_cleared");
+      document.getElementById("welcome-modal")?.classList.remove("hidden");
+      toast("Everything Vault kept in this browser was cleared");
+    }
+  } catch {}
 }
 
 // The hourly housekeeping tick: post any recurring transactions that have come
@@ -22694,6 +22911,7 @@ function saveRecurEditPopup() {
   const freqChanged = (freq !== rule.freq);
 
   // Stage non-account changes — these always apply
+  rule.ts       = Date.now();   // v6.18.6: the edit syncs
   rule.amount   = parseFloat(amt.toFixed(2));
   rule.freq     = freq;
   rule.endDate  = end;
@@ -22730,6 +22948,7 @@ function _commitRecurEdit(applyToPast) {
     const rule = recurRules[pending.idx];
     if (rule) {
       rule.account = pending.newAcct;
+      rule.ts = Date.now();
       if (applyToPast) {
         // Update tx[6] (accountId) on every transaction tagged with this rule
         let updated = 0;
@@ -23280,7 +23499,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v6.18.5</div>
+          <div class="pp-meta" id="about-version-meta">Version v6.18.6</div>
         </div>
 
         <div class="pp-cards">
@@ -23392,7 +23611,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v6.18.5</div>
+  <div id="version-footer">v6.18.6</div>
 
 </body>
 </html>
