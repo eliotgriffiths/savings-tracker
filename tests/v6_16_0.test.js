@@ -120,7 +120,7 @@ setTimeout(async () => {
   E(`window._dm = "unset"; void showDriveMergeDialog().then(c => window._dm = c)`); await sleep(10);
   d.getElementById("drive-merge-popup").click(); await sleep(10);
   ok(E("window._dm") === "cancel", "…so does an outside tap");
-  ok((html.match(/if \(choice === "cancel"\)/g) || []).length === 3, "local file, NAS and Google Drive all stop on cancel");
+  ok((html.match(/if \(choice === "cancel"\)/g) || []).length >= 3, "local file, NAS and Google Drive all stop on cancel (v6.18.6: connecting a NAS asks too)");
   ok(/if \(choice === "cancel"\) \{ unlinkGoogleDrive\(\);/.test(html), "…Google Drive isn't left half-connected");
   ok(/if \(choice === "cancel"\) \{ if \(!nasLinked\) nasConfig = null;/.test(html), "…nor is the NAS");
 
