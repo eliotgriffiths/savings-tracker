@@ -10,6 +10,25 @@ Version numbers follow [Semantic Versioning](https://semver.org/) and were assig
 
 The first release is v1.0.0. A major bump resets minor and patch to 0, a minor bump resets patch to 0, and patch rolls over into the next minor after .99. Types marked \* are judgement calls, explained in [Notes](#notes) at the end.
 
+## v7.2.0 — 2026-11-16
+
+Minor · `0c5395d`
+
+- Charts is now one big chart you can set up however you like: balance, net saved, in and out, deposits, withdrawals or interest, for all accounts or one, by week, month, quarter or year
+- Choose area, line, steps, candles or columns, and add an average, a trend line, a projection to your next goal, your typical range, the same time last year, or each account as its own line
+- Presets: switch between Balance, Net saved, In and out and Year by year, or save your own setups. Yours are kept in your backup, so they're on every device
+- Everything is in one Customise panel, and the box under the chart says what it's showing
+- Pinch to zoom, drag to look back in time, and touch and hold to see the figures for any period
+- Print prints the chart as you've set it up
+
+## v7.1.1 — 2026-11-16
+
+Patch · `7d21c8a`
+
+- Pulling down on the Menu, the period picker, Add or any tray now moves the whole sheet once it's scrolled to the top, so the handle stays on its edge instead of bouncing away
+- Home's Reset to default is now Arrange automatically, and says what that means: This Month, Goals, Recent Activity and Upcoming stay at the top, and the rest reorder every few hours
+- Customise Home says whether Home is arranged automatically or in your order, and that dragging a section switches to your order
+
 ## v7.1.0 — 2026-11-16
 
 Minor · `1b8386d`
