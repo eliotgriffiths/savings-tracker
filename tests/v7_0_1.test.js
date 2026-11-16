@@ -30,7 +30,8 @@ setTimeout(() => {
 
     ok(decl(".sheet-handle", "position") === "sticky" && decl(".sheet-handle", "top") === "0",
        "the sheets' handle is pinned to the top of the sheet (it scrolled away with the rows)");
-    ok(/--bg2/.test(decl(".sheet-handle", "background")), "…on a strip in the sheet's own colour, so rows scroll under it");
+    // v7.2.1: the strip became see-through (rows scroll up to the sheet's own edge, the bar floats)
+    ok(/--bg2|transparent/.test(decl(".sheet-handle", "background")), "…on a strip that rows scroll under (solid until v7.2.1, see-through since)");
     ok(+decl(".sheet-handle", "z-index") >= 3, "…above the rows");
     ok(decl(".sheet-handle::before", "top") === "9px" && decl(".sheet-handle::before", "width") === "36px" && decl(".sheet-handle::before", "height") === "4px",
        "the bar is where it was (9 px down, 36 × 4), so the hand-over in a tray move doesn't shift it");

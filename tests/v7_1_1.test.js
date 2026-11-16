@@ -111,35 +111,39 @@ setTimeout(async () => {
     ok(!wide[0].defaultPrevented && d.querySelector("#export-popup .vp-panel").style.transform === "", "wide screens: no pull-down");
     E(`closeExportPopup()`); w.innerWidth = 390;
 
-    // ── 2. Home: Arrange automatically ──────────────────────────────────────────────────────
-    const item = $("vh-home-menu-auto");
-    ok(item && item.textContent === "Arrange automatically", "Home ⋯ says Arrange automatically");
-    ok(![...d.querySelectorAll("button")].some(b => b.textContent.trim() === "Reset to default"), "no Reset to default left");
-    E(`homeLayout = { order: [], hidden: [], auto: true, ts: 5, v: 1 }; vhHomeMenuToggle();`);
-    ok(item.disabled, "disabled while Home is already automatic with nothing hidden");
-    E(`vhHomeMenuClose(); homeLayout = { order: [], hidden: ["streak"], auto: true, ts: 5, v: 1 }; vhHomeMenuToggle();`);
-    ok(!item.disabled, "enabled when something's hidden");
-    E(`vhHomeMenuClose(); homeLayout = { order: ["goals"], hidden: [], auto: false, ts: 5, v: 1 }; vhHomeMenuToggle();`);
-    ok(!item.disabled, "enabled when it's your order");
-    E(`vhHomeMenuClose(); vhHomeMenuReset();`); await sleep(10);
-    ok($("del-title").textContent === "Arrange Home automatically?", "asks: " + $("del-title").textContent);
-    ok(/goes back to arranging Home for you/.test($("del-lead").textContent) && /reorder every few hours/.test($("del-lead").textContent) && /Hidden sections come back/.test($("del-lead").textContent), "explains what automatic means");
-    ok($("del-ok").textContent === "Arrange automatically" && !$("del-ok").disabled, "button: Arrange automatically");
-    $("del-ok").click(); await sleep(20);
-    ok(E(`homeLayout.auto === true && homeLayout.order.length === 0`), "it arranges automatically");
-    ok(E(`__toasts.slice(-1)[0]`) === "Home is arranged automatically", "toast: " + E(`__toasts.slice(-1)[0]`));
-    await sleep(500);
+    // ── 2. Home: Arrange automatically ── (v7.3.0 replaced it with pins and "Unpin all";
+    // tests/v7_3_0.test.js covers that, so these checks only run on v7.1.1–v7.2.x)
+    if (E(`typeof vhCleanPins`) !== "function") {
+      const item = $("vh-home-menu-auto");
+      ok(item && item.textContent === "Arrange automatically", "Home ⋯ says Arrange automatically");
+      ok(![...d.querySelectorAll("button")].some(b => b.textContent.trim() === "Reset to default"), "no Reset to default left");
+      E(`homeLayout = { order: [], hidden: [], auto: true, ts: 5, v: 1 }; vhHomeMenuToggle();`);
+      ok(item.disabled, "disabled while Home is already automatic with nothing hidden");
+      E(`vhHomeMenuClose(); homeLayout = { order: [], hidden: ["streak"], auto: true, ts: 5, v: 1 }; vhHomeMenuToggle();`);
+      ok(!item.disabled, "enabled when something's hidden");
+      E(`vhHomeMenuClose(); homeLayout = { order: ["goals"], hidden: [], auto: false, ts: 5, v: 1 }; vhHomeMenuToggle();`);
+      ok(!item.disabled, "enabled when it's your order");
+      E(`vhHomeMenuClose(); vhHomeMenuReset();`); await sleep(10);
+      ok($("del-title").textContent === "Arrange Home automatically?", "asks: " + $("del-title").textContent);
+      ok(/goes back to arranging Home for you/.test($("del-lead").textContent) && /reorder every few hours/.test($("del-lead").textContent) && /Hidden sections come back/.test($("del-lead").textContent), "explains what automatic means");
+      ok($("del-ok").textContent === "Arrange automatically" && !$("del-ok").disabled, "button: Arrange automatically");
+      $("del-ok").click(); await sleep(20);
+      ok(E(`homeLayout.auto === true && homeLayout.order.length === 0`), "it arranges automatically");
+      ok(E(`__toasts.slice(-1)[0]`) === "Home is arranged automatically", "toast: " + E(`__toasts.slice(-1)[0]`));
+      await sleep(500);
 
-    // Customise Home
-    E(`homeLayout = { order: [], hidden: [], auto: true, ts: 5, v: 1 }; openLayoutModal();`); await sleep(20);
-    ok(/^Arranged automatically\./.test($("layout-mode").textContent) && /Dragging a section switches to your order/.test($("layout-mode").textContent), "Customise Home says it's automatic: " + $("layout-mode").textContent);
-    ok($("layout-auto-btn").textContent === "Arrange automatically" && $("layout-auto-btn").disabled, "its button is Arrange automatically, disabled while it already is");
-    E(`commitLayoutOrder()`);
-    ok(/^Your order\./.test($("layout-mode").textContent) && /won't rearrange it/.test($("layout-mode").textContent), "after a drag: Your order");
-    ok(!$("layout-auto-btn").disabled, "…and the button is ready");
-    E(`resetHomeLayout()`);
-    ok(/^Arranged automatically/.test($("layout-mode").textContent) && $("layout-auto-btn").disabled, "tapping it goes back to automatic (Save keeps it)");
-    E(`cancelLayoutModal()`);
+      // Customise Home
+      E(`homeLayout = { order: [], hidden: [], auto: true, ts: 5, v: 1 }; openLayoutModal();`); await sleep(20);
+      ok(/^Arranged automatically\./.test($("layout-mode").textContent) && /Dragging a section switches to your order/.test($("layout-mode").textContent), "Customise Home says it's automatic: " + $("layout-mode").textContent);
+      ok($("layout-auto-btn").textContent === "Arrange automatically" && $("layout-auto-btn").disabled, "its button is Arrange automatically, disabled while it already is");
+      E(`commitLayoutOrder()`);
+      ok(/^Your order\./.test($("layout-mode").textContent) && /won't rearrange it/.test($("layout-mode").textContent), "after a drag: Your order");
+      ok(!$("layout-auto-btn").disabled, "…and the button is ready");
+      E(`resetHomeLayout()`);
+      ok(/^Arranged automatically/.test($("layout-mode").textContent) && $("layout-auto-btn").disabled, "tapping it goes back to automatic (Save keeps it)");
+      E(`cancelLayoutModal()`);
+
+    }
 
     // ── version ─────────────────────────────────────────────────────────────────────────────
     const vf = $("version-footer").textContent.trim();

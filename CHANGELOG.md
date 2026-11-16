@@ -10,6 +10,28 @@ Version numbers follow [Semantic Versioning](https://semver.org/) and were assig
 
 The first release is v1.0.0. A major bump resets minor and patch to 0, a minor bump resets patch to 0, and patch rolls over into the next minor after .99. Types marked \* are judgement calls, explained in [Notes](#notes) at the end.
 
+## v7.3.0 — 2026-11-16
+
+Minor · `c7caba5`
+
+- Every Home section now rotates, including This Month, Goals, Recent Activity, Upcoming, Allocation and Trend
+- Pin a section to keep it in a place on Home, for example Goals in second, while the other places keep rotating
+- In Customise Home, tap a section's pin to keep it where it is, or drag it to the place you want; drag it below the places to let it rotate again
+- If a pinned section has nothing to show, the next section takes its place for that time, so your other pins don't move
+- Unpin all (in Home's ⋯ menu and Customise Home) puts everything back to rotating and brings back hidden sections
+- If you'd arranged Home in your own order, it now rotates; pin the sections you want to keep in place
+
+## v7.2.1 — 2026-11-16
+
+Patch · `181259a`
+
+- The Menu, the period picker, Add and every tray stop at the top and bottom instead of bouncing, so the handle stays on the edge when you flick back up
+- The handle no longer has a strip behind it: the list scrolls right up to the top edge, and the handle floats over it
+- The “changes since your last backup” reminder no longer appears when Google Drive (or another backup) is set up, and it now counts real changes rather than every time the screen redraws
+- Charts: dragging sideways moves the chart and up and down scrolls the page, never both; the line can't be dragged off the screen; the figures go back to the latest when you let go
+- Charts: the scale stays still while you drag and adjusts when you let go; the range button turns off once you've moved away, and a double tap snaps back
+- Charts: one Customise button, and Customise is now a shorter panel in three tabs (Chart, Lines, Display) that keeps the chart in view and doesn't move the page
+
 ## v7.2.0 — 2026-11-16
 
 Minor · `0c5395d`
