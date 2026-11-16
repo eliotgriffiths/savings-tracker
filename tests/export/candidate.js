@@ -3,9 +3,10 @@
 // up in every program. Nothing here changes the app: once a tweak proves itself, it moves into
 // exportRowsXLSX in index.html.
 // Usage: TZ=Australia/Brisbane node tests/export/candidate.js [path/to/index.html] [outDir]
-// Options (environment): CANDIDATE_FONT=Arial sets the file's font (default: SheetJS's Calibri);
-// CANDIDATE_FREEZE=0 leaves the header row unfrozen.
-const FONT = process.env.CANDIDATE_FONT || "";
+// Options (environment): CANDIDATE_FONT sets the file's font (default Arial: iPhone's file preview
+// has no Calibri and drew it as Times; "" keeps SheetJS's Calibri); CANDIDATE_FREEZE=0 leaves the
+// header row unfrozen. The defaults are "trial 3", which Eliot checked on his iPhone on 16 Nov.
+const FONT = process.env.CANDIDATE_FONT === undefined ? "Arial" : process.env.CANDIDATE_FONT;
 const FREEZE = process.env.CANDIDATE_FREEZE !== "0";
 const { JSDOM, VirtualConsole } = require("jsdom");
 const fs = require("fs"), path = require("path");
@@ -67,8 +68,9 @@ function tweak(X, wb) {
       cols.push({ wch: Math.min(66, Math.ceil(n * (FONT ? 1.15 : 1)) + 3) });
     }
     ws["!cols"] = cols;
-    // a set row height, so a taller glyph (✓) isn't clipped at the bottom
-    if (FONT) ws["!rows"] = Array.from({ length: rr.e.r + 1 }, () => ({ hpt: 17 }));
+    // a set row height on every row: a taller glyph (✓) isn't clipped, and iPhone's file preview
+    // no longer drops the totals to the bottom of the screen (it did with no heights set)
+    ws["!rows"] = Array.from({ length: rr.e.r + 1 }, () => ({ hpt: 17 }));
   };
   fit(tx);
   // Summary's title in A1 runs across B; size A to its labels only
