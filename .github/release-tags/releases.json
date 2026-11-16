@@ -1911,5 +1911,24 @@
       "The handle at the top of the Menu, the period picker and Add now stays in place when you scroll, instead of scrolling away with the list"
     ],
     "versioned_at_release": true
+  },
+  {
+    "tag": "v7.1.0",
+    "sha": "1b8386dae08fdd9251ccd3ed11636d889e879807",
+    "commits": [
+      "1b8386d"
+    ],
+    "date": "2026-11-16",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": null,
+    "notes": [
+      "Export spreadsheet now opens its own screen first. It shows what you're exporting (how many transactions, the dates, and your Search filters or the list you're on), then you choose Spreadsheet or Plain text",
+      "On your iPhone, Share file opens the share sheet, so you can save the file to Files, send it, or open it straight in Excel, Numbers or Google Sheets. On a computer it downloads",
+      "The spreadsheet looks the same in every app: dates are real dates, amounts always show two decimal places, the header row stays at the top and is bold, and long account names aren't cut off",
+      "Plain text (.csv) has just the transactions, for importing into other apps",
+      "Vault remembers which format you chose last on each device"
+    ],
+    "versioned_at_release": true
   }
 ]

@@ -10,6 +10,16 @@ Version numbers follow [Semantic Versioning](https://semver.org/) and were assig
 
 The first release is v1.0.0. A major bump resets minor and patch to 0, a minor bump resets patch to 0, and patch rolls over into the next minor after .99. Types marked \* are judgement calls, explained in [Notes](#notes) at the end.
 
+## v7.1.0 — 2026-11-16
+
+Minor · `1b8386d`
+
+- Export spreadsheet now opens its own screen first. It shows what you're exporting (how many transactions, the dates, and your Search filters or the list you're on), then you choose Spreadsheet or Plain text
+- On your iPhone, Share file opens the share sheet, so you can save the file to Files, send it, or open it straight in Excel, Numbers or Google Sheets. On a computer it downloads
+- The spreadsheet looks the same in every app: dates are real dates, amounts always show two decimal places, the header row stays at the top and is bold, and long account names aren't cut off
+- Plain text (.csv) has just the transactions, for importing into other apps
+- Vault remembers which format you chose last on each device
+
 ## v7.0.1 — 2026-11-15
 
 Patch · `125e7ac`
