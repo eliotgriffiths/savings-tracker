@@ -1,7 +1,7 @@
-// Export harness, step 1: run Vault's real Export spreadsheet and save the file it makes.
+// Export harness, step 1: make Vault's real export files and save them.
 // Usage: TZ=Australia/Brisbane node tests/export/export.js [path/to/index.html] [outDir]
-// Writes <outDir>/vault-export.xlsx (the app's own file), plus the same workbook written as
-// .ods and .csv by the app's SheetJS, so other formats can be compared on the same data.
+// Writes <outDir>/vault-export.xlsx and vault-export.csv: exactly the bytes the Export tray's
+// Spreadsheet and Plain text make (v7.1.0 on), from Home, so they cover every transaction.
 const { JSDOM, VirtualConsole } = require("jsdom");
 const fs = require("fs"), path = require("path");
 const here = __dirname;
@@ -30,27 +30,17 @@ const w = dom.window;
 setTimeout(() => {
   try {
     w.eval(FIXTURE);
-    let captured = null;
-    const realWrite = w.XLSX.writeFile;
-    w.XLSX.writeFile = (wb, fname, opts) => { captured = { wb, fname, opts }; };
-    w.eval(`switchTab("home"); menuExportXLSX();`);
-    w.XLSX.writeFile = realWrite;
-    if (!captured) throw new Error("the export didn't produce a file");
-    const { wb } = captured;
-    const write = (bookType, file) => {
-      const buf = w.XLSX.write(wb, Object.assign({ type: "buffer", bookType }, captured.opts || {}));
-      fs.writeFileSync(path.join(outDir, file), Buffer.from(buf));
-    };
-    write("xlsx", "vault-export.xlsx");
-    write("ods", "vault-export.ods");
-    // CSV holds one sheet: the transactions
-    const csv = w.XLSX.utils.sheet_to_csv(wb.Sheets["Transactions"]);
-    fs.writeFileSync(path.join(outDir, "vault-export.csv"), "﻿" + csv);
+    w.eval(`switchTab("home"); window.__sc = exportScope();
+            window.__xf = exportBuild(__sc, "xlsx"); window.__cf = exportBuild(__sc, "csv");`);
+    const xf = w.__xf, cf = w.__cf;
+    if (!xf || !xf.data || !xf.data.length) throw new Error("the export didn't produce a file");
+    fs.writeFileSync(path.join(outDir, "vault-export.xlsx"), Buffer.from(xf.data));
+    fs.writeFileSync(path.join(outDir, "vault-export.csv"), cf.data, "utf8");
     const ver = w.document.getElementById("about-version-meta").textContent.trim();
     fs.writeFileSync(path.join(outDir, "export-info.json"), JSON.stringify({
-      appVersion: ver, appFileName: captured.fname, sheets: wb.SheetNames, sheetjs: w.XLSX.version, made: new Date(NOW).toISOString(),
+      appVersion: ver, appFileName: xf.name, csvFileName: cf.name, sheets: ["Summary", "Transactions"], sheetjs: w.XLSX.version, made: new Date(NOW).toISOString(),
     }, null, 2));
-    console.log(`exported ${captured.fname} from ${ver} (SheetJS ${w.XLSX.version}) -> ${outDir}`);
+    console.log(`exported ${xf.name} and ${cf.name} from ${ver} (SheetJS ${w.XLSX.version}) -> ${outDir}`);
   } catch (e) { console.log("ERROR:", e.stack); process.exitCode = 1; }
   const pageErrors = errors.filter(e => !/Not implemented|offline \(harness\)/.test(e));
   pageErrors.forEach(e => console.log("PAGE ERROR:", e));

@@ -160,15 +160,14 @@ setTimeout(() => {
   ok(/UBank/.test(pdf.subLine) && /Interest/.test(pdf.subLine) && /amount, largest first/.test(pdf.subLine), "print subtitle names filters + sort: " + pdf.subLine);
   ok(pdf.filter === "saved", "print shows deposit cards for interest-only");
   E(`menuPrint();`); ok(E(`window.__pdf.title`) === "Search", "menu Print / Ctrl+P on this page prints the search");
-  E(`menuExportXLSX();`);
-  const x = E(`window.__xlsx`);
-  ok(/^vault-search-\d{4}-\d{2}-\d{2}\.xlsx$/.test(x.f), "export filename " + x.f);
-  const txSheet = x.wb.s.find(s => s[0] === "Transactions")[1];
-  ok(txSheet.length - 1 - 4 === E(`_asRows.length`), "export: same number of rows");
-  ok(/UBank/.test(x.wb.s.find(s => s[0] === "Summary")[1].find(r => r[0] === "Covers")[1]), "export summary says what it covers");
-  ok(E(`document.getElementById("dmenu-export-sub")?.textContent`) === "Search results as XLSX", "menu sub-label on this page");
-  E(`switchTab("all"); menuExportXLSX();`);
-  ok(/^vault-all-transactions-/.test(E(`window.__xlsx.f`)) && E(`window.__xlsx.wb.s.find(s => s[0] === "Transactions")[1].length`) - 5 === total, "export elsewhere = all transactions");
+  // v7.1.0: Export opens a tray; what it covers comes from exportScope()
+  E(`window.__sc = exportScope();`);
+  ok(E(`exportFileName(__sc, "xlsx")`).match(/^vault-search-\d{4}-\d{2}-\d{2}\.xlsx$/), "export filename " + E(`exportFileName(__sc, "xlsx")`));
+  ok(E(`__sc.rows.length`) === E(`_asRows.length`), "export: same number of rows");
+  ok(/UBank/.test(E(`__sc.coverage`)), "export summary says what it covers");
+  ok(E(`document.getElementById("dmenu-export-sub")?.textContent`) === "Search results", "menu sub-label on this page");
+  E(`switchTab("all"); window.__sc = exportScope();`);
+  ok(/^vault-all-transactions-/.test(E(`exportFileName(__sc, "xlsx")`)) && E(`__sc.rows.length`) === total, "export elsewhere = all transactions");
 
   // ── transaction list Total row (All tab) is the net ──
   E(`switchTab("all"); activeYear = "all-years"; activeMonth = null; activeAccountFilter = "all"; _dataVersion++; render();`);
