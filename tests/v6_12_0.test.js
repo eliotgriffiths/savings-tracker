@@ -110,14 +110,14 @@ setTimeout(async () => {
   ok(E(`window.__pdf.oneAccount`) === true, "Search narrowed to one account by name drops it");
   E(`asSetQuery(""); asRender(); printSearchResults();`);
   ok(E(`window.__pdf.oneAccount`) === false, "Search across accounts keeps it");
-  E(`switchTab("charts"); renderCharts();`);
-  ok(E(`document.querySelectorAll("#charts-acct-row .vh-filter-pill").length`) === 3, "Charts tab has the account pills");
-  ok(/Blue = interest/.test(E(`document.getElementById("chart-dvw-sub").textContent`)), "Charts show interest apart from deposits");
-  const axis = E(`[...document.querySelectorAll("#chart-net-monthly .chart-axis-label")].map(t => t.textContent).join("|")`);
-  ok(/\$/.test(axis) && !/\.\d\d/.test(axis), "Charts axes are rounded and in dollars: " + axis);
-  E(`document.querySelector('#charts-acct-row [data-charts-acct="ub"]').click()`);
-  ok(E(`chartsAcct`) === "ub", "Charts account pill filters");
-  E(`chartsAcct = "all"`);
+  // v7.2.0: one chart; the account is chosen in Customise, interest stays apart, the axis is rounded
+  E(`switchTab("charts"); renderCharts(); openChartCustomise();`);
+  ok(E(`document.querySelectorAll("#chc-body [data-chc-acct]").length`) === 3, "Charts can be set to each account (Customise)");
+  ok(E(`chModelNow.buckets.every(b => "int" in b && "dep" in b)`), "Charts keep interest apart from deposits");
+  ok(/^\$/.test(E(`chAxisLabel(12345.67)`)) && !/\.\d\d/.test(E(`chAxisLabel(1234.56)`)), "Charts axes are rounded and in dollars: " + E(`chAxisLabel(12345.67)`) + " " + E(`chAxisLabel(1234.56)`));
+  E(`document.querySelector('#chc-body [data-chc-acct="ub"]').click()`);
+  ok(E(`chCfg.account`) === "ub", "Charts account filters");
+  E(`chCfg.account = "all"; closeChartCustomise();`);
 
   // ── Home ────────────────────────────────────────────────────────────────
   E(`switchTab("home"); renderHome();`);

@@ -34,6 +34,7 @@ const SERIF_OK = new Set([
   "#privacy-header h2, #about-header h2", "#privacy-body .pp-title, #about-body .pp-title",
   "#privacy-body .pp-section-title, #about-body .pp-section-title", "#privacy-body .pp-contact-title, #about-body .pp-contact-title",
   "#home-panel .vh-hero-total", "#home-panel .vh-home-title", "#home-panel .vh-chart-title", "#home-panel .vh-modal-title",
+  ".ch-title",   // v7.2.0: the Charts screen's title
 ]);
 const serifRules = rules.filter(r => /DM Serif Display/.test(r.style.fontFamily || ""));
 serifRules.forEach(r => ok(SERIF_OK.has(norm(r.selectorText)), "serif used only for a title: " + norm(r.selectorText)));

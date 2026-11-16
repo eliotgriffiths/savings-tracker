@@ -38,7 +38,8 @@ ok(ratio(role("accent-ink"), role("accent")) >= 4.5, "text on the accent is read
 // documents (white paper, own palette), account colour palettes, Google's logos.
 let app = html.replace(/:root \{[\s\S]*?\n  \}/, "")
   .replace(/<style id="vault-fonts">[\s\S]*?<\/style>/, "")
-  .replace(/<!-- SheetJS[\s\S]*?<\/script>/, "");
+  .replace(/<!-- SheetJS[\s\S]*?<\/script>/, "")
+  .replace(/<!-- Lightweight Charts[\s\S]*?<\/script>/, "");   // v7.2.0: the charts library
 const cut = (start) => { const a = app.indexOf(start); const b = app.indexOf("\n}\n", a); app = app.slice(0, a) + app.slice(b); };
 cut("function openPdfWindow("); cut("function printCharts(");
 app = app.replace(/const ACCOUNT_COLORS[^\n]*/, "").replace(/const VH_CX_PALETTE[^\]]*\]/, "").replace(/const colors = \[[^\]]*\]/, "")
@@ -71,8 +72,9 @@ setTimeout(() => {
   ok(/\.add-type-btn\.active-interest \{ background: var\(--interest\); color: var\(--fill-ink\); \}/.test(html), "the interest type button uses dark ink");
   ok(/\.pbtn-danger \{ background: var\(--out\); color: var\(--fill-ink\);/.test(html), "danger buttons use dark ink");
   // Charts follow the look, and print maps the roles to paper colours
-  ok(/const C_GREEN = "var\(--in\)";/.test(html) && /const C_RED   = "var\(--out\)";/.test(html) && /const C_BLUE  = "var\(--interest\)";/.test(html), "charts use the roles");
-  ok(/\.replace\(\/var\\\(--in\\\)\/g,\s*"#2a7a52"\)/.test(html) && /\.replace\(\/var\\\(--accent\\\)\/g,\s*"#8a7530"\)/.test(html), "printed charts map the roles to the print palette");
+  // v7.2.0: the chart reads the roles (canvas can't take var()), and print draws it in the print palette
+  ok(/function chRoles\(\) \{[\s\S]*?getPropertyValue\("--" \+ k\)/.test(html) && /m\.mainColor = bal \? "hero"/.test(html), "charts use the roles");
+  ok(/const PRINT = \{[^}]*in: "#2a7a52"[^}]*\}/.test(html) && /const PRINT = \{[^}]*accent: "#8a7530"/.test(html), "printed charts map the roles to the print palette");
 
   const vf = d.getElementById("version-footer").textContent.trim();
   ok((([M, m, p]) => M > 6 || (M === 6 && (m > 15 || (m === 15 && p >= 0))))((vf.match(/^v(\d+)\.(\d+)\.(\d+)$/) || []).slice(1).map(Number)) && html.includes(`Version ${vf}<`), "version v6.15.0 or later, About matches: " + vf);
