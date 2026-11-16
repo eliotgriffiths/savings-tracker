@@ -161,7 +161,8 @@ setTimeout(async () => {
   ok(d.querySelector("#vh-home-menu-drop .vh-menu-item").textContent === "Customise Home", "Home's ⋮ says Customise Home");
 
   // ── N9: Print and Export follow the screen ──────────────────────────────
-  E(`window.__x = null; exportRowsXLSX = (rows, cov, fn) => { window.__x = { n: rows.length, cov, fn, rows }; };
+  // v7.1.0: Export opens a tray; what it covers comes from exportScope()
+  E(`window.__x = null; const _oep = openExportPopup; openExportPopup = () => { const sc = exportScope(); window.__x = { n: sc.rows.length, cov: sc.coverage, fn: exportFileName(sc, "xlsx"), rows: sc.rows }; updateExportMenuSub(); };
      window.__p = null; openPdfWindow = o => { window.__p = o; };`);
   const all = E(`vhAllTx().length`);
   const in2026ub = E(`vhAllTx().filter(t => t.date.startsWith("2026") && t.accId === "ub" && t.kind !== "wit").length`);
@@ -169,7 +170,7 @@ setTimeout(async () => {
   ok(E("window.__x.n") === in2026ub, `Export on the list covers the list: ${E("window.__x.n")} vs ${in2026ub}`);
   ok(E("window.__x.cov") === "2026 transactions · UBank · deposits only", "Export describes it: " + E("window.__x.cov"));
   ok(/^vault-2026-transactions-ubank-deposits-only-2026-11-09\.xlsx$/.test(E("window.__x.fn")), "file name: " + E("window.__x.fn"));
-  ok(d.getElementById("mob-export-sub").textContent === "2026 transactions · UBank · deposits only as XLSX", "menu says what Export covers: " + d.getElementById("mob-export-sub").textContent);
+  ok(d.getElementById("mob-export-sub").textContent === "2026 transactions · UBank · deposits only", "menu says what Export covers: " + d.getElementById("mob-export-sub").textContent);
   ok(d.getElementById("mob-print-sub").textContent === "2026 transactions · UBank · deposits only", "menu says what Print covers");
   ok(d.getElementById("dmenu-print-sub").textContent === d.getElementById("mob-print-sub").textContent, "desktop menu matches");
   E(`menuPrint()`);
@@ -181,9 +182,9 @@ setTimeout(async () => {
   ok(E("window.__x.n") === all, "Export on Home covers every transaction");
   ok(d.getElementById("mob-print-sub").textContent === "All transactions", "Home's Print label");
   E(`switchTab("charts")`);
-  ok(d.getElementById("mob-print-sub").textContent === "These charts" && d.getElementById("mob-export-sub").textContent === "All transactions as XLSX", "Charts labels");
+  ok(d.getElementById("mob-print-sub").textContent === "These charts" && d.getElementById("mob-export-sub").textContent === "All transactions", "Charts labels");
   E(`switchTab("report")`);
-  ok(d.getElementById("mob-export-sub").textContent === "Search results as XLSX", "Search labels");
+  ok(d.getElementById("mob-export-sub").textContent === "Search results", "Search labels");
 
   // ── version ─────────────────────────────────────────────────────────────
   const vf = d.getElementById("version-footer").textContent.trim();

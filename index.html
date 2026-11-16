@@ -2926,6 +2926,38 @@
   @media (hover: hover) { .del-opt:not([aria-checked="true"]):hover { background: color-mix(in srgb, var(--out) 6%, var(--bg3)); } }
   .pbtn:disabled { opacity: 0.38; box-shadow: none; cursor: default; }
 
+  /* v7.1.0: the Export tray. What it covers, the format as option cards (one is always chosen:
+     gold edge and ✓), the file it makes, then Share file or Download. */
+  #export-popup { position: fixed; inset: 0; z-index: 620; }
+  .exp-what { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 2px 14px; margin: 0 0 16px; }
+  .exp-what > div { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; font-size: 13px; line-height: 1.4; }
+  .exp-what > div + div { border-top: 1px solid var(--border); }
+  .exp-what > div[hidden] { display: none; }
+  .exp-k { color: var(--text-3); flex-shrink: 0; }
+  .exp-v { color: var(--text-1); text-align: right; min-width: 0; }
+  .exp-n { font-family: 'DM Sans', sans-serif; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .exp-what > .exp-stack { flex-direction: column; gap: 2px; }
+  .exp-stack .exp-v { text-align: left; line-height: 1.45; }
+  .exp-label { font-size: 10px; color: var(--text-3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 2px 8px; }
+  .exp-opts { display: grid; gap: 8px; }
+  .exp-opt { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 11px 14px; border-radius: 12px;
+    background: var(--bg3); border: 1px solid var(--border-hi); color: var(--text-1);
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+  .exp-opt-text { flex: 1; min-width: 0; }
+  .exp-opt b { display: block; font-size: 14px; font-weight: 500; color: var(--text-1); line-height: 1.35; }
+  .exp-opt small { display: block; font-size: 11.5px; color: var(--text-3); line-height: 1.4; margin: 2px 0 0 !important; }
+  .exp-opt[aria-checked="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, var(--bg3)); }
+  .exp-opt[aria-checked="true"] .del-tick { background: var(--accent); border-color: var(--accent); }
+  .exp-opt[aria-checked="true"] .del-tick::after { transform: rotate(-45deg) scale(1); }
+  @media (hover: hover) { .exp-opt:not([aria-checked="true"]):hover { background: var(--bg4); } }
+  .exp-file { display: flex; align-items: center; gap: 8px; color: var(--text-3); font-size: 12.5px; margin: 12px 2px 2px; }
+  .exp-file svg { flex-shrink: 0; }
+  .exp-file span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .exp-file b { font-weight: 400; flex-shrink: 0; white-space: nowrap; }   /* the size stays when a long name is cut */
+  .exp-file[hidden], .exp-none[hidden] { display: none !important; }
+  .exp-none { color: var(--text-3); font-size: 12.5px; line-height: 1.5; margin: 12px 2px 2px; }
+  #exp-go svg { flex-shrink: 0; display: block; }
+
 </style>
 <style id="vh-home-styles">
 #home-panel { -webkit-font-smoothing:antialiased; }
@@ -4320,7 +4352,7 @@
       </span>
       <div><div class="dmenu-btn-label">Import</div><div class="dmenu-btn-sub">Import transactions with AI</div></div>
     </button>
-    <button class="dmenu-btn" onclick="closeDesktopMenu(); menuExportXLSX();">
+    <button class="dmenu-btn" onclick="closeDesktopMenu(); openExportPopup();">
       <span class="dmenu-btn-icon">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect x="1" y="1" width="14" height="14" rx="1.5" stroke="currentColor" stroke-width="1.25" fill="none"/>
@@ -4335,7 +4367,7 @@
           <circle cx="2.75" cy="13.25" r="0.9" fill="currentColor" opacity="0.3"/>
         </svg>
       </span>
-      <div><div class="dmenu-btn-label">Export spreadsheet</div><div class="dmenu-btn-sub" id="dmenu-export-sub">All transactions as XLSX</div></div>
+      <div><div class="dmenu-btn-label">Export spreadsheet</div><div class="dmenu-btn-sub" id="dmenu-export-sub">All transactions</div></div>
     </button>
     <button class="dmenu-btn" onclick="closeDesktopMenu(); menuPrint();">
       <span class="dmenu-btn-icon">
@@ -4934,7 +4966,7 @@
       <span class="menu-item-sub">Import transactions with AI</span>
     </span>
   </button>
-  <button class="menu-item-btn" onclick="closeSheets(); menuExportXLSX();">
+  <button class="menu-item-btn" onclick="closeSheets(); openExportPopup();">
     <span class="menu-item-icon">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="1" y="1" width="14" height="14" rx="1.5" stroke="currentColor" stroke-width="1.25" fill="none"/>
@@ -4951,7 +4983,7 @@
     </span>
     <span class="menu-item-body">
       <span class="menu-item-label">Export spreadsheet</span>
-      <span class="menu-item-sub" id="mob-export-sub">XLSX</span>
+      <span class="menu-item-sub" id="mob-export-sub">All transactions</span>
     </span>
   </button>
   <button class="menu-item-btn" onclick="closeSheets(); menuPrint();">
@@ -5563,6 +5595,27 @@
     <div class="pbtn-row" id="del-foot">
       <button class="pbtn pbtn-danger" id="del-ok" onclick="delConfirm()">Delete</button>
       <button class="pbtn pbtn-secondary" onclick="delCancel()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Export (v7.1.0): what it covers, the format, then Share file (phone) or Download -->
+<div id="export-popup" class="hidden pop-anim" role="dialog" aria-modal="true" aria-labelledby="exp-title">
+  <div class="modal-box" style="max-width:440px; position:relative;">
+    <button class="modal-close" aria-label="Close" onclick="closeExportPopup()">✕</button>
+    <div class="modal-header"><h2 id="exp-title">Export spreadsheet</h2><p id="exp-sub">All transactions</p></div>
+    <div class="exp-what">
+      <div><span class="exp-k">Transactions</span><span class="exp-v exp-n" id="exp-n">0</span></div>
+      <div><span class="exp-k">Dates</span><span class="exp-v" id="exp-dates"></span></div>
+      <div class="exp-stack" id="exp-applied" hidden><span class="exp-k" id="exp-applied-k">Filters</span><span class="exp-v" id="exp-applied-v"></span></div>
+    </div>
+    <div class="exp-label" id="exp-fmt-label">Format</div>
+    <div class="exp-opts" id="exp-opts" role="radiogroup" aria-labelledby="exp-fmt-label"></div>
+    <p class="exp-none" id="exp-none" hidden></p>
+    <div class="exp-file" id="exp-file"><svg width="14" height="16" viewBox="0 0 14 16" fill="none" aria-hidden="true"><path d="M2 1h6.5L12 4.5V15H2z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M8.5 1v3.5H12" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg><span id="exp-file-name"></span><b id="exp-file-size"></b></div>
+    <div class="pbtn-row" id="exp-foot">
+      <button class="pbtn pbtn-primary" id="exp-go" onclick="exportGo()"><span id="exp-go-icon"><svg width="15" height="17" viewBox="0 0 15 17" fill="none" aria-hidden="true"><path d="M7.5 11V1.5M4.2 4.6 7.5 1.3l3.3 3.3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 7.2H3.2A1.2 1.2 0 0 0 2 8.4v6.1a1.2 1.2 0 0 0 1.2 1.2h8.6a1.2 1.2 0 0 0 1.2-1.2V8.4a1.2 1.2 0 0 0-1.2-1.2H10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><span id="exp-go-label">Share file</span></button>
+      <button class="pbtn pbtn-secondary" onclick="closeExportPopup()">Cancel</button>
     </div>
   </div>
 </div>
@@ -18850,29 +18903,12 @@ function confirmAddYear() {
 // Export from the menu. On Advanced Search: exactly the results shown, in that
 // order, with the filters written into the Summary sheet. Anywhere else: every
 // transaction, oldest first.
-function menuExportXLSX() {
-  if (activeTab === "report") {
-    asRender();
-    exportRowsXLSX(asPrintRows(), asDescribe(), `vault-search-${todayLocal()}.xlsx`);
-  } else if (isListTab()) {
-    // The list on screen: its period, tab, account and order, like Print (N9).
-    const v = currentViewRows(false);
-    const slug = viewScopeLabel().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-    exportRowsXLSX(v.rows, viewScopeLabel(), `vault-${slug}-${todayLocal()}.xlsx`);
-  } else {
-    const all = vhAllTx().sort((a, b) => a.date.localeCompare(b.date) || (a.ts - b.ts)).map(t => ({
-      date: t.date, amt: t.amt, accId: t.accId, accName: getAccountName(t.accId), accCur: t.cur,
-      gAmt: convertToGlobal(t.amt, t.cur), type: t.kind === "wit" ? "Withdrawal" : t.kind === "int" ? "Interest" : "Deposit",
-    }));
-    exportRowsXLSX(all, "All transactions", `vault-all-transactions-${todayLocal()}.xlsx`);
-  }
-  updateExportMenuSub();
-}
+function menuExportXLSX() { openExportPopup(); }
 
 // The Export Spreadsheet sub-label in both menus says what it will export.
 function updateExportMenuSub() {
   const scope = viewScopeLabel();
-  const label = scope + " as XLSX";
+  const label = scope;   // v7.1.0: the format is chosen in the tray
   const print = activeTab === "charts" ? "These charts" : scope;
   [["dmenu-export-sub", label], ["mob-export-sub", label], ["dmenu-print-sub", print], ["mob-print-sub", print]].forEach(([id, t]) => {
     const el = document.getElementById(id); if (el) el.textContent = t;
@@ -19388,52 +19424,278 @@ ${rateNotes ? `<div class="rate-banner">
 // Export rows as an XLSX spreadsheet (uses SheetJS): a Summary sheet saying what
 // the export covers, and a Transactions sheet in the order given.
 // rows: [{ date, amt, accName, accCur, gAmt, type }]
-function exportRowsXLSX(rows, coverage, fname) {
-  if (typeof XLSX === "undefined") { toast("The spreadsheet library didn't load. Reload Vault and try again", "error"); return; }
-  if (!rows.length) { toast("Nothing to export", "error"); return; }
+// ─── Export (v7.1.0) ──────────────────────────────────────────────────────────────────────────
+// Menu › Export spreadsheet opens a tray: what it covers (the screen's rows, like Print), the
+// format (Spreadsheet .xlsx or Plain text .csv), then Share file (iOS share sheet) or Download.
+// The .xlsx has the formatting the export harness (tests/export) proved in LibreOffice, Gnumeric,
+// Google Sheets, iPhone's file preview, Excel and Numbers: real dates, a 2-decimal money format,
+// Arial, a height on every row, a frozen bold header, centred currency codes and no colours.
+const EXPORT_MONEY = "#,##0.00;-#,##0.00";
+const EXPORT_DATE = "d mmm yyyy";
+const EXPORT_FONT = "Arial";      // iPhone has no Calibri (SheetJS's default) and drew it as Times
+const EXPORT_FORMATS = {
+  xlsx: { name: "Spreadsheet", ext: "xlsx", mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          sub: () => ".xlsx · Totals, plus every transaction, with formatting",
+          kb: n => 10.3 + n * 0.116 },
+  csv:  { name: "Plain text", ext: "csv", mime: "text/csv",
+          sub: sc => sc.search ? ".csv · Every result, no filters, totals or formatting" : ".csv · Every transaction, no totals or formatting",
+          kb: n => 0.15 + n * 0.0585 },
+};
+// The last format used, on this device only (not synced: it's how this device is used)
+function exportFmtGet() { try { const v = localStorage.getItem("vault_export_fmt"); return EXPORT_FORMATS[v] ? v : "xlsx"; } catch (e) { return "xlsx"; } }
+function exportFmtSet(v) { try { localStorage.setItem("vault_export_fmt", v); } catch (e) {} }
+let _expFmt = "xlsx", _expScope = null;
+const EXPORT_SHARE_SVG = '<svg width="15" height="17" viewBox="0 0 15 17" fill="none" aria-hidden="true"><path d="M7.5 11V1.5M4.2 4.6 7.5 1.3l3.3 3.3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 7.2H3.2A1.2 1.2 0 0 0 2 8.4v6.1a1.2 1.2 0 0 0 1.2 1.2h8.6a1.2 1.2 0 0 0 1.2-1.2V8.4a1.2 1.2 0 0 0-1.2-1.2H10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+const EXPORT_DOWNLOAD_SVG = '<svg width="15" height="17" viewBox="0 0 15 17" fill="none" aria-hidden="true"><path d="M7.5 1.5V11M4.2 7.7l3.3 3.3 3.3-3.3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12.5v1.8a1.2 1.2 0 0 0 1.2 1.2h8.6a1.2 1.2 0 0 0 1.2-1.2v-1.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+
+// What Export covers from here: the same rows as Print (N9)
+function exportScope() {
+  if (activeTab === "report") {
+    asRender();
+    const desc = asDescribe();
+    return { rows: asPrintRows(), coverage: desc, title: "Search results", slug: "search", search: true,
+             applied: { label: "Filters", text: desc }, none: "Nothing to export. Change the search so it finds something." };
+  }
+  if (isListTab()) {
+    const v = currentViewRows(false), scope = viewScopeLabel();
+    const slug = scope.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    return { rows: v.rows, coverage: scope, title: scope, slug, search: false,
+             applied: { label: "Showing", text: scope + " · " + (txSortDescription() || "Sorted by date, oldest first") },
+             none: "Nothing to export. Change the period or account so the list shows something." };
+  }
+  const rows = vhAllTx().sort((a, b) => a.date.localeCompare(b.date) || (a.ts - b.ts)).map(t => ({
+    date: t.date, amt: t.amt, accId: t.accId, accName: getAccountName(t.accId), accCur: t.cur,
+    gAmt: convertToGlobal(t.amt, t.cur), type: t.kind === "wit" ? "Withdrawal" : t.kind === "int" ? "Interest" : "Deposit",
+  }));
+  return { rows, coverage: "All transactions", title: "All transactions", slug: "all-transactions", search: false,
+           applied: null, none: "Nothing to export yet. Add a transaction first." };
+}
+function exportFileName(sc, fmt) { return `vault-${sc.slug}-${todayLocal()}.${EXPORT_FORMATS[fmt].ext}`; }
+
+// One line per transaction, in the base currency too
+function exportRowData(rows) {
   const r2 = n => parseFloat(n.toFixed(2));
-  const all = rows.map(r => {
+  return rows.map(r => {
     const rate = getRate(r.accCur);
     const rateStr = r.accCur !== currencyCode && rate ? `1 ${r.accCur} = ${(1 / rate).toFixed(4)} ${currencyCode}` : "-";
     const gAmt = r2(r.gAmt);
     return { d: r.date, type: r.type, accName: r.accName, nAmt: r.amt, accCur: r.accCur, rateStr, gAmt,
              dep: r.type === "Withdrawal" ? 0 : gAmt, wit: r.type === "Withdrawal" ? gAmt : 0 };
   });
-  const totalIn  = all.reduce((s, r) => s + r.dep, 0);
-  const totalOut = all.reduce((s, r) => s + r.wit, 0);
-  const net      = totalIn - totalOut;
+}
+const exportSerial = iso => { const [y, m, d] = iso.split("-").map(Number); return (Date.UTC(y, m - 1, d) - Date.UTC(1899, 11, 30)) / 86400000; };
 
-  const wb = XLSX.utils.book_new();
-  const summaryData = [
+// The workbook: Summary and Transactions, with formats, widths and row heights set
+function exportWorkbook(rows, coverage) {
+  const X = XLSX, r2 = n => parseFloat(n.toFixed(2));
+  const all = exportRowData(rows);
+  const totalIn = all.reduce((s, r) => s + r.dep, 0), totalOut = all.reduce((s, r) => s + r.wit, 0), net = totalIn - totalOut;
+  const wb = X.utils.book_new();
+  const sum = X.utils.aoa_to_sheet([
     ["Vault — Transactions"],
     [],
-    ["Covers",           coverage],
-    ["Transactions",     all.length],
-    ["Base currency",    currencyCode],
-    ["Total Deposited",  r2(totalIn)],
-    ["Total Withdrawn",  r2(totalOut)],
-    ["Net",              r2(net)],
-    ["Exported",         fmtDate(todayLocal())],
-  ];
-  const ws_summary = XLSX.utils.aoa_to_sheet(summaryData);
-  ws_summary["!cols"] = [{ wch: 20 }, { wch: 60 }];
-  XLSX.utils.book_append_sheet(wb, ws_summary, "Summary");
-
-  const txRows = [
+    ["Covers",          coverage],
+    ["Transactions",    all.length],
+    ["Base currency",   currencyCode],
+    ["Total Deposited", r2(totalIn)],
+    ["Total Withdrawn", r2(totalOut)],
+    ["Net",             r2(net)],
+    ["Exported",        fmtDate(todayLocal())],
+  ]);
+  ["B6", "B7", "B8"].forEach(a => { if (sum[a]) sum[a].z = EXPORT_MONEY; });
+  const tx = X.utils.aoa_to_sheet([
     ["Date", "Type", "Account", "Native Amount", "Native Currency", "Exchange Rate",
      `Amount (${currencyCode})`, `Deposits (${currencyCode})`, `Withdrawals (${currencyCode})`],
-    ...all.map(r => [fmtDate(r.d), r.type, r.accName, r.nAmt, r.accCur, r.rateStr, r.gAmt, r.dep || "", r.wit || ""]),
+    ...all.map(r => [null, r.type, r.accName, r.nAmt, r.accCur, r.rateStr, r.gAmt, r.dep || null, r.wit || null]),
     [],
-    ["", "Total Deposited", "", "", "", "", "", r2(totalIn), ""],
-    ["", "Total Withdrawn", "", "", "", "", "", "", r2(totalOut)],
-    ["", "Net",             "", "", "", "", "", r2(net), ""],
-  ];
-  const ws_tx = XLSX.utils.aoa_to_sheet(txRows);
-  ws_tx["!cols"] = [{ wch: 14 }, { wch: 14 }, { wch: 18 }, { wch: 16 }, { wch: 16 }, { wch: 24 }, { wch: 16 }, { wch: 16 }, { wch: 18 }];
-  XLSX.utils.book_append_sheet(wb, ws_tx, "Transactions");
+    [null, "Total Deposited", null, null, null, null, null, r2(totalIn), null],
+    [null, "Total Withdrawn", null, null, null, null, null, null, r2(totalOut)],
+    [null, "Net",             null, null, null, null, null, r2(net), null],
+  ]);
+  // Real dates, so every program shows and sorts them the same way
+  all.forEach((r, i) => { tx[X.utils.encode_cell({ r: i + 1, c: 0 })] = { t: "n", v: exportSerial(r.d), z: EXPORT_DATE }; });
+  // 2 decimals on every amount: without a format programs show 7.5 or 7.50, 1250000 or 1,250,000
+  const range = X.utils.decode_range(tx["!ref"]);
+  for (let R = 1; R <= range.e.r; R++) [3, 6, 7, 8].forEach(C => {
+    const c = tx[X.utils.encode_cell({ r: R, c: C })]; if (c && c.t === "n") c.z = EXPORT_MONEY;
+  });
+  // Widths from the longest text each column shows (Arial runs ~15 % wider than the Calibri
+  // "characters" widths are counted in), and a height on every row: without one iPhone's
+  // preview dropped the totals to the bottom of the screen
+  const shown = c => c ? (c.z ? X.SSF.format(c.z, c.v) : String(c.v)) : "";
+  const fit = ws => {
+    const rr = X.utils.decode_range(ws["!ref"]), cols = [];
+    for (let C = rr.s.c; C <= rr.e.c; C++) {
+      let n = 6;
+      for (let R = rr.s.r; R <= rr.e.r; R++) n = Math.max(n, shown(ws[X.utils.encode_cell({ r: R, c: C })]).length);
+      cols.push({ wch: Math.min(66, Math.ceil(n * 1.15) + 3) });
+    }
+    ws["!cols"] = cols;
+    ws["!rows"] = Array.from({ length: rr.e.r + 1 }, () => ({ hpt: 17 }));
+  };
+  fit(tx); fit(sum); sum["!cols"][0] = { wch: 18 };   // Summary's title runs across B
+  X.utils.book_append_sheet(wb, sum, "Summary");
+  X.utils.book_append_sheet(wb, tx, "Transactions");
+  return wb;
+}
 
-  XLSX.writeFile(wb, fname);
-  toast("Spreadsheet exported");
+// SheetJS's free build writes neither the font, bold, alignment nor a frozen row, so those go
+// into the file's XML after it's written, through SheetJS's own zip reader (paths start with "/").
+// If anything in there isn't as expected, the plain file is still a good file: use it.
+function exportXlsxBytes(wb) {
+  const X = XLSX;
+  const plain = new Uint8Array(X.write(wb, { type: "array", bookType: "xlsx" }));
+  try {
+    const zip = X.CFB.read(plain, { type: "array" });
+    const dec = new TextDecoder(), enc = new TextEncoder();
+    const get = path => { const e = X.CFB.find(zip, "/" + path); if (!e) throw new Error("no " + path); return e; };
+    const txt = e => dec.decode(e.content instanceof Uint8Array ? e.content : new Uint8Array(e.content));
+    const put = (e, str) => { e.content = enc.encode(str); e.size = e.content.length; };
+    const st = get("xl/styles.xml"); let css = txt(st);
+    css = css.replace(/<name val="[^"]*"\/>/g, `<name val="${EXPORT_FONT}"/>`).replace(/<scheme val="minor"\/>/g, "");
+    // bold: a second font, and a cell style that uses it
+    css = css.replace(/<fonts count="(\d+)">([\s\S]*?)<\/fonts>/, (m, n, body) => {
+      const first = /<font>[\s\S]*?<\/font>/.exec(body)[0];
+      return `<fonts count="${+n + 1}">${body}${first.replace("<font>", "<font><b/>")}</fonts>`;
+    });
+    const boldFont = +/<fonts count="(\d+)"/.exec(css)[1] - 1;
+    const xfs = /<cellXfs count="(\d+)">([\s\S]*?)<\/cellXfs>/.exec(css);
+    const boldXf = +xfs[1];
+    css = css.replace(xfs[0], `<cellXfs count="${boldXf + 1}">${xfs[2]}<xf numFmtId="0" fontId="${boldFont}" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs>`);
+    // dates left-aligned (as numbers they'd sit right, against Type); currency codes centred
+    const xf2 = /<cellXfs count="(\d+)">([\s\S]*?)<\/cellXfs>/.exec(css);
+    const dateFmt = (/<numFmt numFmtId="(\d+)" formatCode="d mmm yyyy"\/>/.exec(css) || [])[1];
+    let body = xf2[2];
+    if (dateFmt) body = body.replace(new RegExp(`<xf numFmtId="${dateFmt}"([^>]*?)/>`), `<xf numFmtId="${dateFmt}"$1 applyAlignment="1"><alignment horizontal="left"/></xf>`);
+    const centreXf = +xf2[1];
+    body += '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center"/></xf>';
+    css = css.replace(xf2[0], `<cellXfs count="${centreXf + 1}">${body}</cellXfs>`);
+    put(st, css);
+    wb.SheetNames.forEach((name, i) => {
+      const e = get(`xl/worksheets/sheet${i + 1}.xml`); let x = txt(e);
+      const boldRow = name === "Transactions" ? /<c r="[A-Z]+1"( s="\d+")?/g : /<c r="A1"( s="\d+")?/g;
+      x = x.replace(boldRow, m => m.replace(/ s="\d+"/, "") + ` s="${boldXf}"`);
+      if (name === "Transactions") {
+        x = x.replace(/<c r="E(\d+)"( s="\d+")?/g, (m, row) => row === "1" ? m : `<c r="E${row}" s="${centreXf}"`);
+        x = x.replace(/<sheetView ([^>]*?)\/>/, '<sheetView $1><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft"/></sheetView>');
+      }
+      put(e, x);
+    });
+    const out = X.CFB.write(zip, { fileType: "zip", type: "array", compression: true });
+    return out instanceof Uint8Array ? out : new Uint8Array(out);
+  } catch (e) {
+    dbg("Export: formatting step skipped — " + e.message);
+    return plain;
+  }
+}
+
+// Plain text: the transactions only. ISO dates and plain 2-decimal amounts, which every program
+// reads the same way whatever its region; UTF-8 with a BOM so Excel keeps é and ✓.
+function exportCsvText(rows) {
+  const all = exportRowData(rows);
+  const q = v => { const t = v == null ? "" : String(v); return /[",\r\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
+  const f2 = n => n.toFixed(2);
+  const lines = [["Date", "Type", "Account", "Native Amount", "Native Currency", "Exchange Rate",
+                  `Amount (${currencyCode})`, `Deposits (${currencyCode})`, `Withdrawals (${currencyCode})`]];
+  all.forEach(r => lines.push([r.d, r.type, r.accName, f2(r.nAmt), r.accCur, r.rateStr, f2(r.gAmt), r.dep ? f2(r.dep) : "", r.wit ? f2(r.wit) : ""]));
+  return "﻿" + lines.map(l => l.map(q).join(",")).join("\r\n") + "\r\n";
+}
+
+// The file for a scope and format
+function exportBuild(sc, fmt) {
+  const F = EXPORT_FORMATS[fmt], name = exportFileName(sc, fmt);
+  const data = fmt === "csv" ? exportCsvText(sc.rows) : exportXlsxBytes(exportWorkbook(sc.rows, sc.coverage));
+  return { name, type: F.mime, data };
+}
+
+// Share file on a phone that can share this kind of file; Download everywhere else
+function exportCanShare(fmt) {
+  try {
+    if (!navigator.share || !navigator.canShare || typeof File !== "function") return false;
+    const coarse = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
+    if (!coarse) return false;
+    const F = EXPORT_FORMATS[fmt];
+    return navigator.canShare({ files: [new File(["x"], "test." + F.ext, { type: F.mime })] });
+  } catch (e) { return false; }
+}
+function exportDownload(file) {
+  const blob = new Blob([file.data], { type: file.type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = file.name; a.style.display = "none";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+function openExportPopup() {
+  if (typeof XLSX === "undefined") { toast("The spreadsheet library didn't load. Reload Vault and try again", "error"); return; }
+  _expFmt = exportFmtGet();
+  _expScope = exportScope();
+  renderExportPopup();
+  document.getElementById("export-popup").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+  updateExportMenuSub();
+}
+function closeExportPopup() {
+  document.getElementById("export-popup").classList.add("hidden");
+  document.body.style.overflow = "";
+}
+function renderExportPopup() {
+  const sc = _expScope, n = sc.rows.length, $ = id => document.getElementById(id);
+  $("exp-sub").textContent = sc.title;
+  $("exp-n").textContent = n.toLocaleString("en-AU");
+  const dates = sc.rows.map(r => r.date).sort();
+  $("exp-dates").textContent = !n ? "None" : dates[0] === dates[n - 1] ? fmtDate(dates[0]) : `${fmtDate(dates[0])} – ${fmtDate(dates[n - 1])}`;
+  $("exp-applied").hidden = !sc.applied;
+  if (sc.applied) { $("exp-applied-k").textContent = sc.applied.label; $("exp-applied-v").textContent = sc.applied.text; }
+  const opts = $("exp-opts");
+  opts.innerHTML = Object.entries(EXPORT_FORMATS).map(([id, F]) =>
+    `<button class="exp-opt" type="button" role="radio" data-fmt="${id}" aria-checked="${id === _expFmt}" onclick="exportPick('${id}')">` +
+    `<span class="exp-opt-text"><b>${F.name}</b><small>${F.sub(sc)}</small></span><span class="del-tick" aria-hidden="true"></span></button>`).join("");
+  $("exp-none").textContent = sc.none;
+  $("exp-none").hidden = n > 0;
+  $("exp-file").hidden = n === 0;
+  const kb = EXPORT_FORMATS[_expFmt].kb(n);
+  $("exp-file-name").textContent = exportFileName(sc, _expFmt);
+  $("exp-file-size").textContent = `· about ${kb < 10 ? kb.toFixed(1) : Math.round(kb)} KB`;
+  $("exp-go").disabled = n === 0;
+  const share = exportCanShare(_expFmt);
+  $("exp-go-label").textContent = share ? "Share file" : "Download";
+  $("exp-go-icon").innerHTML = share ? EXPORT_SHARE_SVG : EXPORT_DOWNLOAD_SVG;
+}
+function exportPick(fmt) {
+  if (!EXPORT_FORMATS[fmt]) return;
+  _expFmt = fmt; exportFmtSet(fmt); renderExportPopup();
+}
+// Built and handed to the share sheet in the same tap: iOS only opens it straight from a tap
+async function exportGo() {
+  const sc = _expScope;
+  if (!sc || !sc.rows.length) return;
+  let file;
+  try { file = exportBuild(sc, _expFmt); }
+  catch (e) { dbg("Export failed: " + e.message); toast("Couldn't make the file. Try again", "error"); return; }
+  if (exportCanShare(_expFmt)) {
+    const f = new File([file.data], file.name, { type: file.type });
+    if (navigator.canShare({ files: [f] })) {
+      try {
+        await navigator.share({ files: [f] });
+        closeExportPopup(); toast("Spreadsheet exported");
+        return;
+      } catch (e) {
+        if (e && e.name === "AbortError") return;      // closed the share sheet: back to the tray
+        dbg("Export: share failed (" + (e && e.name) + "), downloading instead");
+      }
+    }
+  }
+  exportDownload(file);
+  closeExportPopup(); toast("Spreadsheet downloaded");
+}
+// Older callers: make the spreadsheet for these rows and download it
+function exportRowsXLSX(rows, coverage, fname) {
+  if (typeof XLSX === "undefined") { toast("The spreadsheet library didn't load. Reload Vault and try again", "error"); return; }
+  if (!rows.length) { toast("Nothing to export", "error"); return; }
+  exportDownload({ name: fname, type: EXPORT_FORMATS.xlsx.mime, data: exportXlsxBytes(exportWorkbook(rows, coverage)) });
+  toast("Spreadsheet downloaded");
 }
 
 
@@ -21780,6 +22042,7 @@ const POPUP_CLOSE = {
   "enc-choice-popup": () => { encChoiceResolve("skip"); toast("Saved without a password. You can add one in Settings › Encryption", "notice"); },
   "drive-merge-popup": () => resolveDriveMerge("cancel"),
   "settings-popup": () => closeSettingsPage(), "about-popup": () => closeAbout(), "privacy-popup": () => closePrivacy(),
+  "export-popup": () => closeExportPopup(),
 };
 // Open = not hidden itself and not inside anything hidden. v6.16.5: #pdf-preview-modal is the
 // box inside the PDF overlay, so on its own it always looked open, and Back "closed" it
@@ -23975,7 +24238,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v7.0.1</div>
+          <div class="pp-meta" id="about-version-meta">Version v7.1.0</div>
         </div>
 
         <div class="pp-cards">
@@ -24087,7 +24350,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v7.0.1</div>
+  <div id="version-footer">v7.1.0</div>
 
 </body>
 </html>
