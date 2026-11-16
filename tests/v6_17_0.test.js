@@ -132,7 +132,7 @@ setTimeout(async () => {
     await resetAll();
     await run("openSettingsPage()"); await tap(spRow("Encryption")); await sleep(SETTLE);
     ok(E(`vpCloseAll(document.getElementById("enc-menu-popup"))`) === true && !isOpen("enc-menu-popup") && !isOpen("settings-popup"), "swipe down (vpCloseAll) closes every layer");
-    ok(/vpSwipe\(panel, \[grab, panel\.querySelector\("\.vp-head"\)\]\.filter\(Boolean\), \(\) => vpCloseAll\(el\)\);/.test(html), "…the swipe uses it");
+    ok(/vpSwipe\(panel, \[grab, panel\.querySelector\("\.vp-head"\)\]\.filter\(Boolean\), \(\) => vpCloseAll\(el\)(, panel)?\);/.test(html), "…the swipe uses it");   // v7.1.1 adds the panel as the pull-down body
     await resetAll();
 
     // ── Save & backup's storage panels ─────────────────────────────────────

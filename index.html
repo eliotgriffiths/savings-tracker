@@ -2925,6 +2925,9 @@
   .del-opt[aria-checked="true"] .del-tick::after { transform: rotate(-45deg) scale(1); }
   @media (hover: hover) { .del-opt:not([aria-checked="true"]):hover { background: color-mix(in srgb, var(--out) 6%, var(--bg3)); } }
   .pbtn:disabled { opacity: 0.38; box-shadow: none; cursor: default; }
+  /* v7.1.1: Customise Home's mode line */
+  .layout-mode { font-size: 12.5px; color: var(--text-3); line-height: 1.5; margin: -4px 0 12px; }
+  .layout-mode b { color: var(--text-2); font-weight: 600; }
 
   /* v7.1.0: the Export tray. What it covers, the format as option cards (one is always chosen:
      gold edge and ✓), the file it makes, then Share file or Download. */
@@ -3229,7 +3232,8 @@
 #home-panel .vh-menu.open .vh-menu-btn { color:var(--gold); border-color:var(--gold-dim); }
 #home-panel .vh-menu-drop { position:absolute; top:44px; right:0; min-width:156px; background:var(--bg1); border:1px solid var(--border-hi); border-radius:var(--radius); box-shadow:0 12px 32px rgba(0,0,0,0.45); overflow:hidden; z-index:30; max-height:0; opacity:0; pointer-events:none; transition:max-height 0.24s ease-out, opacity 0.18s ease-out; }
 #home-panel .vh-menu.open .vh-menu-drop { max-height:200px; opacity:1; pointer-events:auto; }
-#home-panel .vh-menu-item { display:block; width:100%; text-align:left; background:transparent; border:none; border-bottom:1px solid var(--border); padding:13px 16px; font-size:15px; color:var(--text-1); font-family:'DM Sans',sans-serif; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background 0.12s; }
+#home-panel .vh-menu-item:disabled { color:var(--text-3); cursor:default; }
+#home-panel .vh-menu-item { white-space:nowrap; display:block; width:100%; text-align:left; background:transparent; border:none; border-bottom:1px solid var(--border); padding:13px 16px; font-size:15px; color:var(--text-1); font-family:'DM Sans',sans-serif; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background 0.12s; }
 #home-panel .vh-menu-item:last-child { border-bottom:none; }
 #home-panel .vh-menu-item:hover, #home-panel .vh-menu-item:active { background:var(--bg2); }
 #home-panel .vh-search-hint { font-size:11.5px; color:var(--text-3); padding:14px 16px; line-height:1.6; }
@@ -4537,7 +4541,7 @@
           </button>
           <div class="vh-menu-drop" id="vh-home-menu-drop" role="menu">
             <button class="vh-menu-item" type="button" role="menuitem" onclick="vhHomeMenuEdit()">Customise Home</button>
-            <button class="vh-menu-item" type="button" role="menuitem" onclick="vhHomeMenuReset()">Reset to default</button>
+            <button class="vh-menu-item" type="button" role="menuitem" id="vh-home-menu-auto" onclick="vhHomeMenuReset()">Arrange automatically</button>
           </div>
         </div>
         </div>
@@ -5626,8 +5630,9 @@
     <button class="modal-close" onclick="cancelLayoutModal()" style="position:absolute; top:14px; right:14px;">&#10005;</button>
     <div class="modal-header" style="padding-right:40px;"><h2>Customise Home</h2></div>
     <p class="modal-desc">Drag to reorder your Home sections, and toggle any on or off. Empty sections still hide themselves automatically.</p>
+    <p class="layout-mode" id="layout-mode"></p>
     <div id="layout-list" class="layout-list"></div>
-    <button class="pbtn pbtn-secondary" onclick="resetHomeLayout()" style="width:100%; margin-top:12px;">Reset to default</button>
+    <button class="pbtn pbtn-secondary" id="layout-auto-btn" onclick="resetHomeLayout()" style="width:100%; margin-top:12px;">Arrange automatically</button>
     <div class="pbtn-row" style="border-top:1px solid var(--border); padding-top:14px; margin-top:14px;">
       <button class="pbtn pbtn-primary" onclick="saveLayoutModal()">Save</button>
       <button class="pbtn pbtn-secondary" onclick="cancelLayoutModal()">Cancel</button>
@@ -13518,7 +13523,19 @@ function cancelLayoutModal() {
 // Build the reorderable list from the current effective order. Each row shows the
 // section title, a drag handle, and an on/off toggle. Hidden sections still list
 // (so they can be turned back on) but read dimmed.
+// v7.1.1: Customise Home says which way Home is arranged. "Arrange automatically" has nothing to
+// do while it already is and nothing's hidden, so it's disabled then (it keeps its place).
+function vhLayoutIsAuto() { return homeLayout.auto !== false && !(homeLayout.hidden || []).length; }
+function renderLayoutMode() {
+  const m = document.getElementById("layout-mode");
+  if (m) m.innerHTML = homeLayout.auto !== false
+    ? "<b>Arranged automatically.</b> This Month, Goals, Recent Activity and Upcoming stay at the top, and the rest reorder every few hours to show what's new. Dragging a section switches to your order."
+    : "<b>Your order.</b> Vault won't rearrange it. Arrange automatically hands it back to Vault.";
+  const b = document.getElementById("layout-auto-btn");
+  if (b) b.disabled = vhLayoutIsAuto();
+}
 function renderLayoutList() {
+  renderLayoutMode();
   const list = document.getElementById("layout-list");
   if (!list) return;
   const order = vhLayoutOrder();
@@ -13585,6 +13602,8 @@ function vhHomeMenuToggle(e) {
   const menu = document.getElementById("vh-home-menu");
   if (!menu) return;
   if (menu.classList.contains("open")) { vhHomeMenuClose(); return; }
+  const auto = document.getElementById("vh-home-menu-auto");
+  if (auto) auto.disabled = vhLayoutIsAuto();
   menu.classList.add("open");
   // Close on any tap outside; registered next tick so this tap doesn't close it.
   setTimeout(() => document.addEventListener("click", vhHomeMenuOutside, true), 0);
@@ -13605,9 +13624,9 @@ function vhHomeMenuEdit() {
 // happens in vhResetLayoutConfirmed.
 async function vhHomeMenuReset() {
   vhHomeMenuClose();
-  const v = await vaultDelete({ title: "Reset Home layout?", sub: "Section order and hidden sections",
-    lead: "This restores the default section order and shows every section again. Your current arrangement will be cleared.",
-    options: [{ value: "reset" }], ok: "Reset" });
+  const v = await vaultDelete({ title: "Arrange Home automatically?", sub: "Section order and hidden sections",
+    lead: "Vault goes back to arranging Home for you. This Month, Goals, Recent Activity and Upcoming stay at the top, and the other sections reorder every few hours to show what's new. Hidden sections come back.",
+    options: [{ value: "reset" }], ok: "Arrange automatically" });
   if (v) vhResetLayoutConfirmed();
 }
 // Persists immediately (fresh ts + save + sync), unlike the modal's preview reset.
@@ -13616,7 +13635,7 @@ function vhResetLayoutConfirmed() {
   _frozenOrder = null;
   saveHomeLayout(false); // ts already stamped
   if (activeTab === "home") renderHome();
-  toast("Home layout reset to default");
+  toast("Home is arranged automatically");
 }
 
 // ── Pointer-based drag reorder ────────────────────────────────────────────────
@@ -13702,6 +13721,7 @@ function commitLayoutOrder() {
   homeLayout.order = [...list.querySelectorAll(".layout-row")].map(r => r.dataset.key);
   homeLayout.auto = false;
   _frozenOrder = null;
+  renderLayoutMode();
   if (activeTab === "home") renderHome(); // preview; Save persists
 }
 
@@ -17709,7 +17729,8 @@ function asInit() {
     document.getElementById("as-" + k).addEventListener(ev, e => { asD[k] = e.target.value; asDrawSheet(); })));
   document.querySelectorAll("#as-table th[data-as-sort]").forEach(th => th.addEventListener("click", () => { asPage = 1; setSort(th.dataset.asSort); }));
   // Swipe the handle or title down to dismiss (same as tapping outside: draft dropped).
-  vpSwipe(document.getElementById("as-sheet"), [document.getElementById("as-sh-drag")], () => { asCloseSheet(false); return true; });
+  vpSwipe(document.getElementById("as-sheet"), [document.getElementById("as-sh-drag")], () => { asCloseSheet(false); return true; },
+          document.querySelector("#as-sheet .as-sh-body"));
   document.addEventListener("keydown", e => { if (e.key === "Escape" && asSheetOpen()) asCloseSheet(false); });
   _bindRowHold(document.getElementById("as-body"), () => asRemember());
   window.addEventListener("scroll", asQueuePin, { passive: true });
@@ -22160,7 +22181,7 @@ function vpInit() {
     grab.className = "vp-grab";
     grab.setAttribute("aria-hidden", "true");
     panel.insertBefore(grab, panel.firstChild);
-    vpSwipe(panel, [grab, panel.querySelector(".vp-head")].filter(Boolean), () => vpCloseAll(el));
+    vpSwipe(panel, [grab, panel.querySelector(".vp-head")].filter(Boolean), () => vpCloseAll(el), panel);
     vpLockObserver.observe(el, { attributes: true, attributeFilter: ["class"] });
     vpNavObserver.observe(el, { attributes: true, attributeFilter: ["class"], attributeOldValue: true });
   });
@@ -22169,7 +22190,7 @@ function vpInit() {
     const sh = document.getElementById(id);
     if (!sh || sh.dataset.vp) return;
     sh.dataset.vp = "1";
-    vpSwipe(sh, [sh.querySelector(".sheet-handle"), sh.querySelector(".sheet-header")].filter(Boolean), () => sheetTryClose());
+    vpSwipe(sh, [sh.querySelector(".sheet-handle"), sh.querySelector(".sheet-header")].filter(Boolean), () => sheetTryClose(), sh);
     vpLockObserver.observe(sh, { attributes: true, attributeFilter: ["class"] });
     vpNavObserver.observe(sh, { attributes: true, attributeFilter: ["class"], attributeOldValue: true });
   });
@@ -22181,7 +22202,7 @@ function vpInit() {
 // as it decides the gesture is a scroll, so the swipe never arrived. touchmove
 // calls preventDefault (passive: false) to keep the drag in the panel. Mouse and
 // pen (a narrow desktop window) use pointer events.
-function vpSwipe(panel, handles, tryClose) {
+function vpSwipe(panel, handles, tryClose, body) {
   let y0 = null, dy = 0, h0 = 0;
   const can = (target, h) => window.innerWidth <= 640
     && !target.closest("button, input, select, textarea, a, label, .ps-chip")
@@ -22222,6 +22243,40 @@ function vpSwipe(panel, handles, tryClose) {
     h.addEventListener("pointerup", e => { if (e.pointerType !== "touch") end(); });
     h.addEventListener("pointercancel", e => { if (e.pointerType !== "touch") end(); });
   });
+  // v7.1.1: a drag down anywhere on it (body = what scrolls) while it's scrolled to the top moves
+  // the whole sheet, like iOS's own sheets. Before, only the handle and head did, so a pull-down
+  // on the rows rubber-banded the content and the pinned handle went down with it. It's decided
+  // on the first move, because iOS ignores preventDefault once it has started scrolling: down
+  // (more down than sideways) with nothing under the finger scrolled → drag; anything else
+  // scrolls as normal for the rest of the touch.
+  if (!body) return;
+  let by0 = null, bx0 = 0, bmode = null;
+  const scrolledAbove = t => {
+    for (let n = t; n; n = n.parentElement) { if (n.scrollTop > 0) return true; if (n === body) break; }
+    return false;
+  };
+  body.addEventListener("touchstart", e => {
+    by0 = null; bmode = null;
+    if (y0 !== null || e.touches.length !== 1 || window.innerWidth > 640) return;
+    if (handles.some(h => h && h.contains(e.target))) return;              // the handle's own swipe
+    if (e.target.closest("input, select, textarea, [contenteditable], .layout-handle, .vp-no-pull")) return;
+    by0 = e.touches[0].clientY; bx0 = e.touches[0].clientX;
+  }, { passive: true });
+  body.addEventListener("touchmove", e => {
+    if (by0 === null) return;
+    const t = e.touches[0], dY = t.clientY - by0, dX = t.clientX - bx0;
+    if (bmode === null) {
+      if (dY === 0 && dX === 0) return;
+      bmode = dY > 0 && dY >= Math.abs(dX) && !scrolledAbove(e.target) ? "drag" : "scroll";
+      if (bmode === "drag") start(by0);
+    }
+    if (bmode !== "drag") return;
+    if (e.cancelable) e.preventDefault();
+    move(t.clientY);
+  }, { passive: false });
+  const bend = () => { if (bmode === "drag") end(); by0 = null; bmode = null; };
+  body.addEventListener("touchend", bend);
+  body.addEventListener("touchcancel", bend);
 }
 // ── Layers (v6.16.5): ‹ on every tray opened from another tray ─────────────────
 // When a popup opens, its parent is the tray still open under it (Settings under Currency),
@@ -24238,7 +24293,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v7.1.0</div>
+          <div class="pp-meta" id="about-version-meta">Version v7.1.1</div>
         </div>
 
         <div class="pp-cards">
@@ -24350,7 +24405,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v7.1.0</div>
+  <div id="version-footer">v7.1.1</div>
 
 </body>
 </html>
