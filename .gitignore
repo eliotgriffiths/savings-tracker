@@ -1,2 +1,6 @@
 node_modules/
 __pycache__/
+
+# export harness output (tests/export/README.md)
+tests/export/out/
+tests/export/out-candidate/
