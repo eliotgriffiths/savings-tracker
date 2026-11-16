@@ -1265,7 +1265,7 @@
   .as-sh-head h3 { flex:1; }
   .as-sh-head h3 { font-family:'DM Serif Display',serif; font-weight:400; font-size:20px; margin:0; color:var(--text-1); }
   .as-sh-head button { background:none; border:none; color:var(--text-3); font-size:13px; cursor:pointer; font-family:'DM Sans',sans-serif; }
-  .as-sh-body { overflow-y:auto; padding:0 18px 8px; overscroll-behavior:contain; }
+  .as-sh-body { overflow-y:auto; padding:0 18px 8px; overscroll-behavior:none; }
   .as-sec { padding:14px 0; border-top:1px solid var(--border); }
   .as-sec h4 { margin:0 0 10px; font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-3); }
   .as-opts { display:flex; flex-wrap:wrap; gap:6px; }
@@ -1840,7 +1840,7 @@
       border-top: 1px solid var(--border-hi);
       border-radius: 18px 18px 0 0;
       z-index: 150;
-      max-height: 90vh; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain;
+      max-height: 90vh; overflow-y: auto; overflow-x: hidden; overscroll-behavior: none;   /* v7.2.1: no bounce, so the handle stays put */
       transform: translateY(100%); visibility: hidden;
       transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear 0.26s;
     }
@@ -1857,14 +1857,16 @@
 
     /* v7.0.1: the handle is a strip pinned to the top of the sheet (like a tray's .vp-grab), so
        it stays put while the sheet scrolls. The bar is drawn where it always was: 9 px down. */
+    /* v7.2.1: no strip behind it (Eliot, 16 Nov): rows scroll right up to the sheet's own edge and
+       the bar floats over them while scrolled. The bar is solid, so it shows over text. */
     .sheet-handle {
       position: sticky; top: 0; z-index: 3;
       height: 22px; margin: 0;
-      background: var(--bg2);
+      background: transparent;
       touch-action: none; cursor: grab;
     }
     .sheet-handle::before { content: ""; position: absolute; left: 50%; top: 9px; width: 36px; height: 4px;
-      margin-left: -18px; border-radius: 2px; background: var(--border-hi); }
+      margin-left: -18px; border-radius: 2px; background: color-mix(in srgb, var(--text-3) 70%, var(--bg2)); }
     #add-sheet .sheet-handle { margin: 0 -20px; }
     .sheet-title {
       font-family: 'DM Serif Display', serif;
@@ -2748,7 +2750,7 @@
   .vp { background: rgba(0,0,0,0.55) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
         display: flex !important; align-items: center !important; justify-content: center !important; padding: 20px !important; }
   .pop-anim.vp .vp-panel { --vp-px: 24px; --vp-pb: 20px;
-    width: 100%; max-width: 460px !important; max-height: 84vh !important; overflow-y: auto !important; overscroll-behavior: contain;
+    width: 100%; max-width: 460px !important; max-height: 84vh !important; overflow-y: auto !important; overscroll-behavior: none;
     background: var(--bg2); border: 1px solid var(--border-hi); border-radius: 16px !important; text-align: left;
     padding: 22px var(--vp-px) var(--vp-pb) !important; box-shadow: 0 24px 60px rgba(0,0,0,0.5);
     transition: transform 0.22s ease-out, opacity 0.2s ease-out !important; }
@@ -2803,8 +2805,8 @@
       transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) !important; }
     .pop-anim.vp:not(.vp-alert):not(.hidden) .vp-panel { animation: vpUp 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) !important; }
     .vp:not(.vp-alert) .vp-grab { display: block; position: sticky; top: 0; z-index: 3; height: 20px; margin: 0 calc(-1 * var(--vp-px)) 6px;
-      background: var(--bg2); touch-action: none; cursor: grab; }
-    .vp-grab::before { content: ""; position: absolute; left: 50%; top: 9px; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--border-hi); }
+      background: transparent; touch-action: none; cursor: grab; }
+    .vp-grab::before { content: ""; position: absolute; left: 50%; top: 9px; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: color-mix(in srgb, var(--text-3) 70%, var(--bg2)); }
     .vp:not(.vp-alert) .vp-head { touch-action: none; }
     .pop-anim.vp.vp-alert .vp-panel { max-width: 300px !important; }
   }
@@ -2950,7 +2952,7 @@
   .ch-ranges button { flex: 1; padding: 6px 0; border-radius: 8px; border: none; background: transparent; font-family: 'DM Sans', sans-serif;
     font-size: 12.5px; font-weight: 500; color: var(--text-3); cursor: pointer; }
   .ch-ranges button.on { background: var(--accent-soft); color: var(--accent); }
-  .ch-readout { margin: 12px 2px 4px; min-height: 50px; }
+  .ch-readout { margin: 12px 2px 4px; min-height: 66px; }   /* v7.2.1: room for a line of figures, so the chart doesn't shift */
   .ch-ro-date { font-size: 12px; color: var(--text-3); }
   .ch-ro-main { display: flex; align-items: baseline; gap: 8px; }
   .ch-ro-main .ch-fig { font-size: 22px; color: var(--text-1); }
@@ -2962,8 +2964,8 @@
   @media (min-width: 641px) { .ch-chart { height: 400px; margin: 0; } }
   .ch-chart.ch-empty { display: flex; align-items: center; justify-content: center; height: 200px; }
   .ch-chart .chart-empty { width: 100%; }
-  .ch-legend { display: block; width: 100%; margin: 10px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--bg2); border: 1px solid var(--border);
-    text-align: left; color: var(--text-1); font-family: 'DM Sans', sans-serif; cursor: pointer; }
+  .ch-legend { display: block; width: 100%; box-sizing: border-box; margin: 10px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--bg2); border: 1px solid var(--border);
+    text-align: left; color: var(--text-1); font-family: 'DM Sans', sans-serif; }
   .ch-lg-top { display: flex; align-items: center; gap: 10px; font-size: 13px; }
   .ch-lg-top > span:first-child { flex: 1; min-width: 0; }
   .ch-lg-edit { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--accent); flex-shrink: 0; }
@@ -2973,6 +2975,41 @@
   .ch-key i.dash { background: none !important; height: 0; border-top: 2px dashed; border-radius: 0; }
   /* the trays */
   #chart-custom-popup, #chart-presets-popup { position: fixed; inset: 0; z-index: 620; }
+  html.ch-page, html.ch-page body { overscroll-behavior-y: none; }
+  /* v7.2.1: Customise is a shorter tray (its height is set when it opens) with a light dim, so the
+     chart stays in view above it and changes show as you make them (an exception to the one steady
+     dim, approved 16 Nov) */
+  @media (max-width: 640px) {
+    #chart-custom-popup.vp { background: color-mix(in srgb, var(--bg0) 18%, transparent) !important; }
+    #chart-custom-popup .vp-panel { max-height: none !important; }
+  }
+  .chc-tabs { position: sticky; top: 20px; z-index: 2; display: flex; gap: 2px; margin: 0 0 6px; padding: 3px; border-radius: 10px;
+    background: var(--bg3); border: 1px solid var(--border); box-shadow: 0 -8px 0 var(--bg2); }
+  .chc-tabs button { flex: 1; padding: 7px 0; border-radius: 8px; border: none; background: transparent; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500; color: var(--text-3); cursor: pointer; }
+  .chc-tabs button[aria-selected="true"] { background: var(--bg2); color: var(--text-1); box-shadow: 0 1px 0 var(--border-hi); }
+  .chc-pane[hidden] { display: none !important; }
+  .chc-lab { display: flex; justify-content: space-between; gap: 8px; font-size: 10px; color: var(--text-3); font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.08em; margin: 12px 2px 6px; }
+  .chc-pane > .chc-lab:first-child { margin-top: 6px; }
+  .chc-lab span { text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 11.5px; }
+  .chc-acc { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 1px; }
+  .chc-acc::-webkit-scrollbar { display: none; }
+  .chc-acc .ch-pill { flex-shrink: 0; display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 99px; }
+  .chc-acc i { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .chc-seg { display: flex; gap: 2px; padding: 3px; border-radius: 10px; background: var(--bg3); border: 1px solid var(--border-hi); }
+  .chc-seg button { flex: 1; min-width: 0; padding: 7px 2px; border-radius: 8px; border: none; background: transparent; font-family: 'DM Sans', sans-serif;
+    font-size: 12.5px; color: var(--text-2); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chc-seg button.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .chc-types { display: grid; gap: 6px; }
+  .chc-tile { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 2px 7px; border-radius: 10px; background: var(--bg3);
+    border: 1px solid var(--border-hi); font-family: 'DM Sans', sans-serif; font-size: 11.5px; color: var(--text-2); cursor: pointer; }
+  .chc-tile svg { width: 34px; height: 20px; }
+  .chc-tile.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .chc-lk { width: 16px; height: 0; border-top: 2px solid; flex-shrink: 0; }
+  .chc-lk.dash { border-top-style: dashed; }
+  .chc-sub { display: grid; gap: 6px; padding: 0 2px 10px 28px; border-bottom: 1px solid var(--border); }
+  .chc-sub .chc-seg button { font-size: 12px; padding: 6px 2px; }
   .ch-sec { font-size: 10px; color: var(--text-3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin: 16px 2px 8px; }
   #chc-body > .ch-sec:first-child, #chp-body > .ch-sec:first-child { margin-top: 2px; }
   .ch-pills { display: grid; gap: 6px; }
@@ -4855,7 +4892,7 @@
       <div class="ch-ranges" id="ch-ranges" role="group" aria-label="How much to show"></div>
       <div class="ch-readout" id="ch-readout"></div>
       <div class="ch-chart" id="ch-chart"></div>
-      <button type="button" class="ch-legend" id="ch-legend" onclick="openChartCustomise()"></button>
+      <div class="ch-legend" id="ch-legend"></div>
     </div>
 
   </div>
@@ -5679,7 +5716,12 @@
 <div id="chart-custom-popup" class="hidden pop-anim" role="dialog" aria-modal="true" aria-labelledby="chc-title">
   <div class="modal-box" style="max-width:460px; position:relative;">
     <button class="modal-close" aria-label="Close" onclick="closeChartCustomise()">✕</button>
-    <div class="modal-header"><h2 id="chc-title">Customise chart</h2><p id="chc-sub">Preset: Balance</p></div>
+    <div class="modal-header"><h2 id="chc-title">Customise</h2><p id="chc-sub">Preset: Balance</p></div>
+    <div class="chc-tabs" id="chc-tabs" role="tablist">
+      <button type="button" role="tab" data-chc-tab="chart" aria-selected="true">Chart</button>
+      <button type="button" role="tab" data-chc-tab="lines" aria-selected="false">Lines</button>
+      <button type="button" role="tab" data-chc-tab="display" aria-selected="false">Display</button>
+    </div>
     <div id="chc-body"></div>
     <div class="pbtn-row" id="chc-foot">
       <button class="pbtn pbtn-primary" id="chc-save" onclick="openChartPresets(true)">Save as preset</button>
@@ -9608,6 +9650,7 @@ document.addEventListener("DOMContentLoaded", function() {
 // Update the header save-status pill.
 // state: "ok" | "busy" | "err" | "warn" | "none"
 function setSaveStatus(state, msg) {
+  if (state === "ok") { try { localStorage.setItem("vault_tx_since_export", "0"); } catch {} }   // v7.2.1: any backup resets the reminder
   const el = document.getElementById("save-status");
   if (!el) return;
   el.className = "ss-" + state;
@@ -12330,6 +12373,7 @@ let _didHomeLanding = false;  // one-shot: land on the Home view on first render
 // (sync, import, currency change, etc.) where every year's totals must be recomputed.
 function saveAndRender(year) {
   saveLocal();
+  tickCompatExportCount();   // v7.2.1: a change, not a redraw
   _invalidateYearCache(year);
   _dataVersion++;
   render();
@@ -12339,7 +12383,6 @@ function saveAndRender(year) {
 // data mutations, and directly for pure-UI navigation (year/month/tab/sort/filter).
 // Note: does NOT call saveLocal() — mutation sites must route through saveAndRender.
 function render() {
-  tickCompatExportCount();
   try { navMarkCurrent(); updateExportMenuSub(); } catch (e) { dbg("navMarkCurrent: " + e.message); }
   try {
     renderSidebar();
@@ -17368,6 +17411,7 @@ function switchTab(t) {
   }
   if (isReport) asEnter(_prevTab);
   updateExportMenuSub();
+  document.documentElement.classList.toggle("ch-page", isCharts);   // v7.2.1: no page bounce on Charts
   if (isCharts) renderCharts();
   render();
 }
@@ -18153,6 +18197,7 @@ function chDraw(chart, m, roles, opts = {}) {
   const proj = m.layers.find(l => l.future);
   const to = proj ? proj.points[proj.points.length - 1].time : m.to;
   try { chart.timeScale().setVisibleRange({ from: m.from, to }); } catch { chart.timeScale().fitContent(); }
+  if (chart === chChart) chArmRange();
   return series;
 }
 
@@ -18164,8 +18209,11 @@ function chMakeChart(el) {
     width: el.clientWidth || 360, height: el.clientHeight || 320,
     layout: { fontFamily: "DM Sans", fontSize: 11, attributionLogo: false },
     rightPriceScale: { borderVisible: false, scaleMargins: { top: 0.12, bottom: 0.08 } },
-    timeScale: { borderVisible: false, fixLeftEdge: true, rightOffset: 2, lockVisibleTimeRangeOnResize: true },
+    // v7.2.1: both edges hold (no dragging the line off the screen), and the crosshair goes when
+    // the finger lifts (the library's default kept it on until the next tap)
+    timeScale: { borderVisible: false, fixLeftEdge: true, fixRightEdge: true, rightOffset: 0, lockVisibleTimeRangeOnResize: true },
     crosshair: { mode: LW.CrosshairMode.Magnet },
+    trackingMode: { exitMode: LW.TrackingModeExitMode.OnTouchEnd },
     handleScroll: { vertTouchDrag: false },
     localization: { priceFormatter: chAxisLabel, timeFormatter: t => chPeriodLabel(chTimeStr(t), chCfg.interval) },
   });
@@ -18177,7 +18225,60 @@ function chMakeChart(el) {
     return `${d} ${MONTH_NAMES_SHORT[m - 1]}`;
   } });
   ch.subscribeCrosshairMove(p => chReadout(p && p.time ? chTimeStr(p.time) : null));
+  ch.timeScale().subscribeVisibleLogicalRangeChange(() => chOnViewMoved());
+  chBindGestures(el, ch);
   return ch;
+}
+// v7.2.1: one gesture does one thing. Decided once the finger has moved 6 px: mostly sideways
+// moves the chart and holds the page still; mostly up or down scrolls the page and the chart
+// doesn't pan (the library still sees the moves, so it doesn't take it for a touch-and-hold).
+// Two fingers pinch. While the chart is dragged its scale holds, and refits once on release.
+// A double tap goes back to the chosen range.
+function chBindGestures(el, ch) {
+  el.style.touchAction = "pan-y";
+  let x0 = 0, y0 = 0, mode = null, moved = false, taps = [];
+  const hold = on => { try { ch.priceScale("right").applyOptions({ autoScale: !on }); } catch {} };
+  el.addEventListener("touchstart", e => {
+    moved = false; mode = e.touches.length > 1 ? "pinch" : null;
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+    if (mode === "pinch") hold(true);
+  }, { capture: true, passive: true });
+  el.addEventListener("touchmove", e => {
+    if (e.touches.length > 1) { if (mode !== "pinch") { if (mode === "page") ch.applyOptions({ handleScroll: { horzTouchDrag: true }, handleScale: { pinch: true } }); mode = "pinch"; hold(true); } if (e.cancelable) e.preventDefault(); return; }
+    const dx = e.touches[0].clientX - x0, dy = e.touches[0].clientY - y0;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
+    if (mode === null) {
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      mode = Math.abs(dx) >= Math.abs(dy) ? "chart" : "page";
+      if (mode === "page") ch.applyOptions({ handleScroll: { horzTouchDrag: false }, handleScale: { pinch: false } });
+      else hold(true);
+    }
+    if ((mode === "chart" || mode === "pinch") && e.cancelable) e.preventDefault();
+  }, { capture: true, passive: false });
+  const end = e => {
+    if (e.touches && e.touches.length) return;
+    const was = mode; mode = null;
+    if (was === "page") ch.applyOptions({ handleScroll: { horzTouchDrag: true }, handleScale: { pinch: true } });
+    if (was === "chart" || was === "pinch") hold(false);
+    if (!moved && !was && e.changedTouches && e.changedTouches.length === 1) {
+      const now = performance.now(); taps = taps.filter(t => now - t < 320); taps.push(now);
+      if (taps.length >= 2) { taps = []; chSetRange(chCfg.range); }
+    }
+  };
+  el.addEventListener("touchend", end, { capture: true });
+  el.addEventListener("touchcancel", end, { capture: true });
+}
+// The range button is lit only while the view is still where it put it
+let chRanging = false, chOffRange = false, chRangeLR = null;
+function chArmRange() {
+  chRanging = true; chOffRange = false; chRangeLR = null;
+  setTimeout(() => { chRanging = false; try { chRangeLR = chChart ? chChart.timeScale().getVisibleLogicalRange() : null; } catch { chRangeLR = null; } }, 120);
+}
+function chOnViewMoved() {
+  if (!chChart || chRanging || !chRangeLR) return;
+  const r = chChart.timeScale().getVisibleLogicalRange();
+  const off = !!r && (Math.abs(r.from - chRangeLR.from) > 0.5 || Math.abs(r.to - chRangeLR.to) > 0.5);
+  if (off !== chOffRange) { chOffRange = off; renderChartsChrome(); }
 }
 function renderCharts() {
   const el = document.getElementById("ch-chart");
@@ -18232,9 +18333,10 @@ function renderChartsChrome() {
   $("ch-preset-btn").setAttribute("aria-label", `Presets: ${cur.name}${edited ? ", changed" : ""}`);
   vpFold("ch-strip", edited, !$("ch-strip").offsetParent);
   $("ch-strip-text").textContent = `Changed from ${cur.name}`;
-  $("ch-ranges").innerHTML = chRanges().map(([k, l]) => `<button type="button" class="${chCfg.range === k ? "on" : ""}" data-ch-range="${k}" aria-pressed="${chCfg.range === k}">${l}</button>`).join("");
+  const lit = k => chCfg.range === k && !chOffRange;
+  $("ch-ranges").innerHTML = chRanges().map(([k, l]) => `<button type="button" class="${lit(k) ? "on" : ""}" data-ch-range="${k}" aria-pressed="${lit(k)}">${l}</button>`).join("");
   const m = chModelNow || { key: [] };
-  $("ch-legend").innerHTML = `<span class="ch-lg-top"><span>${escapeHTML(chDescribe(chCfg))}</span><span class="ch-lg-edit">${CH_SLIDERS_SVG} Customise</span></span>` + chKeyHtml(m);
+  $("ch-legend").innerHTML = `<div class="ch-lg-top"><span>${escapeHTML(chDescribe(chCfg))}</span></div>` + chKeyHtml(m);
 }
 function chSetRange(k) { chCfg.range = k; if (chChart && chModelNow && chModelNow.buckets.length) { chModelNow = chModel(chCfg); chSeriesList.forEach(s => { try { chChart.removeSeries(s); } catch {} }); chSeriesList = chDraw(chChart, chModelNow, chRoles()); } else chModelNow = chModel(chCfg); chReadout(null); renderChartsChrome(); saveChartView(); }
 // Above the chart: the period under the finger (or the latest), the main figure and every other line's value
@@ -18276,55 +18378,86 @@ document.addEventListener("click", e => {
   if (r && r.closest("#charts-panel")) chSetRange(r.dataset.chRange);
 });
 
-// ── Customise chart: one tray for everything on the chart ───────────────────────────────────
+// ── Customise: one shorter tray in three tabs, so the chart stays in view (v7.2.1) ────────────
+// Chart (what, which accounts, each point, type) · Lines (n) · Display. The page never moves:
+// on a phone the tray takes half the screen, more if there's room under the chart, at most 56 %.
+const CHC_ICON = {
+  area: '<svg viewBox="0 0 34 20" aria-hidden="true"><path d="M1 17 9 10l7 3 8-9 9 5v10H1z" fill="currentColor" opacity=".25"/><path d="M1 17 9 10l7 3 8-9 9 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+  line: '<svg viewBox="0 0 34 20" aria-hidden="true"><path d="M1 17 9 10l7 3 8-9 9 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+  step: '<svg viewBox="0 0 34 20" aria-hidden="true"><path d="M1 16h7v-5h8v3h7V5h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+  candles: '<svg viewBox="0 0 34 20" aria-hidden="true"><path d="M6 3v14M17 2v16M28 5v12" stroke="currentColor" stroke-width="1.2"/><rect x="3" y="7" width="6" height="7" rx="1" fill="currentColor"/><rect x="14" y="5" width="6" height="9" rx="1" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="25" y="8" width="6" height="6" rx="1" fill="currentColor"/></svg>',
+  columns: '<svg viewBox="0 0 34 20" aria-hidden="true"><rect x="2" y="9" width="5" height="9" rx="1" fill="currentColor"/><rect x="10" y="4" width="5" height="14" rx="1" fill="currentColor"/><rect x="18" y="11" width="5" height="7" rx="1" fill="currentColor"/><rect x="26" y="6" width="5" height="12" rx="1" fill="currentColor"/></svg>',
+};
+let chcTab = "chart";
 const chPills = (key, opts, cols) => `<div class="ch-pills" style="grid-template-columns:repeat(${cols || opts.length},1fr)">${opts.map(([v, l]) =>
   `<button type="button" class="ch-pill" data-${key}="${v}">${escapeHTML(l)}</button>`).join("")}</div>`;
-const chSw = (key, name, subId) => `<button type="button" class="ch-row" data-ch-sw="${key}" role="switch" aria-checked="false"><span class="ch-row-t"><b>${name}</b><small id="${subId || ""}"></small></span><span class="layout-toggle"></span></button>`;
+const chcSeg = (key, opts) => `<div class="chc-seg">${opts.map(([v, l]) => `<button type="button" data-${key}="${v}">${escapeHTML(l)}</button>`).join("")}</div>`;
+// A switch row; lines get a sample of how they're drawn
+const chSw = (key, name, subId, line) => `<button type="button" class="ch-row" data-ch-sw="${key}" role="switch" aria-checked="false">` +
+  (line ? `<span class="chc-lk${line.dash ? " dash" : ""}" style="border-color:${line.color}"></span>` : "") +
+  `<span class="ch-row-t"><b>${name}</b><small id="${subId || ""}"></small></span><span class="layout-toggle"></span></button>`;
 const chFold = (id, html, open) => `<div class="vp-fold${open ? "" : " folded"}" id="${id}"><div class="vp-fold-in">${html}</div></div>`;
 function openChartCustomise() {
   const body = document.getElementById("chc-body");
   const many = accounts.length > 1;
+  const firstAcc = many ? getAccountColor(accounts[0].id) : "var(--text-2)";
   body.innerHTML =
-    `<div class="ch-sec">What to chart</div>${chPills("chc-plot", Object.entries(CH_PLOTS).map(([k, p]) => [k, p.name]), 3)}<div class="ch-hint" id="chc-plot-hint"></div>` +
-    (many ? `<div class="ch-sec">Accounts</div>${chPills("chc-acct", [["all", "All"], ...accounts.map(a => [a.id, a.name])], Math.min(4, accounts.length + 1))}` +
-            chFold("chc-f-cmp", chSw("cmpAccounts", "Each account as its own line", "chc-cmp-sub")) : "") +
-    `<div class="ch-sec">Each point covers</div>${chPills("chc-int", [["week", "Week"], ["month", "Month"], ["quarter", "Quarter"], ["year", "Year"]], 4)}<div class="ch-hint" id="chc-int-hint"></div>` +
-    `<div class="ch-sec">Chart type</div><div id="chc-types"></div><div class="ch-hint" id="chc-type-hint"></div>` +
-    `<div class="ch-sec">Lines on top</div>` +
-    chSw("ma", "Average", "chc-ma-sub") +
-    chFold("chc-f-ma", `<div class="ch-sub2"><div id="chc-ma-n"></div>${chPills("chc-ma-kind", [["sma", "Simple"], ["ema", "Recent counts more"]])}</div>`) +
-    chSw("trend", "Trend line", "chc-trend-sub") +
-    chFold("chc-f-proj", chSw("proj", "Projection", "chc-proj-sub")) +
-    chFold("chc-f-band", chSw("band", "Typical range", "chc-band-sub")) +
-    chSw("cmpLastYear", "Same time last year", "chc-ly-sub") +
-    chFold("chc-f-goals", chSw("goals", "Goals", "chc-goals-sub")) +
-    `<div class="ch-sec">Display</div>` +
-    chFold("chc-f-log", chSw("log", "Log scale", "chc-log-sub")) +
-    chSw("zero", "Start at zero", "chc-zero-sub") + chSw("grid", "Gridlines");
+    `<div class="chc-pane" data-pane="chart">` +
+      `<div class="chc-lab">Show</div>${chPills("chc-plot", Object.entries(CH_PLOTS).map(([k, p]) => [k, p.name]), 3)}` +
+      (many ? `<div class="chc-lab">Accounts</div><div class="chc-acc">${[["all", "All accounts", null], ...accounts.map(a => [a.id, a.name, getAccountColor(a.id)])].map(([v, l, c]) =>
+        `<button type="button" class="ch-pill" data-chc-acct="${escapeHTML(v)}">${c ? `<i style="background:${escapeHTML(c)}"></i>` : ""}${escapeHTML(l)}</button>`).join("")}</div>` : "") +
+      `<div class="chc-lab">Each point<span id="chc-int-hint"></span></div>${chcSeg("chc-int", [["week", "Week"], ["month", "Month"], ["quarter", "Quarter"], ["year", "Year"]])}` +
+      `<div class="chc-lab">Type</div><div id="chc-types"></div>` +
+    `</div>` +
+    `<div class="chc-pane" data-pane="lines">` +
+      chSw("ma", "Average", "chc-ma-sub", { color: "var(--text-1)" }) +
+      chFold("chc-f-ma", `<div class="chc-sub"><div id="chc-ma-n"></div>${chcSeg("chc-ma-kind", [["sma", "Every point the same"], ["ema", "Recent ones count more"]])}</div>`) +
+      chSw("trend", "Trend line", "chc-trend-sub", { color: "var(--text-2)", dash: true }) +
+      chFold("chc-f-proj", chSw("proj", "Projection", "chc-proj-sub", { color: "var(--accent)", dash: true })) +
+      chFold("chc-f-band", chSw("band", "Typical range", "chc-band-sub", { color: "var(--text-3)", dash: true })) +
+      chSw("cmpLastYear", "Same time last year", "chc-ly-sub", { color: "var(--text-3)", dash: true }) +
+      chFold("chc-f-goals", chSw("goals", "Goals", "chc-goals-sub", { color: "var(--accent-dim)", dash: true })) +
+      (many ? chFold("chc-f-cmp", chSw("cmpAccounts", "Each account", "chc-cmp-sub", { color: escapeHTML(firstAcc) })) : "") +
+    `</div>` +
+    `<div class="chc-pane" data-pane="display">` +
+      chFold("chc-f-log", chSw("log", "Log scale", "chc-log-sub")) +
+      chSw("zero", "Start at zero", "chc-zero-sub") + chSw("grid", "Gridlines") +
+    `</div>`;
   const S = (id, t) => { const x = document.getElementById(id); if (x) x.textContent = t; };
-  S("chc-cmp-sub", "In each account's colour"); S("chc-ma-sub", "Smooths out the ups and downs"); S("chc-trend-sub", "The straight line through the range shown");
-  S("chc-ly-sub", "Last year's line laid over this year's"); S("chc-log-sub", "Equal steps for equal percentage growth"); S("chc-zero-sub", "The axis always includes " + audWhole(0));
+  S("chc-cmp-sub", "Its own line, in its colour"); S("chc-log-sub", "Equal steps for equal percentage growth");
+  S("chc-zero-sub", "The axis always includes " + audWhole(0));
   chcSync(true);
-  document.getElementById("chart-custom-popup").classList.remove("hidden");
+  const pop = document.getElementById("chart-custom-popup");
+  pop.classList.remove("hidden");
+  // The page doesn't move: the tray fits under the chart (Eliot, 16 Nov: "Opening the menu scrolls down")
+  const panel = pop.querySelector(".vp-panel");
+  if (panel) {
+    panel.scrollTop = 0;
+    if (vpIsPhone()) {
+      const chart = document.getElementById("ch-chart"), below = chart ? window.innerHeight - chart.getBoundingClientRect().bottom : 0;
+      panel.style.setProperty("height", Math.round(Math.min(window.innerHeight * 0.56, Math.max(window.innerHeight * 0.5, below + 24))) + "px", "important");
+    } else panel.style.removeProperty("height");
+  }
 }
 function closeChartCustomise() { document.getElementById("chart-custom-popup").classList.add("hidden"); }
-// Brings the tray in line with the chart: what's chosen, the hints, and the parts that only
-// apply to some charts (folded away, not greyed)
+// Brings the tray in line with the chart: the tab, what's chosen, the hints, and the parts that
+// only apply to some charts (folded away, not greyed)
 function chcSync(instant) {
   const c = chCfg, $ = id => document.getElementById(id), bal = c.plot === "balance";
-  const body = $("chc-body"); if (!body) return;
-  const on = (sel, val) => body.querySelectorAll(`[data-${sel}]`).forEach(b => { const y = b.dataset[sel.replace(/-([a-z])/g, (m, x) => x.toUpperCase())] === String(val); b.classList.toggle("on", y); b.setAttribute("aria-pressed", y); });
-  $("chc-types").innerHTML = chPills("chc-type", CH_PLOTS[c.plot].types.map(t => [t, CH_TYPES[t].name]));
-  $("chc-ma-n").innerHTML = chPills("chc-ma-n", [3, 6, 12].map(n => [n, chUnitPlural(c.interval, n)]));
+  const body = $("chc-body"); if (!body || !body.firstChild) return;
+  const camel = k => k.replace(/-([a-z])/g, (m, x) => x.toUpperCase());
+  const on = (sel, val) => body.querySelectorAll(`[data-${sel}]`).forEach(b => { const y = b.dataset[camel(sel)] === String(val); b.classList.toggle("on", y); b.setAttribute("aria-pressed", y); });
+  const types = CH_PLOTS[c.plot].types;
+  $("chc-types").innerHTML = `<div class="chc-types" style="grid-template-columns:repeat(${Math.max(types.length, 3)},1fr)">${types.map(t =>
+    `<button type="button" class="chc-tile" data-chc-type="${t}">${CHC_ICON[t]}${CH_TYPES[t].name}</button>`).join("")}</div>`;
+  $("chc-ma-n").innerHTML = chcSeg("chc-ma-n", [3, 6, 12].map(n => [n, chUnitPlural(c.interval, n)]));
   on("chc-plot", c.plot); on("chc-acct", c.account); on("chc-int", c.interval); on("chc-type", c.type); on("chc-ma-n", c.ma.n); on("chc-ma-kind", c.ma.kind);
-  $("chc-plot-hint").textContent = CH_PLOTS[c.plot].sub;
-  $("chc-int-hint").textContent = c.interval === "year" ? (yearMode === "financial" ? "Financial years, as set in Settings" : "Calendar years")
-    : c.interval === "quarter" ? (yearMode === "financial" ? "Quarters of your financial year" : "Jan–Mar, Apr–Jun, Jul–Sep, Oct–Dec") : c.interval === "week" ? "Monday to Sunday" : "";
-  $("chc-type-hint").textContent = CH_TYPES[c.type].sub;
+  $("chc-int-hint").textContent = c.interval === "year" ? (yearMode === "financial" ? "Financial years" : "Calendar years")
+    : c.interval === "quarter" ? (yearMode === "financial" ? "Quarters of your financial year" : "Jan–Mar, Apr–Jun…") : c.interval === "week" ? "Monday to Sunday" : "";
   const gs = chGoals(c);
   const upcoming = gs.slice().sort((a, b) => (a.deadline || "9999").localeCompare(b.deadline || "9999"))[0];
-  $("chc-proj-sub").textContent = upcoming ? `Your recent rate carried forward to ${upcoming.name}` : "Your recent rate carried forward a year";
-  $("chc-band-sub").textContent = `Your usual ${CH_UNIT[c.interval]}, from the last 12`;
+  $("chc-proj-sub").textContent = upcoming ? `To ${upcoming.name} at your recent rate` : "Your recent rate, a year ahead";
+  $("chc-band-sub").textContent = `Your usual ${CH_UNIT[c.interval]}`;
   $("chc-goals-sub").textContent = gs.map(g => `${g.name} ${audWhole(g.target)}`).join(" · ");
   body.querySelectorAll("[data-ch-sw]").forEach(b => {
     const k = b.dataset.chSw, v = k === "ma" ? c.ma.on : !!c[k];
@@ -18334,11 +18467,20 @@ function chcSync(instant) {
   vpFold("chc-f-ma", c.ma.on, instant);
   vpFold("chc-f-proj", bal, instant); vpFold("chc-f-band", !bal, instant);
   vpFold("chc-f-goals", bal && gs.length > 0, instant); vpFold("chc-f-log", bal, instant);
+  // the tabs: which one, and how many lines are on
+  const n = [c.ma.on, c.trend, bal ? c.proj : c.band, c.cmpLastYear, bal && c.goals && gs.length > 0, c.cmpAccounts && c.account === "all" && accounts.length > 1].filter(Boolean).length;
+  document.querySelectorAll("#chc-tabs [data-chc-tab]").forEach(t => {
+    const k = t.dataset.chcTab; t.setAttribute("aria-selected", k === chcTab);
+    if (k === "lines") t.textContent = n ? `Lines (${n})` : "Lines";
+  });
+  body.querySelectorAll(".chc-pane").forEach(p => { p.hidden = p.dataset.pane !== chcTab; });
   const edited = chEdited();
   $("chc-sub").textContent = edited ? `Changed from ${chCurrent().name}` : `Preset: ${chCurrent().name}`;
   $("chc-save").disabled = !edited;
 }
 document.addEventListener("click", e => {
+  const tab = e.target.closest("#chc-tabs [data-chc-tab]");
+  if (tab) { chcTab = tab.dataset.chcTab; const pnl = document.querySelector("#chart-custom-popup .vp-panel"); if (pnl) pnl.scrollTop = 0; chcSync(true); return; }
   const body = e.target.closest("#chc-body"); if (!body) return;
   const b = e.target.closest("button"); if (!b) return;
   const d = b.dataset, c = chCfg;
@@ -22969,6 +23111,7 @@ function encChoiceResolve(choice) {
 const COMPAT_BANNER_KEY     = "vault_compat_dismissed";
 const COMPAT_REMINDER_KEY   = "vault_tx_since_export";
 const COMPAT_REMINDER_EVERY = 10;
+try { if (localStorage.getItem("vault_tx_since_export_v2") !== "1") { localStorage.setItem(COMPAT_REMINDER_KEY, "0"); localStorage.setItem("vault_tx_since_export_v2", "1"); } } catch {}
 
 // True when FSAPI auto-save is available
 function fsapiSupported() {
@@ -23098,6 +23241,14 @@ function closeCompatInfo() {
 
 
 
+// v7.2.1: any backup set up counts, including Drive while start-up is still checking its sign-in
+// (gdLinked is only set after that, and the screen draws a few times first).
+function compatBackupSetUp() {
+  if (gdLinked || nasLinked || localFileLinked) return true;
+  try { if (gdLoadTokens()) return true; } catch {}
+  try { if (vsGet(NAS_KEY)) return true; } catch {}
+  return false;
+}
 // Track transactions since last manual export on unsupported browsers.
 // Called from saveToLocalFile() when a download is triggered.
 function resetCompatExportCount() {
@@ -23109,7 +23260,7 @@ function resetCompatExportCount() {
 // Called from render() on unsupported browsers.
 function tickCompatExportCount() {
   if (fsapiSupported()) return;
-  if (gdLinked || nasLinked) return; // cloud sync is active — no need to warn
+  if (compatBackupSetUp()) return; // a backup is set up — no need to warn
   try {
     const count = parseInt(localStorage.getItem(COMPAT_REMINDER_KEY) || "0", 10) + 1;
     localStorage.setItem(COMPAT_REMINDER_KEY, count.toString());
@@ -24651,7 +24802,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v7.2.0</div>
+          <div class="pp-meta" id="about-version-meta">Version v7.2.1</div>
         </div>
 
         <div class="pp-cards">
@@ -24764,7 +24915,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v7.2.0</div>
+  <div id="version-footer">v7.2.1</div>
 
 <!-- Lightweight Charts 4.2.3 (Apache-2.0, TradingView, Inc.): draws the Charts screen. -->
 <script>

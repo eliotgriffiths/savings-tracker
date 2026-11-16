@@ -66,7 +66,7 @@ setTimeout(async () => {
     ok(J(`chModelNow.buckets.find(b => b.time === "2025-06-01")`).int === 7.5, "interest kept apart");
     ok(J(`chModelNow.buckets.find(b => b.time === "2026-10-01")`).wit === 99999.99, "withdrawals counted");
     ok(/^November 2026 · latest/.test(txt("ch-readout")) && txt("ch-readout").includes(E(`aud(${total})`)), "readout: the latest month and balance: " + txt("ch-readout"));
-    ok(/^Balance · All accounts · Monthly · Area/.test(txt("ch-legend")) && /Customise/.test(txt("ch-legend")), "legend says what's shown: " + txt("ch-legend"));
+    ok(/^Balance · All accounts · Monthly · Area/.test(txt("ch-legend")), "legend says what's shown: " + txt("ch-legend"));
     ok(/House deposit/.test(txt("ch-legend")) && !/ING buffer/.test(txt("ch-legend")), "whole-vault goals on All accounts, not an account's");
     // readout follows the crosshair
     E(`chReadout("2025-06-01")`);
@@ -76,21 +76,22 @@ setTimeout(async () => {
     E(`openChartCustomise()`); await sleep(20);
     ok(isOpen("chart-custom-popup") && $("chart-custom-popup").classList.contains("vp"), "Customise opens as a tray");
     ok(txt("chc-sub") === "Preset: Balance" && $("chc-save").disabled, "subtitle names the preset; Save as preset off until something changes");
-    const secs = J(`[...document.querySelectorAll("#chc-body .ch-sec")].map(s => s.textContent)`);
-    ok(secs.join("|") === "What to chart|Accounts|Each point covers|Chart type|Lines on top|Display", "sections: " + secs.join("|"));
-    ok(J(`[...document.querySelectorAll("#chc-types .ch-pill")].map(b => b.textContent)`).join() === "Area,Line,Steps,Candles", "Balance's chart types");
+    // v7.2.1: the tray became three tabs (Chart · Lines · Display); the same controls, grouped
+    const secs = J(`[...document.querySelectorAll("#chc-body .ch-sec, #chc-body .chc-lab")].map(s => s.childNodes[0].textContent)`);
+    ok(/^(What to chart\|Accounts\|Each point covers\|Chart type\|Lines on top\|Display|Show\|Accounts\|Each point\|Type)$/.test(secs.join("|")), "sections: " + secs.join("|"));
+    ok(J(`[...document.querySelectorAll("#chc-types .ch-pill, #chc-types .chc-tile")].map(b => b.textContent)`).join() === "Area,Line,Steps,Candles", "Balance's chart types");
     ok($("chc-f-band").classList.contains("folded") && !$("chc-f-proj").classList.contains("folded"), "Balance: Projection shown, Typical range folded away");
     ok(!$("chc-f-goals").classList.contains("folded") && /House deposit/.test(txt("chc-goals-sub")), "Goals switch lists the goals");
     ok($("chc-f-ma").classList.contains("folded"), "Average's options folded while it's off");
     const click = sel => d.querySelector(sel).click();
     click('#chc-body [data-ch-sw="ma"]');
     ok(E(`chCfg.ma.on`) && !$("chc-f-ma").classList.contains("folded"), "Average on: its options unfold");
-    ok(J(`[...document.querySelectorAll("#chc-ma-n .ch-pill")].map(b => b.textContent)`).join() === "3 months,6 months,12 months", "average lengths in the chart's unit");
+    ok(J(`[...document.querySelectorAll("#chc-ma-n .ch-pill, #chc-ma-n button")].map(b => b.textContent)`).join() === "3 months,6 months,12 months", "average lengths in the chart's unit");
     ok(txt("ch-preset-name") === "Balance" && !$("ch-preset-dot").hidden && !$("ch-strip").classList.contains("folded"), "the page shows it's changed (dot and strip)");
     ok(txt("chc-sub") === "Changed from Balance" && !$("chc-save").disabled, "the tray too, and Save as preset is ready");
     ok(J(`chModelNow.layers.map(l => l.id)`).join() === "ma", "the average is drawn");
     click('#chc-body [data-chc-int="week"]');
-    ok(J(`[...document.querySelectorAll("#chc-ma-n .ch-pill")].map(b => b.textContent)`)[0] === "3 weeks", "…and follows the interval");
+    ok(J(`[...document.querySelectorAll("#chc-ma-n .ch-pill, #chc-ma-n button")].map(b => b.textContent)`)[0] === "3 weeks", "…and follows the interval");
     ok(J(`chModelNow.buckets`).every(b => new Date(b.time + "T00:00").getDay() === 1), "weeks start on Monday");
     click('#chc-body [data-chc-int="month"]');
     click('#chc-body [data-ch-sw="trend"]'); click('#chc-body [data-ch-sw="proj"]'); click('#chc-body [data-ch-sw="cmpLastYear"]');
@@ -101,7 +102,7 @@ setTimeout(async () => {
     ok(/Trend, (up|down) /.test(txt("ch-legend")) && /Projection/.test(txt("ch-legend")) && /Same time last year/.test(txt("ch-legend")), "the legend keys every line: " + txt("ch-legend"));
     // switch plot: options that don't apply fold away; the type is valid for it
     click('#chc-body [data-chc-plot="net"]');
-    ok(E(`chCfg.type`) === "columns" && J(`[...document.querySelectorAll("#chc-types .ch-pill")].map(b => b.textContent)`).join() === "Columns,Line", "Net saved: Columns or Line");
+    ok(E(`chCfg.type`) === "columns" && J(`[...document.querySelectorAll("#chc-types .ch-pill, #chc-types .chc-tile")].map(b => b.textContent)`).join() === "Columns,Line", "Net saved: Columns or Line");
     ok($("chc-f-proj").classList.contains("folded") && !$("chc-f-band").classList.contains("folded") && $("chc-f-goals").classList.contains("folded") && $("chc-f-log").classList.contains("folded"), "Net saved: Typical range instead of Projection; no Goals or Log scale");
     click('#chc-body [data-ch-sw="band"]');
     ok(J(`chModelNow.lines.map(l => l.title)`).join() === "Typical low,Typical,Typical high", "typical range lines");
