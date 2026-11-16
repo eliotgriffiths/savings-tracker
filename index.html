@@ -859,6 +859,20 @@
   .layout-placeholder { border: 1px dashed var(--gold-dim); border-radius: var(--radius);
     background: color-mix(in srgb, var(--accent) 6%, transparent); box-sizing: border-box; }
   .layout-row.off { opacity: 0.5; }
+  /* v7.3.0: places and pins */
+  .layout-group { font-size: 10px; color: var(--text-3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin: 14px 2px 6px; }
+  .layout-group:first-child { margin-top: 0; }
+  .layout-place { width: 18px; flex-shrink: 0; text-align: center; font-family: 'DM Sans', sans-serif; font-weight: 600; font-variant-numeric: tabular-nums;
+    font-size: 13px; color: var(--text-3); }
+  .layout-row.pinned .layout-place { color: var(--accent); }
+  .layout-row.pinned { border-color: color-mix(in srgb, var(--accent) 45%, var(--border-hi)); }
+  .layout-row-name small { display: block; font-size: 11px; font-weight: 400; color: var(--text-3); margin: 1px 0 0 !important; line-height: 1.3; }   /* the panel's own <small> rule adds 20 px under it */
+  .layout-row.pinned .layout-row-name small { color: var(--accent); }
+  .layout-pin { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+    background: none; border: 1px solid transparent; color: var(--text-3); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .layout-pin.on { color: var(--accent-ink); background: var(--accent); }
+  .layout-pin.on svg path { fill: currentColor; }
+  @media (hover: hover) { .layout-pin:not(.on):hover { color: var(--accent); } }
   .layout-handle { display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     width: 24px; color: var(--text-3); cursor: grab; touch-action: none; }
   .layout-handle:active { cursor: grabbing; }
@@ -4654,7 +4668,7 @@
           </button>
           <div class="vh-menu-drop" id="vh-home-menu-drop" role="menu">
             <button class="vh-menu-item" type="button" role="menuitem" onclick="vhHomeMenuEdit()">Customise Home</button>
-            <button class="vh-menu-item" type="button" role="menuitem" id="vh-home-menu-auto" onclick="vhHomeMenuReset()">Arrange automatically</button>
+            <button class="vh-menu-item" type="button" role="menuitem" id="vh-home-menu-auto" onclick="vhHomeMenuReset()">Unpin all</button>
           </div>
         </div>
         </div>
@@ -5742,10 +5756,10 @@
   <div class="modal-box" style="max-width:440px; position:relative;">
     <button class="modal-close" onclick="cancelLayoutModal()" style="position:absolute; top:14px; right:14px;">&#10005;</button>
     <div class="modal-header" style="padding-right:40px;"><h2>Customise Home</h2></div>
-    <p class="modal-desc">Drag to reorder your Home sections, and toggle any on or off. Empty sections still hide themselves automatically.</p>
+    <p class="modal-desc">Turn sections on or off, and pin the ones you want to keep in a place. A section with nothing to show gives its place to the next one.</p>
     <p class="layout-mode" id="layout-mode"></p>
     <div id="layout-list" class="layout-list"></div>
-    <button class="pbtn pbtn-secondary" id="layout-auto-btn" onclick="resetHomeLayout()" style="width:100%; margin-top:12px;">Arrange automatically</button>
+    <button class="pbtn pbtn-secondary" id="layout-auto-btn" onclick="resetHomeLayout()" style="width:100%; margin-top:12px;">Unpin all</button>
     <div class="pbtn-row" style="border-top:1px solid var(--border); padding-top:14px; margin-top:14px;">
       <button class="pbtn pbtn-primary" onclick="saveLayoutModal()">Save</button>
       <button class="pbtn pbtn-secondary" onclick="cancelLayoutModal()">Cancel</button>
@@ -9193,7 +9207,7 @@ function buildWrappedPayload() {
     // Uploaded once the user has expressed anything at all: a manual layout, or a
     // hide while still on auto. Keying off order.length alone used to strand a
     // hidden-list on one device.
-    _homeLayout:     (homeLayout.chosen || homeLayout.auto === false || homeLayout.hidden.length || homeLayout.order.length) ? homeLayout : null,
+    _homeLayout:     (homeLayout.chosen || homeLayout.auto === false || homeLayout.hidden.length || homeLayout.order.length || Object.keys(homeLayout.pins || {}).length) ? homeLayout : null,
     _homeAutoLayout: (autoLayout.order && autoLayout.order.length) ? autoLayout : null,
     _goalsDeleted: goalDeletedIds.size ? [...goalDeletedIds] : null,
     _chartPresets: chPresets.length ? chPresets : null,                        // v7.2.0
@@ -10853,7 +10867,7 @@ function hideLockScreen() {
     bindHourlyTick();
     // Gate 1 of 2: a fresh load past the 6-hour window re-ranks BEFORE the first
     // Home paint, so the new order is simply what the user arrives to.
-    vhLoadPrefs(); vhMaybeReorder("page load");
+    vhLoadPrefs(); vhMaybeReorder("page load"); try { vhMigrationNote(); } catch (e) {}
     if (!_didHomeLanding) { _didHomeLanding = true; _navReplaceNext = true; switchTab("home"); }
   }
 }
@@ -12951,7 +12965,21 @@ const vhCollapsed = new Set(); // section keys currently collapsed (persisted to
 //   order  — the manual sequence; empty until they reorder something
 //   hidden — permanent hides, a hard filter that wins over anything the ranker picks
 //   auto   — is the app still choosing? Cleared by the first manual reorder.
-let homeLayout = { order: [], hidden: [], auto: true, ts: 0, v: 1 };
+let homeLayout = { order: [], hidden: [], pins: {}, auto: true, ts: 0, v: 1 };
+// v7.3.0: pins: { sectionKey: place } with place 1–11. A pinned place always shows its section;
+// every other place rotates. There's no manual order any more (order stays empty, auto is always
+// on); a layout from before v7.3.0 with a manual order becomes "everything rotates".
+function vhCleanPins(raw) {
+  const out = {}, used = new Set();
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return out;
+  const known = new Set(VH_SECTIONS.map(x => x.key));
+  Object.keys(raw).forEach(k => {
+    const place = Math.round(Number(raw[k]));
+    if (known.has(k) && place >= 1 && place <= VH_AUTO_MAX && !used.has(place)) { out[k] = place; used.add(place); }
+  });
+  return out;
+}
+let _vhMigratedManual = false;
 
 // DERIVED state. Written only by the ranker, never by the user.
 //   order      — the ordered show-list for this cycle; a key absent from it is not
@@ -12964,7 +12992,7 @@ let homeLayout = { order: [], hidden: [], auto: true, ts: 0, v: 1 };
 // Kept in its own object, and its own key in the synced file, precisely so it can
 // never overwrite the authored layout. The auto order is reproducible from the
 // vault at any time; a hand-built layout is not, so the two must not share a field.
-let autoLayout = { order: [], computedAt: 0, reasons: {}, shown: {}, cycle: 0 };
+let autoLayout = { order: [], ranked: [], computedAt: 0, reasons: {}, shown: {}, cycle: 0 };
 
 // Home may only change order at a gate (page load, or the hourly tick while Home is
 // not on screen). Between gates every render reuses this, so neither a local
@@ -13007,10 +13035,12 @@ function mergeHomeLayout(remote) {
   const take = remoteChosen !== localChosen ? remoteChosen : remoteTs > localTs;
   if (!take) return false;
   homeLayout = {
-    order:  Array.isArray(remote.order)  ? remote.order  : [],
+    order:  [],                                   // v7.3.0: no manual order; pins instead
     hidden: Array.isArray(remote.hidden) ? remote.hidden : [],
-    auto: remote.auto !== false, chosen: remoteChosen, ts: remoteTs, v: remote.v || 1,
+    pins:   vhCleanPins(remote.pins),
+    auto: true, chosen: remoteChosen, ts: remoteTs, v: remote.v || 1,
   };
+  _frozenOrder = null;
   vhSavePrefs();
   return true;
 }
@@ -13023,6 +13053,7 @@ function mergeAutoLayout(remote) {
   if ((remote.computedAt || 0) <= (autoLayout.computedAt || 0)) return false;
   autoLayout = {
     order:      Array.isArray(remote.order) ? remote.order : [],
+    ranked:     Array.isArray(remote.ranked) ? remote.ranked : [],
     computedAt: remote.computedAt || 0,
     reasons:    (remote.reasons && typeof remote.reasons === "object") ? remote.reasons : {},
     shown:      (remote.shown   && typeof remote.shown   === "object") ? remote.shown   : {},
@@ -13041,14 +13072,27 @@ function mergeAutoLayout(remote) {
 // rather than dropped, so an app update can add a section without losing it.
 function vhLayoutOrder() {
   const known = VH_SECTIONS.map(s => s.key);
-  if (homeLayout.auto !== false) {
-    if (!_frozenOrder) _frozenOrder = vhAutoSequence();
-    const seq = _frozenOrder.filter(k => known.includes(k));
-    return [...seq, ...known.filter(k => !seq.includes(k))];
+  if (!_frozenOrder) _frozenOrder = vhAutoSequence();
+  const seq = _frozenOrder.filter(k => known.includes(k));
+  return [...seq, ...known.filter(k => !seq.includes(k))];
+}
+// v7.3.0: this cycle's places. Pinned sections take their own places; the other places are
+// filled from the ranking, best first, skipping pinned and hidden sections. What's left over are
+// the spares, the next in line when a section on Home has nothing to show.
+let _vhShowList = [], _vhSpares = [];
+function vhComposeOrder(ranked, max) {
+  const known = VH_SECTIONS.map(x => x.key), hidden = new Set(homeLayout.hidden || []);
+  const pins = vhCleanPins(homeLayout.pins), byPlace = {};
+  Object.keys(pins).forEach(k => { if (!hidden.has(k)) byPlace[pins[k]] = k; });
+  const pinned = new Set(Object.values(byPlace));
+  const pool = ranked.filter((k, i) => known.includes(k) && ranked.indexOf(k) === i && !pinned.has(k) && !hidden.has(k));
+  const places = Math.min(VH_AUTO_MAX, Math.max(max, ...Object.keys(byPlace).map(Number)));
+  const order = []; let i = 0;
+  for (let place = 1; place <= places; place++) {
+    if (byPlace[place]) order.push(byPlace[place]);
+    else if (i < pool.length) order.push(pool[i++]);
   }
-  const saved = (homeLayout.order || []).filter(k => known.includes(k));
-  const rest  = known.filter(k => !saved.includes(k));
-  return [...saved, ...rest];
+  return { order, spares: pool.slice(i) };
 }
 
 // Sections the ranker did not pick this cycle sit at the end of the order and are
@@ -13056,9 +13100,8 @@ function vhLayoutOrder() {
 // other is this cycle's selection, and conflating them would let the ranker
 // silently edit a preference.
 function vhAutoSkipped(key) {
-  if (homeLayout.auto === false) return false;
-  const picked = autoLayout.order || [];
-  return picked.length > 0 && !picked.includes(key);
+  if (!_frozenOrder) vhLayoutOrder();
+  return _vhShowList.length > 0 && !_vhShowList.includes(key);
 }
 
 function vhLayoutHidden(key) {
@@ -13084,6 +13127,7 @@ function vhLoadPrefs() {
     if (p.autoLayout && typeof p.autoLayout === "object") {
       autoLayout = {
         order:      Array.isArray(p.autoLayout.order) ? p.autoLayout.order : [],
+        ranked:     Array.isArray(p.autoLayout.ranked) ? p.autoLayout.ranked : [],
         computedAt: p.autoLayout.computedAt || 0,
         reasons:    (p.autoLayout.reasons && typeof p.autoLayout.reasons === "object") ? p.autoLayout.reasons : {},
         shown:      (p.autoLayout.shown   && typeof p.autoLayout.shown   === "object") ? p.autoLayout.shown   : {},
@@ -13102,8 +13146,21 @@ function vhLoadPrefs() {
         chosen: !!p.homeLayout.chosen,
         ts: p.homeLayout.ts || 0, v: p.homeLayout.v || 1,
       };
+      // v7.3.0: no manual order any more. A hand-made order goes back to rotating (hidden
+      // sections stay hidden), once, with a note and a fresh ts so other devices follow.
+      homeLayout.pins = vhCleanPins(p.homeLayout.pins);
+      if (homeLayout.auto === false) { _vhMigratedManual = true; homeLayout.chosen = true; }
+      homeLayout.auto = true; homeLayout.order = [];
     }
   } catch (e) {}
+}
+// v7.3.0: once, after a manual order became rotation on this device
+function vhMigrationNote() {
+  if (!_vhMigratedManual) return;
+  _vhMigratedManual = false;
+  homeLayout.ts = Date.now(); vhSavePrefs();
+  if (typeof triggerCloudSync === "function") setTimeout(() => triggerCloudSync(), 0);
+  setTimeout(() => toast("Home now rotates automatically. Pin a section in Customise Home to keep it in its place", "notice", 6000), 1200);
 }
 function vhSavePrefs() {
   try { localStorage.setItem(VH_PREFS_KEY, JSON.stringify({ collapsed: [...vhCollapsed], filter: vhFilter, mode: vhMode, fxMode: vhFxMode, range: vhChartRange, proj: vhShowProjection, heatYear: vhHeatYear, heatKind: vhHeatKind, heatAcct: vhHeatAcct, homeLayout, autoLayout })); } catch (e) {}
@@ -13615,8 +13672,8 @@ function saveLayoutModal() {
   // Opening the editor, changing nothing and tapping Save should not silently end
   // the dynamic layout. Only a real difference from the snapshot counts as intent.
   const unchanged = _layoutSnapshot &&
-    JSON.stringify({ o: _layoutSnapshot.order, h: _layoutSnapshot.hidden, a: _layoutSnapshot.auto }) ===
-    JSON.stringify({ o: homeLayout.order, h: homeLayout.hidden, a: homeLayout.auto });
+    JSON.stringify({ o: _layoutSnapshot.order, h: _layoutSnapshot.hidden, a: _layoutSnapshot.auto, p: vhCleanPins(_layoutSnapshot.pins) }) ===
+    JSON.stringify({ o: homeLayout.order, h: homeLayout.hidden, a: homeLayout.auto, p: vhCleanPins(homeLayout.pins) });
   if (unchanged) {
     _layoutSnapshot = null;
     document.getElementById("layout-modal")?.classList.add("hidden");
@@ -13645,12 +13702,14 @@ function cancelLayoutModal() {
 // (so they can be turned back on) but read dimmed.
 // v7.1.1: Customise Home says which way Home is arranged. "Arrange automatically" has nothing to
 // do while it already is and nothing's hidden, so it's disabled then (it keeps its place).
-function vhLayoutIsAuto() { return homeLayout.auto !== false && !(homeLayout.hidden || []).length; }
+// v7.3.0: nothing to unpin and nothing hidden: the button has nothing to do (it keeps its place)
+function vhLayoutIsAuto() { return !Object.keys(vhCleanPins(homeLayout.pins)).length && !(homeLayout.hidden || []).length; }
 function renderLayoutMode() {
   const m = document.getElementById("layout-mode");
-  if (m) m.innerHTML = homeLayout.auto !== false
-    ? "<b>Arranged automatically.</b> This Month, Goals, Recent Activity and Upcoming stay at the top, and the rest reorder every few hours to show what's new. Dragging a section switches to your order."
-    : "<b>Your order.</b> Vault won't rearrange it. Arrange automatically hands it back to Vault.";
+  const n = Object.keys(vhCleanPins(homeLayout.pins)).length;
+  if (m) m.innerHTML = n >= VH_AUTO_MAX
+    ? "<b>Every place is pinned.</b> Nothing's left to rotate. Unpin a section to let Vault show what's new there."
+    : "<b>Pinned sections keep their place.</b> Vault rotates the rest every few hours to show what's new. Pin a section, or drag it to a place, to keep it there.";
   const b = document.getElementById("layout-auto-btn");
   if (b) b.disabled = vhLayoutIsAuto();
 }
@@ -13658,29 +13717,59 @@ function renderLayoutList() {
   renderLayoutMode();
   const list = document.getElementById("layout-list");
   if (!list) return;
-  const order = vhLayoutOrder();
-  list.innerHTML = order.map(key => {
+  const order = vhLayoutOrder(), pins = vhCleanPins(homeLayout.pins), hidden = new Set(homeLayout.hidden || []);
+  const onHome = _vhShowList.slice(), rest = order.filter(k => !onHome.includes(k) && !hidden.has(k)), off = order.filter(k => hidden.has(k));
+  const PIN = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10.2 1.8 14.2 5.8 12.4 6.3 9.6 9.1 9.9 12.1 8.6 13.4 5.9 10.7 2.4 14.2 1.8 13.6 5.3 10.1 2.6 7.4 3.9 6.1 6.9 6.4 9.7 3.6z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>';
+  const row = (key, place, group) => {
     const sec = VH_SECTION_MAP[key];
     if (!sec) return "";
-    const off = vhLayoutHidden(key);
-    return `<div class="layout-row${off ? " off" : ""}" data-key="${key}">`
-      + `<span class="layout-handle" data-handle>`
+    const pinned = !!pins[key] && group === "home", isOff = group === "off";
+    const sub = group === "home" ? (pinned ? "Pinned here" : "Rotates") : group === "rest" ? "Rotates" : "Hidden";
+    return `<div class="layout-row${isOff ? " off" : ""}${pinned ? " pinned" : ""}" data-key="${key}" data-group="${group}">`
+      + `<span class="layout-handle" data-handle aria-label="Drag to a place">`
       + `<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="5" cy="4" r="1.1" fill="currentColor"/><circle cx="11" cy="4" r="1.1" fill="currentColor"/><circle cx="5" cy="8" r="1.1" fill="currentColor"/><circle cx="11" cy="8" r="1.1" fill="currentColor"/><circle cx="5" cy="12" r="1.1" fill="currentColor"/><circle cx="11" cy="12" r="1.1" fill="currentColor"/></svg>`
       + `</span>`
-      + `<span class="layout-row-name">${escapeHTML(sec.title)}</span>`
+      + `<span class="layout-place">${place || ""}</span>`
+      + `<span class="layout-row-name">${escapeHTML(sec.title)}<small>${sub}</small></span>`
+      + (isOff ? "" : `<button type="button" class="layout-pin${pinned ? " on" : ""}" data-pin aria-pressed="${pinned}" aria-label="${pinned ? "Unpin" : "Pin"} ${escapeHTML(sec.title)}">${PIN}</button>`)
       + (sec.blurb ? `<button class="layout-info-btn" data-info aria-label="About this section">`
           + `<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="5.2" r="0.85" fill="currentColor"/><rect x="7.3" y="7" width="1.4" height="4.2" rx="0.7" fill="currentColor"/></svg>`
           + `</button>` : "")
-      + `<span class="layout-toggle${off ? "" : " on"}" data-toggle role="switch" aria-checked="${!off}"></span>`
+      + `<span class="layout-toggle${isOff ? "" : " on"}" data-toggle role="switch" aria-checked="${!isOff}"></span>`
       + (sec.blurb ? `<div class="layout-blurb" data-blurb>${escapeHTML(sec.blurb)}</div>` : "")
       + `</div>`;
-  }).join("");
+  };
+  list.innerHTML = `<div class="layout-group" data-group-head="home">On Home</div>`
+    + onHome.map((k, i) => row(k, i + 1, "home")).join("")
+    + (rest.length ? `<div class="layout-group" data-group-head="rest">Not on Home this time</div>` + rest.map(k => row(k, "", "rest")).join("") : "")
+    + (off.length ? `<div class="layout-group" data-group-head="off">Hidden</div>` + off.map(k => row(k, "", "off")).join("") : "");
   bindLayoutRows(list);
+}
+// Pin a section to the place it's in now; one that isn't on Home takes the last rotating place
+function toggleLayoutPin(key) {
+  const pins = vhCleanPins(homeLayout.pins);
+  if (pins[key]) delete pins[key];
+  else {
+    let place = _vhShowList.indexOf(key) + 1;
+    if (!place) {
+      for (let i = Math.min(VH_AUTO_MAX, Math.max(_vhShowList.length, 1)); i >= 1; i--) { const k = _vhShowList[i - 1]; if (!k || !pins[k]) { place = i; break; } }
+      if (!place && _vhShowList.length < VH_AUTO_MAX) place = _vhShowList.length + 1;
+    }
+    if (!place) { toast("Every place is pinned. Unpin one first", "notice"); return; }
+    pins[key] = place;
+  }
+  homeLayout.pins = pins;
+  _frozenOrder = null;
+  renderLayoutList();
+  if (activeTab === "home") renderHome(); // preview; Save persists
 }
 
 function bindLayoutRows(list) {
   list.querySelectorAll(".layout-toggle").forEach(t => {
     t.addEventListener("click", () => toggleLayoutSection(t.closest(".layout-row").dataset.key));
+  });
+  list.querySelectorAll(".layout-pin").forEach(b => {
+    b.addEventListener("click", () => toggleLayoutPin(b.closest(".layout-row").dataset.key));
   });
   list.querySelectorAll(".layout-handle").forEach(h => {
     h.addEventListener("pointerdown", e => layoutDragStart(e, h.closest(".layout-row")));
@@ -13703,6 +13792,8 @@ function toggleLayoutSection(key) {
   const hidden = new Set(homeLayout.hidden || []);
   if (hidden.has(key)) hidden.delete(key); else hidden.add(key);
   homeLayout.hidden = [...hidden];
+  if (hidden.has(key) && homeLayout.pins) { const pins = vhCleanPins(homeLayout.pins); delete pins[key]; homeLayout.pins = pins; }   // v7.3.0: hiding unpins
+  _frozenOrder = null;
   renderLayoutList();
   if (activeTab === "home") renderHome(); // preview only; Save persists
 }
@@ -13710,7 +13801,7 @@ function toggleLayoutSection(key) {
 // "Reset to default" now means "hand it back to the app", not "restore a fixed
 // order" — the default IS the dynamic layout.
 function resetHomeLayout() {
-  homeLayout = { order: [], hidden: [], auto: true, ts: homeLayout.ts, v: 1 };
+  homeLayout = { order: [], hidden: [], pins: {}, auto: true, ts: homeLayout.ts, v: 1 };
   _frozenOrder = null;
   renderLayoutList();
   if (activeTab === "home") renderHome(); // preview; Save persists the reset
@@ -13744,18 +13835,18 @@ function vhHomeMenuEdit() {
 // happens in vhResetLayoutConfirmed.
 async function vhHomeMenuReset() {
   vhHomeMenuClose();
-  const v = await vaultDelete({ title: "Arrange Home automatically?", sub: "Section order and hidden sections",
-    lead: "Vault goes back to arranging Home for you. This Month, Goals, Recent Activity and Upcoming stay at the top, and the other sections reorder every few hours to show what's new. Hidden sections come back.",
-    options: [{ value: "reset" }], ok: "Arrange automatically" });
+  const v = await vaultDelete({ title: "Unpin all sections?", sub: "Pins and hidden sections",
+    lead: "Every section goes back to rotating, so Vault picks what Home shows every few hours. Hidden sections come back.",
+    options: [{ value: "reset" }], ok: "Unpin all" });
   if (v) vhResetLayoutConfirmed();
 }
 // Persists immediately (fresh ts + save + sync), unlike the modal's preview reset.
 function vhResetLayoutConfirmed() {
-  homeLayout = { order: [], hidden: [], auto: true, chosen: true, ts: Date.now(), v: 1 };
+  homeLayout = { order: [], hidden: [], pins: {}, auto: true, chosen: true, ts: Date.now(), v: 1 };
   _frozenOrder = null;
   saveHomeLayout(false); // ts already stamped
   if (activeTab === "home") renderHome();
-  toast("Home is arranged automatically");
+  toast("Every section rotates");
 }
 
 // ── Pointer-based drag reorder ────────────────────────────────────────────────
@@ -13827,7 +13918,7 @@ function layoutDragEnd() {
   row.removeEventListener("pointerup", layoutDragEnd);
   row.removeEventListener("pointercancel", layoutDragEnd);
   _layoutDrag = null;
-  commitLayoutOrder();
+  commitLayoutOrder(row.dataset.key);
 }
 
 // Read the DOM row order back into homeLayout.order and persist.
@@ -13835,13 +13926,24 @@ function layoutDragEnd() {
 // on screen is captured wholesale, not just the row they moved — writing only the
 // dragged key would leave every other section to snap back to registry order the
 // instant auto stopped supplying the sequence.
-function commitLayoutOrder() {
+// v7.3.0: a drag pins the row where it's dropped. Rows above the "Not on Home" heading are the
+// places: the dragged row and every pinned row take their new place there. Dropped below the
+// places, the row isn't pinned any more and rotates.
+function commitLayoutOrder(dragged) {
   const list = document.getElementById("layout-list");
   if (!list) return;
-  homeLayout.order = [...list.querySelectorAll(".layout-row")].map(r => r.dataset.key);
-  homeLayout.auto = false;
+  const pins = vhCleanPins(homeLayout.pins), next = {};
+  let place = 0, inPlaces = true;
+  [...list.children].forEach(c => {
+    if (c.classList.contains("layout-group")) { if (c.dataset.groupHead !== "home") inPlaces = false; return; }
+    if (!c.classList.contains("layout-row")) return;
+    const k = c.dataset.key;
+    if (inPlaces) { place++; if ((pins[k] || k === dragged) && place <= VH_AUTO_MAX && c.dataset.group !== "off") next[k] = place; }
+  });
+  homeLayout.pins = vhCleanPins(next);
+  homeLayout.order = []; homeLayout.auto = true;
   _frozenOrder = null;
-  renderLayoutMode();
+  renderLayoutList();
   if (activeTab === "home") renderHome(); // preview; Save persists
 }
 
@@ -17036,7 +17138,8 @@ const VH_SECTION_MAP = Object.fromEntries(VH_SECTIONS.map(s => [s.key, s]));
 // Anchors — always shown, always in this order, at the top. Not a stable spine in
 // the design sense (they still move relative to each other's absence); these are
 // simply the sections that answer "where am I, what is next" and are never noise.
-const VH_AUTO_ANCHORS = ["month", "goals", "recent", "upcoming"];
+// v7.3.0: none. Every section rotates (Eliot, 16 Nov); pin a section to keep it in a place.
+const VH_AUTO_ANCHORS = [];
 
 // Shown to a vault too new to rank: nothing has any history to be interesting yet.
 const VH_AUTO_COLDSTART = ["month", "goals", "recent", "upcoming", "overview", "chart"];
@@ -17158,13 +17261,9 @@ function vhAutoScores() {
   // ── BASELINE ──────────────────────────────────────────────────────────────
   // Anchors floor high so they are always in the cycle; the rest sit low and rely
   // on news, season or rotation to surface.
-  VH_AUTO_ANCHORS.forEach(k => put(k, Math.max(out[k] ? out[k].score : 0, 100), null));
-  // Allocation and Trend floor above (low baseline + full rotation), so a minor
-  // section coming round on rotation can never push either of them off the screen —
-  // only actual news can. 12 + 35 = 47, hence 60.
-  ["overview", "chart"].forEach(k => put(k, Math.max(out[k] ? out[k].score : 0, 60), null));
-  ["compare", "heatmap", "rhythm", "journey", "milestones"].forEach(
-    k => put(k, Math.max(out[k] ? out[k].score : 0, 12), null));
+  // v7.3.0: one baseline for every section (there were anchors at 100 and Allocation and Trend
+  // at 60, so half of Home never moved). News and rotation decide; pins hold places.
+  VH_SECTIONS.forEach(s => put(s.key, Math.max(out[s.key] ? out[s.key].score : 0, 12), null));
 
   // ── ROTATION ──────────────────────────────────────────────────────────────
   // Age since last surfaced, in cycles, worth up to ~35 points. Enough to lift a
@@ -17182,12 +17281,17 @@ function vhAutoScores() {
 // to the bottom of.
 function vhAutoSequence() {
   const known = VH_SECTIONS.map(s => s.key);
-  const picked = (autoLayout.order || []).filter(k => known.includes(k));
-  if (picked.length) return picked;
-  // No cycle has run yet (first ever load): fall back to the cold-start order
-  // rather than inventing one, so the very first paint is deterministic.
-  return [...VH_AUTO_COLDSTART.filter(k => known.includes(k)),
-          ...known.filter(k => !VH_AUTO_COLDSTART.includes(k))];
+  // The last ranking (v7.3.0), or a layout from an older device (its show-list), or, before any
+  // cycle has run, the cold-start order, so the very first paint is deterministic.
+  const ranked = (autoLayout.ranked && autoLayout.ranked.length) ? autoLayout.ranked
+    : (autoLayout.order && autoLayout.order.length) ? [...autoLayout.order, ...known.filter(k => !autoLayout.order.includes(k))] : null;
+  const cold = !ranked;
+  const base = (ranked || [...VH_AUTO_COLDSTART, ...known.filter(k => !VH_AUTO_COLDSTART.includes(k))]).filter(k => known.includes(k));
+  const showMax = cold ? VH_AUTO_COLDSTART.length
+    : (autoLayout.ranked && autoLayout.ranked.length) ? VH_AUTO_MAX : Math.min(VH_AUTO_MAX, autoLayout.order.length);
+  const c = vhComposeOrder(base, showMax);
+  _vhShowList = c.order; _vhSpares = c.spares;
+  return [...c.order, ...c.spares, ...known.filter(k => !c.order.includes(k) && !c.spares.includes(k))];
 }
 
 // Run a cycle: score, pick, record what was shown, persist, sync.
@@ -17197,15 +17301,16 @@ function vhComputeAutoOrder() {
     try { return vhAllTx().length >= 8; } catch (e) { return false; }
   })();
 
-  let order, reasons = {};
+  let order, ranked, reasons = {};
   if (!enoughHistory) {
-    order = VH_AUTO_COLDSTART.filter(k => known.includes(k));
+    ranked = [...VH_AUTO_COLDSTART.filter(k => known.includes(k)), ...known.filter(k => !VH_AUTO_COLDSTART.includes(k))];
+    order = vhComposeOrder(ranked, VH_AUTO_COLDSTART.length).order;
+    ranked = [];                                   // cold start: no ranking to keep
   } else {
     const scores = vhAutoScores();
-    const rest = known
-      .filter(k => !VH_AUTO_ANCHORS.includes(k))
-      .sort((a, b) => (scores[b].score - scores[a].score) || known.indexOf(a) - known.indexOf(b));
-    order = [...VH_AUTO_ANCHORS.filter(k => known.includes(k)), ...rest].slice(0, VH_AUTO_MAX);
+    ranked = known.slice()
+      .sort((a, b) => ((scores[b] ? scores[b].score : 0) - (scores[a] ? scores[a].score : 0)) || known.indexOf(a) - known.indexOf(b));
+    order = vhComposeOrder(ranked, VH_AUTO_MAX).order;
     order.forEach(k => { if (scores[k] && scores[k].reason) reasons[k] = scores[k].reason; });
   }
 
@@ -17223,7 +17328,7 @@ function vhComputeAutoOrder() {
   // now, a freshly restored device kept its 6-section cold-start Home for up to six
   // hours, and its "newer" order then won on every other device too. At 0 it never
   // beats a real order from another device, and the next gate replaces it.
-  autoLayout = { order, computedAt: enoughHistory ? Date.now() : 0, reasons, shown, cycle };
+  autoLayout = { order, ranked, computedAt: enoughHistory ? Date.now() : 0, reasons, shown, cycle };
   _frozenOrder = null;                       // next read picks up the new sequence
   vhSavePrefs();
   if (typeof triggerCloudSync === "function") triggerCloudSync();
@@ -17232,7 +17337,6 @@ function vhComputeAutoOrder() {
 
 // The gate. Only ever called from a point where Home is not being read.
 function vhMaybeReorder(why) {
-  if (homeLayout.auto === false) return false;             // the user chose their own
   if (Date.now() - (autoLayout.computedAt || 0) < VH_REORDER_MS) return false;
   vhComputeAutoOrder();
   dbg("home: reorder fired from " + (why || "?"));
@@ -17330,6 +17434,7 @@ function renderHome() {
       if (vhLayoutHidden(key)) return;
       try { sec.render(); } catch (e) { dbg("section " + key + ": " + (e && e.message)); }
     });
+    vhFillEmptyPlaces();
     vhApplyCollapsed();
   } finally {
     if (!--_vhTxMemoDepth) _vhTxMemo = null;
@@ -17373,7 +17478,8 @@ function vhApplyLayout() {
   // order stays coherent if they're re-shown. Hidden only affects visibility (the
   // hidden attribute), never position.
   const order = vhLayoutOrder();
-  const reasons = (homeLayout.auto !== false && autoLayout.reasons) ? autoLayout.reasons : {};
+  const pinsNow = vhCleanPins(homeLayout.pins);
+  const reasons = Object.fromEntries(Object.entries(autoLayout.reasons || {}).filter(([k]) => !pinsNow[k]));   // a pinned section needs no "why"
   let anchor = document.getElementById("vh-hero") || panel.querySelector(".vh-searchbar");
   order.forEach(key => {
     const el = secByKey[key];
@@ -17383,6 +17489,30 @@ function vhApplyLayout() {
     if (anchor) { if (anchor.nextElementSibling !== el) panel.insertBefore(el, anchor.nextElementSibling); }
     else panel.appendChild(el);
     anchor = el; // hidden rows still advance the anchor, holding their slot
+  });
+}
+
+// v7.3.0: a section on Home that hid itself (nothing to show) gives its place to the next spare
+// that does have something, so pinned sections below it keep their places.
+function vhFillEmptyPlaces() {
+  const panel = document.getElementById("home-panel");
+  if (!panel || !_vhShowList.length) return;
+  const el = k => panel.querySelector(`.vh-section[data-vh-section="${k}"]`);
+  const empty = x => !x || x.style.display === "none";
+  const spares = _vhSpares.slice();
+  _vhShowList.forEach(k => {
+    const gap = el(k);
+    if (!empty(gap) || gap.hidden) return;
+    while (spares.length) {
+      const sk = spares.shift(), sec = VH_SECTION_MAP[sk], sEl = el(sk);
+      if (!sec || !sEl || (homeLayout.hidden || []).includes(sk)) continue;
+      sEl.hidden = false;
+      try { sec.render(); } catch (e) { dbg("section " + sk + ": " + (e && e.message)); }
+      if (empty(sEl)) { sEl.hidden = true; continue; }
+      vhSetSectionWhy(sEl, null);
+      gap.parentNode.insertBefore(sEl, gap.nextSibling);
+      break;
+    }
   });
 }
 
@@ -23394,7 +23524,7 @@ function initApp() {
   // section sees the fully-populated recurRules on its first render.
   // Gate 1 of 2 — see the note in hideLockScreen(). vhLoadPrefs() is safe to call
   // twice; vhInit() calls it again and it is a pure read of localStorage.
-  vhLoadPrefs(); vhMaybeReorder("page load");
+  vhLoadPrefs(); vhMaybeReorder("page load"); try { vhMigrationNote(); } catch (e) {}
   if (!_didHomeLanding) { _didHomeLanding = true; _navReplaceNext = true; switchTab("home"); }
   bindHourlyTick();
   try {
@@ -24802,7 +24932,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v7.2.1</div>
+          <div class="pp-meta" id="about-version-meta">Version v7.3.0</div>
         </div>
 
         <div class="pp-cards">
@@ -24915,7 +25045,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v7.2.1</div>
+  <div id="version-footer">v7.3.0</div>
 
 <!-- Lightweight Charts 4.2.3 (Apache-2.0, TradingView, Inc.): draws the Charts screen. -->
 <script>

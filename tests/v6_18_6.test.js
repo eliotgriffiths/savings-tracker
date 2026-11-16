@@ -190,7 +190,8 @@ setTimeout(async () => {
       // The ranker still can't undo a hand-made layout
       tick(); B.E(`homeLayout = { order: ["goals","month"], hidden: [], auto: false, ts: Date.now(), v: 1 }; saveHomeLayout(false);`); await sleep(20);
       tick(); A.E(`homeLayout = { order: [], hidden: [], auto: true, ts: Date.now() + 99999, v: 1 };`); await A.sync();
-      ok(A.E("homeLayout.auto") === false, "#8 a layout nobody chose still loses to a hand-made one, whatever its time");
+      // v7.3.0: a hand-made order becomes rotation, but the chosen layout (its hidden sections) still wins
+      ok(A.E("homeLayout.auto") === false || A.E("homeLayout.chosen") === true, "#8 a layout nobody chose still loses to a hand-made one, whatever its time");
       A.w.close(); B.w.close();
     }
 
