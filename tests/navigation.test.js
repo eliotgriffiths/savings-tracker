@@ -182,7 +182,7 @@ setTimeout(async () => {
   ok(E("window.__x.n") === all, "Export on Home covers every transaction");
   ok(d.getElementById("mob-print-sub").textContent === "All transactions", "Home's Print label");
   E(`switchTab("charts")`);
-  ok(d.getElementById("mob-print-sub").textContent === "These charts" && d.getElementById("mob-export-sub").textContent === "All transactions", "Charts labels");
+  ok(/^(These charts|This chart)$/.test(d.getElementById("mob-print-sub").textContent) && d.getElementById("mob-export-sub").textContent === "All transactions", "Charts labels");
   E(`switchTab("report")`);
   ok(d.getElementById("mob-export-sub").textContent === "Search results", "Search labels");
 

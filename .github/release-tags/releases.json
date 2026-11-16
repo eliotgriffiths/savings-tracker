@@ -1930,5 +1930,42 @@
       "Vault remembers which format you chose last on each device"
     ],
     "versioned_at_release": true
+  },
+  {
+    "tag": "v7.1.1",
+    "sha": "7d21c8a899479fe0bb62a742c467a03aa04adbc2",
+    "commits": [
+      "7d21c8a"
+    ],
+    "date": "2026-11-16",
+    "type": "Patch",
+    "judgement_call": false,
+    "previous_version": null,
+    "notes": [
+      "Pulling down on the Menu, the period picker, Add or any tray now moves the whole sheet once it's scrolled to the top, so the handle stays on its edge instead of bouncing away",
+      "Home's Reset to default is now Arrange automatically, and says what that means: This Month, Goals, Recent Activity and Upcoming stay at the top, and the rest reorder every few hours",
+      "Customise Home says whether Home is arranged automatically or in your order, and that dragging a section switches to your order"
+    ],
+    "versioned_at_release": true
+  },
+  {
+    "tag": "v7.2.0",
+    "sha": "0c5395d06f7b48bdb910a5c0e5e0f9c7e17ebf9b",
+    "commits": [
+      "0c5395d"
+    ],
+    "date": "2026-11-16",
+    "type": "Minor",
+    "judgement_call": false,
+    "previous_version": null,
+    "notes": [
+      "Charts is now one big chart you can set up however you like: balance, net saved, in and out, deposits, withdrawals or interest, for all accounts or one, by week, month, quarter or year",
+      "Choose area, line, steps, candles or columns, and add an average, a trend line, a projection to your next goal, your typical range, the same time last year, or each account as its own line",
+      "Presets: switch between Balance, Net saved, In and out and Year by year, or save your own setups. Yours are kept in your backup, so they're on every device",
+      "Everything is in one Customise panel, and the box under the chart says what it's showing",
+      "Pinch to zoom, drag to look back in time, and touch and hold to see the figures for any period",
+      "Print prints the chart as you've set it up"
+    ],
+    "versioned_at_release": true
   }
 ]

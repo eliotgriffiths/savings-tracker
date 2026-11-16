@@ -235,13 +235,13 @@ setTimeout(async () => {
     await settle(); E(`closeEncryptionMenu()`); await settle();
     E(`homeLayout = { order: ["goals"], hidden: ["streak"], auto: false, ts: 5, v: 1 }`);
     E(`vhHomeMenuReset()`); await sleep(0);
-    ok(delOpen() && $("del-title").textContent === "Reset Home layout?" && okBtn().textContent === "Reset" && !okBtn().disabled, "Home ⋮ › Reset to default asks in the same tray (it was a centred alert)");
+    ok(delOpen() && /^(Reset Home layout|Arrange Home automatically)\?$/.test($("del-title").textContent) && /^(Reset|Arrange automatically)$/.test(okBtn().textContent) && !okBtn().disabled, "Home ⋮ › Reset to default asks in the same tray (it was a centred alert)");
     d.querySelector("#del-foot .pbtn-secondary").click(); await sleep(10);
     ok(E(`homeLayout.hidden.length`) === 1, "Cancel keeps the layout");
     await settle();
     E(`vhHomeMenuReset()`); await sleep(0); okBtn().click(); await sleep(10);
     ok(E(`homeLayout.auto === true && homeLayout.hidden.length === 0 && homeLayout.order.length === 0`), "Reset restores the default layout");
-    ok(/Home layout reset to default/.test(toastText()), "…and says so");
+    ok(/Home layout reset to default|Home is arranged automatically/.test(toastText()), "…and says so");   // v7.1.1 wording
     await settle();
 
     // Version
