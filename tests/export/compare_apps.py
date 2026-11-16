@@ -265,7 +265,13 @@ if g_meta and "Transactions" in g_meta:
 
 # 6. nothing is cut off or shown as ### in a program's picture. Two looks: the PDF's text (a
 # program that drops clipped letters) and OCR of the picture (one that draws them under a clip).
-def ocr(img):
+def ocr(img, rows=None):
+    # small text reads badly (Google's PDF shrinks the sheet to the page), so enlarge the
+    # picture until each row is at least 60 px tall
+    if rows:
+        k = 60 * rows / max(1, img.height)
+        if k > 1:
+            img = img.resize((int(img.width * k), int(img.height * k)), Image.LANCZOS)
     try:
         import pytesseract
         return pytesseract.image_to_string(img, config="--psm 6")
@@ -295,7 +301,7 @@ for app, by_sheet in renders.items():
         text = norm(" ".join(t for _, t in pages))
         cells = {norm(c) for r in views[app].get(sheet, []) for c in r if norm(c)}
         cut = {c for c in cells if c not in text}
-        seen = ocr(img)
+        seen = ocr(img, len(views[app].get(sheet, [])) + 1)
         if seen is not None:
             cut |= set(words_missing(cells, seen))
         hashes = "###" in text or (seen is not None and "##" in seen)

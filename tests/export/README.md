@@ -58,12 +58,14 @@ Send Eliot `out/vault-export.xlsx`. He opens it in each program, takes a screens
 
 ## Trying a fix first
 
-`candidate.js` takes the workbook the app makes, applies the tweaks being tried, and writes it to `out-candidate/`. Run `compare_apps.py tests/export/out-candidate` (and the Google step on that folder) to see whether each tweak holds up everywhere, before any of it goes into `exportRowsXLSX`. Nothing in `candidate.js` changes the app.
+`candidate.js` takes the workbook the app makes, applies the tweaks being tried, and writes it to `out-candidate/` (or the folder given). `CANDIDATE_FONT=Arial` sets the file's font, and `CANDIDATE_FREEZE=0` leaves the header row unfrozen. Run `compare_apps.py tests/export/out-candidate` (and the Google step on that folder) to see whether each tweak holds up everywhere, before any of it goes into `exportRowsXLSX`. Nothing in `candidate.js` changes the app.
 
 ## Things learned building it (16 Nov 2026)
 
 - LibreOffice's CSV export writes raw values unless token 9 ("save cell contents as shown") is `true`. Gnumeric needs `--export-type=Gnumeric_stf:stf_assistant -O format=preserve`. Without those, every number format looks ignored. If the harness says a format is ignored, check this first.
 - LibreOffice's `SinglePageSheets` PDF option draws each sheet on one page sized to it. Gnumeric and Google split pages, so the harness assigns each page to a sheet by its text and puts the pages side by side.
 - SheetJS's free build writes number formats (`cell.z`) and column widths, but not frozen panes, bold text or alignment. `candidate.js` adds those by editing the file's XML after it's written, using SheetJS's own zip reader (`XLSX.CFB`; paths start with `/`). LibreOffice, Gnumeric, Google Sheets and openpyxl all read the result.
-- OCR mixes up O/0 and l/1 ("1 Oct" reads as "1 0ct"), so the comparison folds those together.
+- OCR mixes up O/0 and l/1 ("1 Oct" reads as "1 0ct"), so the comparison folds those together. It also misreads small text, so pictures are enlarged to at least 60 px a row first (Google's PDF shrinks the sheet to fit the page).
+- **iPhone's file preview (Files, Mail; 16 Nov):** it draws Calibri, SheetJS's default font, as Times, because iPhone doesn't have Calibri. Arial is on iPhone, Windows and Mac and is Google Sheets' default; LibreOffice swaps in Liberation Sans, which is the same width. Arial runs about 15 % wider than Calibri, so widths measured in characters need room for it.
+- On the trial file with a frozen header row, iPhone's preview pushed the totals rows to the bottom of the screen, with blank rows above them. Check this in the preview whenever frozen rows change.
 - The file is named `compare_apps.py`, not `inspect.py`: a file called `inspect.py` hides Python's own `inspect` module, and openpyxl fails to import.

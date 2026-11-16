@@ -3,6 +3,10 @@
 // up in every program. Nothing here changes the app: once a tweak proves itself, it moves into
 // exportRowsXLSX in index.html.
 // Usage: TZ=Australia/Brisbane node tests/export/candidate.js [path/to/index.html] [outDir]
+// Options (environment): CANDIDATE_FONT=Arial sets the file's font (default: SheetJS's Calibri);
+// CANDIDATE_FREEZE=0 leaves the header row unfrozen.
+const FONT = process.env.CANDIDATE_FONT || "";
+const FREEZE = process.env.CANDIDATE_FREEZE !== "0";
 const { JSDOM, VirtualConsole } = require("jsdom");
 const fs = require("fs"), path = require("path");
 const here = __dirname;
@@ -59,9 +63,12 @@ function tweak(X, wb) {
     for (let C = rr.s.c; C <= rr.e.c; C++) {
       let n = 6;
       for (let R = rr.s.r; R <= rr.e.r; R++) n = Math.max(n, shown(ws[X.utils.encode_cell({ r: R, c: C })]).length);
-      cols.push({ wch: Math.min(60, n + 3) });
+      // Arial's letters run wider than Calibri's, which "characters" are measured in
+      cols.push({ wch: Math.min(66, Math.ceil(n * (FONT ? 1.15 : 1)) + 3) });
     }
     ws["!cols"] = cols;
+    // a set row height, so a taller glyph (✓) isn't clipped at the bottom
+    if (FONT) ws["!rows"] = Array.from({ length: rr.e.r + 1 }, () => ({ hpt: 17 }));
   };
   fit(tx);
   // Summary's title in A1 runs across B; size A to its labels only
@@ -77,6 +84,8 @@ function patchXlsx(X, buf, wb) {
   const put = (e, s) => { e.content = Buffer.from(s, "utf8"); e.size = e.content.length; };
   // bold: a second font, and a copy of each cell style that uses it
   const st = get("xl/styles.xml"); let css = txt(st);
+  // every font in the file uses FONT (Calibri isn't on iPhone, so its file preview drew Times)
+  if (FONT) css = css.replace(/<name val="[^"]*"\/>/g, `<name val="${FONT}"/>`).replace(/<scheme val="minor"\/>/g, "");
   css = css.replace(/<fonts count="(\d+)">([\s\S]*?)<\/fonts>/, (m, n, body) => {
     const first = /<font>[\s\S]*?<\/font>/.exec(body)[0];
     return `<fonts count="${+n + 1}">${body}${first.replace("<font>", "<font><b/>")}</fonts>`;
@@ -99,7 +108,9 @@ function patchXlsx(X, buf, wb) {
     const e = get(`xl/worksheets/sheet${i + 1}.xml`); let x = txt(e);
     const boldRow = name === "Transactions" ? /<c r="[A-Z]+1"( s="\d+")?/g : /<c r="A1"( s="\d+")?/g;
     x = x.replace(boldRow, m => m.replace(/ s="\d+"/, "") + ` s="${boldXf}"`);
-    if (name === "Transactions") {
+    if (name === "Transactions" && !FREEZE) {
+      x = x.replace(/<c r="E(\d+)"( s="\d+")?/g, (m, row) => row === "1" ? m : `<c r="E${row}" s="${centreXf}"`);
+    } else if (name === "Transactions") {
       x = x.replace(/<c r="E(\d+)"( s="\d+")?/g, (m, row) => row === "1" ? m : `<c r="E${row}" s="${centreXf}"`);
       x = x.replace(/<sheetView ([^>]*?)\/>/, '<sheetView $1><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft"/></sheetView>');
     }
