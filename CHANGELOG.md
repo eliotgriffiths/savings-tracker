@@ -10,6 +10,41 @@ Version numbers follow [Semantic Versioning](https://semver.org/) and were assig
 
 The first release is v1.0.0. A major bump resets minor and patch to 0, a minor bump resets patch to 0, and patch rolls over into the next minor after .99. Types marked \* are judgement calls, explained in [Notes](#notes) at the end.
 
+## v8.0.0 — 2026-11-20
+
+Major · `3806391`
+
+- Search and the transaction list are now one Transactions screen: search, filters and the list in one place
+- The tab bar is Home · Transactions · + · Charts · Menu, and Charts has left the Menu
+- Filters has everything: dates (any month, any year, This FY, Last FY, this calendar year or your own dates), type, accounts, amount, recurring and currency, in one list with simple menus
+- Filters apply when you tap “Show N results”, and stay while Vault is open
+- What's active shows as chips at the top of the list, each with ✕ to remove it; the year and month picker, the Saved/Withdrawn tabs and the account pills are gone
+- Every word you search for is its own chip: “ubank 250” shows UBank and Contains 250
+- Tap ⇄ on a number's chip to switch between “contains” and “exactly”; Number search in Filters sets the default
+- Misspelt something? “Did you mean UBank?” suggests your account names, currencies, types and months, on Home's search too
+- Search understands more words: deposits, withdrawals, withdrawn and saved (deposits and interest), and “interest” always means interest even if an account is called that
+- An account picked in Filters and one typed in the search both show (ING picked + “ubank” typed = both accounts)
+- From Home, See all, a transaction, an account or Recent Activity opens Transactions with the right filters
+- Back goes to the previous screen, not to the previous filter
+- A foreign-currency account's totals show in its own currency again
+- Big totals now fit their cards on small phones
+
+## v7.3.1 — 2026-11-20
+
+Patch · `623980a`
+
+- No more red banner flashing at start-up when a backup is set up; the banner shows only when there's actually no backup, and it's orange
+- With NAS or a local file, the backup pill no longer says “No backup” for a moment when Vault opens
+- Fewer pop-up messages: changes you can see on screen (a colour, a saved preset, an edited transaction, a new account) no longer show a message
+- Mistakes in a form (“Enter a valid amount”, “End date must be after start date”) now show under the field instead of at the top of the screen
+- An Undo is no longer pushed out by other messages; tap a message to close it
+- Messages are worded more plainly, and orange now means something happened without you, red means an error
+- AI provider: “Enable encryption” opens the right place, and testing a key shows “Testing…” on the button
+- OneDrive, Dropbox and Holdings are marked Soon and can't be tapped
+- Home: the same sections no longer sit at the top all the time; news lifts a section once, routine withdrawals aren't news, and the first place changes
+- Home: a streak “ended” only when one actually ended, records use finished months, and This Month compares the month so far fairly
+- Home: Upcoming is lifted when something is due today or tomorrow, and Goals when a goal is reached or a deadline passes
+
 ## v7.3.0 — 2026-11-16
 
 Minor · `c7caba5`
