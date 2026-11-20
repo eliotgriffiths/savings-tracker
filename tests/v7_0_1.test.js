@@ -36,7 +36,7 @@ setTimeout(() => {
     ok(decl(".sheet-handle::before", "top") === "9px" && decl(".sheet-handle::before", "width") === "36px" && decl(".sheet-handle::before", "height") === "4px",
        "the bar is where it was (9 px down, 36 × 4), so the hand-over in a tray move doesn't shift it");
     ok(decl("#add-sheet .sheet-handle", "margin") === "0 -20px", "Add's strip reaches the sheet's edges past its padding");
-    ["menu-sheet", "year-sheet", "add-sheet"].forEach(id => {
+    ["menu-sheet", "add-sheet"].forEach(id => {   // v8.0.0: the period picker (year-sheet) is gone
       const sh = d.getElementById(id);
       ok(sh && sh.firstElementChild && sh.firstElementChild.classList.contains("sheet-handle"), `${id} starts with the handle`);
     });

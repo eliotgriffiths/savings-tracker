@@ -26,19 +26,22 @@ setTimeout(() => {
         ["2026-04-02", 200, "t5", 5, null, null, "ing"],
         ["2026-06-01", 60, "t6", 6, null, null, "ub"],
       ] };
-    activeYear = fy; activeMonth = null; activeTab = "all"; activeAccountFilter = "all";
+    switchTab("all"); asF = asBlank(); asSetQuery("");
     window.__print = null;
     openPdfWindow = o => { window.__print = o; };
   `);
   const sig = r => r.date + "|" + r.amt + "|" + r.type;
-  const screen = () => E(`(_dataVersion = (_dataVersion||0) + 1, render(), _currentRows.map(r => r[0] + "|" + r[1] + "|" + (r[2] === "removed" ? "Withdrawal" : r[4] === "interest" ? "Interest" : "Deposit")))`);
-  const printed = () => { E("printCurrentView()"); return { rows: w.__print.rows.map(sig), sub: w.__print.subLine }; };
+  // v8.0.0: Transactions is the list on screen (its rows are _asRows); Print there is menuPrint()
+  const screen = () => E(`(_dataVersion = (_dataVersion||0) + 1, render(), _asRows.map(t => t.date + "|" + t.amt + "|" + (t.kind === "wit" ? "Withdrawal" : t.kind === "int" ? "Interest" : "Deposit")))`);
+  const printed = () => { E("menuPrint()"); return { rows: w.__print.rows.map(sig), sub: w.__print.subLine }; };
+  const printedHome = () => { E("printCurrentView()"); return { rows: w.__print.rows.map(sig), sub: w.__print.subLine }; };
 
   const cases = [["date","asc"],["date","desc"],["amount","desc"],["amount","asc"],["account","asc"],["account","desc"],["type","asc"],["type","desc"]];
   cases.forEach(([k, d]) => {
     E(`sortKey = ${JSON.stringify(k)}; sortDir = ${JSON.stringify(d)};`);
     const sc = screen(), pr = printed();
     ok(sc.length === 6 && JSON.stringify(sc) === JSON.stringify(pr.rows), `${k} ${d}: print matches screen\n  screen ${sc}\n  print  ${pr.rows}`);
+    ok(JSON.stringify(printedHome().rows) === JSON.stringify(sc), `${k} ${d}: Print from Home/Charts (every transaction) uses the same order`);
   });
 
   // Spot-check actual orders
@@ -50,20 +53,22 @@ setTimeout(() => {
 
   // Subtitles
   E(`sortKey = "date"; sortDir = "asc";`);
-  ok(!/Sorted/.test(printed().sub), "default Date ↑ adds nothing to subtitle: " + printed().sub);
+  ok(!/Sorted/.test(printedHome().sub), "Home: default Date ↑ adds nothing to subtitle: " + printedHome().sub);
+  ok(/Sorted by date, oldest first$/.test(printed().sub), "Transactions spells out the order, as Search did: " + printed().sub);
   const want = { "date desc": "Sorted by date, newest first", "amount desc": "Sorted by amount, largest first", "amount asc": "Sorted by amount, smallest first",
                  "account asc": "Sorted by account, A to Z", "type desc": "Sorted by type, withdrawals first" };
   Object.entries(want).forEach(([kd, text]) => {
     const [k, d] = kd.split(" ");
     E(`sortKey = "${k}"; sortDir = "${d}";`);
     const sub = printed().sub;
-    ok(sub.endsWith(" · " + text) && sub.startsWith("All transactions"), `${kd} subtitle: ${sub}`);
+    ok(sub.endsWith(" · " + text) && sub.startsWith("All dates"), `${kd} subtitle: ${sub}`);
+    ok(printedHome().sub === "All transactions · " + text, `${kd} Home subtitle`);
   });
 
   // Filters still respected alongside sort
-  E(`sortKey = "amount"; sortDir = "desc"; activeTab = "removed";`);
-  ok(JSON.stringify(printed().rows) === JSON.stringify(["2026-04-02|200|Withdrawal","2026-06-01|60|Withdrawal"]), "withdrawals tab + amount desc");
-  E(`activeTab = "all"; activeAccountFilter = "ing";`);
+  E(`sortKey = "amount"; sortDir = "desc"; asF.types = ["wit"];`);
+  ok(JSON.stringify(printed().rows) === JSON.stringify(["2026-04-02|200|Withdrawal","2026-06-01|60|Withdrawal"]), "withdrawals + amount desc");
+  E(`asF.types = []; asF.accs = ["ing"];`);
   ok(JSON.stringify(printed().rows) === JSON.stringify(["2026-04-02|200|Withdrawal","2026-05-10|75|Deposit","2026-03-31|12.5|Interest"]), "account filter + amount desc");
 
   // Printing doesn't change the remembered sort

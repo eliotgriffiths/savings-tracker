@@ -134,10 +134,8 @@ setTimeout(async () => {
   w.history.back(); await sleep(60);
   ok(!isOpen("privacy-popup"), "…and Back closes it");
 
-  // ── Period picker arrow ───────────────────────────────────────────────────
-  ok(/#fy-title::after \{\s*content: "▾"; font: 400 19px\/1 'DM Sans', sans-serif; color: var\(--gold\); background: var\(--bg3\);\s*border: 1px solid var\(--border\); border-radius: 10px; width: 40px; height: 40px;/.test(css),
-     "the list title's arrow matches the year buttons: 40×40, 19 px, bordered, gold");
-  ok(/\.ps-exp \{ width: 40px; height: 40px;[^}]*font-size: 19px;/.test(css), "(the year buttons it matches)");
+  // ── Period picker arrow: gone with the period picker in v8.0.0 ────────────
+  ok(!/#fy-title::after|\.ps-exp \{/.test(css), "no period picker arrow or year buttons");
 
   // ── Home Screen app ───────────────────────────────────────────────────────
   ok(/<link rel="manifest" href="manifest\.webmanifest">/.test(html), "links the manifest");

@@ -70,7 +70,7 @@ setTimeout(async () => {
   ok(!/#year-format-popup \.modal-close \{/.test(css), "Year format's ✕ matches the others (M12)");
 
   // ── Trays slide and lock the page ─────────────────────────────────────────
-  ok(/#menu-sheet, #year-sheet, #add-sheet \{\s*display: block;[^}]*transform: translateY\(100%\); visibility: hidden;/.test(css), "trays slide instead of appearing");
+  ok(/#menu-sheet, #add-sheet \{\s*display: block;[^}]*transform: translateY\(100%\); visibility: hidden;/.test(css), "trays slide instead of appearing");
   ok(/#sheet-overlay \{[^}]*opacity: 0; pointer-events: none; transition: opacity/.test(css), "the tray backdrop fades");
   E(`openMenuSheet()`); await sleep(20);
   ok(d.documentElement.classList.contains("vp-lock"), "an open tray locks the page with a class on <html>");
@@ -135,16 +135,8 @@ setTimeout(async () => {
   for (const id of ["enc-menu-popup", "enc-set-popup", "enc-decrypt-popup"])
     ok(!d.querySelector(`#${id} .btn-primary, #${id} .btn-local`), id + " uses pbtn buttons (M11)");
 
-  // ── Period picker: no title, chips in the head (decision 5) ───────────────
-  E(`switchTab("all"); activeYear = "all-years"; activeMonth = null; render(); openPeriodSheet();`);
-  ok(!d.querySelector("#year-sheet .sheet-title"), "the period picker has no title");
-  ok($("#year-sheet").getAttribute("aria-label") === "Choose a period", "…but keeps its label for screen readers");
-  ok($$("#ps-head .ps-chip").map(txt).join("|") === "This month|Last month|This year|All", "the quick chips are its head");
-  ok(!!d.querySelector("#year-sheet .sheet-header #ps-head + .sheet-close-btn"), "…beside the ✕");
-  ok(!d.querySelector("#ps-body .ps-chip"), "the chips aren't repeated in the body");
-  $$("#ps-head .ps-chip").find(b => txt(b) === "This month").click();
-  ok(E("activeMonth") === "2026-11" && !$("#year-sheet").classList.contains("open"), "a head chip still picks the period");
-  E(`closeSheets()`);
+  // ── Period picker: gone in v8.0.0 (Dates is a row in the Filters sheet) ────
+  ok(!d.getElementById("year-sheet") && E(`typeof openPeriodSheet`) === "undefined", "no period picker");
 
   // ── Add / Edit: coloured type picker, gold confirm (decision 3) ───────────
   E(`openAddSheet(); setMobType("withdraw")`);

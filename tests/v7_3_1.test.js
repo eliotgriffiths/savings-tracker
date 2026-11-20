@@ -176,7 +176,7 @@ setTimeout(async () => {
     E(`toast("Hello")`); toastEl().click();
     ok(toastEl().style.display === "none", "E1 tapping a toast closes it");
     // Edit transaction and Recurring use the same notes
-    ok(/vFieldErr\("popup-amount", "Enter an amount above zero"\)/.test(html) && /vFieldErr\("recur-end", "The end date must be after the start date"\)/.test(html) && /vFieldErr\("account-new-name"/.test(html) && /vFieldErr\("new-year-input"/.test(html) && /vFieldErr\("aikey-" \+ providerId/.test(html), "#4 every form's checks go under the field");
+    ok(/vFieldErr\("popup-amount", "Enter an amount above zero"\)/.test(html) && /vFieldErr\("recur-end", "The end date must be after the start date"\)/.test(html) && /vFieldErr\("account-new-name"/.test(html) && /vFieldErr\("aikey-" \+ providerId/.test(html), "#4 every form's checks go under the field");
 
     // A3 AI provider: the encryption link and the warning for any backup
     E(`setAIKey("gemini", "k"); nasLinked = true; openAIProviderSettings();`); await sleep(30);

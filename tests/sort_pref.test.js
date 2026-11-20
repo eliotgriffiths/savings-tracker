@@ -41,8 +41,9 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   ok(E(`applyRemoteSortPref({key:'account',dir:'desc',ts:${ts + 5000}})`) === true && E("sortKey") === "account" && E("sortDir") === "desc", "newer remote adopted");
   ok(JSON.parse(w.localStorage.getItem("vault_sort_v1")).key === "account", "adopted remote persisted locally");
   // header arrows
-  E("updateSortButtons()");
-  ok(/↓/.test(w.document.getElementById("sort-account").textContent) && /⇅/.test(w.document.getElementById("sort-date").textContent), "header shows active column + direction");
+  // v8.0.0: Transactions' table is the list (the old #tx-table and updateSortButtons are gone)
+  E(`data = { "2026": { saved: [["2026-01-01", 1, "a1", 1, null, null, null]], removed: [] } }; _dataVersion++; switchTab("all"); asRender();`);
+  ok(/↓/.test(w.document.getElementById("as-sort-account").textContent) && /⇅/.test(w.document.getElementById("as-sort-date").textContent), "header shows active column + direction");
   const stored = w.localStorage.getItem("vault_sort_v1");
   // reload restores
   ({ w, errors: errors } = boot({ vault_sort_v1: stored }));

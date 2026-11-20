@@ -40,35 +40,29 @@ setTimeout(async () => {
   ok(st().vault === "view" && st().tab === "home", "the current entry is Home: " + JSON.stringify(st()));
   const len0 = w.history.length;
 
-  // Home → Search → Charts, then Back twice.
-  E(`switchTab("report")`);
-  ok(st().tab === "report" && w.history.length === len0 + 1, "a new view adds one history entry");
+  // Home → Transactions → Charts, then Back twice. (v8.0.0: Search is part of Transactions)
+  E(`switchTab("all")`);
+  ok(st().tab === "all" && w.history.length === len0 + 1, "a new view adds one history entry");
   E(`asSetQuery("ubank"); asRender();`);
   E(`switchTab("charts")`);
   ok(w.history.length === len0 + 2, "Charts adds another");
   E(`render(); render();`);
   ok(w.history.length === len0 + 2, "re-rendering the same view adds nothing");
   await back();
-  ok(tab() === "report", "Back from Charts returns to Search: " + tab());
+  ok(tab() === "all", "Back from Charts returns to Transactions: " + tab());
   ok(E("asQ") === "ubank", "…with the last search still there: " + E("asQ"));
   await back();
   ok(tab() === "home", "Back again returns to Home: " + tab());
   ok(st().tab === "home", "history entry matches");
 
-  // Years and months are their own steps.
-  E(`setActiveYear("2026")`);
-  ok(tab() === "all" && E("activeYear") === "2026", "choosing 2026 opens the list");
-  E(`activeYear = "2026"; activeMonth = "2026-03"; render();`);
-  ok(st().month === "2026-03", "choosing a month adds a step");
-  await back();
-  ok(tab() === "all" && E("activeYear") === "2026" && E("activeMonth") === null, "Back goes from March to the whole of 2026");
-  E(`activeAccountFilter = "ub"; render();`);
-  const lenAcc = w.history.length;
-  E(`activeAccountFilter = "ing"; render();`);
-  ok(w.history.length === lenAcc, "account pills don't add steps");
-  ok(st().acc === "ing", "…but the entry remembers the account");
+  // v8.0.0 (queue #4): filters, chips and the search add no Back step; Back goes to the previous screen.
+  E(`switchTab("all")`);
+  const lenF = w.history.length;
+  E(`asF.date = "y:2026"; asRender(); render(); asF.accs = ["ub"]; asRender(); render(); asSetQuery("250"); asRender(); render();`);
+  ok(w.history.length === lenF && st().tab === "all", "filter changes add no steps");
   await back();
   ok(tab() === "home", "Back returns to Home");
+  E(`asF = asBlank(); asSetQuery("");`);
 
   // Back closes what's on top before changing screen.
   E(`switchTab("all")`);
@@ -117,21 +111,13 @@ setTimeout(async () => {
   const on = sel => [...d.querySelectorAll(sel)].map(b => b.dataset.nav).join(",");
   const bar = () => on("#tabbar [data-nav].nav-on"), side = () => on(".side-nav [data-nav].nav-on");
   const menu = () => on("#menu-sheet [data-nav].menu-item-active");
-  E(`activeYear = "all-years"; activeMonth = null; switchTab("home")`);
+  E(`switchTab("home")`);
   ok(bar() === "home" && side() === "home" && menu() === "", "on Home, Home is highlighted in the bar and sidebar");
-  ok(!d.getElementById("sidebar-allyears-btn").classList.contains("active"), "on Home, the sidebar's All isn't highlighted");
-  E(`renderPeriodSheet()`);
-  ok(!d.querySelector("#ps-body .on"), "on Home, nothing in the period picker is highlighted");
   E(`switchTab("all")`);
-  ok(bar() === "list" && side() === "", "on the list, Transactions is highlighted in the bar");
-  ok(d.getElementById("sidebar-allyears-btn").classList.contains("active"), "on the list, the sidebar's All is highlighted");
-  E(`renderPeriodSheet()`);
-  ok(!!d.querySelector('#ps-body .ps-row.on[data-y="all-years"]'), "on the list, All is highlighted in the period picker");
-  E(`switchTab("report")`);
-  ok(bar() === "report" && side() === "report", "on Search, Search is highlighted");
-  ok(d.querySelector('#tabbar [data-nav="report"]').getAttribute("aria-current") === "page", "aria-current marks it");
+  ok(bar() === "list" && side() === "list", "on Transactions, Transactions is highlighted in the bar and sidebar (v8.0.0)");
+  ok(d.querySelector('#tabbar [data-nav="list"]').getAttribute("aria-current") === "page", "aria-current marks it");
   E(`switchTab("charts")`);
-  ok(bar() === "" && side() === "charts" && menu() === "charts", "on Charts, Charts is highlighted in the Menu and sidebar");
+  ok(bar() === "charts" && side() === "charts" && menu() === "", "on Charts, Charts is highlighted in the bar and sidebar (it left the Menu)");
 
   // ── N7: backup status ───────────────────────────────────────────────────
   const btns = () => [...d.querySelectorAll("#ss-now-btns button")].map(b => b.textContent);
@@ -166,25 +152,27 @@ setTimeout(async () => {
      window.__p = null; openPdfWindow = o => { window.__p = o; };`);
   const all = E(`vhAllTx().length`);
   const in2026ub = E(`vhAllTx().filter(t => t.date.startsWith("2026") && t.accId === "ub" && t.kind !== "wit").length`);
-  E(`activeYear = "2026"; activeMonth = null; activeAccountFilter = "ub"; switchTab("saved"); menuExportXLSX();`);
-  ok(E("window.__x.n") === in2026ub, `Export on the list covers the list: ${E("window.__x.n")} vs ${in2026ub}`);
-  ok(E("window.__x.cov") === "2026 transactions · UBank · deposits only", "Export describes it: " + E("window.__x.cov"));
-  ok(/^vault-2026-transactions-ubank-deposits-only-2026-11-09\.xlsx$/.test(E("window.__x.fn")), "file name: " + E("window.__x.fn"));
-  ok(d.getElementById("mob-export-sub").textContent === "2026 transactions · UBank · deposits only", "menu says what Export covers: " + d.getElementById("mob-export-sub").textContent);
-  ok(d.getElementById("mob-print-sub").textContent === "2026 transactions · UBank · deposits only", "menu says what Print covers");
+  // v8.0.0: Transactions' filters say what Print and Export cover
+  E(`asF = asBlank(); asF.date = "y:2026"; asF.accs = ["ub"]; asF.types = ["dep", "int"]; switchTab("all"); menuExportXLSX();`);
+  ok(E("window.__x.n") === in2026ub, `Export on Transactions covers what it shows: ${E("window.__x.n")} vs ${in2026ub}`);
+  ok(/^1 Jan 2026 – 31 Dec 2026 · Deposits \+ Interest · UBank · Sorted by date, oldest first$/.test(E("window.__x.cov")), "Export describes it: " + E("window.__x.cov"));
+  ok(/^vault-2026-2026-11-09\.xlsx$/.test(E("window.__x.fn")), "file name from the dates: " + E("window.__x.fn"));
+  ok(d.getElementById("mob-export-sub").textContent === `${in2026ub} transactions · 2026 · Deposits + Interest · UBank`, "menu says what Export covers: " + d.getElementById("mob-export-sub").textContent);
+  ok(d.getElementById("mob-print-sub").textContent === d.getElementById("mob-export-sub").textContent, "menu says what Print covers");
   ok(d.getElementById("dmenu-print-sub").textContent === d.getElementById("mob-print-sub").textContent, "desktop menu matches");
   E(`menuPrint()`);
-  ok(E("window.__p.rows.length") === in2026ub, "Print on the list covers the same rows");
-  E(`activeAccountFilter = "all"; activeYear = "2026"; activeMonth = "2026-03"; switchTab("all");`);
-  ok(d.getElementById("mob-print-sub").textContent === "March 2026 transactions", "month label: " + d.getElementById("mob-print-sub").textContent);
+  ok(E("window.__p.rows.length") === in2026ub && E("window.__p.title") === "2026", "Print on Transactions covers the same rows, titled by the dates");
+  E(`asF = asBlank(); asF.date = "m:2026-03"; asRender();`);
+  ok(/^\d+ transactions? · March 2026$/.test(d.getElementById("mob-print-sub").textContent), "month label: " + d.getElementById("mob-print-sub").textContent);
+  E(`asF = asBlank(); asRender();`);
   E(`switchTab("home"); menuPrint(); menuExportXLSX();`);
   ok(E("window.__p.rows.length") === all, `Print on Home covers every transaction: ${E("window.__p.rows.length")} vs ${all}`);
   ok(E("window.__x.n") === all, "Export on Home covers every transaction");
   ok(d.getElementById("mob-print-sub").textContent === "All transactions", "Home's Print label");
   E(`switchTab("charts")`);
   ok(/^(These charts|This chart)$/.test(d.getElementById("mob-print-sub").textContent) && d.getElementById("mob-export-sub").textContent === "All transactions", "Charts labels");
-  E(`switchTab("report")`);
-  ok(d.getElementById("mob-export-sub").textContent === "Search results", "Search labels");
+  E(`switchTab("all")`);
+  ok(d.getElementById("mob-export-sub").textContent === `${all} transactions · All time`, "Transactions with no filters: " + d.getElementById("mob-export-sub").textContent);
 
   // ── version ─────────────────────────────────────────────────────────────
   const vf = d.getElementById("version-footer").textContent.trim();
