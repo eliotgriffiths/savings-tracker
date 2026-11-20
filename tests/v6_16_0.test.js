@@ -106,11 +106,11 @@ setTimeout(async () => {
   E(`void showCurrencyMismatchDialog({}, [], "USD")`); await sleep(50); toastText();
   ok(isOpen("currency-mismatch-popup") && !!d.querySelector("#currency-mismatch-popup .vp-head .modal-close"), "Currency mismatch has a ✕");
   d.querySelector("#currency-mismatch-popup .vp-head .modal-close").click(); await sleep(10);
-  ok(!isOpen("currency-mismatch-popup") && /Merge skipped/.test(toastText()), "closing Currency mismatch counts as Decide later");
+  ok(!isOpen("currency-mismatch-popup") && /Merge skipped|Not merged yet/.test(toastText()), "closing Currency mismatch counts as Decide later");
   ok(E("_pendingMerge") === null || E("_pendingMerge") === undefined, "…and the pending merge is dropped");
   E(`void showCurrencyMismatchDialog({}, [], "USD")`); await sleep(50); toastText();
   d.getElementById("currency-mismatch-popup").click(); await sleep(10);
-  ok(!isOpen("currency-mismatch-popup") && /Merge skipped/.test(toastText()), "…an outside tap too");
+  ok(!isOpen("currency-mismatch-popup") && /Merge skipped|Not merged yet/.test(toastText()), "…an outside tap too");
   ok($$("#currency-mismatch-popup .vp-opt").length === 4 && !d.querySelector("#currency-mismatch-popup .btn-local"), "its options use the option card, not btn-local (M11)");
 
   E(`window._dm = "unset"; void showDriveMergeDialog().then(c => window._dm = c)`); await sleep(10);

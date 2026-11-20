@@ -62,7 +62,7 @@ setTimeout(async () => {
     const firsts = new Set(), missingMonth = [];
     const cycles = [];
     for (let i = 0; i < 24; i++) {
-      P.tick(7 * 3600 * 1000); E(`vhMaybeReorder("test"); _frozenOrder = null; vhLayoutOrder();`);
+      P.tick(7 * 3600 * 1000); E(`vhMaybeReorder("test"); _frozenOrder = null; vhLayoutOrder(); switchTab("home"); renderHome();`);   // v7.3.1: stamped when drawn
       const o = J(`_vhShowList`); cycles.push(o);
       firsts.add(o[0]); if (!o.includes("month")) missingMonth.push(i);
     }
@@ -79,7 +79,7 @@ setTimeout(async () => {
     E(`homeLayout.pins = { goals: 2, chart: 7 }; _frozenOrder = null;`);
     const pinned = [];
     for (let i = 0; i < 12; i++) {
-      P.tick(7 * 3600 * 1000); E(`vhMaybeReorder("test"); _frozenOrder = null; vhLayoutOrder();`);
+      P.tick(7 * 3600 * 1000); E(`vhMaybeReorder("test"); _frozenOrder = null; vhLayoutOrder(); switchTab("home"); renderHome();`);   // v7.3.1: stamped when drawn
       pinned.push(J(`_vhShowList`));
     }
     ok(pinned.every(o => o[1] === "goals" && o[6] === "chart"), "a pinned section stays in its place every cycle");
@@ -136,11 +136,12 @@ setTimeout(async () => {
     E(`toggleLayoutSection("goals"); homeLayout.pins = { goals: 3 }; _frozenOrder = null; renderLayoutList();`);
     // Save
     E(`saveLayoutModal()`); await sleep(10);
-    ok(E(`__toasts.slice(-1)[0]`) === "Home layout saved" && E(`homeLayout.chosen`) === true && E(`homeLayout.ts`) > 0, "Save keeps it (chosen, stamped)");
+    ok(E(`homeLayout.chosen`) === true && E(`homeLayout.ts`) > 0, "Save keeps it (chosen, stamped)");   // v7.3.1: no toast
     const saved = JSON.parse(E(`localStorage.getItem("vault_home_ui")`)).homeLayout;
     ok(saved.pins && saved.pins.goals === 3, "…stored on this device");
+    const _ts0 = E(`homeLayout.ts`); P.tick(1000);
     E(`openLayoutModal(); saveLayoutModal();`);
-    ok(E(`__toasts.filter(t => t === "Home layout saved").length`) === 1, "opening and saving with no change doesn't save again");
+    ok(E(`homeLayout.ts`) === _ts0, "opening and saving with no change doesn't save again");
     // the cap
     E(`openLayoutModal(); homeLayout.pins = Object.fromEntries(_vhShowList.map((k, i) => [k, i + 1])); _frozenOrder = null; renderLayoutList();`);
     ok(/^Every place is pinned\./.test($("layout-mode").textContent), "all 11 pinned: it says nothing's left to rotate");
@@ -156,7 +157,7 @@ setTimeout(async () => {
     ok($("del-title").textContent === "Unpin all sections?" && /Every section goes back to rotating/.test($("del-lead").textContent) && /Hidden sections come back/.test($("del-lead").textContent), "it asks first, and says what happens");
     ok($("del-ok").textContent === "Unpin all", "button: Unpin all");
     $("del-ok").click(); await sleep(20);
-    ok(Object.keys(J(`vhCleanPins(homeLayout.pins)`)).length === 0 && J(`homeLayout.hidden`).length === 0 && E(`__toasts.slice(-1)[0]`) === "Every section rotates", "everything rotates again");
+    ok(Object.keys(J(`vhCleanPins(homeLayout.pins)`)).length === 0 && J(`homeLayout.hidden`).length === 0, "everything rotates again");   // v7.3.1: no toast
     await sleep(400);
     E(`vhHomeMenuToggle()`);
     ok($("vh-home-menu-auto").disabled, "nothing pinned or hidden: Unpin all is off");

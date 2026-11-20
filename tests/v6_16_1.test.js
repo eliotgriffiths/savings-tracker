@@ -183,7 +183,7 @@ setTimeout(async () => {
   net.refresh = "offline";
   await E(`initGoogleDrive()`);
   ok(E("gdLinked") === true && pill() === "Sync failed" && E("pendingRetry") === true, "startup offline: stays linked and retries (it used to say No backup)");
-  ok(/const _hasGD    = \(\(\) => \{ try \{ return !!JSON\.parse\(localStorage\.getItem\(GD_KEY\)/.test(html), "the startup Reconnecting… check reads the right key");
+  ok(/const _hasGD    = \(\(\) => \{ try \{ return !!JSON\.parse\(localStorage\.getItem\(GD_KEY\)/.test(html) || /const _hasBackup = compatBackupSetUp\(\);/.test(html), "the startup Reconnecting… check reads the right key");   // v7.3.1: one check, compatBackupSetUp()
   E(`clearTimeout(retryTimer); retryTimer = null; pendingRetry = false;`);
 
   // No file remembered and the search can't run: never create a second file

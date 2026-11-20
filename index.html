@@ -129,41 +129,36 @@
 
   .header-btns { display: flex; gap: 6px; align-items: center; }
 
-  /* ── browser compatibility warning banner ── */
-  #compat-banner {
-    background: color-mix(in srgb, var(--out) 10%, transparent);
-    border-bottom: 1px solid color-mix(in srgb, var(--out) 25%, transparent);
+  /* ── notice strips at the top: no backup (#compat-banner), open in another tab (#tab-banner) ──
+     v7.3.1: orange, because neither is an error (design-rules §7) */
+  .vbanner {
+    background: color-mix(in srgb, var(--attention) 10%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--attention) 25%, transparent);
     flex-shrink: 0;
   }
-  #compat-banner-inner {
+  .vbanner-inner {
     display: flex; align-items: flex-start; justify-content: space-between;
     padding: 10px 16px; gap: 10px;
   }
-  #compat-banner-content {
+  .vbanner-content {
     display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0;
   }
-  #compat-banner-text {
-    font-size: 12px; color: var(--out); font-weight: 400; line-height: 1.55;
+  .vbanner-text {
+    font-size: 12px; color: var(--attention); font-weight: 400; line-height: 1.55;
   }
-  #compat-banner-learn {
-    align-self: flex-start;
+  .vbanner-learn {
+    align-self: flex-start; background: none; border: none; color: var(--attention); font-size: 11px; font-weight: 600;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; text-decoration: underline; padding: 0; opacity: 0.85;
+    text-align: left; -webkit-tap-highlight-color: transparent;
   }
-  #compat-banner-dismiss {
-    background: none; border: none; color: var(--out); font-size: 16px;
+  .vbanner-dismiss {
+    background: none; border: none; color: var(--attention); font-size: 16px;
     cursor: pointer; padding: 0 2px; flex-shrink: 0; opacity: 0.6;
     line-height: 1; margin-top: 1px;
     -webkit-tap-highlight-color: transparent; min-width: 24px; min-height: 24px;
     display: flex; align-items: center; justify-content: center;
   }
-  @media (hover: hover) { #compat-banner-dismiss:hover { opacity: 1; } }
-  /* Tab conflict banner — amber instead of red */
-  #compat-banner.tab-conflict {
-    background: color-mix(in srgb, var(--attention) 10%, transparent);
-    border-bottom-color: color-mix(in srgb, var(--attention) 25%, transparent);
-  }
-  #compat-banner.tab-conflict #compat-banner-text { color: var(--attention); }
-  #compat-banner.tab-conflict #compat-banner-learn { color: var(--attention); }
-  #compat-banner.tab-conflict #compat-banner-dismiss { color: var(--attention); }
+  @media (hover: hover) { .vbanner-dismiss:hover { opacity: 1; } }
 
   /* ── local save status pill ── */
   #save-status {
@@ -252,6 +247,8 @@
   .popup-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
   .popup-head h2, .popup-head h3 { flex: 1; min-width: 0; }
   /* "Soon" badge for unfinished features (design-rules §3). */
+  .smod-card.smod-card-soon { opacity: 0.55; cursor: default; pointer-events: none; }
+  .ai-enc-link { background: none; border: none; padding: 0; font: inherit; color: inherit; text-decoration: underline; cursor: pointer; }
   .soon-badge { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.04em; color: var(--gold);
     background: color-mix(in srgb, var(--accent) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); border-radius: 10px; padding: 1px 7px; vertical-align: 1px; }
   .vd-msg { font-size: 13px; color: var(--text-2); line-height: 1.6; margin: 10px 0 20px; white-space: pre-line; }
@@ -560,6 +557,10 @@
     text-transform: uppercase; letter-spacing: 0.06em;
   }
   .tx-popup-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+  /* v7.3.1: a slip in a form, under its field (vFieldErr). Folds like every message line. */
+  .vfield-err { font-size: 12px; color: var(--out); line-height: 1.4; text-align: left; }
+  .vfield-err > .vp-fold-in { padding-top: 4px; }
+  .vfield-bad { border-color: color-mix(in srgb, var(--out) 65%, transparent) !important; }
   .tx-popup-field label { font-size: 10px; color: var(--text-3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
   .tx-popup-field input {
     background: var(--bg3); border: 1px solid var(--border);
@@ -655,10 +656,11 @@
   /* ── toast ── */
   /* Toasts wrap rather than run off a phone screen (one line used to be forced,
      and the storage-full warning was twice the screen's width). Three kinds only:
-     done (neutral), notice (gold), error (red) — design-rules §6. */
+     done (neutral), notice (orange), error (red) — design-rules §7. */
   #toast {
     position: fixed;
-    top: 18px;
+    top: max(18px, calc(env(safe-area-inset-top) + 8px));
+    cursor: pointer;
     left: 50%;
     transform: translateX(-50%);
     width: max-content;
@@ -1731,9 +1733,9 @@
   .ai-provider-card.saved .ai-provider-name { color: var(--text-1); }
   .ai-provider-name { font-size: 14px; font-weight: 600; color: var(--text-1); flex: 1; }
   .ai-provider-badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; letter-spacing: 0.05em; text-transform: uppercase; }
-  .ai-provider-badge.free { background: rgba(46,158,168,0.15); color: #2E9EA8; }
+  .ai-provider-badge.free { background: color-mix(in srgb, var(--interest) 15%, transparent); color: var(--interest); }
   .ai-provider-badge.paid { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--gold); }
-  .ai-provider-badge.default-badge { background: rgba(46,158,168,0.15); color: var(--green); }
+  .ai-provider-badge.default-badge { background: var(--accent-soft); color: var(--accent); }
   .ai-provider-key-input { flex: 1; background: var(--bg2); border: 1px solid var(--border-hi); border-radius: var(--radius); padding: 8px 10px; color: var(--text-1); font-size: 16px; font-family: 'DM Sans', sans-serif; outline: none; transition: all 0.2s; }
   .ai-provider-key-input.collapsed { padding: 5px 10px; font-size: 12px; color: var(--text-3); letter-spacing: 2px; cursor: pointer; }
   .ai-provider-key-input.collapsed:hover { border-color: var(--gold); color: var(--text-2); }
@@ -3919,7 +3921,7 @@
         <div id="gd-status" style="display:none; font-size:12px; text-align:center; padding:4px 0; margin-bottom:8px;"></div>
 
         <div id="gd-autosync-note" style="display:none; padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text-3); line-height:1.7;">
-          ✓ Auto-saving — every change is written to your Google Drive automatically. Works on all browsers and devices.
+          Auto-saving: every change is written to your Google Drive. Works on every browser and device.
         </div>
         <div id="gd-nosync-note" style="padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text-3); line-height:1.7;">
           Sign in with Google to enable auto-save. Vault only accesses the single file it creates — it cannot see any other files in your Drive.
@@ -3974,7 +3976,7 @@
         <div id="nas-status" style="display:none; font-size:12px; text-align:center; padding:4px 0; margin-bottom:8px;"></div>
 
         <div id="nas-autosync-note" style="display:none; padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text-3); line-height:1.7;">
-          ✓ Auto-saving — every change is written to your server automatically.
+          Auto-saving: every change is written to your server.
         </div>
         <div id="nas-nosync-note" style="padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text-3); line-height:1.7;">
           Enter your server URL and credentials, then connect. Every change will be written automatically. Your credentials are stored only in this browser.
@@ -4026,7 +4028,7 @@
         <div id="local-file-status" style="display:none; font-size:12px; text-align:center; padding:4px 0; margin-bottom:8px;"></div>
 
         <div id="local-autosync-note" style="display:none; padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text-3); line-height:1.7;">
-          ✓ Auto-saving — every change is written to the linked file automatically.
+          Auto-saving: every change is written to the linked file.
         </div>
         <div id="local-nosync-note" style="padding:12px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--text-3); line-height:1.7;">
           Choose a file location to enable auto-save. Once linked, every change is written automatically. Loading a file gives you the choice to <strong style="color:var(--text-2);">merge</strong> or <strong style="color:var(--text-2);">replace</strong> your current data.
@@ -4128,27 +4130,25 @@
       </button>
 
       <!-- OneDrive -->
-      <button class="smod-card" onclick="connectCloudService('onedrive')" style="text-align:left;">
+      <button class="smod-card smod-card-soon" disabled aria-disabled="true" style="text-align:left;">
         <div class="smod-card-icon" style="font-size:22px;">
           <svg width="22" height="22" viewBox="35.98 139.2 648.03 430.85" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><radialGradient id="od_r0" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1" gradientTransform="matrix(130.864814,156.804864,-260.089994,217.063603,48.669602,228.766494)"><stop offset="0" style="stop-color:rgb(28.235294%,58.039216%,99.607843%);stop-opacity:1;"/><stop offset="0.695072" style="stop-color:rgb(3.529412%,20.392157%,70.196078%);stop-opacity:1;"/></radialGradient><radialGradient id="od_r1" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1" gradientTransform="matrix(-575.289668,663.594003,-491.728488,-426.294267,596.956501,-6.380235)"><stop offset="0.165327" style="stop-color:rgb(13.72549%,75.294118%,99.607843%);stop-opacity:1;"/><stop offset="0.534" style="stop-color:rgb(10.980392%,56.862745%,100%);stop-opacity:1;"/></radialGradient><radialGradient id="od_r2" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1" gradientTransform="matrix(-136.753383,-114.806698,262.816935,-313.057562,181.196995,240.395994)"><stop offset="0" style="stop-color:rgb(100%,100%,100%);stop-opacity:0.4;"/><stop offset="0.660528" style="stop-color:rgb(67.843137%,75.294118%,100%);stop-opacity:0;"/></radialGradient><radialGradient id="od_r3" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1" gradientTransform="matrix(-153.638428,-130.000063,197.433014,-233.332948,375.353994,451.43549)"><stop offset="0" style="stop-color:rgb(1.176471%,22.745098%,80%);stop-opacity:1;"/><stop offset="1" style="stop-color:rgb(21.176471%,55.686275%,100%);stop-opacity:0;"/></radialGradient><radialGradient id="od_r4" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1" gradientTransform="matrix(175.585899,405.198026,-437.434522,189.555055,169.378495,125.589294)"><stop offset="0.592618" style="stop-color:rgb(20.392157%,39.215686%,89.019608%);stop-opacity:0;"/><stop offset="1" style="stop-color:rgb(1.176471%,22.745098%,80%);stop-opacity:0.6;"/></radialGradient><radialGradient id="od_r5" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1" gradientTransform="matrix(-459.329491,459.329491,-719.614455,-719.614455,589.876499,39.484649)"><stop offset="0" style="stop-color:rgb(29.411765%,99.215686%,90.980392%);stop-opacity:0.898039;"/><stop offset="0.543937" style="stop-color:rgb(29.411765%,99.215686%,90.980392%);stop-opacity:0;"/></radialGradient><linearGradient id="od_l0" gradientUnits="userSpaceOnUse" x1="29.999701" y1="37.9823" x2="29.999701" y2="18.398199" gradientTransform="matrix(15,0,0,15,0,0)"><stop offset="0" style="stop-color:rgb(0%,52.54902%,100%);stop-opacity:1;"/><stop offset="0.49" style="stop-color:rgb(0%,73.333333%,100%);stop-opacity:1;"/></linearGradient><radialGradient id="od_r6" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1" gradientTransform="matrix(273.622108,108.513684,-205.488428,518.148261,296.488495,307.441492)"><stop offset="0" style="stop-color:rgb(100%,100%,100%);stop-opacity:0.4;"/><stop offset="0.785262" style="stop-color:rgb(100%,100%,100%);stop-opacity:0;"/></radialGradient><radialGradient id="od_r7" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1" gradientTransform="matrix(-305.683909,263.459223,-264.352324,-306.720147,674.845505,249.378004)"><stop offset="0" style="stop-color:rgb(29.411765%,99.215686%,90.980392%);stop-opacity:0.898039;"/><stop offset="0.584724" style="stop-color:rgb(29.411765%,99.215686%,90.980392%);stop-opacity:0;"/></radialGradient></defs><path style="fill:url(#od_r0);" d="M 215.078125 205.089844 C 116.011719 205.09375 41.957031 286.1875 36.382812 376.527344 C 39.835938 395.992188 51.175781 434.429688 68.941406 432.457031 C 91.144531 429.988281 147.066406 432.457031 194.765625 346.105469 C 229.609375 283.027344 301.285156 205.085938 215.078125 205.089844 Z"/><path style="fill:url(#od_r1);" d="M 192.171875 238.8125 C 158.871094 291.535156 114.042969 367.085938 98.914062 390.859375 C 80.929688 419.121094 33.304688 407.113281 37.25 366.609375 C 36.863281 369.894531 36.5625 373.210938 36.355469 376.546875 C 29.84375 481.933594 113.398438 569.453125 217.375 569.453125 C 331.96875 569.453125 605.269531 426.671875 577.609375 283.609375 C 548.457031 199.519531 466.523438 139.203125 373.664062 139.203125 C 280.808594 139.203125 221.296875 192.699219 192.171875 238.8125 Z"/><path style="fill:url(#od_r2);" d="M 192.171875 238.8125 C 158.871094 291.535156 114.042969 367.085938 98.914062 390.859375 C 80.929688 419.121094 33.304688 407.113281 37.25 366.609375 C 36.863281 369.894531 36.5625 373.210938 36.355469 376.546875 C 29.84375 481.933594 113.398438 569.453125 217.375 569.453125 C 331.96875 569.453125 605.269531 426.671875 577.609375 283.609375 C 548.457031 199.519531 466.523438 139.203125 373.664062 139.203125 C 280.808594 139.203125 221.296875 192.699219 192.171875 238.8125 Z"/><path style="fill:url(#od_r3);" d="M 192.171875 238.8125 C 158.871094 291.535156 114.042969 367.085938 98.914062 390.859375 C 80.929688 419.121094 33.304688 407.113281 37.25 366.609375 C 36.863281 369.894531 36.5625 373.210938 36.355469 376.546875 C 29.84375 481.933594 113.398438 569.453125 217.375 569.453125 C 331.96875 569.453125 605.269531 426.671875 577.609375 283.609375 C 548.457031 199.519531 466.523438 139.203125 373.664062 139.203125 C 280.808594 139.203125 221.296875 192.699219 192.171875 238.8125 Z"/><path style="fill:url(#od_r4);" d="M 192.171875 238.8125 C 158.871094 291.535156 114.042969 367.085938 98.914062 390.859375 C 80.929688 419.121094 33.304688 407.113281 37.25 366.609375 C 36.863281 369.894531 36.5625 373.210938 36.355469 376.546875 C 29.84375 481.933594 113.398438 569.453125 217.375 569.453125 C 331.96875 569.453125 605.269531 426.671875 577.609375 283.609375 C 548.457031 199.519531 466.523438 139.203125 373.664062 139.203125 C 280.808594 139.203125 221.296875 192.699219 192.171875 238.8125 Z"/><path style="fill:url(#od_r5);" d="M 192.171875 238.8125 C 158.871094 291.535156 114.042969 367.085938 98.914062 390.859375 C 80.929688 419.121094 33.304688 407.113281 37.25 366.609375 C 36.863281 369.894531 36.5625 373.210938 36.355469 376.546875 C 29.84375 481.933594 113.398438 569.453125 217.375 569.453125 C 331.96875 569.453125 605.269531 426.671875 577.609375 283.609375 C 548.457031 199.519531 466.523438 139.203125 373.664062 139.203125 C 280.808594 139.203125 221.296875 192.699219 192.171875 238.8125 Z"/><path style="fill:url(#od_l0);" d="M 215.699219 569.496094 C 215.699219 569.496094 489.320312 570.035156 535.734375 570.035156 C 619.960938 570.035156 684 501.273438 684 421.03125 C 684 340.789062 618.671875 272.445312 535.734375 272.445312 C 452.792969 272.445312 405.027344 334.492188 369.152344 402.226562 C 327.117188 481.59375 273.488281 568.546875 215.699219 569.496094 Z"/><path style="fill:url(#od_r6);" d="M 215.699219 569.496094 C 215.699219 569.496094 489.320312 570.035156 535.734375 570.035156 C 619.960938 570.035156 684 501.273438 684 421.03125 C 684 340.789062 618.671875 272.445312 535.734375 272.445312 C 452.792969 272.445312 405.027344 334.492188 369.152344 402.226562 C 327.117188 481.59375 273.488281 568.546875 215.699219 569.496094 Z"/><path style="fill:url(#od_r7);" d="M 215.699219 569.496094 C 215.699219 569.496094 489.320312 570.035156 535.734375 570.035156 C 619.960938 570.035156 684 501.273438 684 421.03125 C 684 340.789062 618.671875 272.445312 535.734375 272.445312 C 452.792969 272.445312 405.027344 334.492188 369.152344 402.226562 C 327.117188 481.59375 273.488281 568.546875 215.699219 569.496094 Z"/></svg>
         </div>
         <div class="smod-card-body">
-          <div class="smod-card-title">OneDrive</div>
+          <div class="smod-card-title">OneDrive <span class="soon-badge">Soon</span></div>
           <div class="smod-card-sub">Save to your Microsoft OneDrive</div>
         </div>
-        <div class="smod-card-chevron">›</div>
       </button>
 
       <!-- Dropbox -->
-      <button class="smod-card" onclick="connectCloudService('dropbox')" style="text-align:left;">
+      <button class="smod-card smod-card-soon" disabled aria-disabled="true" style="text-align:left;">
         <div class="smod-card-icon" style="font-size:22px;">
           <svg width="22" height="22" viewBox="0 0 528 512" xmlns="http://www.w3.org/2000/svg"><path d="M264.4 116.3l-132 84.3 132 84.3-132 84.3L0 284.1l132.3-84.3L0 116.3 132.3 32l132.1 84.3zM131.6 395.7l132-84.3 132 84.3-132 84.3-132-84.3zm132.8-111.6l132-84.3-132-83.6L395.7 32 528 116.3l-132.3 84.3L528 284.8l-132.3 84.3-131.3-85z" fill="#0061FE"/></svg>
         </div>
         <div class="smod-card-body">
-          <div class="smod-card-title">Dropbox</div>
+          <div class="smod-card-title">Dropbox <span class="soon-badge">Soon</span></div>
           <div class="smod-card-sub">Save to your Dropbox</div>
         </div>
-        <div class="smod-card-chevron">›</div>
       </button>
 
     </div>
@@ -4406,13 +4406,21 @@
 </div>
 
 <!-- Browser compatibility warning banner — shown when FSAPI auto-save is not supported -->
-<div id="compat-banner" style="display:none;">
-  <div id="compat-banner-inner">
-    <div id="compat-banner-content">
-      <span id="compat-banner-text"></span>
-      <button onclick="openCompatInfo()" id="compat-banner-learn" style="background:none; border:none; color:var(--out); font-size:11px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; text-decoration:underline; padding:0; opacity:0.85; text-align:left; -webkit-tap-highlight-color:transparent;">Learn more</button>
+<div id="compat-banner" class="vbanner" style="display:none;">
+  <div class="vbanner-inner">
+    <div class="vbanner-content">
+      <span id="compat-banner-text" class="vbanner-text"></span>
+      <button onclick="openCompatInfo()" id="compat-banner-learn" class="vbanner-learn">Learn more</button>
     </div>
-    <button onclick="dismissCompatBanner()" id="compat-banner-dismiss">✕</button>
+    <button onclick="dismissCompatBanner()" id="compat-banner-dismiss" class="vbanner-dismiss" aria-label="Dismiss">✕</button>
+  </div>
+</div>
+<div id="tab-banner" class="vbanner" style="display:none;">
+  <div class="vbanner-inner">
+    <div class="vbanner-content">
+      <span id="tab-banner-text" class="vbanner-text">Vault is open in another tab. Changes made in both can overwrite each other, so close the other tab</span>
+    </div>
+    <button onclick="dismissTabBanner()" class="vbanner-dismiss" aria-label="Dismiss">✕</button>
   </div>
 </div>
 
@@ -4527,7 +4535,7 @@
       <div style="flex:1"><div class="dmenu-btn-label">Settings</div><div class="dmenu-btn-sub">Encryption, currency, year format &amp; more</div></div>
       <span class="menu-item-arrow" style="font-size:16px; color:var(--text-3); flex-shrink:0; transition:transform 0.2s;">›</span>
     </button>
-    <button class="dmenu-btn" onclick="toast('Holdings tracking is coming soon','notice')" style="opacity:0.6; cursor:not-allowed;" title="Coming soon">
+    <button class="dmenu-btn" disabled aria-disabled="true" style="opacity:0.6; cursor:default; pointer-events:none;">
       <span class="dmenu-btn-icon">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <line x1="3.5" y1="2" x2="3.5" y2="14" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.35"/>
@@ -4540,7 +4548,7 @@
         </svg>
       </span>
       <div>
-        <div class="dmenu-btn-label">Holdings <span style="font-size:10px; color:var(--gold); font-weight:500; margin-left:5px; opacity:0.85;">Soon</span></div>
+        <div class="dmenu-btn-label">Holdings <span class="soon-badge" style="margin-left:5px;">Soon</span></div>
         <div class="dmenu-btn-sub">Shares, ETFs &amp; commodities</div>
       </div>
     </button>
@@ -5125,7 +5133,7 @@
     </span>
     <span class="menu-item-arrow">›</span>
   </button>
-  <button class="menu-item-btn" onclick="toast('Holdings tracking is coming soon','notice')" style="opacity:0.6; cursor:not-allowed;" title="Coming soon">
+  <button class="menu-item-btn" disabled aria-disabled="true" style="opacity:0.6; cursor:default; pointer-events:none;">
     <span class="menu-item-icon">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         <line x1="3.5" y1="2" x2="3.5" y2="14" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.35"/>
@@ -5138,7 +5146,7 @@
       </svg>
     </span>
     <span class="menu-item-body">
-      <span class="menu-item-label">Holdings <span style="font-size:10px; color:var(--gold); font-weight:500; margin-left:5px; opacity:0.85;">Soon</span></span>
+      <span class="menu-item-label">Holdings <span class="soon-badge" style="margin-left:5px;">Soon</span></span>
       <span class="menu-item-sub">Shares, ETFs &amp; commodities</span>
     </span>
   </button>
@@ -5505,11 +5513,11 @@
   <div class="modal-box" style="max-width:500px; position:relative; max-height:90vh; display:flex; flex-direction:column;">
     <button class="modal-close" onclick="closeAIProviderSettings()" style="position:absolute;top:14px;right:14px;">✕</button>
     <div class="modal-header" style="padding-right:32px; flex-shrink:0;"><h2>AI provider settings</h2></div>
-    <div id="ai-enc-warning" style="display:none; font-size:12px; color:var(--attention); background:color-mix(in srgb, var(--attention) 8%, transparent); border:1px solid color-mix(in srgb, var(--attention) 20%, transparent); border-radius:8px; padding:10px 12px; margin-bottom:14px; line-height:1.6; flex-shrink:0;">
-      ⚠ API keys are stored unencrypted in your backup file. <span style="text-decoration:underline; cursor:pointer;" onclick="closeAIProviderSettings(); setTimeout(openSetup,50);">Enable encryption →</span>
+    <div id="ai-enc-warning" style="display:none; font-size:12px; color:var(--attention); background:color-mix(in srgb, var(--attention) 8%, transparent); border:1px solid color-mix(in srgb, var(--attention) 20%, transparent); border-radius:8px; padding:10px 12px; margin-bottom:14px; line-height:1.6;">
+      Your API keys go into your backup unencrypted. <button type="button" class="ai-enc-link" onclick="aiOpenEncryption()">Turn on encryption</button>
     </div>
-    <div id="ai-enc-ok" style="display:none; font-size:12px; color:var(--green); background:rgba(46,158,168,0.08); border:1px solid rgba(46,158,168,0.2); border-radius:8px; padding:10px 12px; margin-bottom:14px; line-height:1.6; flex-shrink:0;">
-      ✓ Keys protected by encryption
+    <div id="ai-enc-ok" style="display:none; font-size:12px; color:var(--text-2); background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; margin-bottom:14px; line-height:1.6;">
+      Your API keys are encrypted in your backup
     </div>
     <div id="ai-provider-cards" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:12px; padding-bottom:4px;"></div>
     <div style="margin-top:14px; flex-shrink:0;">
@@ -6009,12 +6017,12 @@
         Multiply every transaction by today's exchange rate (<span id="cc-rate-label" style="color:var(--text-2);"></span>). Use this if your amounts are in <span id="cc-from-label-2" style="color:var(--text-2);"></span> and you want them expressed in <span id="cc-to-label-3" style="color:var(--text-2);"></span>.
       </p>
       <div id="cc-convert-warn" style="display:none; margin:10px 0 0 26px; padding:8px 12px; background:color-mix(in srgb, var(--out) 8%, transparent); border:1px solid color-mix(in srgb, var(--out) 20%, transparent); border-radius:6px; font-size:11px; color:var(--red); line-height:1.5;">
-        This permanently changes all transaction amounts and cannot be undone. Make sure you have a backup before proceeding.
+        This changes every transaction's amount. Can't be undone.
       </div>
     </div>
 
     <div id="cc-no-rates-warn" style="display:none; padding:10px 14px; background:color-mix(in srgb, var(--attention) 8%, transparent); border:1px solid color-mix(in srgb, var(--attention) 20%, transparent); border-radius:8px; font-size:12px; color:var(--attention); line-height:1.5; margin-bottom:16px;">
-      Exchange rates are not available right now. Only reformat is available until rates are loaded.
+      Exchange rates aren't available right now, so only relabelling is possible until they load.
     </div>
 
     <div style="display:flex; gap:8px;">
@@ -6058,7 +6066,7 @@
     </div>
 
     <div id="cm-rates-warn" style="display:none; padding:10px 14px; background:color-mix(in srgb, var(--attention) 8%, transparent); border:1px solid color-mix(in srgb, var(--attention) 20%, transparent); border-radius:8px; font-size:12px; color:var(--attention); line-height:1.5; margin-bottom:14px;">
-      Exchange rates are unavailable — conversion options are disabled. Connect to the internet and try again, or choose a keep option.
+      Exchange rates aren't available, so the convert options are off. Go online and try again, or choose a keep option.
     </div>
 
     <div style="display:flex; gap:8px;">
@@ -6305,7 +6313,7 @@
   </div>
 </div>
 
-<div id="toast" role="status" aria-live="polite"></div>
+<div id="toast" role="status" aria-live="polite" onclick="if (!event.target.closest('.toast-undo')) _toastHide()"></div>
 <!-- Vault's own confirm and prompt (U14): the browser's alert/confirm/prompt
      showed as grey system alerts on iPhone, unlike every other popup. -->
 <div id="vault-confirm-popup" class="hidden pop-anim" style="position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:600; align-items:center; justify-content:center; padding:20px;">
@@ -7498,11 +7506,11 @@ function onCurrencyChange(code) {
   const convertOpt  = document.getElementById("cc-opt-convert");
   if (rate !== null) {
     rateLabel.textContent = "1 " + currencyCode + " = " + rate.toFixed(4) + " " + code;
-    noRatesWarn.style.display = "none";
+    vpShow(noRatesWarn, false);
     convertOpt.style.opacity = "1"; convertOpt.style.pointerEvents = "";
   } else {
     rateLabel.textContent = "rate unavailable";
-    noRatesWarn.style.display = "";
+    vpShow(noRatesWarn, true);
     convertOpt.style.opacity = "0.4"; convertOpt.style.pointerEvents = "none";
   }
 
@@ -7531,13 +7539,13 @@ function selectCurrencyOption(option) {
     convertCard.style.borderColor  = "var(--border)"; convertCard.style.background = "";
     radioReformat.style.borderColor = gold; radioReformat.style.background = gold;
     radioConvert.style.borderColor  = neutral; radioConvert.style.background = "";
-    convertWarn.style.display = "none";
+    vpShow(convertWarn, false);
   } else {
     convertCard.style.borderColor   = goldBorder; convertCard.style.background = goldBg;
     reformatCard.style.borderColor  = "var(--border)"; reformatCard.style.background = "";
     radioConvert.style.borderColor  = gold; radioConvert.style.background = gold;
     radioReformat.style.borderColor = neutral; radioReformat.style.background = "";
-    convertWarn.style.display = "";
+    vpShow(convertWarn, true);
   }
 }
 
@@ -7602,11 +7610,11 @@ function askAndChangeAccountCurrency(accountId, newCode) {
   if (rateF !== null && rateT !== null && rateF !== 0) {
     const perOne = (rateT / rateF).toFixed(4);
     rateLabel.textContent = "1 " + oldCur + " = " + perOne + " " + newCode;
-    noRatesWarn.style.display = "none";
+    vpShow(noRatesWarn, false);
     convertOpt.style.opacity = "1"; convertOpt.style.pointerEvents = "";
   } else {
     rateLabel.textContent = "rate unavailable";
-    noRatesWarn.style.display = "";
+    vpShow(noRatesWarn, true);
     convertOpt.style.opacity = "0.4"; convertOpt.style.pointerEvents = "none";
   }
 
@@ -7653,7 +7661,7 @@ function confirmCurrencyChange() {
 
   if (_selectedCurrencyOption === "convert") {
     const rate = getRate(newCode);
-    if (rate === null) { toast("Exchange rate unavailable — cannot convert", "error"); return; }
+    if (rate === null) { toast("Couldn't get today's exchange rate. Try again when you're online", "error"); return; }
 
     // Multiply every transaction amount by the rate
     Object.keys(data).forEach(fy => {
@@ -7708,7 +7716,7 @@ function _confirmAccountCurrencyChange() {
     const rateF = getRate(oldCur);
     const rateT = getRate(newCode);
     if (rateF === null || rateT === null || rateF === 0) {
-      toast("Exchange rate unavailable — cannot convert", "error");
+      toast("Couldn't get today's exchange rate. Try again when you're online", "error");
       return;
     }
     // Multiply every transaction belonging to this account by rateT / rateF. Each one is
@@ -7749,7 +7757,6 @@ function _confirmAccountCurrencyChange() {
   updateAccountsMenuSub();
   saveAndRender(null);
   triggerCloudSync();
-  toast(`${acc.name} currency set to ${newCode}`);
 
   _restoreCurrencyChangePopupDefaults();
   _pendingAccountCurrencyChange = null;
@@ -8056,7 +8063,7 @@ function vaultApplyLoadChoice(choice, safe, remoteTombstones, settings) {
     saveAndRender(null);
     toast("Merged with your backup");
   } else if (choice === "overwrite-drive") {
-    toast("The backup will be overwritten with your current data");
+    toast("Your backup will be replaced with this device's data");
   } else if (choice === "overwrite-app") {
     (remoteTombstones || []).forEach(id => tombstones.add(id));
     saveTombstones();
@@ -8173,7 +8180,6 @@ function switchYearMode(mode) {
   closeDesktopMenu();
   closeSheets();
   saveAndRender(null);
-  toast(`Switched to ${mode === "financial" ? "financial year" : "calendar year"} view`);
 }
 
 // Called when the FY start day or month selects change.
@@ -8867,7 +8873,6 @@ function applyAccountColor(id, color) {
   _dataVersion++;
   render();
   triggerCloudSync();
-  toast(`${acc.name} colour updated`);
 }
 
 function renderAccountManagerList() {
@@ -8973,7 +8978,6 @@ function _applyAccountCurrencyChange(code, explicitId) {
     updateAccountsMenuSub();
     saveAndRender(null);
     triggerCloudSync();
-    toast(`${acc.name} currency set to ${code}`);
   }
   return true;
 }
@@ -9029,6 +9033,7 @@ function openAddAccountForm() {
 }
 
 function cancelAddAccount(instant) {
+  vFieldErrClear(document.getElementById("account-add-form"));
   vpFold("account-add-fold", false, instant);
   vpFold("account-add-btn-fold", true, instant);
   const am = document.getElementById("accounts-modal"); if (am) am.dataset.dirty = "";   // v6.18.1: as Goals
@@ -9052,7 +9057,7 @@ function buildColorPicker() {
 
 function confirmAddAccount() {
   const name = document.getElementById("account-new-name")?.value.trim();
-  if (!name) { toast("Enter an account name", "error"); return; }
+  if (!name) { vFieldErr("account-new-name", "Give the account a name"); return; }
   const id = "acc_" + Date.now().toString(36);
   accounts.push({ id, name, color: _accountNewColor, ts: Date.now() });
   saveAccounts();
@@ -9062,7 +9067,6 @@ function confirmAddAccount() {
   renderAccountPills();
   // Refresh account dropdowns in open forms
   populateAccountSelects();
-  toast(`Account "${name}" added`);
 }
 
 // ── Account delete popup ──────────────────────────────────────────────────────
@@ -9162,7 +9166,7 @@ function confirmDeleteAccount(id, mode = "move", toId = null) {
   saveAndRender(null);
   triggerCloudSync();
   const name = getAccountById(reassignTarget)?.name;
-  toast(mode === "wipe" && wipedTxCount ? `Account and ${txCountLabel(wipedTxCount)} deleted` : reassignTarget && count ? `Account deleted · ${txCountLabel(count)} moved to ${name}` : "Account deleted", mode === "wipe" && wipedTxCount ? "error" : undefined);
+  toast(mode === "wipe" && wipedTxCount ? `Account and ${txCountLabel(wipedTxCount)} deleted` : reassignTarget && count ? `Account deleted · ${txCountLabel(count)} moved to ${name}` : "Account deleted");
 }
 
 // Refresh all open account <select> elements in forms
@@ -9279,6 +9283,7 @@ function openLocalFileDB() {
 
 // Persist the file handle to IndexedDB
 async function saveLocalFileHandle(handle) {
+  try { localStorage.setItem("vault_local_file_linked", "1"); } catch {}
   try {
     const db  = await openLocalFileDB();
     const tx  = db.transaction(LOCAL_FILE_STORE, "readwrite");
@@ -9305,6 +9310,7 @@ async function loadLocalFileHandle() {
 
 // Remove the stored handle from IndexedDB
 async function clearLocalFileHandle() {
+  try { localStorage.removeItem("vault_local_file_linked"); } catch {}
   try {
     const db = await openLocalFileDB();
     const tx = db.transaction(LOCAL_FILE_STORE, "readwrite");
@@ -9322,16 +9328,18 @@ async function clearLocalFileHandle() {
 // Silently clears the handle if the file has been moved or deleted.
 async function initLocalFileSync() {
   if (!window.showSaveFilePicker) {
-    // FSAPI not supported — only set No backup if no other source is connected
-    if (!gdLinked && !nasLinked) setSaveStatus("warn", "No backup");
+    // FSAPI not supported. v7.3.1: "No backup" only when nothing is set up; a stored Drive
+    // sign-in still being checked is set up (queue-v7.3.1 #1).
+    if (!compatBackupSetUp()) setSaveStatus("warn", "No backup");
     return;
   }
   const handle = await loadLocalFileHandle();
   if (!handle) {
-    // No linked local file — only show No backup if no other source is connected
-    if (!gdLinked && !nasLinked) setSaveStatus("warn", "No backup");
+    try { localStorage.removeItem("vault_local_file_linked"); } catch {}
+    if (!compatBackupSetUp()) setSaveStatus("warn", "No backup");
     return;
   }
+  try { localStorage.setItem("vault_local_file_linked", "1"); } catch {}
   // Verify we still have permission
   try {
     const perm = await handle.queryPermission({ mode: "readwrite" });
@@ -9409,7 +9417,7 @@ async function linkLocalFile() {
     setSaveStatus(ok ? "ok" : "err", ok ? "Backed up" + (vaultEncActive ? " · encrypted" : "") : "Sync failed");
     updateLocalFileUI();
     updateSetupModal();
-    toast("Auto-save linked — " + handle.name);
+    toast("Saving to " + handle.name);
     dbg("Local file: linked to " + handle.name);
     if (oldSnapshot) await applyOldBackupMergeChoice(oldSnapshot);
   } catch (e) {
@@ -9444,7 +9452,7 @@ async function reauthoriseLocalFile() {
       setSaveStatus(ok ? "ok" : "err", ok ? "Backed up" + (vaultEncActive ? " · encrypted" : "") : "Sync failed");
       updateLocalFileUI();
       updateSetupModal();
-      toast("File reconnected — auto-saving active");
+      toast("File reconnected");
       dbg("Local file: permission re-granted");
     } else {
       setSaveStatus("warn", "Permission needed");
@@ -9493,7 +9501,7 @@ function promptAndDecrypt(encryptedText) {
 
     async function tryPassword() {
       const pw = passInput.value;
-      if (!pw) { vpNote(errEl, "Please enter your password."); return; }
+      if (!pw) { vpNote(errEl, "Enter your password"); return; }
       const result = await tryDecryptWithPassword(encryptedText, pw);
       if (result) {
         // Correct password — store the key in memory for future saves
@@ -9520,7 +9528,7 @@ function promptAndDecrypt(encryptedText) {
 
     async function tryRecovery() {
       const file = fileInput.files && fileInput.files[0];
-      if (!file) { vpNote(errEl, "Please select your vault-recovery.json file."); return; }
+      if (!file) { vpNote(errEl, "Choose your vault-recovery.json file"); return; }
       try {
         const text = await file.text();
         const obj  = JSON.parse(text);
@@ -9542,11 +9550,10 @@ function promptAndDecrypt(encryptedText) {
         if (vaultEncActive && vaultEncKey) {
           // v6.20.1: this device already has a password (say, one set after a recovery and a
           // restart): the file only reads the backup, which is written back with that password
-          toast("Recovery successful. Your backup will be saved with this device's password", "notice");
+          toast("Recovered. Your backup will be saved with this device's password", "notice");
         } else {
           disablePasswordEncryption();
           vaultRecovHoldStart();   // v6.20.1
-          toast("Recovery successful. Choose a new password to keep your backups encrypted", "notice");
         }
         resolve(result);
       } catch (e) {
@@ -9606,7 +9613,7 @@ const SS_NOW = {
                          alt: ["Back up unencrypted", () => { closeSaveStatusLegend(); vaultRecovKeepPlain(); }] },
   "Choose a currency": { tone: "warn", text: "Your backup uses a different main currency. Choose how to merge them before Vault backs up again.",
                          btn: ["Choose", () => { closeSaveStatusLegend(); triggerCloudSync(); }] },
-  "Sync failed":       { tone: "err",  text: "The last change couldn't be written to your backup.",
+  "Sync failed":       { tone: "err",  text: "Vault couldn't reach your backup. Your changes are kept on this device, and Vault tries again.",
                          btn: ["Try again", () => { closeSaveStatusLegend(); triggerCloudSync(); }],
                          alt: ["Backup settings", () => { closeSaveStatusLegend(); setTimeout(openSetup, 50); }] },
 };
@@ -9664,6 +9671,7 @@ document.addEventListener("DOMContentLoaded", function() {
 // Update the header save-status pill.
 // state: "ok" | "busy" | "err" | "warn" | "none"
 function setSaveStatus(state, msg) {
+  if (typeof vaultBackupBanner === "function") vaultBackupBanner();
   if (state === "ok") { try { localStorage.setItem("vault_tx_since_export", "0"); } catch {} }   // v7.2.1: any backup resets the reminder
   const el = document.getElementById("save-status");
   if (!el) return;
@@ -9732,7 +9740,7 @@ function syncLegs() {
       await writable.write(new Blob([payload], { type: "application/json" }));
       await writable.close();
       localFileLinked = true;
-      setLocalFileStatus("✓ Synced" + (vaultEncActive ? " [enc]" : ""), "var(--green)");
+      setLocalFileStatus("Synced" + (vaultEncActive ? " · encrypted" : ""), "var(--text-2)");
       return true;
     },
   });
@@ -9874,9 +9882,9 @@ async function saveToLocalFile(showPicker = false) {
   if (localFileHandle && !showPicker) {
     setSaveStatus("busy", "Syncing…");
     const ok = await writeTolocalFileHandle();
-    const msg = ok ? "✓ Saved" + (vaultEncActive ? " [enc]" : "") : "Save failed — check file permissions";
+    const msg = ok ? "Saved" + (vaultEncActive ? " · encrypted" : "") : "Couldn't save. Check the file's permissions";
     setSaveStatus(ok ? "ok" : "err", ok ? "Backed up" + (vaultEncActive ? " · encrypted" : "") : "Sync failed");
-    setLocalFileStatus(msg, ok ? "var(--green)" : "var(--red)");
+    setLocalFileStatus(msg, ok ? "var(--text-2)" : "var(--red)");
     return;
   }
 
@@ -9893,7 +9901,7 @@ async function saveToLocalFile(showPicker = false) {
       const writable = await handle.createWritable();
       await writable.write(blob);
       await writable.close();
-      setLocalFileStatus("✓ Saved" + (vaultEncActive ? " [enc]" : ""), "var(--green)");
+      setLocalFileStatus("Saved" + (vaultEncActive ? " · encrypted" : ""), "var(--text-2)");
       resetCompatExportCount();
       dbg("Local save: one-off save via picker");
     } catch (e) {
@@ -9907,7 +9915,7 @@ async function saveToLocalFile(showPicker = false) {
   const a   = document.createElement("a");
   a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
-  setLocalFileStatus("✓ Download started" + (vaultEncActive ? " [enc]" : ""), "var(--green)");
+  setLocalFileStatus("Download started" + (vaultEncActive ? " · encrypted" : ""), "var(--text-2)");
   resetCompatExportCount(); // reset the reminder counter after a successful export
 }
 
@@ -10194,7 +10202,7 @@ function applyPayloadSettings({ recurring, recurDeleted: remoteRecurDeleted, acc
         localStorage.setItem("vault_pending_ym", JSON.stringify(_pendingYearModeChange));
         dbg("applyPayloadSettings: deferred year mode change to next startup — " + ym);
         if (!was || was.yearMode !== ym || was.fyStartMonth !== m || was.fyStartDay !== dd)
-          toast("Year format was changed on another device — it will take effect when you next open Vault");
+          toast("Year format changed on another device. It applies next time you open Vault", "notice");
       }
     }
   }
@@ -10270,9 +10278,9 @@ async function loadFromLocalFile() {
       autoMerge(safe, remoteTombstones);
       applyPayloadSettings(settings, false);
       saveAndRender(null);
-      setLocalFileStatus("✓ Merged", "var(--green)");
+      setLocalFileStatus("Merged", "var(--text-2)");
     } else if (choice === "overwrite-drive") {
-      setLocalFileStatus("✓ File will be overwritten", "var(--green)");
+      setLocalFileStatus("The file will be replaced with this device's data", "var(--text-2)");
     } else if (choice === "overwrite-app") {
       remoteTombstones.forEach(id => tombstones.add(id));
       saveTombstones();
@@ -10281,7 +10289,7 @@ async function loadFromLocalFile() {
       data = vaultDropTombstoned(safe);
       reconcileYears();
       saveAndRender(null);
-      setLocalFileStatus("✓ Loaded", "var(--green)");
+      setLocalFileStatus("Loaded", "var(--text-2)");
     }
 
     // ── auto-link the loaded file for future auto-saves ─────────────────────
@@ -10301,7 +10309,7 @@ async function loadFromLocalFile() {
           updateLocalFileUI();
           updateSetupModal();
           dbg("Local load: auto-linked for auto-save — " + openedHandle.name);
-          setLocalFileStatus("✓ Loaded & linked for auto-save", "var(--green)");
+          setLocalFileStatus("Loaded and linked for auto-save", "var(--text-2)");
         } else {
           dbg("Local load: write permission denied, not auto-linking");
         }
@@ -10443,7 +10451,7 @@ async function encRemoteOff(remote, wasEncrypted) {
   encKeepForReading(prevKey, prevRecov);   // another backup location may still be encrypted
   try { localStorage.setItem(ENC_OFF_KEY, JSON.stringify(off)); } catch {}
   if (typeof updateEncUI === "function") updateEncUI();
-  toast("Encryption was removed on another device");
+  toast("Encryption was removed on another device", "notice");
   dbg("Enc: removed on another device — off here too");
 }
 
@@ -10576,7 +10584,7 @@ async function makeNewRecoveryKey() {
   downloadRecoveryFile();
   updateEncUI();
   triggerCloudSync();
-  toast("New recovery key downloaded — keep it safe");
+  toast("New recovery key downloaded. Keep it somewhere safe");
 }
 function downloadRecoveryFile() {
   const recovData = JSON.stringify({
@@ -10862,7 +10870,7 @@ function hideLockScreen() {
     populateAccountSelects();
     loadRecurring();
     // v6.19.0: sync first when a backup is set up, then the recurring check
-    if (vaultHasBackup()) { _recurAfterSync = true; vaultStartupSync(); } else runRecurringCheck();
+    if (vaultHasBackup() || compatBackupSetUp()) { _recurAfterSync = true; vaultStartupSync(); } else runRecurringCheck();
     updateRecurMenuSub();
     bindHourlyTick();
     // Gate 1 of 2: a fresh load past the 6-hour window re-ranks BEFORE the first
@@ -10879,7 +10887,7 @@ async function unlockVault() {
   const pw     = passEl ? passEl.value : "";
 
   if (!pw) {
-    if (errEl) { errEl.textContent = "Please enter your password."; errEl.style.display = ""; }
+    if (errEl) { errEl.textContent = "Enter your password"; errEl.style.display = ""; }
     return;
   }
 
@@ -10967,13 +10975,11 @@ async function unlockWithRecoveryFile(input) {
     vaultRecovHoldStart();   // v6.20.1
     if (_startLocked) {
       vaultFinishStartUnlock();
-      toast("Unlocked with your recovery key. Choose a new password to keep your backups encrypted");
       dbg("Lock: opened with the recovery key");
       return;
     }
     hideLockScreen();
     saveAndRender(null);
-    toast("Unlocked with your recovery key. Choose a new password to keep your backups encrypted");
     dbg("Lock: unlocked with recovery key");
   } catch (e) {
     if (errEl) { errEl.textContent = "Recovery file invalid or did not match."; errEl.style.display = ""; }
@@ -11178,7 +11184,7 @@ async function encSetSubmit() {
   document.getElementById("enc-set-popup").classList.add("hidden");
   triggerCloudSync();
   updateEncUI();
-  toast("Encryption enabled — recovery key downloaded");
+  toast("Encryption on. Your recovery key was downloaded");
 }
 
 // Prompt for confirmation before disabling encryption
@@ -11338,11 +11344,11 @@ async function connectNAS() {
   nasConfig = cfg;
   nasLinked = true;
   saveNASConfig(cfg);
-  setSaveStatus("ok", "Backed up");
+  setSaveStatus("ok", "Backed up" + (vaultEncActive ? " · encrypted" : ""));
   updateNASUI();
   updateSetupModal();
   setNASStatus("", "");
-  toast("Network location connected — auto-saving active");
+  toast("Network location connected");
   if (oldSnapshot) await applyOldBackupMergeChoice(oldSnapshot);
 }
 
@@ -11360,8 +11366,8 @@ async function saveToNAS(showResult) {
   if (!nasLinked) return;
   setSaveStatus("busy", "Syncing…");
   const ok = await writeToNAS();
-  setSaveStatus(ok ? "ok" : "err", ok ? "Backed up" : "Sync failed");
-  if (showResult) setNASStatus(ok ? "Saved successfully." : "Save failed — check connection.", ok ? "var(--green)" : "var(--red)");
+  setSaveStatus(ok ? "ok" : "err", ok ? "Backed up" + (vaultEncActive ? " · encrypted" : "") : "Sync failed");
+  if (showResult) setNASStatus(ok ? "Saved" : "Couldn't save. Check the connection", ok ? "var(--text-2)" : "var(--red)");
 }
 
 async function loadFromNAS() {
@@ -11396,7 +11402,7 @@ async function loadFromNAS() {
       saveAndRender(null);
       toast("Merged with your backup");
     } else if (choice === "overwrite-drive") {
-      toast("Server file will be overwritten with your current data");
+      toast("Your network location's file will be replaced with this device's data");
     } else if (choice === "overwrite-app") {
       remoteTombstones.forEach(id => tombstones.add(id));
       saveTombstones();
@@ -11407,7 +11413,7 @@ async function loadFromNAS() {
       saveAndRender(null);
       toast("App data replaced with server data");
     }
-    setNASStatus("Connected.", "var(--green)");
+    setNASStatus("Connected", "var(--text-2)");
   } catch (e) {
     setNASStatus("Could not parse server data.", "error");
     dbg("NAS load parse error: " + e.message);
@@ -11457,7 +11463,7 @@ function initNAS() {
   if (cfg && cfg.url && cfg.user) {
     nasConfig = cfg;
     nasLinked = true;
-    setSaveStatus("ok", "Backed up");
+    setSaveStatus("ok", "Backed up" + (vaultEncActive ? " · encrypted" : ""));
     dbg("NAS: restored config for " + cfg.url);
   }
   updateNASUI();
@@ -11730,10 +11736,10 @@ async function gdHandleRedirect() {
               autoMerge(safe, remoteTombstones);
               applyPayloadSettings(settings, false);
               saveAndRender(null);
-              if (!quiet) toast("Merged with your backup");
+              if (!quiet) _gdConnMsg = "Google Drive connected. Merged with your backup";
             } else if (choice === "overwrite-drive") {
               // Keep local data, write over Drive — do nothing to local data
-              toast("Drive file will be overwritten with your current data");
+              _gdConnMsg = "Google Drive connected. Your data replaced the Drive file";
             } else if (choice === "overwrite-app") {
               // Replace local data with Drive data
               (remoteTombstones || []).forEach(id => tombstones.add(id));
@@ -11743,7 +11749,7 @@ async function gdHandleRedirect() {
               reconcileYears();
               applyPayloadSettings(settings, true);
               saveAndRender(null);
-              if (!quiet) toast("App data replaced with Drive data");
+              if (!quiet) _gdConnMsg = "Google Drive connected. Vault now has the Drive file's data";
             }
           }
         }
@@ -11774,11 +11780,13 @@ async function gdHandleRedirect() {
     setGDStatus("", "");
     if (quiet) {
       toast(quiet);
+      _gdConnMsg = null;
     } else {
-      toast("Google Drive connected — auto-saving active");
+      toast(_gdConnMsg || "Google Drive connected");
       // Open the Google Drive panel
       document.getElementById("setup-modal").classList.remove("hidden");
       openSmodPanel("googledrive");
+      _gdConnMsg = null;
     }
 
     // If we switched from another backup location, offer to merge/overwrite
@@ -12006,7 +12014,7 @@ async function applyOldBackupMergeChoice(snapshot) {
     saveAndRender(null);
     toast("Merged with your backup");
   } else if (choice === "overwrite-drive") {
-    toast("New backup location will be overwritten with your current data");
+    toast("Your new backup will be replaced with this device's data");
   } else if (choice === "overwrite-app") {
     snapshot.tombstones?.forEach(id => tombstones.add(id));
     saveTombstones();
@@ -12123,14 +12131,14 @@ async function initGoogleDrive() {
   }
 
   gdLinked = true;
-  setSaveStatus("ok", "Backed up");
+  setSaveStatus("ok", "Backed up" + (vaultEncActive ? " · encrypted" : ""));
   updateGoogleDriveUI();
-  // User has Drive connected — hide the local file compat banner if showing
-  const _cb = document.getElementById("compat-banner");
-  if (_cb && !_cb.classList.contains("tab-conflict")) _cb.style.display = "none";
+  vaultBackupBanner();
   dbg("GD: session restored");
 }
 
+// v7.3.1: what the Drive connection did, said once in the "connected" toast (design-rules §7)
+var _gdConnMsg = null;
 // ─── end Google Drive ─────────────────────────────────────────────────────────
 
 
@@ -12279,6 +12287,7 @@ const TAB_BEAT_MS  = 5000;
 let   tabWarnShown = false;
 
 let tabConflictStrikes = 0; // consecutive beats with a foreign TAB_ID — need 2 before warning
+let tabQuietBeats = 0;      // consecutive beats with only this tab's ID, once the warning is up
 const TAB_CONFLICT_GRACE = 2; // beats before showing the warning (filters stale entries)
 
 function tabHeartbeat() {
@@ -12286,7 +12295,7 @@ function tabHeartbeat() {
     const existing = localStorage.getItem(TAB_KEY);
     if (existing && existing !== TAB_ID) {
       // Another tab's ID is present — increment strike counter
-      tabConflictStrikes++;
+      tabConflictStrikes++; tabQuietBeats = 0;
       if (tabConflictStrikes >= TAB_CONFLICT_GRACE && !tabWarnShown) {
         tabWarnShown = true;
         showTabConflictBanner();
@@ -12295,6 +12304,10 @@ function tabHeartbeat() {
     } else {
       // No conflict — reset strikes (handles stale entries that clear themselves)
       tabConflictStrikes = 0;
+      // v7.3.1: two quiet beats in a row means the other tab has gone, so the strip goes too
+      if (tabWarnShown && ++tabQuietBeats >= TAB_CONFLICT_GRACE) {
+        tabWarnShown = false; tabQuietBeats = 0; dismissTabBanner();
+      }
     }
     localStorage.setItem(TAB_KEY, TAB_ID);
   } catch {}
@@ -13050,17 +13063,37 @@ function mergeHomeLayout(remote) {
 // been shown" stays coherent across devices instead of each one cycling blind.
 function mergeAutoLayout(remote) {
   if (!remote || typeof remote !== "object") return false;
-  if ((remote.computedAt || 0) <= (autoLayout.computedAt || 0)) return false;
-  autoLayout = {
-    order:      Array.isArray(remote.order) ? remote.order : [],
-    ranked:     Array.isArray(remote.ranked) ? remote.ranked : [],
-    computedAt: remote.computedAt || 0,
-    reasons:    (remote.reasons && typeof remote.reasons === "object") ? remote.reasons : {},
-    shown:      (remote.shown   && typeof remote.shown   === "object") ? remote.shown   : {},
-    cycle:      remote.cycle || 0,
-  };
+  const seen = vhTrimSeen(Object.assign({}, vhObj(remote.seen), vhObj(autoLayout.seen)));
+  if ((remote.computedAt || 0) <= (autoLayout.computedAt || 0)) {
+    if (Object.keys(seen).length !== Object.keys(autoLayout.seen || {}).length) { autoLayout.seen = seen; vhSavePrefs(); }
+    return false;
+  }
+  autoLayout = vhCleanAutoLayout(remote);
+  autoLayout.seen = seen;
   vhSavePrefs();
   return true;
+}
+function vhObj(o) { return (o && typeof o === "object" && !Array.isArray(o)) ? o : {}; }
+// Anything read from storage or a backup is checked; bad parts fall back to empty (rules §6).
+function vhCleanAutoLayout(a) {
+  a = vhObj(a);
+  const strs = o => Object.fromEntries(Object.entries(vhObj(o)).filter(([, v]) => typeof v === "string"));
+  const nums = o => Object.fromEntries(Object.entries(vhObj(o)).filter(([, v]) => typeof v === "number" && isFinite(v)));
+  const ats = Object.fromEntries(Object.entries(vhObj(a.reasonAt))
+    .filter(([, v]) => v && typeof v.text === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v.date || "")));
+  return {
+    order:      Array.isArray(a.order) ? a.order : [],
+    ranked:     Array.isArray(a.ranked) ? a.ranked : [],
+    computedAt: typeof a.computedAt === "number" ? a.computedAt : 0,
+    reasons:    strs(a.reasons),
+    reasonAt:   ats,
+    news:       strs(a.news),
+    shown:      nums(a.shown),
+    cycle:      typeof a.cycle === "number" ? a.cycle : 0,
+    seen:       vhTrimSeen(nums(a.seen)),
+    fxRates:    Object.keys(nums(a.fxRates)).length ? nums(a.fxRates) : null,
+    stamped:    typeof a.stamped === "number" ? a.stamped : 0,
+  };
 }
 
 // The order every part of Home reads: vhApplyLayout for physical DOM sequence,
@@ -13124,16 +13157,7 @@ function vhLoadPrefs() {
     if (typeof p.heatYear === "number") vhHeatYear = p.heatYear;
     if (typeof p.heatKind === "string") vhHeatKind = p.heatKind;
     if (typeof p.heatAcct === "string") vhHeatAcct = p.heatAcct;
-    if (p.autoLayout && typeof p.autoLayout === "object") {
-      autoLayout = {
-        order:      Array.isArray(p.autoLayout.order) ? p.autoLayout.order : [],
-        ranked:     Array.isArray(p.autoLayout.ranked) ? p.autoLayout.ranked : [],
-        computedAt: p.autoLayout.computedAt || 0,
-        reasons:    (p.autoLayout.reasons && typeof p.autoLayout.reasons === "object") ? p.autoLayout.reasons : {},
-        shown:      (p.autoLayout.shown   && typeof p.autoLayout.shown   === "object") ? p.autoLayout.shown   : {},
-        cycle:      p.autoLayout.cycle || 0,
-      };
-    }
+    if (p.autoLayout && typeof p.autoLayout === "object") autoLayout = vhCleanAutoLayout(p.autoLayout);
     if (p.homeLayout && typeof p.homeLayout === "object") {
       homeLayout = {
         order:  Array.isArray(p.homeLayout.order)  ? p.homeLayout.order  : [],
@@ -13684,7 +13708,6 @@ function saveLayoutModal() {
   saveHomeLayout(false); // ts already set
   _layoutSnapshot = null;
   document.getElementById("layout-modal")?.classList.add("hidden");
-  toast("Home layout saved");
 }
 // Cancel: restore the snapshot, repaint Home back to how it was, close.
 function cancelLayoutModal() {
@@ -13846,7 +13869,6 @@ function vhResetLayoutConfirmed() {
   _frozenOrder = null;
   saveHomeLayout(false); // ts already stamped
   if (activeTab === "home") renderHome();
-  toast("Every section rotates");
 }
 
 // ── Pointer-based drag reorder ────────────────────────────────────────────────
@@ -14142,7 +14164,7 @@ async function askDeleteGoal(id) {
   const pct = g.target > 0 ? Math.min(100, (val / g.target) * 100) : 0;
   const v = await vaultDelete({ title: "Delete goal?", sub: `${g.name} · ${pct.toFixed(0)}% of ${aud(g.target)}`,
     lead: "Your transactions aren't affected.", options: [{ value: "goal" }] });
-  if (v) { deleteGoal(id); toast("Goal deleted"); }
+  if (v) deleteGoal(id);
 }
 function deleteGoal(id) {
   goalDeletedIds.add(id);              // tombstone, or sync resurrects it
@@ -17163,116 +17185,238 @@ function vhAutoDaysUntil(iso) {
   return (t - Date.now()) / 86400000;
 }
 
-// Score every section. Returns { key -> {score, reason} }; reason is null when the
-// only thing lifting it was rotation, because "you have not seen this lately" is
-// not a fact about the user's money and should not be announced as one.
+// Score every section (v7.3.1, queue-v7.3.1 #9–#10; rules §7 "News counts once").
+// Returns { key -> {score, reason, news, at} }.
+//   SEASON   what time of month it is. Never above 40, so rotation (up to 47) can beat it.
+//   NEWS     something new about your money. Each item has an id; it lifts its section only
+//            until the section has been shown with it once (autoLayout.seen), then it's gone.
+//   BASELINE 12 for every section.
+//   ROTATION 5 per cycle since the section was last on screen, up to 35.
+//   FIRST    whatever was first last cycle loses 30 unless it has fresh news.
+// reason is null unless news lifted the section: "you have not seen this lately" is not a
+// fact about the user's money. `at` holds the date a reason is about, so its words ("today",
+// "3 days ago") are written when Home draws, not when it was ranked (H5).
 function vhAutoScores() {
   const out = {};
   const txs = vhAllTx();
+  const today = todayLocal();
   const now = new Date();
   const dom = now.getDate();
   const dim = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const cycle = autoLayout.cycle || 0;
   const shown = autoLayout.shown || {};
+  const seen = autoLayout.seen || {};
+  VH_SECTIONS.forEach(sec => { out[sec.key] = { score: 0, reason: null, news: null, at: null }; });
 
-  const put = (key, score, reason) => {
-    const cur = out[key];
-    if (!cur || score > cur.score) out[key] = { score, reason: reason || (cur && cur.reason) || null };
-    else if (cur && !cur.reason && reason) cur.reason = reason;
+  const base = (key, score) => { const o = out[key]; if (o && !o.news && score > o.score) o.score = score; };
+  const news = (key, id, score, reason, at) => {
+    const o = out[key];
+    if (!o || seen[id]) return;
+    if (o.news && o.score >= score) return;
+    out[key] = { score, reason: at ? vhReasonWords(at) : reason, news: id, at: at || null };
   };
-  VH_SECTIONS.forEach(sec => { out[sec.key] = { score: 0, reason: null }; });
+  const dayGap = (a, b) => Math.round((new Date(b + "T00:00:00") - new Date(a + "T00:00:00")) / 86400000);
+  const past = txs.filter(t => t.date <= today);
 
   // ── SEASON ────────────────────────────────────────────────────────────────
-  // Recap is the story of a month that has just closed, so it peaks the moment it
-  // closes and decays through the following one. This Month is the mirror.
-  put("recap", dom <= 7 ? 60 : dom <= 14 ? 25 : 5,
-      dom <= 7 ? "last month just closed" : null);
-  put("month", 40 + Math.round((dom / dim) * 25), null);
+  const prevMonth = (() => { const d = new Date(now.getFullYear(), now.getMonth() - 1, 1); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); })();
+  if (dom <= 7) news("recap", "recap:" + prevMonth, 60, "last month just closed");
+  base("recap", dom <= 14 ? 25 : 5);
+  base("month", 20 + Math.round((dom / dim) * 20));                 // H7: 20–40
+
+  // Recent Activity (H8): any transaction in the last 3 days, never above 40. New activity
+  // is news once (no reason line: the list itself says what happened).
+  let latest = null;
+  past.forEach(t => { if (!latest || t.date > latest) latest = t.date; });
+  if (latest && vhAutoDaysSince(latest) <= 3) { base("recent", 35); news("recent", "recent:" + latest, 60, null); }
 
   // ── ACTIVITY ──────────────────────────────────────────────────────────────
-  let lastDep = null, lastWit = null, lastInt = null;
-  txs.forEach(t => {
-    if (t.kind === "wit") { if (!lastWit || t.date > lastWit) lastWit = t.date; }
-    else if (t.kind === "int") { if (!lastInt || t.date > lastInt) lastInt = t.date; }
-    else if (!lastDep || t.date > lastDep) lastDep = t.date;
-  });
-  const dWit = vhAutoDaysSince(lastWit), dInt = vhAutoDaysSince(lastInt);
-  if (dWit <= 14) put("drawdown", 55, "you withdrew " + (dWit < 1 ? "today" : Math.round(dWit) === 1 ? "yesterday" : Math.round(dWit) + " days ago"));
-  else if (dWit <= 45) put("drawdown", 20, null);
-  if (dInt <= 14) put("interest", 55, "interest landed recently");
-  else if (dInt <= 45) put("interest", 20, null);
-  if (vhAutoDaysSince(lastDep) <= 3) put("recent", 70, null);
-
-  // ── NEWS ──────────────────────────────────────────────────────────────────
-  // A goal with a deadline inside a month is the most actionable thing Home has.
+  // Drawdown: a withdrawal is news only when it's unusual for this vault (#9 "routine isn't
+  // news"): bigger than three in four of the last year's, or after a longer gap than usual.
+  // A vault with fewer than 5 withdrawals in a year has no routine, so each one is news.
   try {
-    let soonest = null;
-    (goals || []).forEach(g => {
-      if (!g.deadline) return;
-      const days = vhAutoDaysUntil(g.deadline);   // signed: past is negative
-      if (days >= -1 && days <= 30 && (soonest === null || days < soonest)) soonest = days;
-    });
-    if (soonest !== null) put("goals", 95, "a goal deadline is " + (soonest <= 1 ? "due" : "under " + Math.ceil(soonest) + " days away"));
+    const wits = past.filter(t => t.kind === "wit").sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+    const year = wits.filter(t => vhAutoDaysSince(t.date) <= 365);
+    const amt = t => Math.abs(convertToGlobal(t.amt, t.cur));
+    const amts = year.map(amt).sort((a, b) => a - b);
+    const p75 = amts.length ? amts[Math.floor((amts.length - 1) * 0.75)] : 0;
+    const gaps = []; for (let i = 1; i < year.length; i++) gaps.push(dayGap(year[i - 1].date, year[i].date));
+    gaps.sort((a, b) => a - b);
+    const medGap = gaps.length ? gaps[Math.floor((gaps.length - 1) / 2)] : 0;
+    const few = year.length < 5;
+    const last = wits[wits.length - 1];
+    if (last && vhAutoDaysSince(last.date) <= 45) base("drawdown", 20);
+    for (let i = wits.length - 1; i >= 0 && vhAutoDaysSince(wits[i].date) <= 14; i--) {
+      const t = wits[i];
+      const big = !few && amt(t) > p75 + 0.005;
+      const gap = i > 0 ? dayGap(wits[i - 1].date, t.date) : Infinity;
+      const long = !few && gap >= Math.max(7, medGap * 2);
+      if (few || big || long) {
+        news("drawdown", "drawdown:" + (t.id || t.date), 55, null,
+             { text: big ? "a bigger withdrawal than usual," : "you withdrew", date: t.date });
+        break;
+      }
+    }
   } catch (e) {}
 
-  // A streak that has just started or just ended is news; one grinding along is not.
   try {
-    const completed = vhMonthlyNets().filter(m => !m.current);
+    let lastInt = null;
+    past.forEach(t => { if (t.kind === "int" && (!lastInt || t.date > lastInt)) lastInt = t.date; });
+    if (lastInt && vhAutoDaysSince(lastInt) <= 14) news("interest", "interest:" + lastInt, 55, null, { text: "interest landed", date: lastInt });
+    if (lastInt && vhAutoDaysSince(lastInt) <= 45) base("interest", 20);
+  } catch (e) {}
+
+  // Upcoming (H10): a recurring transaction due today or tomorrow.
+  try {
+    let due = null;
+    (recurRules || []).forEach(r => {
+      if (!r || r.completed || !r.nextDate) return;
+      if (r.endDate && r.nextDate > r.endDate) return;
+      const until = vhAutoDaysUntil(r.nextDate);
+      if (until > -1 && until <= 1 && (!due || r.nextDate < due.nextDate)) due = r;
+    });
+    if (due) {
+      const k = due.type === "withdrawal" ? "withdrawal" : due.type === "interest" ? "interest payment" : "deposit";
+      news("upcoming", "upcoming:" + due.id + ":" + due.nextDate, 65, null, { text: `a recurring ${k} is due`, date: due.nextDate });
+    }
+  } catch (e) {}
+
+  // ── NEWS ──────────────────────────────────────────────────────────────────
+  // Goals (H11): a deadline inside a month, a goal reached, a deadline missed. Each once.
+  try {
+    (goals || []).forEach(g => {
+      if (!g || !g.id) return;
+      const reached = g.target > 0 && goalProgress(g) >= g.target - 0.005;
+      if (reached) { news("goals", "goal:" + g.id + ":reached", 90, "you reached a goal"); return; }
+      if (!g.deadline) return;
+      const days = vhAutoDaysUntil(g.deadline);   // signed: past is negative
+      if (days >= -1 && days <= 30) news("goals", "goal:" + g.id + ":soon", 95, null, { text: "a goal is due", date: g.deadline });
+      else if (days < -1 && days >= -30) news("goals", "goal:" + g.id + ":missed", 80, "a goal's deadline passed");
+    });
+  } catch (e) {}
+
+  // Savings Streak (H1): completed months only. "Ended" only when there was a streak to end.
+  const months = vhMonthlyNets();
+  try {
+    const completed = months.filter(m => !m.current);
     if (completed.length) {
       let run = 0;
       for (let i = completed.length - 1; i >= 0; i--) { if (completed[i].net > 0.005) run++; else break; }
-      const lastClosed = completed[completed.length - 1];
-      if (run === 0 && lastClosed && lastClosed.net <= 0.005) put("streak", 80, "your saving streak ended");
-      else if (run === 1) put("streak", 65, "a new streak started");
-      else if (run >= 3) put("streak", 30 + Math.min(25, run * 3), run >= 6 ? run + " months in a row" : null);
+      const last = completed[completed.length - 1], prev = completed[completed.length - 2];
+      if (run === 0 && prev && prev.net > 0.005) news("streak", "streak:ended:" + last.key, 80, "your saving streak ended");
+      else if (run === 1) news("streak", "streak:started:" + last.key, 65, "a new streak started");
+      else if (run >= 6) news("streak", "streak:run:" + last.key, 60, run + " months in a row");
+      if (run >= 3) base("streak", 25 + Math.min(15, run * 2));
     }
   } catch (e) {}
 
-  // A month well clear of, or well under, what this vault usually does.
+  // This Month (H3, H4): the month so far against the same share of a typical month
+  // (rules §8, like-for-like), whatever the typical month's sign. Not before the 5th.
   try {
     const typical = vhGoalRate(null);
-    const months = vhMonthlyNets();
     const cur = months.find(m => m.current);
-    if (typical && typical > 0.005 && cur) {
-      const ratio = cur.net / typical;
-      if (ratio >= 1.5) put("month", 90, "well ahead of a typical month");
-      else if (cur.net < 0) put("month", 85, "this month is negative so far");
+    if (typical !== null && cur && dom >= 5) {
+      const expected = typical * dom / dim;
+      const margin = Math.max(Math.abs(typical) * 0.5, 1);
+      if (cur.net - expected >= margin && cur.net > 0.005) news("month", "month:ahead:" + cur.key, 85, "ahead of a typical month so far");
+      else if (expected - cur.net >= margin) news("month", "month:behind:" + cur.key, 80, "behind a typical month so far");
     }
   } catch (e) {}
 
-  // Records and Milestones only matter when something was actually set recently.
+  // Records (H2): completed months only, so a half-finished month can't claim a record.
   try {
-    const months = vhMonthlyNets();
+    const completed = months.filter(m => !m.current);
     let best = null;
-    months.forEach(m => { if (!best || m.net > best.net) best = m; });
-    if (best) {
-      const age = months.length - 1 - months.findIndex(m => m.key === best.key);
-      if (age <= 1 && best.net > 0.005) put("records", 75, "you just set a record month");
-      else put("records", 15, null);
-    }
+    completed.forEach(m => { if (!best || m.net > best.net) best = m; });
+    if (best && best === completed[completed.length - 1] && best.net > 0.005) news("records", "records:" + best.key, 75, "last month was your best");
+    base("records", 15);
   } catch (e) {}
 
-  // FX is news only when a rate has actually moved the vault.
+  // FX (H9): news only when exchange rates (not transactions) moved the vault's total by 2 %
+  // or more since FX was last on screen (autoLayout.fxRates, stamped by vhStampShown).
   try {
-    const foreign = (accounts || []).some(a => (a.currency || currencyCode) !== currencyCode);
-    if (foreign) { put("fx", 35, null); put("currency", 30, null); }
+    const held = {};
+    past.forEach(t => { if (t.cur !== currencyCode) held[t.cur] = (held[t.cur] || 0) + vhSigned(t); });
+    const curs = Object.keys(held).filter(c => Math.abs(held[c]) > 0.005 && getRate(c));
+    const then = autoLayout.fxRates || {};
+    let total = 0, moved = 0;
+    past.forEach(t => { total += convertToGlobal(vhSigned(t), t.cur); });
+    curs.forEach(c => { if (then[c] > 0) moved += held[c] / getRate(c) - held[c] / then[c]; });
+    if (curs.length && total > 0.005 && Math.abs(moved) / total >= 0.02)
+      news("fx", "fx:" + ((exchangeRates && exchangeRates.date) || today), 70, "exchange rates moved your total");
   } catch (e) {}
 
   // ── BASELINE ──────────────────────────────────────────────────────────────
-  // Anchors floor high so they are always in the cycle; the rest sit low and rely
-  // on news, season or rotation to surface.
-  // v7.3.0: one baseline for every section (there were anchors at 100 and Allocation and Trend
-  // at 60, so half of Home never moved). News and rotation decide; pins hold places.
-  VH_SECTIONS.forEach(s => put(s.key, Math.max(out[s.key] ? out[s.key].score : 0, 12), null));
+  VH_SECTIONS.forEach(s => { if (out[s.key].score < 12) out[s.key].score = 12; });
 
   // ── ROTATION ──────────────────────────────────────────────────────────────
-  // Age since last surfaced, in cycles, worth up to ~35 points. Enough to lift a
-  // quiet section over a mildly interesting one, never enough to outrank real news.
+  // Age since last on screen, in cycles, worth up to 35 points.
   Object.keys(out).forEach(k => {
-    if (VH_AUTO_ANCHORS.includes(k)) return;
     const last = typeof shown[k] === "number" ? shown[k] : -8;
-    out[k].score += Math.min(35, (cycle - last) * 5);
+    out[k].score += Math.min(35, Math.max(0, cycle - last) * 5);
   });
+
+  // ── FIRST PLACE MOVES ─────────────────────────────────────────────────────
+  // Whatever held first place last cycle steps back, unless it has fresh news. A pinned
+  // section keeps its own place and isn't counted.
+  try {
+    const pins = vhCleanPins(homeLayout.pins);
+    const first = (autoLayout.order || [])[0];
+    if (first && out[first] && !out[first].news && !pins[first]) out[first].score -= 30;
+  } catch (e) {}
+  return out;
+}
+
+// "today", "yesterday", "3 days ago", "tomorrow", "in 4 days": a reason's date, in words, now.
+function vhWhen(iso) {
+  const d = Math.round((new Date(iso + "T00:00:00") - new Date(todayLocal() + "T00:00:00")) / 86400000);
+  if (!isFinite(d)) return "";
+  if (d === 0) return "today";
+  if (d === 1) return "tomorrow";
+  if (d === -1) return "yesterday";
+  return d < 0 ? (-d) + " days ago" : "in " + d + " days";
+}
+function vhReasonWords(at) { return at && at.text && at.date ? at.text + " " + vhWhen(at.date) : null; }
+// The reason Home shows for a section: from its date when there is one (H5), else as ranked.
+function vhReasonText(key) {
+  const at = (autoLayout.reasonAt || {})[key];
+  return vhReasonWords(at) || (autoLayout.reasons || {})[key] || null;
+}
+
+// After Home draws (v7.3.1, H12): record what's actually on screen this cycle, so rotation
+// and "news counts once" go by what was seen, not by what was picked. A picked section that
+// hid itself isn't stamped; the spare that filled its place is.
+function vhStampShown() {
+  const cycle = autoLayout.cycle || 0;
+  if (!cycle || autoLayout.stamped === cycle) return;
+  if (document.visibilityState === "hidden") return;
+  const panel = document.getElementById("home-panel");
+  if (!panel || panel.style.display === "none") return;
+  const onScreen = [...panel.querySelectorAll(".vh-section")]
+    .filter(el => !el.hidden && el.style.display !== "none").map(el => el.dataset.vhSection);
+  if (!onScreen.length) return;
+  const shown = Object.assign({}, autoLayout.shown || {});
+  const seen = Object.assign({}, autoLayout.seen || {});
+  const news = autoLayout.news || {};
+  const now = Date.now();
+  onScreen.forEach(k => {
+    shown[k] = cycle;
+    if (news[k]) seen[news[k]] = now;
+    if (k === "fx") {
+      const r = {};
+      accounts.forEach(a => { const c = a.currency || currencyCode; if (c !== currencyCode && getRate(c)) r[c] = getRate(c); });
+      autoLayout.fxRates = r;
+    }
+  });
+  autoLayout.shown = shown;
+  autoLayout.seen = vhTrimSeen(seen);
+  autoLayout.stamped = cycle;
+  vhSavePrefs();
+}
+// Seen news ids, kept for 90 days.
+function vhTrimSeen(seen) {
+  const cut = Date.now() - 90 * 86400000, out = {};
+  Object.keys(seen || {}).forEach(id => { const t = seen[id]; if (typeof t === "number" && t > cut) out[id] = t; });
   return out;
 }
 
@@ -17301,17 +17445,26 @@ function vhComputeAutoOrder() {
     try { return vhAllTx().length >= 8; } catch (e) { return false; }
   })();
 
-  let order, ranked, reasons = {};
+  let order, ranked, reasons = {}, reasonAt = {}, newsIds = {};
   if (!enoughHistory) {
     ranked = [...VH_AUTO_COLDSTART.filter(k => known.includes(k)), ...known.filter(k => !VH_AUTO_COLDSTART.includes(k))];
     order = vhComposeOrder(ranked, VH_AUTO_COLDSTART.length).order;
     ranked = [];                                   // cold start: no ranking to keep
   } else {
     const scores = vhAutoScores();
+    const shownNow = autoLayout.shown || {}, cyc = autoLayout.cycle || 0;
+    const age = k => cyc - (typeof shownNow[k] === "number" ? shownNow[k] : -8);
     ranked = known.slice()
-      .sort((a, b) => ((scores[b] ? scores[b].score : 0) - (scores[a] ? scores[a].score : 0)) || known.indexOf(a) - known.indexOf(b));
+      .sort((a, b) => ((scores[b] ? scores[b].score : 0) - (scores[a] ? scores[a].score : 0))
+        || (age(b) - age(a)) || known.indexOf(a) - known.indexOf(b));
     order = vhComposeOrder(ranked, VH_AUTO_MAX).order;
-    order.forEach(k => { if (scores[k] && scores[k].reason) reasons[k] = scores[k].reason; });
+    order.forEach(k => {
+      const sc = scores[k];
+      if (!sc || !sc.news) return;
+      newsIds[k] = sc.news;
+      if (sc.reason) reasons[k] = sc.reason;
+      if (sc.at) reasonAt[k] = sc.at;
+    });
   }
 
   // v6.18.6: the same cold-start order again changes nothing, so it isn't saved or synced.
@@ -17321,14 +17474,14 @@ function vhComputeAutoOrder() {
       JSON.stringify(autoLayout.order || []) === JSON.stringify(order)) return;
 
   const cycle = (autoLayout.cycle || 0) + 1;
-  const shown = Object.assign({}, autoLayout.shown || {});
-  order.forEach(k => { shown[k] = cycle; });
+  const shown = Object.assign({}, autoLayout.shown || {});   // stamped after drawing (vhStampShown)
 
   // A cold-start order (too little history to rank) is stamped 0, not now. Stamped
   // now, a freshly restored device kept its 6-section cold-start Home for up to six
   // hours, and its "newer" order then won on every other device too. At 0 it never
   // beats a real order from another device, and the next gate replaces it.
-  autoLayout = { order, ranked, computedAt: enoughHistory ? Date.now() : 0, reasons, shown, cycle };
+  autoLayout = { order, ranked, computedAt: enoughHistory ? Date.now() : 0, reasons, reasonAt, news: newsIds, shown, cycle,
+                 seen: vhTrimSeen(autoLayout.seen), fxRates: autoLayout.fxRates || null, stamped: 0 };
   _frozenOrder = null;                       // next read picks up the new sequence
   vhSavePrefs();
   if (typeof triggerCloudSync === "function") triggerCloudSync();
@@ -17436,6 +17589,7 @@ function renderHome() {
     });
     vhFillEmptyPlaces();
     vhApplyCollapsed();
+    try { vhStampShown(); } catch (e) { dbg("home: stamp " + (e && e.message)); }
   } finally {
     if (!--_vhTxMemoDepth) _vhTxMemo = null;
   }
@@ -17479,7 +17633,8 @@ function vhApplyLayout() {
   // hidden attribute), never position.
   const order = vhLayoutOrder();
   const pinsNow = vhCleanPins(homeLayout.pins);
-  const reasons = Object.fromEntries(Object.entries(autoLayout.reasons || {}).filter(([k]) => !pinsNow[k]));   // a pinned section needs no "why"
+  const reasons = {};   // a pinned section needs no "why"; the words come from the date (H5)
+  VH_SECTIONS.forEach(s => { if (!pinsNow[s.key]) { const r = vhReasonText(s.key); if (r) reasons[s.key] = r; } });
   let anchor = document.getElementById("vh-hero") || panel.querySelector(".vh-searchbar");
   order.forEach(key => {
     const el = secByKey[key];
@@ -18665,7 +18820,7 @@ function chSaveNew() {
   saveChartPresets(); triggerCloudSync();
   vpCloseAll(document.getElementById("chart-presets-popup"));
   closeChartPresets(); closeChartCustomise();
-  renderCharts(); toast(`Saved “${p.name}”`);
+  renderCharts();
 }
 function chUpdate() {
   const p = chPresets.find(x => x.id === chCurrentId); if (!p) return;
@@ -18673,7 +18828,7 @@ function chUpdate() {
   saveChartPresets(); triggerCloudSync();
   vpCloseAll(document.getElementById("chart-presets-popup"));
   closeChartPresets(); closeChartCustomise();
-  renderCharts(); toast("Preset saved");
+  renderCharts();
 }
 async function chAskDelete() {
   const p = chPresets.find(x => x.id === chCurrentId); if (!p) return;
@@ -18685,7 +18840,6 @@ async function chAskDelete() {
   chCurrentId = "b-balance";
   saveChartPresets(); triggerCloudSync();
   renderCharts(); chpRender();
-  toast(`Deleted “${p.name}”`);
 }
 document.addEventListener("click", e => {
   if (!e.target.closest("#chp-body")) return;
@@ -18837,7 +18991,6 @@ let ensureFYSilent = false;
 function ensureFY(key) {
   if (!data[key]) {
     data[key] = { saved: [], removed: [] };
-    if (!ensureFYSilent) toast(`Year ${yearLabel(key)} added`, "notice");
   }
   return key;
 }
@@ -19179,7 +19332,8 @@ function savePopup() {
   if (popupIdx === null || !popupYear) return;
   const dateVal = document.getElementById("popup-date").value;
   const amtVal  = parseFloat(document.getElementById("popup-amount").value);
-  if (!dateVal || isNaN(amtVal) || amtVal <= 0) { toast("Enter a valid date and amount", "error"); return; }
+  if (!dateVal) { vFieldErr("popup-date", "Choose a date"); return; }
+  if (isNaN(amtVal) || amtVal <= 0) { vFieldErr("popup-amount", "Enter an amount above zero"); return; }
 
   const newAccountId  = document.getElementById("popup-account")?.value || getDefaultAccountId();
   const origAccountId = document.getElementById("tx-popup")?.dataset.origAccount || newAccountId;
@@ -19262,7 +19416,7 @@ function _doSavePopup(dateVal, amtVal, accountId) {
     list[popupIdx] = uTx;
     list.sort((a, b) => a[0].localeCompare(b[0]));
     invalidateYear = popupYear;
-    toast(kindChanged ? `Changed to ${newKind === "interest" ? "interest" : "a deposit"}` : "Transaction updated");
+    if (kindChanged) toast(`Changed to ${newKind === "interest" ? "interest" : "a deposit"}`);
   }
   pruneEmptyYears();
   const _savedTab = targetTab;
@@ -19378,7 +19532,7 @@ function savePopupAll() {
   const recurId = document.getElementById("tx-popup").dataset.recurId;
   if (!recurId) return;
   const amtVal = parseFloat(document.getElementById("popup-amount").value);
-  if (isNaN(amtVal) || amtVal <= 0) { toast("Enter a valid amount", "error"); return; }
+  if (isNaN(amtVal) || amtVal <= 0) { vFieldErr("popup-amount", "Enter an amount above zero"); return; }
   const amt = parseFloat(amtVal.toFixed(2));
 
   const newAccountId  = document.getElementById("popup-account")?.value || getDefaultAccountId();
@@ -19556,13 +19710,14 @@ function showAddYear() {
   inp.focus();
 }
 function hideAddYear() {
+  vFieldErrClear(document.getElementById("year-list"));
   document.getElementById("btn-new-year").style.display="";
   document.getElementById("add-year-form").classList.remove("show");
 }
 function confirmAddYear() {
   const label = document.getElementById("new-year-input").value.trim();
-  if (!isValidYearKey(label)) { toast(`Format: ${yearKeyPlaceholder()}`, "error"); return; }
-  if (data[label]) { toast("Year already exists", "error"); return; }
+  if (!isValidYearKey(label)) { vFieldErr("new-year-input", `Use the format ${yearKeyPlaceholder()}`); return; }
+  if (data[label]) { vFieldErr("new-year-input", "That year is already there"); return; }
   data[label]={saved:[],removed:[]};
   keepYear(label);
   activeYear=label;
@@ -21043,7 +21198,6 @@ let _importTxReviewResolve = null;
 async function runImportPipeline(files) {
   const enabledProviders = getEnabledProviders();
   if (!enabledProviders.length) {
-    toast("No AI provider configured — set up in AI Provider Settings", "error");
     openImportPopup();
     return;
   }
@@ -21358,7 +21512,7 @@ async function openImportNewAccountForm() {
   populateAccountSelects();
   _importTargetAccountId = newAcc.id;
   renderImportAccountPicker();
-  toast(`Account "${newAcc.name}" created`);
+  toast(`Account “${newAcc.name}” created`);
 }
 
 // ── Per-transaction review ────────────────────────────────────────────────
@@ -21453,7 +21607,7 @@ let _toastTimer = null, _toastUndoOpen = false;
 function _toastHide() {
   const el = document.getElementById("toast");
   if (el) { el.style.display = "none"; el.textContent = ""; }
-  _toastUndoOpen = false;
+  _toastUndoOpen = false; _toastUndoState = null;
   // Anything that waited behind an Undo toast shows next, unless it's gone stale.
   while (_toastQueue.length) { const [m, k, d, at] = _toastQueue.shift(); if (Date.now() - at < 10000) { toast(m, k, d); break; } }
 }
@@ -21595,8 +21749,27 @@ function toastWithUndo(msg, undoFn, duration = 30000) {
   el.style.background = "";
   el.style.display = "block";
   _toastUndoOpen = true;
+  _toastUndoState = { msg, fn: undoFn, until: Date.now() + duration };
   clearTimeout(_toastTimer);
   _toastTimer = setTimeout(_toastHide, duration);
+}
+// v7.3.1: feedback on a gesture ("Tap Cancel to leave without saving") shows at once and never
+// waits behind an Undo toast. Over an Undo it shows briefly, then the Undo comes back with the
+// time it had left, so a refused swipe can't cost the Undo (design-rules §7).
+let _toastUndoState = null;
+function toastNudge(msg) {
+  const el = document.getElementById("toast");
+  if (!el) return;
+  const st = _toastUndoOpen ? _toastUndoState : null;
+  el.textContent = msg;
+  el.dataset.kind = "notice";
+  el.style.background = "";
+  el.style.display = "block";
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => {
+    if (st && st.until - Date.now() > 600) toastWithUndo(st.msg, st.fn, st.until - Date.now());
+    else _toastHide();
+  }, 1800);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -21617,16 +21790,18 @@ function closeAIProviderSettings() {
   updateAIMenuSubs();
 }
 
+// v7.3.1: the keys travel in every backup (Drive, NAS or a file), so the warning shows for any
+// backup without encryption, and folds rather than snapping when a key is saved (queue #6, #7).
 function updateAIEncWarning() {
-  const encOk = document.getElementById("ai-enc-ok");
-  const encWarn = document.getElementById("ai-enc-warning");
   const hasKeys = AI_PROVIDERS.some(p => getAIKey(p.id));
-  if (!hasKeys) { encOk.style.display = "none"; encWarn.style.display = "none"; return; }
-  if (isEncryptionEnabled()) {
-    encOk.style.display = ""; encWarn.style.display = "none";
-  } else {
-    encOk.style.display = "none"; encWarn.style.display = isGDriveConnected() ? "" : "none";
-  }
+  const enc = hasKeys && isEncryptionEnabled();
+  vpShow("ai-enc-ok", enc);
+  vpShow("ai-enc-warning", hasKeys && !enc && compatBackupSetUp());
+}
+// "Turn on encryption": Settings → Encryption, opened in the same task so ‹ comes back here.
+function aiOpenEncryption() {
+  closeAIProviderSettings();
+  openEncryptionMenu();
 }
 
 let _expandedAIProvider = null;
@@ -21703,7 +21878,7 @@ function renderAIProviderCards() {
         <!-- Action buttons -->
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="ai-provider-btn primary" onclick="saveAIKey('${provider.id}')">Save key</button>
-          <button class="ai-provider-btn" onclick="testAIConnection('${provider.id}')">Test</button>
+          <button class="ai-provider-btn" onclick="testAIConnection('${provider.id}', this)">Test</button>
           ${hasKey && isEnabled && !isDefault ? `<button class="ai-provider-btn" onclick="setDefaultAIProvider('${provider.id}')">Set as default</button>` : ""}
           ${hasKey ? `<button class="ai-provider-btn" onclick="askClearAIKey('${provider.id}')">Delete</button>` : ""}
         </div>
@@ -21723,7 +21898,7 @@ async function saveAIKey(providerId) {
   const input = document.getElementById("aikey-" + providerId);
   if (!input) return;
   const key = input.value.trim();
-  if (!key) { toast("Enter an API key", "error"); return; }
+  if (!key) { vFieldErr("aikey-" + providerId, "Paste an API key first"); return; }
 
   // Show privacy notice on first save ever
   const privacyAgreed = localStorage.getItem(AI_PRIVACY_KEY);
@@ -21750,7 +21925,6 @@ async function saveAIKey(providerId) {
   stampAIKey(providerId);
   // Auto-set as default if no default set yet
   if (!getAIProvider()) setDefaultAIProvider(providerId);
-  toast(`${AI_PROVIDERS.find(p=>p.id===providerId)?.name} key saved`);
   renderAIProviderCards();
   updateAIEncWarning();
   updateAIMenuSubs();
@@ -21778,7 +21952,6 @@ function clearAIKey(providerId) {
   renderAIProviderCards();
   updateAIMenuSubs();
   triggerCloudSync();
-  toast("API key deleted");
 }
 
 function setDefaultAIProvider(providerId) {
@@ -21787,12 +21960,14 @@ function setDefaultAIProvider(providerId) {
   updateAIMenuSubs();
 }
 
-async function testAIConnection(providerId) {
+async function testAIConnection(providerId, btn) {
   const key = getAIKey(providerId) || document.getElementById("aikey-" + providerId)?.value.trim();
-  if (!key) { toast("Enter an API key first", "error"); return; }
+  if (!key) { vFieldErr("aikey-" + providerId, "Paste an API key first"); return; }
   const provider = AI_PROVIDERS.find(p => p.id === providerId);
   if (!provider) return;
-  toast(`Testing ${provider.name}…`);
+  // v7.3.1: the button says it's waiting; progress is never a toast (design-rules §3)
+  const btnLabel = btn ? btn.textContent : "";
+  if (btn) { btn.disabled = true; btn.textContent = "Testing…"; }
 
   // Use cheapest text-only model for test
   const testProvider = { ...provider, model: provider.testModel };
@@ -21813,21 +21988,22 @@ async function testAIConnection(providerId) {
         throw e;
       }
     }
-    if (result && result.trim().toLowerCase().includes("ok")) {
-      toast(`${provider.name} is working`);
-    } else {
-      toast(`${provider.name} is working`);
-    }
+    // Any reply means the key works; the wording of the reply doesn't matter.
+    dbg("AI test " + provider.id + " replied: " + String(result || "").slice(0, 40));
+    toast(`${provider.name} is working`);
   } catch(e) {
     const raw = e.message || "Unknown error";
     const billing = raw.toLowerCase().includes("billing") || raw.toLowerCase().includes("quota") || raw.toLowerCase().includes("limit: 0");
     dbg("AI test " + provider.id + ": " + raw);   // the detail goes to the log, not the toast (T9)
+    let site = "";
+    try { site = new URL(provider.keyUrl).host; } catch (e2) {}
     const msg = billing
-      ? `${provider.name}'s free quota is used up. Add a payment method at aistudio.google.com`
+      ? `${provider.name}'s quota is used up. Check billing at ${site || "your provider's site"}`
       : `${provider.name} didn't respond. Check the key and try again`;
     toast(msg, "error");
   }
   if (!original) setAIKey(providerId, ""); // restore if it wasn't saved
+  if (btn) { btn.disabled = false; btn.textContent = btnLabel || "Test"; }
 }
 
 function updateAIMenuSubs() {
@@ -22006,17 +22182,18 @@ async function showCurrencyMismatchDialog(remoteData, remoteTombstones, remoteCu
   const convertRemote= document.getElementById("cm-opt-convert-remote");
 
   if (!ratesOk) {
-    ratesWarn.style.display = "";
+    vpShow(ratesWarn, true);
     convertLocal.disabled  = true; convertLocal.style.opacity  = "0.4";
     convertRemote.disabled = true; convertRemote.style.opacity = "0.4";
   } else {
     const rate = getRate(remote); // rate from local base to remote
     const rateDisplay = rate ? `1 ${local} = ${rate.toFixed(4)} ${remote}` : "rate unavailable";
-    ratesWarn.style.display = "";
-    ratesWarn.style.background = "color-mix(in srgb, var(--in) 6%, transparent)";
-    ratesWarn.style.borderColor = "color-mix(in srgb, var(--in) 20%, transparent)";
-    ratesWarn.style.color = "var(--green)";
-    ratesWarn.textContent = `Rate: ${rateDisplay} (today's rate from ExchangeRate-API)`;
+    vpShow(ratesWarn, true);
+    const _rb = ratesWarn.querySelector(".vp-show-box") || ratesWarn;
+    _rb.style.background = "var(--bg3)";
+    _rb.style.borderColor = "var(--border)";
+    _rb.style.color = "var(--text-2)";
+    _rb.textContent = `Rate: ${rateDisplay} (today's rate from ExchangeRate-API)`;
     convertLocal.disabled  = false; convertLocal.style.opacity  = "";
     convertRemote.disabled = false; convertRemote.style.opacity = "";
   }
@@ -22056,7 +22233,7 @@ async function resolveCurrencyMismatch(choice) {
     // Convert the local transactions in the old main currency (local → remote), then merge.
     // Accounts with a currency of their own keep it and aren't touched (v6.18.6).
     const rate = getRate(remote);
-    if (!rate) { toast("Exchange rate unavailable — cannot convert", "error"); return; }
+    if (!rate) { toast("Couldn't get today's exchange rate. Try again when you're online", "error"); return; }
     const now = Date.now(), def = getDefaultAccountId();
     const inLocal = new Set(accounts.filter(a => getAccountCurrency(a.id) === local).map(a => a.id));
     Object.keys(data).forEach(y => {
@@ -22084,7 +22261,7 @@ async function resolveCurrencyMismatch(choice) {
   } else if (choice === "convert-remote") {
     // Convert incoming remote transactions (remote → local currency), then merge
     const rate = getRate(remote); // 1 local = rate remote, so 1 remote = 1/rate local
-    if (!rate) { toast("Exchange rate unavailable — cannot convert", "error"); return; }
+    if (!rate) { toast("Couldn't get today's exchange rate. Try again when you're online", "error"); return; }
     const inverseRate = 1 / rate;
     // Convert the remote transactions in the remote main currency; accounts with a currency
     // of their own keep it. Converted rows are stamped so the conversion wins (v6.18.6).
@@ -22134,7 +22311,7 @@ function dismissCurrencyMismatch() {
   // Leave local data untouched — show a warning pill
   closeCurrencyMismatchDialog();
   setSaveStatus("warn", "Choose a currency");
-  toast("Merge skipped — currency mismatch unresolved. Backup not updated", "error");
+  toast("Not merged yet. Choose a currency to carry on backing up", "notice");
 }
 
 function closeCurrencyMismatchDialog() {
@@ -22450,7 +22627,8 @@ function closeDesktopAddSheet() {
 function desktopAddTransaction() {
   const dv  = document.getElementById("desk-inp-date").value;
   const av  = parseFloat(document.getElementById("desk-inp-amount").value);
-  if (!dv || isNaN(av) || av <= 0) { toast("Enter a valid date and amount", "error"); return; }
+  if (!dv) { vFieldErr("desk-inp-date", "Choose a date"); return; }
+  if (isNaN(av) || av <= 0) { vFieldErr("desk-inp-amount", "Enter an amount above zero"); return; }
   const amt = parseFloat(av.toFixed(2));
   const tab = deskTxType === "withdraw" ? "removed" : "saved";
   const subtype = deskTxType === "interest" ? "interest" : null;
@@ -22568,7 +22746,7 @@ function openAddSheet() {
 // Submit the mobile add sheet — either a one-off transaction or a recurring rule
 function mobileAddTransaction() {
   const av = parseFloat(document.getElementById("mob-inp-amount").value);
-  if (isNaN(av) || av <= 0) { toast("Enter a valid amount", "error"); return; }
+  if (isNaN(av) || av <= 0) { vFieldErr("mob-inp-amount", "Enter an amount above zero"); return; }
   const amt = parseFloat(av.toFixed(2));
   const accountId = document.getElementById("mob-inp-account")?.value || getDefaultAccountId();
 
@@ -22576,7 +22754,7 @@ function mobileAddTransaction() {
     const dv   = document.getElementById("mob-inp-date").value;
     const freq = document.getElementById("mob-recur-freq").value;
     const end  = document.getElementById("mob-recur-end")?.value || null;
-    if (!dv) { toast("Enter a date", "error"); return; }
+    if (!dv) { vFieldErr("mob-inp-date", "Choose a date"); return; }
     const startDow = new Date(dv + "T00:00:00").getDay();
     const rule = {
       id: Date.now(), type: mobTxType === "withdraw" ? "withdrawal" : mobTxType,
@@ -22594,7 +22772,7 @@ function mobileAddTransaction() {
     toast(recurScheduledMsg(mobTxType, posted));
   } else {
     const dv = document.getElementById("mob-inp-date").value;
-    if (!dv) { toast("Enter a date", "error"); return; }
+    if (!dv) { vFieldErr("mob-inp-date", "Choose a date"); return; }
     const tab     = mobTxType === "withdraw" ? "removed" : "saved";
     const subtype = mobTxType === "interest" ? "interest" : null;
     // View stays put (v6.10.0) — see desktopAddTransaction.
@@ -22654,7 +22832,7 @@ function sheetOverlayTap() { sheetTryClose(); }
 // Outside tap or swipe on a tray: the Add tray keeps typed input (design-rules §4).
 function sheetTryClose() {
   const add = document.getElementById("add-sheet");
-  if (add && add.classList.contains("open") && add.dataset.dirty === "1") { toast("Tap Cancel to leave without saving", "notice"); return false; }
+  if (add && add.classList.contains("open") && add.dataset.dirty === "1") { toastNudge("Tap Cancel to leave without saving"); return false; }
   closeSheets();
   return true;
 }
@@ -22687,7 +22865,7 @@ const POPUP_CLOSE = {
   // Decisions that can be closed: closing runs their skip (v6.16.0, decisions 4 and 6)
   "currency-mismatch-popup": () => dismissCurrencyMismatch(),
   "enc-decrypt-popup": () => document.getElementById("enc-decrypt-cancel")?.click(),
-  "enc-choice-popup": () => { encChoiceResolve("skip"); toast("Saved without a password. You can add one in Settings › Encryption", "notice"); },
+  "enc-choice-popup": () => { encChoiceResolve("skip"); toast("Saved without a password. You can add one in Settings → Encryption", "notice"); },
   "drive-merge-popup": () => resolveDriveMerge("cancel"),
   "settings-popup": () => closeSettingsPage(), "about-popup": () => closeAbout(), "privacy-popup": () => closePrivacy(),
   "export-popup": () => closeExportPopup(),
@@ -22723,7 +22901,7 @@ document.addEventListener("click", e => {
 // Outside tap, swipe down and Back share one rule (design-rules §4).
 function vpTryDismiss(el) {
   if (POPUP_DECISIONS.has(el.id)) return false;
-  if (POPUP_FORMS.has(el.id) && el.dataset.dirty === "1") { toast("Tap Cancel to leave without saving", "notice"); return false; }
+  if (POPUP_FORMS.has(el.id) && el.dataset.dirty === "1") { toastNudge("Tap Cancel to leave without saving"); return false; }
   return dismissPopup(el);
 }
 // A form counts as touched once anything in it is typed into or changed.
@@ -23150,6 +23328,60 @@ function vpNote(el, msg, instant) {
   if (msg) inner.textContent = msg;
   vpFold(el, !!msg, instant || !popupIsOpen(el));
 }
+// v7.3.1: a slip in a form shows under its field, never as a toast (design-rules §4 and §7).
+// The note is made the first time it's needed, inside the field's own box, and folds away
+// when the field changes or its tray closes.
+function vFieldErr(id, msg) {
+  const inp = document.getElementById(id);
+  if (!inp) return;
+  let box = document.getElementById(id + "-ferr");
+  if (!box) {
+    box = document.createElement("div");
+    box.id = id + "-ferr";
+    box.className = "vfield-err vp-fold vp-note folded";
+    box.setAttribute("role", "alert");
+    box.innerHTML = '<div class="vp-fold-in"></div>';
+    const field = inp.closest(".tx-popup-field, .field");
+    const form = id === "new-year-input" ? inp.closest("#add-year-form") : null;
+    if (field) field.appendChild(box);
+    else if (form) form.after(box);
+    else if (inp.parentElement && getComputedStyle(inp.parentElement).display === "flex") inp.parentElement.after(box);
+    else inp.after(box);
+  }
+  vpNote(box, msg);
+  inp.classList.add("vfield-bad");
+  if (inp.type !== "date") { try { inp.focus(); } catch (e) {} }
+}
+// v7.3.1: a notice box inside a tray shows and hides by folding (rules §6). The first call
+// moves the box's own look onto an inner box, so its padding and border fold away too.
+function vpShow(el, show) {
+  if (typeof el === "string") el = document.getElementById(el);
+  if (!el) return;
+  if (!el.classList.contains("vp-fold")) {
+    const look = el.getAttribute("style") || "";
+    const inner = document.createElement("div"); inner.className = "vp-fold-in";
+    const box = document.createElement("div"); box.className = "vp-show-box";
+    box.setAttribute("style", look.replace(/(^|;)\s*display\s*:[^;]*/i, "$1"));
+    while (el.firstChild) box.appendChild(el.firstChild);
+    inner.appendChild(box); el.appendChild(inner);
+    el.setAttribute("style", "flex-shrink:0;");
+    el.classList.add("vp-fold", "folded");
+  }
+  vpFold(el, !!show, !popupIsOpen(el));
+}
+function vFieldErrClear(root) {
+  (root || document).querySelectorAll(".vfield-err:not(.folded)").forEach(b => vpNote(b, "", true));
+  (root || document).querySelectorAll(".vfield-bad").forEach(i => i.classList.remove("vfield-bad"));
+}
+function _vFieldErrOnEdit(e) {
+  const t = e.target;
+  if (!t || !t.id || !t.classList) return;
+  const b = document.getElementById(t.id + "-ferr");
+  if (b && !b.classList.contains("folded")) vpNote(b, "");
+  t.classList.remove("vfield-bad");
+}
+document.addEventListener("input", _vFieldErrOnEdit, true);
+document.addEventListener("change", _vFieldErrOnEdit, true);
 function vpFold(el, show, instant) {
   if (typeof el === "string") el = document.getElementById(el);
   if (!el) return;
@@ -23159,6 +23391,10 @@ function vpFold(el, show, instant) {
 }
 // While a popup or tray is open, the page behind can't scroll (rules §8: a class on <html>).
 function vpSyncLock() {
+  document.querySelectorAll(".vfield-err:not(.folded)").forEach(b => {
+    const host = b.closest(".vp, #add-sheet");
+    if (host && (host.classList.contains("hidden") || (host.id === "add-sheet" && !host.classList.contains("open")))) vFieldErrClear(host);
+  });
   const open = vpPopups().some(el => el.classList.contains("vp") && !el.classList.contains("hidden"))
     || !!document.querySelector("#add-sheet.open, #menu-sheet.open, #year-sheet.open");
   document.documentElement.classList.toggle("vp-lock", open);
@@ -23269,17 +23505,17 @@ function compatMessages() {
   const reason = fsapiCompatReason();
   if (reason === "unsupported-device") {
     return {
-      banner: "Local file auto-save isn't supported on iOS or iPadOS. Use Google Drive or NAS instead.",
+      banner: "No backup yet. On iPhone and iPad, back up to Google Drive or NAS",
       panelTitle: "Not available on this device",
       panelBody: "iOS and iPadOS require all browsers to use Safari's engine, which doesn't support local file auto-save. This applies to Chrome, Edge, and every other browser on this device.",
-      deviceBanner: { text: "You are on iOS or iPadOS — local file auto-save cannot be enabled on this device regardless of which browser you use.", color: "color-mix(in srgb, var(--out) 8%, transparent)", border: "color-mix(in srgb, var(--out) 25%, transparent)", textColor: "var(--red)" },
+      deviceBanner: { text: "You're on an iPhone or iPad, so saving to a file can't be turned on here, whichever browser you use.", color: "color-mix(in srgb, var(--attention) 8%, transparent)", border: "color-mix(in srgb, var(--attention) 25%, transparent)", textColor: "var(--attention)" },
     };
   }
   return {
-    banner: "Local file auto-save needs Chrome or Edge — switch browsers to enable it.",
+    banner: "No backup yet. Back up to Google Drive or NAS, or open Vault in Chrome or Edge to save to a file",
     panelTitle: "Switch browser to enable auto-save",
     panelBody: "Your current browser doesn't support the File System Access API needed for local file auto-save. On this device, switching to Chrome or Edge will enable it.",
-    deviceBanner: { text: "You are on a supported device — switching to Chrome or Edge will enable local file auto-save.", color: "color-mix(in srgb, var(--accent) 6%, transparent)", border: "color-mix(in srgb, var(--accent) 25%, transparent)", textColor: "var(--gold)" },
+    deviceBanner: { text: "Saving to a file works on this device in Chrome or Edge.", color: "color-mix(in srgb, var(--attention) 6%, transparent)", border: "color-mix(in srgb, var(--attention) 25%, transparent)", textColor: "var(--attention)" },
   };
 }
 
@@ -23294,10 +23530,9 @@ function initCompatWarning() {
   const bannerText = document.getElementById("compat-banner-text");
   if (bannerText) bannerText.textContent = msgs.banner;
 
-  // Only show the banner if the user has no other backup connected.
-  // If GD or NAS is active, the local file limitation is irrelevant.
-  const banner = document.getElementById("compat-banner");
-  if (banner && !gdLinked && !nasLinked) banner.style.display = "";
+  // v7.3.1: only when there's actually no backup. A stored Drive sign-in, NAS or a linked file
+  // counts, offline too and while the sign-in is still being checked (queue-v7.3.1 #1).
+  vaultBackupBanner();
 
   // Update welcome screen file card
   const fileSub = document.getElementById("welcome-file-sub");
@@ -23332,21 +23567,32 @@ function updateLocalUnsupportedBanner() {
 }
 
 // Dismiss the compat header banner for this session
+// The "No backup yet" strip: on a browser that can't save to a file, only while no backup is
+// set up (compatBackupSetUp reads what's stored, so it's right from the first moment of start-up).
+// Its ✕ lasts until Vault next opens.
+let _compatDismissed = false;
+function vaultBackupBanner() {
+  try {
+    const b = document.getElementById("compat-banner");
+    if (!b) return;
+    const show = !fsapiSupported() && !inSandbox && !_compatDismissed && !compatBackupSetUp();
+    b.style.display = show ? "" : "none";
+  } catch (e) {}
+}
 function dismissCompatBanner() {
+  _compatDismissed = true;
   const banner = document.getElementById("compat-banner");
-  if (banner) { banner.style.display = "none"; banner.classList.remove("tab-conflict"); }
+  if (banner) banner.style.display = "none";
+}
+function dismissTabBanner() {
+  const b = document.getElementById("tab-banner");
+  if (b) b.style.display = "none";
 }
 
 // Show the tab conflict warning in the persistent banner (amber, dismissible)
 function showTabConflictBanner() {
-  const banner = document.getElementById("compat-banner");
-  const text   = document.getElementById("compat-banner-text");
-  const learn  = document.getElementById("compat-banner-learn");
-  if (!banner || !text) return;
-  banner.classList.add("tab-conflict");
-  text.textContent = "Vault is open in another tab — editing in both may cause data conflicts. Close the other tab to avoid this.";
-  if (learn) learn.style.display = "none";
-  banner.style.display = "";
+  const banner = document.getElementById("tab-banner");
+  if (banner) banner.style.display = "";
 }
 
 // Open the compat info popup
@@ -23375,6 +23621,7 @@ function closeCompatInfo() {
 // (gdLinked is only set after that, and the screen draws a few times first).
 function compatBackupSetUp() {
   if (gdLinked || nasLinked || localFileLinked) return true;
+  try { if (localStorage.getItem("vault_local_file_linked") === "1") return true; } catch {}
   try { if (gdLoadTokens()) return true; } catch {}
   try { if (vsGet(NAS_KEY)) return true; } catch {}
   return false;
@@ -23443,7 +23690,7 @@ function welcomeUseBrowser() {
   document.getElementById("welcome-modal").classList.add("hidden");
   // Save an empty data marker so we don't show welcome next time
   saveLocal();
-  toast("Using browser storage — you can change this in Menu → Save & backup");
+  toast("Saving in this browser. Change it in Menu → Save & backup");
 }
 
 // v6.18.5: show the page now the first screen is drawn (html.vboot hides it until then)
@@ -23475,11 +23722,10 @@ function initApp() {
   // Set an appropriate initial status before async inits resolve.
   // If GD tokens, a local file handle, or NAS config exist, show "Reconnecting…"
   // instead of "No backup" to avoid a misleading flash on startup.
-  const _hasGD    = (() => { try { return !!JSON.parse(localStorage.getItem(GD_KEY)||"null")?.refreshToken; } catch { return false; } })();
-  const _hasFile  = (() => { try { return !!localStorage.getItem("vault_local_file_handle"); } catch { return false; } })();
-  const _hasNAS   = (() => { try { return !!localStorage.getItem("vault_nas_url"); } catch { return false; } })();
-  setSaveStatus(_hasGD || _hasFile || _hasNAS ? "busy" : "warn",
-                _hasGD || _hasFile || _hasNAS ? "Reconnecting…" : "No backup");
+  // v7.3.1: these read keys that were never written (vault_nas_url, vault_local_file_handle), so NAS
+  // and file users saw "No backup" and had recurring posts before the first sync. One check now.
+  const _hasBackup = compatBackupSetUp();
+  if (!nasLinked) setSaveStatus(_hasBackup ? "busy" : "warn", _hasBackup ? "Reconnecting…" : "No backup");
   vaultAskPersist();
   // Wait for both local file and Google Drive init before deciding first run
   // so OAuth redirects are fully handled before the welcome screen check
@@ -23518,7 +23764,7 @@ function initApp() {
   enforceAccountTombstones();
   loadRecurring();
   // v6.19.0: with a backup set up, the check runs after the first sync (vaultStartupSync)
-  if (_hasGD || _hasFile || _hasNAS) _recurAfterSync = true; else runRecurringCheck();
+  if (_hasBackup) _recurAfterSync = true; else runRecurringCheck();
   updateRecurMenuSub();
   // Land on Home only after recurring rules are loaded/processed, so the Upcoming
   // section sees the fully-populated recurRules on its first render.
@@ -23576,6 +23822,17 @@ async function vaultStartupSync() {
   if (_recurAfterSync) { _recurAfterSync = false; runRecurringCheck(); }
 }
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") maybeAutoSync("back on screen"); });
+// v7.3.1 (H6): coming back to Vault is a gate too. You haven't read Home yet, so it can move
+// now; never under an open tray or the lock screen. Before this, an iPhone that kept Vault
+// open on Home only re-ranked when iOS had closed it.
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible") return;
+  try {
+    if (vaultIsLocked || _anyOverlayOpen()) return;
+    if (Date.now() - (autoLayout.computedAt || 0) < VH_REORDER_MS) return;
+    if (vhMaybeReorder("back on screen") && activeTab === "home") renderHome();
+  } catch (e) {}
+});
 window.addEventListener("online", () => { if (!pendingRetry) maybeAutoSync("online"); });
 
 let _hourlyBound = false;
@@ -24321,7 +24578,7 @@ function deleteRecurRule(ruleId, removeTx) {
   if (popupIsOpen(document.getElementById("recurring-modal"))) renderRecurList();
   saveAndRender(null);
   triggerCloudSync();
-  if (removeTx) toast(`Rule and ${txCountLabel(removed)} deleted`, "error");
+  if (removeTx) toast(`Rule and ${txCountLabel(removed)} deleted`);
   else toast("Recurring rule deleted · transactions kept");
   return removed;
 }
@@ -24337,7 +24594,7 @@ function saveRecurEditPopup() {
   const end  = document.getElementById("rep-end").value || null;
   const newAcct = document.getElementById("rep-account")?.value || rule.account || getDefaultAccountId();
   const oldAcct = rule.account || getDefaultAccountId();
-  if (isNaN(amt) || amt <= 0) { toast("Enter a valid amount", "error"); return; }
+  if (isNaN(amt) || amt <= 0) { vFieldErr("rep-amt", "Enter an amount above zero"); return; }
 
   // If frequency changed, stamp freqChangedAt so the audit generates the new
   // cadence going forward without trying to re-post or alter past transactions.
@@ -24409,7 +24666,7 @@ function _commitRecurEdit(applyToPast) {
   // Re-run the audit so that any rule edits affecting the schedule (un-completing,
   // extending endDate, changing freq, etc.) post any newly-due occurrences immediately.
   const _posted = processRecurring();
-  if (_posted > 0) toast(`${_posted} transaction${_posted > 1 ? "s" : ""} added`, "notice");
+  if (_posted > 0) toast(`Recurring transaction updated, ${_posted} added so far`);
   triggerCloudSync();
   updateRecurMenuSub();
   closeRecurEditPopup();
@@ -24447,9 +24704,9 @@ function addRecurringRule() {
   const end    = document.getElementById("recur-end")?.value || null;
   const accountId = document.getElementById("recur-account")?.value || getDefaultAccountId();
 
-  if (!start)                        { toast("Enter a start date", "error"); return; }
-  if (isNaN(amount) || amount <= 0)  { toast("Enter a valid amount", "error"); return; }
-  if (end && end <= start)           { toast("End date must be after start date", "error"); return; }
+  if (isNaN(amount) || amount <= 0)  { vFieldErr("recur-amount", "Enter an amount above zero"); return; }
+  if (!start)                        { vFieldErr("recur-start", "Choose a start date"); return; }
+  if (end && end <= start)           { vFieldErr("recur-end", "The end date must be after the start date"); return; }
 
   const startDow = new Date(start + "T00:00:00").getDay();
 
@@ -24470,7 +24727,8 @@ function addRecurringRule() {
   saveRecurring();
 
   const posted = processRecurring();
-  if (posted > 0) { saveAndRender(null); toast(`${posted} transaction${posted > 1 ? "s" : ""} added`, "notice"); }
+  if (posted > 0) saveAndRender(null);
+  toast(recurScheduledMsg(type, posted));
 
   // Always sync the new rule to cloud, even when no transactions were posted (e.g. future start date).
   // Without this, a rule with a future start date lives only in localStorage until something else triggers a sync.
@@ -24482,7 +24740,6 @@ function addRecurringRule() {
   closeAddRecurringPopup();
   updateRecurMenuSub();
   renderRecurList();
-  if (posted === 0) toast("Recurring transaction scheduled", "notice");
 }
 
 // Delete a recurring rule by index and refresh the list
@@ -24649,13 +24906,13 @@ function navCloseTop() {
   const top = topOpenPopup();
   if (top) {
     if (POPUP_DECISIONS.has(top.id)) return true;
-    if (POPUP_FORMS.has(top.id) && top.dataset.dirty === "1") { toast("Tap Cancel to leave without saving", "notice"); return true; }
+    if (POPUP_FORMS.has(top.id) && top.dataset.dirty === "1") { toastNudge("Tap Cancel to leave without saving"); return true; }
     if (VP_INNER_BACK[top.id] && VP_INNER_BACK[top.id]()) return true;           // v6.17.0: a panel inside the tray
     if (top._vpParent && window.innerWidth <= 640) { vpBack(top); return true; }   // v6.16.5: one layer back
     dismissPopup(top); return true;
   }
   const add = document.getElementById("add-sheet");
-  if (add && add.classList.contains("open") && add.dataset.dirty === "1") { toast("Tap Cancel to leave without saving", "notice"); return true; }
+  if (add && add.classList.contains("open") && add.dataset.dirty === "1") { toastNudge("Tap Cancel to leave without saving"); return true; }
   if (document.querySelector("#add-sheet.open, #menu-sheet.open, #year-sheet.open")) { closeSheets(); return true; }
   const as = document.getElementById("as-sheet");
   if (as && as.classList.contains("open") && typeof asCloseSheet === "function") { asCloseSheet(); return true; }
@@ -24932,7 +25189,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
           <div class="pp-eyebrow">Vault</div>
           <div class="pp-title">A savings tracker built for you.</div>
           <div class="pp-subtitle">Vault is a personal savings tracker that puts you in control — your data lives on your device, your backup is yours, and nothing is collected or tracked.</div>
-          <div class="pp-meta" id="about-version-meta">Version v7.3.0</div>
+          <div class="pp-meta" id="about-version-meta">Version v7.3.1</div>
         </div>
 
         <div class="pp-cards">
@@ -25045,7 +25302,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   </div>
 </div><!-- /app root -->
 
-  <div id="version-footer">v7.3.0</div>
+  <div id="version-footer">v7.3.1</div>
 
 <!-- Lightweight Charts 4.2.3 (Apache-2.0, TradingView, Inc.): draws the Charts screen. -->
 <script>

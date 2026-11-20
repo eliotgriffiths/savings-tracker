@@ -142,7 +142,7 @@ setTimeout(async () => {
     ok(/already have a preset called that/.test(txt("chp-name-err")), "names don't clash");
     E(`document.getElementById("chp-name").value = "Everything on"; document.getElementById("chp-save").click()`); await sleep(20);
     ok(E(`chPresets.length`) === 1 && E(`chPresets[0].name`) === "Everything on" && E(`chPresets[0].ts`) === NOW, "saved, with its own time");
-    ok(!isOpen("chart-presets-popup") && E(`__toasts.slice(-1)[0]`) === "Saved “Everything on”", "closes, then the toast");
+    ok(!isOpen("chart-presets-popup") && !/Saved “/.test(E(`__toasts.slice(-1)[0]`) || "") , "closes (v7.3.1: no toast, the chart shows it)");
     ok(txt("ch-preset-name") === "Everything on" && $("ch-preset-dot").hidden, "the chart is on it now, unchanged");
     ok(E(`__syncs`) >= 1, "it syncs");
     ok(E(`vsIsSealed("vault_chart_presets")`) && JSON.parse(E(`vsGet("vault_chart_presets")`))[0].name === "Everything on", "kept with the encrypted data (VS_SEALED)");
@@ -150,7 +150,7 @@ setTimeout(async () => {
     E(`chCfg.zero = true; renderCharts(); openChartPresets();`);
     ok($("chp-update") && $("chp-del"), "yours can be updated and deleted");
     E(`document.getElementById("chp-update").click()`); await sleep(20);
-    ok(E(`chPresets[0].cfg.zero`) === true && E(`__toasts.slice(-1)[0]`) === "Preset saved", "update saves the changes");
+    ok(E(`chPresets[0].cfg.zero`) === true && E(`__toasts.slice(-1)[0]`) !== "Preset saved", "update saves the changes");
     // switch presets
     E(`openChartPresets()`); E(`document.querySelector('[data-chp-pick="b-net"]').click()`); await sleep(20);
     ok(E(`chCurrentId`) === "b-net" && E(`chCfg.plot`) === "net" && txt("ch-preset-name") === "Net saved" && !isOpen("chart-presets-popup"), "tapping a preset switches the whole setup");
@@ -170,7 +170,7 @@ setTimeout(async () => {
     $("del-ok").click(); await sleep(30);
     ok(E(`chPresets.map(p => p.name).join()`) === "Everything on" && E(`chPresetsDeleted.size`) === 1, "deleted, and tombstoned");
     ok(E(`chCurrentId`) === "b-balance" && E(`chCfg.grid`) === false, "the chart stays as it was, now changed from Balance");
-    ok(E(`__toasts.slice(-1)[0]`) === "Deleted “No grid”", "toast");
+    ok(!/^Deleted “/.test(E(`__toasts.slice(-1)[0]`) || ""), "no toast: the list shows it (v7.3.1)");
     E(`closeChartPresets()`);
 
     // ── sync ───────────────────────────────────────────────────────────────────────────────

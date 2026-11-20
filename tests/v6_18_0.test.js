@@ -241,7 +241,7 @@ setTimeout(async () => {
     await settle();
     E(`vhHomeMenuReset()`); await sleep(0); okBtn().click(); await sleep(10);
     ok(E(`homeLayout.auto === true && homeLayout.hidden.length === 0 && homeLayout.order.length === 0`), "Reset restores the default layout");
-    ok(/Home layout reset to default|Home is arranged automatically|Every section rotates/.test(toastText()), "…and says so");   // v7.3.0 wording   // v7.1.1 wording
+    ok(!/Every section rotates/.test(toastText()), "…with no toast: Home shows it (v7.3.1)");   // v7.3.0 wording   // v7.1.1 wording
     await settle();
 
     // Version

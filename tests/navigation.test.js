@@ -83,7 +83,7 @@ setTimeout(async () => {
   E(`window.__toasts = []`);
   await back();
   ok(d.getElementById("add-sheet").classList.contains("open"), "Back keeps an Add sheet with typed input");
-  ok(E("window.__toasts.length") === 1 && E("window.__toasts[0][1]") === "notice", "…and says how to leave");
+  ok(/Tap Cancel/.test(E(`document.getElementById("toast").textContent`)) && E(`document.getElementById("toast").dataset.kind`) === "notice", "…and says how to leave");   // v7.3.1: a nudge (toastNudge), not toast()
   ok(tab() === "all", "…on the same screen");
   E(`closeSheets()`);
 
