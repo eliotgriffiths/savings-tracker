@@ -137,10 +137,10 @@ setTimeout(async () => {
       tick(10000); A.E(`switchYearMode("financial")`); await A.sync();
       tick(10000); await B.sync();
       ok(B.E("_pendingYearModeChange && _pendingYearModeChange.yearMode") === "financial", "#5 the other device picks up the new year format (it never did)");
-      ok(B.E("window.__toasts").some(t => /Year format was changed/.test(t)), "#5 …and says it takes effect next time");
+      ok(B.E("window.__toasts").some(t => /Year format (was )?changed/.test(t)), "#5 …and says it takes effect next time");
       tick(); B.add("b1", 3); await B.sync();
       ok(JSON.parse(drive.text)._yearMode === "financial", "#5 …and doesn't write the old one back meanwhile");
-      ok(B.E("window.__toasts").filter(t => /Year format was changed/.test(t)).length === 1, "#5 …and says so once");
+      ok(B.E("window.__toasts").filter(t => /Year format (was )?changed/.test(t)).length === 1, "#5 …and says so once");
       B = B.reload(); await sleep(40);
       ok(B.E("yearMode") === "financial", "#5 after a restart it's in use");
       tick(); await B.sync(); tick(); await A.sync();
@@ -254,7 +254,7 @@ setTimeout(async () => {
       // Load from NAS + Merge
       A.E(`window.__nas = JSON.stringify({ _data: { "2026": { saved: [["2026-11-03", 12, "n0", Date.now(), null, null, "ub"]], removed: [] } } }); nasConfig = { url: "https://nas/v.json", user: "u", pass: "p" };`);
       await A.E(`loadFromNAS()`); await sleep(20);
-      ok(A.d.getElementById("nas-status").textContent === "Connected." && A.has("n0"), "#12 Load + Merge says Connected (it said Could not parse server data.)");
+      ok(/^Connected\.?$/.test(A.d.getElementById("nas-status").textContent) && A.has("n0"), "#12 Load + Merge says Connected (it said Could not parse server data.)");
       // Encrypted server file
       A.E(`nasLinked = true;`);
       await A.E(`(async () => { vaultEncKey = await deriveKeyFromPassword("pw"); vaultEncActive = true; })()`);

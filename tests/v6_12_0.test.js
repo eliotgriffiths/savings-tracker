@@ -100,13 +100,14 @@ setTimeout(async () => {
   // ── sample vault: lists, print, charts ──────────────────────────────────
   E(SEED);
   E(`homeLayout = { order: VH_SECTIONS.map(s => s.key), hidden: [], auto: false, ts: 1, v: 1 }; switchTab("all"); render();`);
-  const witCell = E(`[...document.querySelectorAll("#tx-body tr")].find(r => r.dataset.type === "removed").querySelector(".num").textContent`);
+  // v8.0.0: Transactions (#as-body) is the list
+  const witCell = E(`[...document.querySelectorAll("#as-body tr")].find(r => r.dataset.type === "removed").querySelector(".num").textContent`);
   ok(/^−/.test(witCell.trim()), "list withdrawals carry a minus: " + witCell);
-  E(`window.__pdf = null; openPdfWindow = o => { window.__pdf = o; }; activeAccountFilter = "all"; printCurrentView();`);
+  E(`window.__pdf = null; openPdfWindow = o => { window.__pdf = o; }; asF = asBlank(); asRender(); menuPrint();`);
   ok(E(`window.__pdf.oneAccount`) === false, "unfiltered list print keeps the Account column");
-  E(`activeAccountFilter = "ing"; printCurrentView();`);
+  E(`asF.accs = ["ing"]; asRender(); menuPrint();`);
   ok(E(`window.__pdf.oneAccount`) === true, "list filtered to one account drops it");
-  E(`activeAccountFilter = "all"; switchTab("report"); asSetQuery("ubank"); asRender(); printSearchResults();`);
+  E(`asF = asBlank(); asSetQuery("ubank"); asRender(); printSearchResults();`);
   ok(E(`window.__pdf.oneAccount`) === true, "Search narrowed to one account by name drops it");
   E(`asSetQuery(""); asRender(); printSearchResults();`);
   ok(E(`window.__pdf.oneAccount`) === false, "Search across accounts keeps it");

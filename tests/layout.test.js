@@ -39,18 +39,20 @@ setTimeout(async () => {
   ok(!$("#mob-fabs") && !$("#fab-add") && !$("#fab-menu"), "the floating Menu and Add buttons are gone");
   ok(!/#mob-fabs|#fab-add|#fab-menu/.test(html), "…and so are their styles");
   const tabs = $$("#tabbar > *").map(el => el.querySelector("button[aria-label]")?.getAttribute("aria-label") || txt(el));
-  ok(JSON.stringify(tabs) === '["Home","Transactions","Add transaction","Search","Menu"]', "bar: Home · Transactions · ＋ · Search · Menu: " + JSON.stringify(tabs));
+  // v8.0.0: Charts takes Search's slot (Search merged into Transactions, queue-v8.0.0 #1)
+  ok(JSON.stringify(tabs) === '["Home","Transactions","Add transaction","Charts","Menu"]', "bar: Home · Transactions · ＋ · Charts · Menu: " + JSON.stringify(tabs));
   $('#tabbar [data-nav="list"]').click();
   ok(E("activeTab") === "all", "Transactions opens the list");
-  E(`switchTab("removed")`); $('#tabbar [data-nav="home"]').click();
+  E(`asF.types = ["wit"]`); $('#tabbar [data-nav="home"]').click();
   ok(E("activeTab") === "home", "Home opens Home");
   $('#tabbar [data-nav="list"]').click();
-  ok(E("activeTab") === "removed", "Transactions returns to the list tab you were on");
+  ok(E("activeTab") === "all" && E(`asF.types.join()`) === "wit", "Transactions comes back with the filters you had (they last while Vault is open)");
   let scrolled = 0; w.scrollTo = () => { scrolled++; };
   $('#tabbar [data-nav="list"]').click();
-  ok(E("activeTab") === "removed" && scrolled === 1, "tapping the tab you're on scrolls to the top");
-  $('#tabbar [data-nav="report"]').click();
-  ok(E("activeTab") === "report", "Search opens Search");
+  ok(E("activeTab") === "all" && scrolled === 1, "tapping the tab you're on scrolls to the top");
+  E(`asF = asBlank(); asRender();`);
+  $('#tabbar [data-nav="charts"]').click();
+  ok(E("activeTab") === "charts" && $('#tabbar [data-nav="charts"]').classList.contains("nav-on"), "Charts opens Charts");
   $("#tb-add").click();
   ok($("#add-sheet").classList.contains("open"), "＋ opens the Add sheet");
   E(`closeSheets()`);
@@ -63,9 +65,10 @@ setTimeout(async () => {
 
   // ── N6: Menu ─────────────────────────────────────────────────────────────
   const sections = $$("#menu-sheet .menu-section-label").map(txt);
-  ok(JSON.stringify(sections) === '["View","Manage","Data","Settings"]', "Menu sections: " + JSON.stringify(sections));
+  // v8.0.0: no View section (Charts is in the tab bar)
+  ok(JSON.stringify(sections) === '["Manage","Data","Settings"]', "Menu sections: " + JSON.stringify(sections));
   const items = $$("#menu-sheet .menu-item-label").map(txt);
-  ok(JSON.stringify(items) === '["Charts","Recurring","Accounts","Goals","Save & backup","Import","Export spreadsheet","Print","Settings","Holdings Soon"]', "Menu items: " + JSON.stringify(items));
+  ok(JSON.stringify(items) === '["Recurring","Accounts","Goals","Save & backup","Import","Export spreadsheet","Print","Settings","Holdings Soon"]', "Menu items: " + JSON.stringify(items));
   ok(!$("#menu-tx-dropdown") && !$("#menu-settings-dropdown"), "no dropdowns inside the Menu");
   ok(["mob-recur-manage-sub", "mob-accounts-sub", "menu-goals-sub", "mob-export-sub", "mob-print-sub"].every(id => d.getElementById(id)), "Menu keeps its live sub-labels");
   ok(d.querySelectorAll('[id="mob-accounts-sub"]').length === 1, "IDs are unique");
@@ -98,37 +101,16 @@ setTimeout(async () => {
   d.dispatchEvent(new w.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
   ok(!isOpen("settings-popup"), "Escape closes Settings");
 
-  // ── N5: period picker ────────────────────────────────────────────────────
-  E(`switchTab("all"); activeYear = "all-years"; activeMonth = null; activeAccountFilter = "ub"; render();`);
-  $("#fy-title").click();
-  ok($("#year-sheet").classList.contains("open"), "tapping the list title opens the period picker");
-  const chips = $$("#year-sheet .ps-chip").map(txt);
-  ok(JSON.stringify(chips) === '["This month","Last month","This year","All"]', "quick picks: " + JSON.stringify(chips));
-  ok($$("#ps-body .ps-year").length === E(`Object.keys(data).length`), "one row per year");
-  ok(txt($("#ps-body .ps-year .ps-row")).startsWith("2026"), "newest year first");
-  ok($$("#ps-body .ps-fold:not(.folded) .ps-months").length === 0, "every year starts collapsed (v6.15.2)");
-  $$("#year-sheet .ps-chip").find(b => txt(b) === "This month").click();
-  ok(E("activeYear") === "2026" && E("activeMonth") === "2026-11" && !$("#year-sheet").classList.contains("open"), "This month picks November 2026 and closes");
-  ok(E("activeAccountFilter") === "ub", "…keeping the account you were looking at");
-  ok(/November 2026/.test(txt($("#fy-title"))), "the title says November 2026: " + txt($("#fy-title")));
-  E(`openPeriodSheet()`);
-  ok(!!$('#year-sheet .ps-chip.on'), "the current pick is highlighted");
-  $('#ps-body [data-exp="2025"]').click();
-  const m25 = $$("#ps-body .ps-fold:not(.folded) .ps-months button").map(txt);
-  ok(m25[0] === "Nov" && m25.length === 2, "expanding 2025 shows its months: " + JSON.stringify(m25));
-  $$("#ps-body .ps-fold:not(.folded) .ps-months button").find(b => txt(b) === "Dec").click();
-  ok(E("activeYear") === "2025" && E("activeMonth") === "2025-12", "picking Dec 2025 shows it");
-  E(`openPeriodSheet()`); $('#ps-body .ps-row[data-y="all-years"]').click();
-  ok(E("activeYear") === "all-years" && E("activeMonth") === null, "All transactions");
-  E(`switchTab("home"); openPeriodSheet()`); $('#ps-body .ps-year .ps-row').click();
-  ok(E("activeTab") === "all" && E("activeYear") === "2026", "picking a period from elsewhere opens the list");
-  w.innerWidth = 1280; E(`closeSheets(); openPeriodSheet()`);
-  ok(!$("#year-sheet").classList.contains("open"), "desktop picks periods in the sidebar instead");
-  w.innerWidth = 390;
+  // ── N5: the period picker is gone (v8.0.0): Dates is a row in the Filters sheet,
+  // tested in v8_0_0.test.js ─────────────────────────────────────────────
+  ok(!$("#year-sheet") && !$("#fy-title") && E(`typeof openPeriodSheet`) === "undefined", "no period picker");
+  E(`switchTab("all"); asOpenSheet();`);
+  ok(!!$("#as-s-dates") && $$("#as-s-dates optgroup").length === E(`Object.keys(data).length`) + 2, "Dates in Filters: Quick, one section per year, Custom");
+  E(`asCloseSheet(false)`);
   ok(!/ysheet|confirmYsheetYear|renderYearSheet|menu-tx-|toggleMenuTxDropdown|toggleDesktopSettingsDropdown/.test(html), "the old Years sheet and menu dropdowns are gone (N12)");
 
   // ── N11: desktop ─────────────────────────────────────────────────────────
-  ok(JSON.stringify($$(".side-nav-btn").map(txt)) === '["Home","Search","Charts"]', "sidebar screens");
+  ok(JSON.stringify($$(".side-nav-btn").map(txt)) === '["Home","Transactions","Charts"]', "sidebar screens (v8.0.0)");
   $('.side-nav-btn[data-nav="charts"]').click();
   ok(E("activeTab") === "charts" && $('.side-nav-btn[data-nav="charts"]').classList.contains("nav-on"), "sidebar opens Charts and highlights it");
   const dsec = $$("#desktop-menu .dmenu-section-label").map(txt);
@@ -142,8 +124,8 @@ setTimeout(async () => {
   // ── Nothing still points at the old layout ───────────────────────────────
   ok(!/Tap Add New|Menu → Encryption|Menu → Home|floating Menu/.test(html), "no wording points at the floating buttons or old menu paths");
 
-  // ── Search naming ────────────────────────────────────────────────────────
-  ok(txt($(".as-title")) === "Search", "the page is called Search");
+  // ── Naming (v8.0.0: Search became Transactions) ──────────────────────────
+  ok(txt($(".as-title")) === "Transactions", "the page is called Transactions");
   const visible = html.replace(/<!--[\s\S]*?-->/g, "").replace(/\/\/[^\n]*/g, "").replace(/\/\*[\s\S]*?\*\//g, "");
   ok(!/Advanced [Ss]earch/.test(visible), "no visible text says Advanced Search");
 

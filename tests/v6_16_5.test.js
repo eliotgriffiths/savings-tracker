@@ -32,7 +32,7 @@ const dom = new JSDOM(html, {
 const w = dom.window, d = w.document;
 const E = s => w.eval(s);
 const $ = id => d.getElementById(id);
-const isOpen = id => ["menu-sheet", "year-sheet", "add-sheet"].includes(id) ? $(id).classList.contains("open") : E(`popupIsOpen(document.getElementById(${JSON.stringify(id)}))`);
+const isOpen = id => ["menu-sheet", "add-sheet"].includes(id) ? $(id).classList.contains("open") : E(`popupIsOpen(document.getElementById(${JSON.stringify(id)}))`);
 const back = id => $(id).querySelector(".vp-head > .vp-back");
 const backShown = id => !!back(id) && !back(id).hidden;
 const tap = async el => { el.click(); await sleep(120); };   // some rows open after a short delay
@@ -156,7 +156,8 @@ setTimeout(async () => {
     ok(E("topOpenPopup()") === null, "nothing counts as an open popup at rest (was #pdf-preview-modal)");
     await run("openMenuSheet()");   ok(E("navCloseTop()") === true && !isOpen("menu-sheet"), "Back closes the Menu");
     await run("openAddSheet()");    ok(E("navCloseTop()") === true && !isOpen("add-sheet"), "Back closes the Add tray");
-    await run("openPeriodSheet()"); ok(E("navCloseTop()") === true && !isOpen("year-sheet"), "Back closes the period picker");
+    // v8.0.0: the period picker is gone; Transactions' Filters sheet closes the same way
+    await run("switchTab('all'); asOpenSheet()"); ok(E("navCloseTop()") === true && !$("as-sheet").classList.contains("open"), "Back closes the Filters sheet");
 
     // ── Save & backup's own back buttons look like every tray's ‹ ───────────
     const smodBacks = [...d.querySelectorAll(".smod-back")];

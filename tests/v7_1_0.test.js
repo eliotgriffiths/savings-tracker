@@ -153,36 +153,37 @@ setTimeout(async () => {
     E(`exportPick("xlsx"); closeExportPopup();
        matchMedia = q => ({ matches: false, media: q, addEventListener() {}, removeEventListener() {} });`);
 
-    // ── Search: exactly the results, with the filters ──────────────────────────────────────────
-    E(`switchTab("report"); asF = asBlank(); asF.accs = ["ing"]; asSetQuery(""); sortKey = "amount"; sortDir = "desc"; asRender(); openExportPopup();`);
-    ok(txt("exp-sub") === "Search results", "Search: subtitle");
+    // ── Transactions (v8.0.0: was Search): exactly the results, with the filters ───────────────
+    E(`switchTab("all"); asF = asBlank(); asF.accs = ["ing"]; asSetQuery(""); sortKey = "amount"; sortDir = "desc"; asRender(); openExportPopup();`);
+    ok(txt("exp-sub") === "All transactions", "Search: subtitle is the dates (no dates picked)");
     ok(!d.getElementById("exp-applied").hidden && txt("exp-applied-k") === "Filters" && txt("exp-applied-v") === E(`asDescribe()`), "Search: Filters row = the search: " + txt("exp-applied-v"));
     ok(/ING/.test(txt("exp-applied-v")) && /amount, largest first/.test(txt("exp-applied-v")), "…naming the account and order");
     ok(txt("exp-n") === String(E(`_asRows.length`)), "Search: count = results");
     ok(/\.csv · Every result, no filters, totals or formatting/.test(d.querySelectorAll("#exp-opts .exp-opt")[1].textContent), "Search: Plain text's line");
-    ok(/^vault-search-2026-11-16\.xlsx/.test(txt("exp-file-name")), "Search: file name");
+    ok(/^vault-all-transactions-2026-11-16\.xlsx/.test(txt("exp-file-name")), "Search: file name from the dates");
     E(`window.__sx = XLSX.read(exportBuild(_expScope, "xlsx").data, { type: "array" });`);
     ok(JSON.stringify(E(`XLSX.utils.sheet_to_json(__sx.Sheets.Transactions, { header: 1 }).slice(1, 1 + _asRows.length).map(r => r[6])`))
        === JSON.stringify(E(`_asRows.map(t => +convertToGlobal(t.amt, t.cur).toFixed(2))`)), "Search: same rows, same order");
     ok(/ING/.test(E(`__sx.Sheets.Summary.B3.v`)), "Search: Summary says what it covers");
     E(`closeExportPopup(); asSetQuery("zzzz-nothing"); asRender(); openExportPopup();`);
-    ok(txt("exp-n") === "0" && !d.getElementById("exp-none").hidden && /Change the search/.test(txt("exp-none")), "no results: says so");
+    ok(txt("exp-n") === "0" && !d.getElementById("exp-none").hidden && /Change the filters or the search/.test(txt("exp-none")), "no results: says so");
     ok(d.getElementById("exp-go").disabled && d.getElementById("exp-file").hidden, "…and the button is off, no file line");
     E(`closeExportPopup(); asF = asBlank(); asSetQuery(""); sortKey = "date"; sortDir = "asc"; asRender();`);
 
-    // ── the list: what's on screen ─────────────────────────────────────────────────────────────
-    E(`activeYear = "all-years"; activeMonth = null; activeAccountFilter = "ing"; switchTab("removed"); openExportPopup();`);
-    const n = E(`vhAllTx().filter(t => t.accId === "ing" && t.kind === "wit").length`);
+    // ── the list (v8.0.0: Transactions with a month and filters): what's on screen ───────────
+    E(`asF = asBlank(); asF.accs = ["ing"]; asF.types = ["wit"]; asF.date = "y:2026"; switchTab("all"); openExportPopup();`);
+    const n = E(`vhAllTx().filter(t => t.accId === "ing" && t.kind === "wit" && t.year === "2026").length`);
     ok(txt("exp-n") === String(n), `list: count ${txt("exp-n")} vs ${n}`);
-    ok(txt("exp-applied-k") === "Showing" && txt("exp-applied-v") === E(`viewScopeLabel()`) + " · Sorted by date, oldest first", "list: Showing row: " + txt("exp-applied-v"));
-    ok(txt("exp-sub") === E(`viewScopeLabel()`) && txt("mob-export-sub") === E(`viewScopeLabel()`), "list: subtitle and Menu line: " + txt("exp-sub"));
-    ok(/^vault-all-transactions-ing-withdrawals-only-2026-11-16\.xlsx/.test(txt("exp-file-name")), "list: file name: " + txt("exp-file-name"));
+    ok(txt("exp-applied-k") === "Filters" && txt("exp-applied-v") === E(`asDescribe()`) && /Withdrawals · ING · Sorted by date, oldest first$/.test(txt("exp-applied-v")), "list: Filters row: " + txt("exp-applied-v"));
+    ok(txt("exp-sub") === "2026" && txt("mob-export-sub") === E(`viewScopeLabel()`), "list: subtitle (the dates) and Menu line: " + txt("exp-sub") + " / " + txt("mob-export-sub"));
+    ok(/^vault-2026-2026-11-16\.xlsx/.test(txt("exp-file-name")), "list: file name: " + txt("exp-file-name"));
+    E(`asF = asBlank();`);
 
     // ── closing ────────────────────────────────────────────────────────────────────────────────
     ok(E(`typeof POPUP_CLOSE["export-popup"]`) === "function", "registered in POPUP_CLOSE");
     E(`dismissPopup(document.getElementById("export-popup"))`);
     ok(!isOpen("export-popup"), "Back/outside tap closes it");
-    E(`activeAccountFilter = "all"; switchTab("home");`);
+    E(`switchTab("home");`);
 
     // ── old callers ────────────────────────────────────────────────────────────────────────────
     E(`window.__clicks = []; menuExportXLSX();`);

@@ -68,28 +68,9 @@ setTimeout(() => {
   w.eval("setDeskType('interest')"); ok(dFold.classList.contains("folded"), "wide screen: Interest folds it");
   w.eval("setDeskType('deposit')"); ok(!dFold.classList.contains("folded"), "wide screen: Deposit opens it");
 
-  // 2. Period picker
-  w.eval("openPeriodSheet()");
-  const folds = $$("#ps-body .ps-fold");
-  const years = $$("#ps-body [data-exp]").map(b => b.dataset.exp);
-  ok(folds.length === years.length && folds.length > 1, "every year has its months in a fold");
-  ok(folds.every(f => f.classList.contains("folded")), "all folded shut to start");
-  const body = d.getElementById("ps-body"), before = body.innerHTML.length;
-  const b25 = d.querySelector('#ps-body [data-exp="2025"]');
-  const f25 = d.querySelector('#ps-body .ps-fold[data-fold="2025"]');
-  b25.click();
-  ok(d.querySelector('#ps-body .ps-fold[data-fold="2025"]') === f25, "▾ folds the months open in place (no re-render, so it can animate)");
-  ok(!f25.classList.contains("folded") && txt(b25) === "▴" && b25.getAttribute("aria-expanded") === "true", "…2025 opens, ▴, aria-expanded");
-  ok(/^Hide months of /.test(b25.getAttribute("aria-label")), "…and its label says Hide");
-  const b26 = d.querySelector('#ps-body [data-exp="2026"]');
-  b26.click();
-  ok(f25.classList.contains("folded") && !d.querySelector('#ps-body .ps-fold[data-fold="2026"]').classList.contains("folded"),
-    "opening another year folds the first one shut");
-  ok(txt(b25) === "▾" && b25.getAttribute("aria-expanded") === "false", "…and puts its chevron back");
-  b26.click();
-  ok($$("#ps-body .ps-fold").every(f => f.classList.contains("folded")), "▴ folds it shut again");
-  ok(Math.abs(body.innerHTML.length - before) < 400, "the picker's contents weren't rebuilt");
-  w.eval("closeSheets()");
+  // 2. Period picker: gone in v8.0.0 (its years and months are the Filters sheet's Dates menu,
+  // and the Filters sheet's own folds use vpFold: tested in v8_0_0.test.js)
+  ok(!d.getElementById("ps-body") && !d.getElementById("year-sheet"), "no period picker");
 
   // 3. Titles
   ok(/@media \(max-width: 640px\) \{\s*\.fy-title, \.as-title, #home-panel \.vh-home-title \{ font-size: 22px;/.test(css),
@@ -97,33 +78,21 @@ setTimeout(() => {
   ok(css.lastIndexOf(".fy-title, .as-title, #home-panel .vh-home-title") > css.lastIndexOf(".fy-title { font-size: 15px"),
     "…and that rule comes after the old 15 px one, so it wins");
 
-  // 4. Summary cards: the list uses Search's format (label, figure, count line), both centred
+  // 4. Summary cards: since v8.0.0 there's one set (Transactions'), with the count lines, centred
   w.eval("navTab('list')");
   const plural = n => n + " transaction" + (n === 1 ? "" : "s");
-  const cnt = id => Number((txt(d.getElementById(id)).match(/\d+/) || [])[0]);
-  ok(txt(d.getElementById("stat-in-c")) === plural(cnt("count-saved")), "Saved card counts its transactions: " + txt(d.getElementById("stat-in-c")));
-  ok(txt(d.getElementById("stat-out-c")) === plural(cnt("count-removed")), "Withdrawn card counts its transactions: " + txt(d.getElementById("stat-out-c")));
-  ok(txt(d.getElementById("stat-net-c")) === "surplus", "Net card says surplus");
-  w.eval("activeAccountFilter = 'ing'; render()");
+  const nIn = w.eval("vhAllTx().filter(t => t.kind !== 'wit').length"), nOut = w.eval("vhAllTx().filter(t => t.kind === 'wit').length");
+  ok(txt(d.getElementById("as-in-c")) === plural(nIn), "Saved card counts its transactions: " + txt(d.getElementById("as-in-c")));
+  ok(txt(d.getElementById("as-out-c")) === plural(nOut), "Withdrawn card counts its transactions: " + txt(d.getElementById("as-out-c")));
+  ok(txt(d.getElementById("as-net-c")) === "surplus", "Net card says surplus");
+  w.eval("asF.accs = ['ing']; render()");
   const ingIn = w.eval("Object.values(data).reduce((s, y) => s + y.saved.filter(r => (r[6] || getDefaultAccountId()) === 'ing').length, 0)");
-  ok(txt(d.getElementById("stat-in-c")) === plural(ingIn), "…and follows the account filter: " + txt(d.getElementById("stat-in-c")));
-  w.eval("activeAccountFilter = 'all'; render()");
-  ok(txt(d.getElementById("stat-in-c")) === plural(cnt("count-saved")), "…and back for all accounts");
-  // Rule text for a selector: the first (base) rule, or every rule joined.
-  const ruleBodies = sel => [...css.matchAll(new RegExp("(?:^|[{};\\s])" + sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*\\{([^}]*)\\}", "g"))].map(m => m[1]);
-  const ruleBody = sel => ruleBodies(sel)[0] || "";
-  const centred = sel => ruleBodies(sel).some(b => /text-align:\s*center/.test(b));
-  ok(centred("#year-summary .stat") && centred(".as-sum"), "both sets of cards are centred");
-  const val = (sel, prop) => ((ruleBody(sel).match(new RegExp("(?:^|;)\\s*" + prop + "\\s*:\\s*([^;]+)")) || [])[1] || "").replace(/\s+/g, "");
-  const same = (a, b, prop) => { const x = val(a, prop), y = val(b, prop); return !!x && x === y; };
-  [["#year-summary .stat", ".as-sum", "padding"], ["#year-summary .stat", ".as-sum", "background"], ["#year-summary .stat", ".as-sum", "border"],
-   ["#year-summary .stat-label", ".as-sum .l", "font-size"], ["#year-summary .stat-label", ".as-sum .l", "font-weight"], ["#year-summary .stat-label", ".as-sum .l", "letter-spacing"],
-   ["#year-summary .stat-val, #year-summary .stat-val.big", ".as-sum .v", "font-size"], ["#year-summary .stat-val, #year-summary .stat-val.big", ".as-sum .v", "font-weight"],
-   ["#year-summary .stat-val, #year-summary .stat-val.big", ".as-sum .v", "font-variant-numeric"],
-   ["#year-summary .stat-c", ".as-sum .c", "font-size"], ["#year-summary .stat-c", ".as-sum .c", "color"]]
-    .forEach(([a, b, prop]) => ok(same(a, b, prop), `list card ${prop} matches Search (${a})`));
-  ok(/@media \(max-width: 380px\) \{[^@]*\.as-sum \.v \{ font-size: 15px; \}[^@]*#year-summary \.stat-val, #year-summary \.stat-val\.big \{ font-size: 15px; \}/.test(css),
-    "below 380 px both sets of figures drop to 15 px, so six-figure amounts fit");
+  ok(txt(d.getElementById("as-in-c")) === plural(ingIn), "…and follows the account filter: " + txt(d.getElementById("as-in-c")));
+  w.eval("asF.accs = []; render()");
+  ok(txt(d.getElementById("as-in-c")) === plural(nIn), "…and back for all accounts");
+  ok(!d.getElementById("year-summary"), "the list's second set of cards is gone");
+  ok(/\.as-sum \{ text-align: center; \}/.test(css), "the cards are centred");
+  ok(/@media \(max-width: 380px\) \{[^@]*\.as-sum \.v \{ font-size: 15px; \}/.test(css), "below 380 px the figures drop to 15 px, so six-figure amounts fit");
 
   // Version
   const ver = t => (t.match(/v(\d+)\.(\d+)\.(\d+)/) || []).slice(1).map(Number);

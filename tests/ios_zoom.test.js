@@ -10,6 +10,8 @@ const doc = dom.window.document;
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
 
+// v8.0.0: the Filters sheet's rows each have an invisible native <select> (built in script); add one
+{ const s = doc.createElement("select"); s.className = "as-rsel"; s.id = "as-s-dates"; doc.getElementById("as-f-body").appendChild(s); }
 const fields = [...doc.querySelectorAll("input, select, textarea")]
   .filter(e => !["checkbox", "radio", "hidden", "file", "range", "color"].includes((e.type || "").toLowerCase()));
 ok(fields.length > 20, "found the app's form fields (" + fields.length + ")");
@@ -33,6 +35,9 @@ ok(offenders.length === 0, "no !important font-size under 16px on a form field:\
 ok(/@media\s*\(hover:\s*none\)\s*\{\s*input:not\(\[type="checkbox"\]\):not\(\[type="radio"\]\),\s*select,\s*textarea\s*\{\s*font-size:\s*16px\s*!important/.test(css), "16px touch rule present");
 // And the two FY pickers that used to be 15px.
 ok(/#fy-start-day-select,\s*#fy-start-month-select\s*\{[^}]*font-size:\s*16px\s*!important/.test(css), "FY start pickers are 16px");
+
+// …and the Filters sheet's menus are 16 px themselves, so tapping one never zooms (v8.0.0)
+ok(/\.as-rsel \{[^}]*font-size:\s*16px/.test(css), "Filters' native menus are 16px");
 
 console.log(`${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

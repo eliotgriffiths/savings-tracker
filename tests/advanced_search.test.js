@@ -28,10 +28,10 @@ setTimeout(() => {
   reset();
 
   // ── page basics ──
-  // Called "Search" again since v6.14.0 (it has a tab of its own on the phone).
-  ok(E(`document.querySelector(".as-title").textContent`) === "Search", "page title");
-  ok([...w.document.querySelectorAll(".side-nav-btn")].some(e => e.textContent.trim() === "Search"), "desktop sidebar label");
-  ok([...w.document.querySelectorAll("#tabbar .tb-btn")].some(e => e.textContent.trim() === "Search"), "phone tab label");
+  // v8.0.0: Search became Transactions, the one list (queue-v8.0.0 #1).
+  ok(E(`document.querySelector(".as-title").textContent`) === "Transactions", "page title");
+  ok([...w.document.querySelectorAll(".side-nav-btn")].some(e => e.textContent.trim() === "Transactions"), "desktop sidebar label");
+  ok([...w.document.querySelectorAll("#tabbar .tb-btn")].some(e => e.textContent.trim() === "Transactions"), "phone tab label");
   ok(E(`document.querySelectorAll("#as-body tr").length`) === total, "everything shows with no search");
   ok(!w.document.getElementById("report-from") && !w.document.getElementById("report-table"), "old Search controls are gone");
 
@@ -73,7 +73,8 @@ setTimeout(() => {
   ok(JSON.stringify(g3) === JSON.stringify([...g3].sort()), "remembered sort inside a group (date ↑)");
   E(`asF.exactAmts = true; asRender();`);
   ok(all("t.amt === 50") && E(`document.getElementById("as-rank-note").style.display`) === "none", "Exact only: '50' = $50.00, no ranking");
-  ok([...w.document.querySelectorAll("#as-chips .as-chip")].some(c => c.textContent.startsWith("Exact amounts")), "Exact amounts chip");
+  // v8.0.0 (queue #5): no "Exact amounts" chip; each number's own chip says Exactly or Contains.
+  ok([...w.document.querySelectorAll("#as-chips .as-chip")].some(c => c.textContent.startsWith("Exactly $50.00")), "the number's chip says Exactly");
   reset();
 
   // ── filters ──
@@ -123,10 +124,12 @@ setTimeout(() => {
   ok(JSON.parse(w.localStorage.getItem("vault_sort_v1")).key === "amount", "sort remembered");
 
   // ── empty state ──
-  withF(`asF.types = ["int"]; asSetQuery("withdrawal")`);
+  // v8.0.0 (queue #7): a type in Filters and a typed type now count together, so this uses
+  // an account and a number (different kinds still narrow each other).
+  withF(`asF.accs = ["ub"]; asSetQuery("=250")`);
   const sugg = [...w.document.querySelectorAll(".as-sugg button")].map(b => b.textContent);
-  ok(sugg.length === 2 && sugg[0].startsWith("Remove Withdrawals"), "suggestions " + JSON.stringify(sugg));
-  w.document.querySelector(".as-sugg button").click(); ok(E(`asQ`) === "" && cnt("") > 0, "suggestion applies");
+  ok(sugg.length === 2 && sugg[0].startsWith("Remove Exactly $250.00") && sugg[1].startsWith("Remove UBank12 results"), "suggestions " + JSON.stringify(sugg));
+  w.document.querySelectorAll(".as-sugg button")[1].click(); ok(E(`asF.accs.length`) === 0 && cnt("=250") > 0, "suggestion applies");
 
   // ── escaping ──
   reset(); E(`asSetQuery('<img src=x onerror="window.__pwn=1"> <b>x</b>'); asRender();`);
@@ -146,43 +149,43 @@ setTimeout(() => {
   w.localStorage.setItem("vault_search_recent_v1", JSON.stringify(["ok", 5, null, ""])); E(`asLoadRecent()`); ok(JSON.stringify(E(`asRecent`)) === '["ok"]', "junk entries dropped");
 
   // ── entering the page ──
-  E(`asF.types = ["wit"]; asSetQuery("ing"); switchTab("all"); switchTab("report");`);
-  ok(E(`asF.types.length`) === 0 && E(`asQ`) === "", "fresh each visit");
+  // v8.0.0: the filters last while Vault is open (queue #1); Home's ways in set their own.
+  E(`asF.types = ["wit"]; asSetQuery("ing"); switchTab("home"); switchTab("all");`);
+  ok(E(`asF.types[0]`) === "wit" && E(`asQ`) === "ing", "kept between visits");
   E(`asF.types = ["wit"]; render();`); ok(E(`asF.types[0]`) === "wit", "re-render on the page keeps filters");
   E(`switchTab("home"); vhSearchHandoff("ubank jun");`);
-  ok(E(`activeTab`) === "report" && E(`asQ`) === "ubank jun" && E(`document.getElementById("as-q").value`) === "ubank jun" && E(`asF.types.length`) === 0, "Home hands the query over as typed");
+  ok(E(`activeTab`) === "all" && E(`asQ`) === "ubank jun" && E(`document.getElementById("as-q").value`) === "ubank jun" && E(`asF.types.length`) === 0, "Home hands the query over as typed");
 
   // ── print + export use exactly what's shown ──
   reset(); E(`asF.accs = ["ub"]; asF.types = ["int"]; sortKey = "amount"; sortDir = "desc"; asRender(); printSearchResults();`);
   const pdf = E(`window.__pdf`);
-  ok(pdf.title === "Search" && pdf.rows.length === E(`_asRows.length`), "print: same rows");
+  ok(pdf.title === "All transactions" && pdf.rows.length === E(`_asRows.length`), "print: same rows, titled by the dates (v8.0.0)");
   ok(JSON.stringify(pdf.rows.map(r => r.amt)) === JSON.stringify(E(`_asRows.map(t => t.amt)`)), "print: same order");
   ok(/UBank/.test(pdf.subLine) && /Interest/.test(pdf.subLine) && /amount, largest first/.test(pdf.subLine), "print subtitle names filters + sort: " + pdf.subLine);
   ok(pdf.filter === "saved", "print shows deposit cards for interest-only");
-  E(`menuPrint();`); ok(E(`window.__pdf.title`) === "Search", "menu Print / Ctrl+P on this page prints the search");
+  E(`menuPrint();`); ok(E(`window.__pdf.rows.length`) === E(`_asRows.length`), "menu Print / Ctrl+P on this page prints what it shows");
   // v7.1.0: Export opens a tray; what it covers comes from exportScope()
   E(`window.__sc = exportScope();`);
-  ok(E(`exportFileName(__sc, "xlsx")`).match(/^vault-search-\d{4}-\d{2}-\d{2}\.xlsx$/), "export filename " + E(`exportFileName(__sc, "xlsx")`));
+  ok(E(`exportFileName(__sc, "xlsx")`).match(/^vault-all-transactions-\d{4}-\d{2}-\d{2}\.xlsx$/), "export filename (from the dates, v8.0.0) " + E(`exportFileName(__sc, "xlsx")`));
   ok(E(`__sc.rows.length`) === E(`_asRows.length`), "export: same number of rows");
   ok(/UBank/.test(E(`__sc.coverage`)), "export summary says what it covers");
-  ok(E(`document.getElementById("dmenu-export-sub")?.textContent`) === "Search results", "menu sub-label on this page");
-  E(`switchTab("all"); window.__sc = exportScope();`);
+  ok(E(`document.getElementById("dmenu-export-sub")?.textContent`) === `${E("_asRows.length")} transactions · All time · Interest · UBank`, "menu sub-label on this page: " + E(`document.getElementById("dmenu-export-sub")?.textContent`));
+  E(`switchTab("home"); window.__sc = exportScope();`);
   ok(/^vault-all-transactions-/.test(E(`exportFileName(__sc, "xlsx")`)) && E(`__sc.rows.length`) === total, "export elsewhere = all transactions");
 
-  // ── transaction list Total row (All tab) is the net ──
-  E(`switchTab("all"); activeYear = "all-years"; activeMonth = null; activeAccountFilter = "all"; _dataVersion++; render();`);
+  // ── Transactions' Total row is the net, with any filter (v8.0.0: the list's tabs are gone) ──
+  E(`switchTab("all"); asF = asBlank(); asSetQuery(""); _dataVersion++; render();`);
   const listNet = E(`vhAllTx().reduce((s, t) => s + (t.kind === "wit" ? -1 : 1) * convertToGlobal(t.amt, t.cur), 0)`);
-  ok(E(`document.getElementById("foot-total").textContent`) === E(`aud(${listNet})`), "list All-tab Total = net (was gross)");
-  E(`activeTab = "removed"; _dataVersion++; render();`);
-  ok(E(`document.getElementById("foot-total").textContent`) === E(`aud(${E(`vhAllTx().filter(t => t.kind === "wit").reduce((s, t) => s + t.amt, 0)`)})`), "Withdrawn tab total unchanged");
+  ok(E(`document.getElementById("as-foot-total").textContent`) === E(`aud(${listNet})`), "Total = net (was gross)");
+  E(`asF.types = ["wit"]; render();`);
+  ok(E(`document.getElementById("as-foot-total").textContent`) === E(`aud(${-E(`vhAllTx().filter(t => t.kind === "wit").reduce((s, t) => s + t.amt, 0)`)})`), "withdrawals only: the net, negative");
 
-  // ── the list's account pills don't show on Advanced Search ──
-  E(`switchTab("all"); switchTab("report"); renderAccountPills();`);
-  ok(w.document.getElementById("account-pills-wrap").style.display === "none", "list account pills hidden on Advanced Search (even after a re-render)");
-  E(`switchTab("all");`); ok(w.document.getElementById("account-pills-wrap").style.display === "", "and back on the list");
+  // ── the list's account pills are gone (Accounts is in the Filters sheet, v8.0.0) ──
+  ok(!w.document.getElementById("account-pills-wrap") && E(`typeof renderAccountPills`) === "undefined", "no account pills");
+  E(`asF = asBlank(); render();`);
 
   // ── empty vault ──
-  E(`data = {}; _dataVersion++; switchTab("report");`);
+  E(`data = {}; _dataVersion++; switchTab("all");`);
   ok(E(`document.getElementById("as-empty").textContent`) === "No transactions yet. Add your first one with the + button.", "empty vault message");
 
   console.log(`${pass} passed, ${fail} failed; page errors: ${errors.length}`);

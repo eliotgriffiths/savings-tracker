@@ -30,7 +30,7 @@ const roleColor = role => { const el = d.createElement("span"); el.style.color =
 const load = (dep, wit) => E(`triggerCloudSync = () => {}; tombstones = new Set(); yearMode = "calendar";
   accounts = [{ id: "ing", name: "ING", color: "#e8834a", currency: "AUD" }, { id: "ub", name: "UBank", color: "#6aa2d8", currency: "AUD" }];
   data = { "2026": { saved: [["2026-11-02", ${dep}, "d1", 1, null, null, "ing"]], removed: [["2026-11-03", ${wit}, "w1", 2, null, null, "ub"]] } };
-  _dataVersion++; _invalidateYearCache(); activeTab = "all"; activeYear = "all-years"; activeAccountFilter = "all";
+  _dataVersion++; _invalidateYearCache(); activeTab = "all"; asF = asBlank(); asSetQuery("");
   renderSidebar(); renderMain(); vhRenderMonth(); asRender();`);
 
 setTimeout(() => {
@@ -52,13 +52,10 @@ setTimeout(() => {
     ok(color(ft) === want, `${name}: search Total row ${color(ft)}`);
     const hm = d.querySelector("#vh-month-body .vh-month-card.net .vh-month-card-val");
     ok(hm && color(hm) === want, `${name}: Home This Month Net ${hm && color(hm)}`);
-    const sn = d.getElementById("stat-net");
-    ok(color(sn) === want, `${name}: transaction list Net ${color(sn)}`);
-    const lt = d.getElementById("foot-total");
-    ok(color(lt) === want, `${name}: transaction list Total row ${color(lt)}`);
-    const sb = d.getElementById("sidebar-all-net");
-    ok(!sb || color(sb) === want, `${name}: sidebar all-years Net`);
-    ok(![hdr, asNet, ft, hm, sn].some(el => color(el) === GOLD), `${name}: nothing gold`);
+    // v8.0.0: the old list's Net and Total (stat-net, foot-total) and the sidebar's years are
+    // gone; Transactions' Net card and Total row above are the list's now.
+    ok(!d.getElementById("stat-net") && !d.getElementById("foot-total") && !d.getElementById("sidebar-all-net"), `${name}: no second list`);
+    ok(![hdr, asNet, ft, hm].some(el => color(el) === GOLD), `${name}: nothing gold`);
 
     // Print: rendered from the same rows, with the print palette.
     E(`window.__pdf = ""; openPdfWindow({ title: "t", subLine: "", rows: [
@@ -73,11 +70,11 @@ setTimeout(() => {
     ok(!/7a6020/.test(pdf), `${name}: old print gold gone`);
   }
 
-  // Single foreign-currency account path of the list's Net stat.
+  // Single foreign-currency account: the cards in its own currency (v8.0.0: ported from the list).
   E(`accounts.push({ id: "us", name: "USD acc", color: "#999", currency: "USD" }); exchangeRates = Object.assign(exchangeRates || {}, { USD: 1.5 });
      data = { "2026": { saved: [["2026-11-02", 10, "u1", 1, null, null, "us"]], removed: [["2026-11-03", 30, "u2", 2, null, null, "us"]] } };
-     _dataVersion++; _invalidateYearCache(); activeYear = "all-years"; activeAccountFilter = "us"; renderMain();`);
-  ok(color(d.getElementById("stat-net")) === RED, "single foreign account: deficit Net is red");
+     _dataVersion++; _invalidateYearCache(); asF = asBlank(); asF.accs = ["us"]; renderMain();`);
+  ok(color(d.getElementById("as-net")) === RED && /USD/.test(d.getElementById("as-net-l").textContent), "single foreign account: deficit Net is red, in USD");
 
   // v6.12.1 or later, with About matching the footer.
   const vf = d.getElementById("version-footer").textContent.trim();
